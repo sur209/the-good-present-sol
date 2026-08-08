@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "studio": "node --disable-warning=ExperimentalWarning --experimental-strip-types src/server.ts",
+    "studio": "node --env-file-if-exists=../../.env --disable-warning=ExperimentalWarning --experimental-strip-types src/server.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "node --disable-warning=ExperimentalWarning --experimental-strip-types --test src/studio.test.ts"
   },

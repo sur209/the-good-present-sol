@@ -2,4 +2,7 @@ node_modules/
 .astro/
 dist/
 drafts/
+.env
+.env.*
+!.env.example
 .DS_Store

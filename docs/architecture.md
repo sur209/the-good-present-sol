@@ -22,6 +22,12 @@ Draft IDs are the canonical public IDs. Reopening published content preserves th
 
 The Studio stores one validated file at `drafts/{draft-id}.json` using an atomic same-directory rename. `drafts/` is git-ignored by default because questionnaire answers, prompts, generation metadata, and unfinished copy are local working state. Published canonical records under `content/` remain version-controlled. Editors who need draft history must back up or explicitly version that directory outside the default policy.
 
+### AI provider boundary
+
+Guide generation uses one provider-neutral interface. The deterministic mock is the default and keeps the complete workflow available offline. Explicit real-provider mode uses one server-side OpenAI-compatible Chat Completions adapter with OpenAI and DeepSeek configuration profiles. It requires a model and key, uses JSON mode, parses the exact message content, and validates every object with the operation's Zod schema.
+
+Provider configuration and credentials are read from the local server environment. They never enter HTML, browser code, Astro output, drafts, canonical content, or generation metadata. Provider failures retain a typed internal cause while the UI receives only a short sanitized message; complete provider response bodies are not persisted or logged. No Responses API, streaming, tool calling, retry system, SDK, or vendor-specific agent layer is present.
+
 ## Repository structure
 
 ```text

@@ -41,10 +41,11 @@ Use Node 22.12 or newer and npm 9.6.5 or newer. From a clean checkout:
 
 ```sh
 npm ci
-npm run dev
+npm run verify
+npm run studio
 ```
 
-The development server prints the local URL. No database, credentials, globally installed package, or server runtime is required. Published records are read directly from `content/` and validated when Astro starts.
+The Studio prints its loopback URL and defaults to the deterministic offline mock provider. No database, credentials, globally installed package, or production server runtime is required. Run `npm run dev` separately to start the public Astro site.
 
 The root workspace commands are:
 
@@ -61,9 +62,11 @@ The root workspace commands are:
 | `npm run format:check`     | Check formatting without changes                                |
 | `npm run verify`           | Run the important non-interactive checks and production build   |
 
-The Astro launcher disables framework telemetry for deterministic local and CI execution; it does not change any user-level Astro setting. The Studio defaults to `http://127.0.0.1:4322` and stores one validated JSON file per draft under `drafts/`.
+The Astro launcher disables framework telemetry for deterministic local and CI execution; it does not change any user-level Astro setting. The Studio defaults to `http://127.0.0.1:4322`, uses a Spanish interface while producing US English public copy, and stores one validated JSON file per draft under `drafts/`.
 
-Working drafts are intentionally git-ignored: they may contain questionnaire answers and AI prompt metadata that do not belong in public history. Canonical files under `content/` remain version-controlled. Copy or back up `drafts/` explicitly if local draft history is needed.
+Working drafts are intentionally git-ignored: they may contain questionnaire answers and AI prompt metadata that do not belong in public history. Canonical files under `content/` remain version-controlled. Copy or back up `drafts/` explicitly if local draft history is needed. See the complete [editorial workflow](docs/editorial-workflow.md).
+
+To opt into a real provider, copy `.env.example` to `.env`, select the OpenAI or DeepSeek profile, and supply an explicit model and API key. `.env` is git-ignored and loaded only by the local Studio server. See [AI provider configuration](docs/ai-providers.md); mock mode remains the default and is used by all tests.
 
 ## Content and publication
 

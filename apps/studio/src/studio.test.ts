@@ -7,8 +7,16 @@ import { once } from "node:events";
 import test from "node:test";
 import { promisify } from "node:util";
 
+import { z } from "zod";
+
 import {
+  AI_VENDOR_BASE_URLS,
   MockGuideGenerationProvider,
+  OpenAiCompatibleGuideGenerationProvider,
+  ProviderError,
+  createGuideGenerationProvider,
+  parseExactStructuredContent,
+  resolveAiConfiguration,
   type GuideGenerationProvider,
   type StructuredGenerationRequest,
 } from "./ai-provider.ts";
@@ -1134,4 +1142,175 @@ test("publicar una guía y enlazarla desde su hub produce ambas páginas reales"
   assert.equal(guideResult.route, `/${cluster.slug}/${publishedGuide.slug}/`);
   assert.match(hubHtml, new RegExp(`/${cluster.slug}/${publishedGuide.slug}/`));
   assert.match(guideHtml, new RegExp(`href=["']/${cluster.slug}/["']`));
+});
+
+test("configura mock, OpenAI y DeepSeek sin asumir un modelo real", () => {
+  assert.deepEqual(resolveAiConfiguration({}), { provider: "mock" });
+  const shared = {
+    AI_PROVIDER: "openai-compatible",
+    AI_API_KEY: "test-secret",
+    AI_MODEL: "explicit-test-model",
+  };
+  const openai = resolveAiConfiguration(shared);
+  const deepseek = resolveAiConfiguration({ ...shared, AI_VENDOR: "deepseek" });
+
+  assert.equal(openai.provider, "openai-compatible");
+  assert.equal(openai.vendor, "openai");
+  assert.equal(openai.baseUrl, AI_VENDOR_BASE_URLS.openai);
+  assert.equal(openai.timeoutMs, 60_000);
+  assert.equal(deepseek.provider, "openai-compatible");
+  assert.equal(deepseek.vendor, "deepseek");
+  assert.equal(deepseek.baseUrl, AI_VENDOR_BASE_URLS.deepseek);
+  assert.throws(
+    () => resolveAiConfiguration({ ...shared, AI_MODEL: "" }),
+    /AI_MODEL es obligatorio/,
+  );
+  assert.throws(
+    () => resolveAiConfiguration({ ...shared, AI_BASE_URL: "https://user:secret@example.com" }),
+    /sin credenciales/,
+  );
+});
+
+test("el adaptador compatible envía JSON mode y valida el objeto exacto", async () => {
+  const configuration = resolveAiConfiguration({
+    AI_PROVIDER: "openai-compatible",
+    AI_VENDOR: "deepseek",
+    AI_API_KEY: "test-secret",
+    AI_MODEL: "explicit-test-model",
+    AI_TIMEOUT_MS: "500",
+  });
+  assert.equal(configuration.provider, "openai-compatible");
+  let requestedUrl = "";
+  let requestedInit: RequestInit | undefined;
+  const fakeFetch: typeof fetch = async (input, init) => {
+    requestedUrl = String(input);
+    requestedInit = init;
+    return new Response(
+      JSON.stringify({
+        choices: [{ finish_reason: "stop", message: { content: '{"answer":"ready"}' } }],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } },
+    );
+  };
+  const provider = new OpenAiCompatibleGuideGenerationProvider(configuration, fakeFetch);
+  const schema = z.strictObject({ answer: z.literal("ready") });
+  const result = await provider.generateStructured({
+    operation: "outline",
+    prompt: 'Return JSON shaped like {"answer":"ready"}.',
+    input: {},
+    schema,
+  });
+  const body = JSON.parse(String(requestedInit?.body));
+
+  assert.deepEqual(result, { answer: "ready" });
+  assert.equal(requestedUrl, "https://api.deepseek.com/chat/completions");
+  assert.equal(new Headers(requestedInit?.headers).get("authorization"), "Bearer test-secret");
+  assert.equal(body.model, "explicit-test-model");
+  assert.deepEqual(body.response_format, { type: "json_object" });
+  assert.equal(body.stream, false);
+  assert.match(body.messages[0].content, /JSON/);
+  assert.doesNotMatch(String(requestedInit?.body), /test-secret/);
+});
+
+test("rechaza fences, prosa, vacíos, JSON roto y objetos fuera de esquema", () => {
+  const schema = z.strictObject({ answer: z.string() });
+  assert.deepEqual(parseExactStructuredContent('{"answer":"ok"}', schema), { answer: "ok" });
+  for (const content of [
+    '```json\n{"answer":"ok"}\n```',
+    '{"answer":"ok"} trailing prose',
+    "",
+    '{"answer":',
+    "[]",
+  ]) {
+    assert.throws(
+      () => parseExactStructuredContent(content, schema),
+      (error) =>
+        (error instanceof ProviderError && error.code.includes("invalid")) ||
+        (error instanceof ProviderError && error.code === "empty-response"),
+    );
+  }
+  assert.throws(
+    () => parseExactStructuredContent('{"different":"shape"}', schema),
+    (error) => error instanceof ProviderError && error.code === "invalid-schema",
+  );
+});
+
+test("sanitiza autenticación, rate limit, red, timeout, vacíos y rechazos", async () => {
+  const environment = {
+    AI_PROVIDER: "openai-compatible",
+    AI_VENDOR: "openai",
+    AI_API_KEY: "test-secret",
+    AI_MODEL: "explicit-test-model",
+    AI_TIMEOUT_MS: "10",
+  };
+  const schema = z.strictObject({ answer: z.string() });
+  const request = {
+    operation: "outline" as const,
+    prompt: 'Return JSON shaped like {"answer":"ok"}.',
+    input: {},
+    schema,
+  };
+  const failureFrom = async (fakeFetch: typeof fetch) => {
+    try {
+      await createGuideGenerationProvider(environment, fakeFetch).generateStructured(request);
+      assert.fail("Expected provider failure");
+    } catch (error) {
+      assert.ok(error instanceof ProviderError);
+      return error;
+    }
+  };
+
+  const authentication = await failureFrom(
+    async () =>
+      new Response('{"error":"test-secret must never surface"}', {
+        status: 401,
+        headers: { "x-request-id": "request-test" },
+      }),
+  );
+  assert.equal(authentication.code, "authentication");
+  assert.doesNotMatch(authentication.message, /test-secret|must never surface/);
+  assert.equal(
+    authentication.debugSummary(),
+    "code=authentication status=401 requestId=request-test cause=Error",
+  );
+
+  const limited = await failureFrom(async () => new Response("limited", { status: 429 }));
+  assert.equal(limited.code, "rate-limit");
+
+  const network = await failureFrom(async () => {
+    throw new Error("socket unavailable");
+  });
+  assert.equal(network.code, "network");
+  assert.equal(network.cause instanceof Error, true);
+
+  const timeoutFetch: typeof fetch = (_input, init) =>
+    new Promise((_resolve, reject) => {
+      const signal = init?.signal;
+      assert.ok(signal);
+      const fallback = setTimeout(() => reject(new Error("timeout signal did not fire")), 100);
+      const rejectOnAbort = () => {
+        clearTimeout(fallback);
+        reject(signal.reason);
+      };
+      if (signal.aborted) rejectOnAbort();
+      else signal.addEventListener("abort", rejectOnAbort, { once: true });
+    });
+  const timeout = await failureFrom(timeoutFetch);
+  assert.equal(timeout.code, "timeout");
+
+  for (const [payload, code] of [
+    [{ choices: [] }, "empty-response"],
+    [{ choices: [{ message: { content: "" } }] }, "empty-response"],
+    [{ choices: [{ message: { refusal: "unsafe", content: null } }] }, "refusal"],
+    [{ choices: [{ finish_reason: "content_filter", message: { content: null } }] }, "refusal"],
+    [
+      { choices: [{ finish_reason: "length", message: { content: '{"answer":"ok"}' } }] },
+      "truncated",
+    ],
+  ] as const) {
+    const failure = await failureFrom(
+      async () => new Response(JSON.stringify(payload), { status: 200 }),
+    );
+    assert.equal(failure.code, code);
+  }
 });

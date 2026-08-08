@@ -171,6 +171,8 @@ existing recommendation slot
 
 `needs-review` is intentionally not a public value or schema in this stage. The canonical public contract accepts only `editorialStatus: "ready"`, ensuring draft-only workflow metadata cannot publish.
 
+Questionnaire answers, prompts, outlines, provider/model identifiers, generation timestamps, validation notes, and temporary recommendation fields exist only in guide drafts. Provider credentials are neither draft fields nor public fields. Publication constructs a fresh strict public object, so none of that operational state can cross the canonical boundary.
+
 ## Cross-record validation
 
 Validation fails with the affected source file, record ID when discoverable, field or relation, and an actionable reason. It covers malformed records plus duplicate IDs and slugs, filename/ID mismatches, reserved path collisions, missing or cross-cluster references, related-guide duplicates and self-links, invalid axes or intents, missing or inactive products, unsafe URLs, invalid dates, image/alt mismatches, empty guides, duplicate recommendation IDs or positions, non-ready recommendations, missing SEO fields, and unsupported schema versions.

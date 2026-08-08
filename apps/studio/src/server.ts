@@ -10,7 +10,12 @@ import {
   type Product,
 } from "@the-good-present/content-schema";
 
-import { MockGuideGenerationProvider, type GuideGenerationProvider } from "./ai-provider.ts";
+import {
+  MockGuideGenerationProvider,
+  ProviderError,
+  createGuideGenerationProvider,
+  type GuideGenerationProvider,
+} from "./ai-provider.ts";
 import { DraftStore } from "./draft-store.ts";
 import {
   addGuideToGroup,
@@ -1551,6 +1556,9 @@ export function createStudioServer(
 
       send(response, 404, page("No encontrado", "<h1>No encontramos esa pantalla</h1>"));
     } catch (error) {
+      if (error instanceof ProviderError) {
+        console.error(`AI provider error: ${error.debugSummary()}`);
+      }
       const message = error instanceof Error ? error.message : String(error);
       send(
         response,
@@ -1575,9 +1583,17 @@ function configuredPort(value = process.env.STUDIO_PORT): number {
 
 export function startStudio(): void {
   const port = configuredPort();
-  createStudioServer().listen(port, STUDIO_HOST, () => {
-    console.log(`Editorial Studio: http://${STUDIO_HOST}:${port}`);
-  });
+  const provider = createGuideGenerationProvider();
+  createStudioServer(new DraftStore(), new ProductCatalog(), provider).listen(
+    port,
+    STUDIO_HOST,
+    () => {
+      console.log(`Editorial Studio: http://${STUDIO_HOST}:${port}`);
+      console.log(
+        `AI provider: ${provider.providerId}${provider.modelId ? ` (${provider.modelId})` : ""}`,
+      );
+    },
+  );
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) startStudio();
