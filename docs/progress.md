@@ -2,15 +2,15 @@
 
 ## Phase status
 
-| Phase                                  | Status      | Outcome                                                                                                                                 |
-| -------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| 0 — Architecture and content contract  | Complete    | Defined stable identity, public records, routes, replacement semantics, future compatibility, and exclusions                            |
-| 1 — Repository and Astro foundation    | Complete    | Added npm workspaces, Astro 7 static output, strict TypeScript, design tokens, shared layout, route helpers, and portable root commands |
-| 2 — Shared schemas and validation      | Not started | —                                                                                                                                       |
-| 3 — Seed vertical slice                | Not started | —                                                                                                                                       |
-| 4 — Public editorial experience        | Not started | —                                                                                                                                       |
-| 5 — SEO, accessibility, and deployment | Not started | —                                                                                                                                       |
-| 6 — Ponytail audit                     | Not started | —                                                                                                                                       |
+| Phase                                  | Status      | Outcome                                                                                                                                   |
+| -------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| 0 — Architecture and content contract  | Complete    | Defined stable identity, public records, routes, replacement semantics, future compatibility, and exclusions                              |
+| 1 — Repository and Astro foundation    | Complete    | Added npm workspaces, Astro 7 static output, strict TypeScript, design tokens, shared layout, route helpers, and portable root commands   |
+| 2 — Shared schemas and validation      | Complete    | Added strict Zod public schemas, pure cross-record validation, source-aware errors, a canonical file reader, build enforcement, and tests |
+| 3 — Seed vertical slice                | Not started | —                                                                                                                                         |
+| 4 — Public editorial experience        | Not started | —                                                                                                                                         |
+| 5 — SEO, accessibility, and deployment | Not started | —                                                                                                                                         |
+| 6 — Ponytail audit                     | Not started | —                                                                                                                                         |
 
 ## Current contract
 
@@ -24,3 +24,4 @@
 
 - Phase 0: `git diff --check` passed; required architecture, URL-policy, replacement, redirect-boundary, and public-status terms confirmed. Ponytail review kept the phase to the four required documentation files with no speculative code or placeholder subsystems.
 - Phase 1: `npm run verify` passed with 0 Astro diagnostics, 0 TypeScript errors, and 2 route tests; `apps/site/dist/` contained one HTML page and no server artifacts. Ponytail review retained only the build, type, format, and test dependencies in active use; a two-line Node launcher avoided a cross-platform environment dependency.
+- Phase 2: strict checks, 6 tests, standalone validation, and the static build passed. A negative integration check confirmed that an unsafe temporary affiliate URL stops the Astro build with file, record, and field context. Ponytail review kept Zod as the only new runtime dependency and one shared filesystem reader outside the pure package.

@@ -10,6 +10,24 @@ content/guides/{guide-id}.json
 
 The filename stem must equal the record's stable `id`. Files are never named by editable slug. IDs persist across copy, URL, merchant, image, or slug changes.
 
+## Shared package entry points
+
+The future Studio and public site import the same contract from `@the-good-present/content-schema`. Its public entry point exports:
+
+- `productSchema`, `clusterHubSchema`, and `giftGuideSchema` plus their inferred TypeScript types.
+- `PUBLIC_SCHEMA_VERSION`, `PRIMARY_AXES`, and `PUBLIC_CONTENT_DIRECTORIES`.
+- `clusterPath`, `guidePath`, `canonicalUrl`, and the reserved-path constants.
+- `validatePublicContent` for non-throwing validation and `assertValidPublicContent` for build boundaries.
+- `ContentValidationError` and `formatValidationIssues` for actionable output.
+
+Run all canonical record and relation checks from the repository root with:
+
+```text
+npm run content:validate
+```
+
+The exact public build command is `npm run build`; Astro emits only static assets to `apps/site/dist/`. Astro loads the same validator from its configuration, so invoking the site workspace build directly also rejects invalid public content.
+
 ## Shared primitives
 
 ```ts
