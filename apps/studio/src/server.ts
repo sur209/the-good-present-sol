@@ -71,6 +71,10 @@ import {
   RECOMMENDATION_PROMPT_VERSION,
   prepareRecommendationPrompt,
 } from "./recommendation-prompt.ts";
+import {
+  missingAffiliateProgramConfiguration,
+  readAffiliateProgramRecords,
+} from "./modules/affiliate-operations/programs.ts";
 import { readPublicContent } from "./repository.ts";
 
 export const STUDIO_HOST = "127.0.0.1";
@@ -146,7 +150,7 @@ function page(title: string, body: string): string {
 <body>
   <header>
     <a href="/">The Good Present · Studio</a>
-    <nav aria-label="Principal"><a href="/">Borradores</a><a href="/drafts/new">Crear</a><a href="/products">Productos</a></nav>
+    <nav aria-label="Principal"><a href="/">Borradores</a><a href="/drafts/new">Crear</a><a href="/products">Productos</a><a href="/affiliate-programs">Programas afiliados</a></nav>
   </header>
   <main>${body}</main>
 </body>
@@ -351,6 +355,44 @@ function productListPage(catalog: ProductCatalog, url: URL): string {
      </form>
      <p class="muted">${products.length} de ${content.products.length} productos</p>
      <div class="grid">${cards || '<p class="notice">No hay productos que coincidan.</p>'}</div>`,
+  );
+}
+
+function affiliateProgramStatusPage(): string {
+  const records = readAffiliateProgramRecords();
+  const cards = records
+    .map((record) => {
+      if (record.error) {
+        return `<article class="card"><h2>${escapeHtml(record.file)}</h2><p class="error">Configuración inválida: ${escapeHtml(record.error)}</p></article>`;
+      }
+      const program = record.program!;
+      const missing = missingAffiliateProgramConfiguration(program);
+      const status = missing.length
+        ? "Falta configuración"
+        : program.enabled
+          ? "Activo"
+          : "Desactivado";
+      return `<article class="card">
+        <div class="actions"><h2>${escapeHtml(program.id)}</h2><span class="status">${status}</span></div>
+        <dl>
+          <dt>Archivo</dt><dd><code>${escapeHtml(record.file)}</code></dd>
+          <dt>Program ID</dt><dd>${escapeHtml(program.programId ?? "No configurado")}</dd>
+          <dt>Marketplace</dt><dd>${escapeHtml(program.marketplace ?? "No configurado")}</dd>
+          <dt>Store o associate ID</dt><dd>${escapeHtml(program.storeOrAssociateId ?? "No configurado")}</dd>
+          <dt>Tracking IDs permitidos</dt><dd>${escapeHtml(program.allowedTrackingIds.join(", ") || "Ninguno")}</dd>
+          <dt>Disclosure</dt><dd>${escapeHtml(program.disclosureText ?? "No configurado")}</dd>
+          <dt>Versión disclosure</dt><dd>${escapeHtml(program.disclosureVersion ?? "No configurada")}</dd>
+        </dl>
+        ${missing.length ? `<p class="error"><strong>Falta:</strong> ${escapeHtml(missing.join(", "))}.</p>` : '<p class="notice">Configuración completa para revisión editorial.</p>'}
+      </article>`;
+    })
+    .join("");
+  return page(
+    "Programas afiliados",
+    `<div class="actions"><div><h1>Programas afiliados</h1><p>Estado local de programas y configuración editorial no pública.</p></div></div>
+     <p class="notice">Esta pantalla no genera enlaces, importa reportes ni guarda secretos. Las credenciales futuras deben vivir en el proceso del servidor.</p>
+     ${cards || '<p class="notice">No hay programas configurados. Agregá un JSON en <code>editorial-data/affiliate-programs/</code>.</p>'}
+     <p class="muted">La configuración de afiliados nunca entra en <code>content/</code> ni en la salida estática de Astro.</p>`,
   );
 }
 
@@ -1005,6 +1047,8 @@ function guidePreviewPage(draft: GuideDraft): string {
     .map((recommendation) => {
       const product = recommendation.productId ? products.get(recommendation.productId) : undefined;
       const destination = product ? productDestination(product) : undefined;
+      const isAffiliate = Boolean(destination && product?.affiliateUrl === destination);
+      const linkRel = isAffiliate ? "sponsored nofollow noopener" : "nofollow noopener";
       return `<article class="card">
         <p class="muted">Recomendación ${recommendation.position}</p>
         <h2>${escapeHtml(recommendation.heading ?? product?.name ?? recommendation.slotLabel)}</h2>
@@ -1013,7 +1057,7 @@ function guidePreviewPage(draft: GuideDraft): string {
         <p><strong>Por qué encaja:</strong> ${escapeHtml(recommendation.whyItFits ?? "Falta este motivo.")}</p>
         ${recommendation.bestFor ? `<p><strong>Ideal para:</strong> ${escapeHtml(recommendation.bestFor)}</p>` : ""}
         ${recommendation.considerations ? `<p><strong>Consideraciones:</strong> ${escapeHtml(recommendation.considerations)}</p>` : ""}
-        ${destination && product ? `<p><a href="${escapeHtml(destination)}" target="_blank" rel="sponsored nofollow noopener">Ver en ${escapeHtml(product.merchant)}</a></p>` : ""}
+        ${destination && product ? `<p><a href="${escapeHtml(destination)}" target="_blank" rel="${linkRel}">${isAffiliate ? "Ver en" : "Ver producto en"} ${escapeHtml(product.merchant)}</a></p>` : ""}
       </article>`;
     })
     .join("");
@@ -1500,6 +1544,10 @@ export function createStudioServer(
       }
       if (method === "GET" && url.pathname === "/products") {
         send(response, 200, productListPage(catalog, url));
+        return;
+      }
+      if (method === "GET" && url.pathname === "/affiliate-programs") {
+        send(response, 200, affiliateProgramStatusPage());
         return;
       }
       if (method === "GET" && url.pathname === "/products/new") {

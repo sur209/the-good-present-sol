@@ -163,5 +163,7 @@ export type GuideRecommendation = z.infer<typeof guideRecommendationSchema>;
 export type GiftGuide = z.infer<typeof giftGuideSchema>;
 
 export function productDestination(product: Product): string | undefined {
-  return product.affiliateUrl ?? product.productUrl;
+  return [product.affiliateUrl, product.productUrl].find(
+    (value) => value && safeHttpUrlSchema.safeParse(value).success,
+  );
 }

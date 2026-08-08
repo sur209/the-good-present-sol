@@ -14,6 +14,7 @@
 | 7 — Publication integration | Complete | Added strict draft-to-public transforms, stable-ID create/update semantics, full candidate-graph validation, atomic canonical writes, preserved publication dates, explicit commit/push messaging, and an isolated real Astro publication build              |
 | 8 — Provider compatibility  | Complete | Added one server-side Chat Completions adapter, explicit OpenAI and DeepSeek profiles, mock-by-default env validation, defensive exact-JSON/Zod parsing, sanitized typed failures, credential boundaries, operator docs, and clean-lockfile verification     |
 | 9 — Ponytail audit          | Complete | Centralized canonical candidate replacement and validation, deduplicated generation metadata, removed redundant mock validation and unused API surface, added form-boundary URL checks, corrected stale docs, and confirmed no removable dependency or route |
+| 10 — Affiliate operations   | Complete | Centralized validated merchant destinations, separated affiliate and ordinary link semantics, added strict AI URL-boundary coverage, and added non-public program records plus a read-only Studio status page                                                |
 
 ## Phase status
 
@@ -32,6 +33,8 @@
 - Source of truth: stable-ID-named JSON files under `content/`.
 - Shared boundary: pure schemas, validation, error formatting, and route helpers in `packages/content-schema/`.
 - Public output: static Astro assets in `apps/site/dist/`.
+- Merchant destinations: validated affiliate-first resolution from the central product catalog; no internal outbound redirect exists.
+- Affiliate operations: non-public records under `editorial-data/affiliate-programs/` and a read-only Studio status page; no secrets or automatic link generation.
 - URL policy: only differentiated, substantial editorial intents receive routes; taxonomies never create pages.
 - MVP scope: Nurse Gifts hub plus graduation, practical, and under-$25 guides.
 
@@ -48,6 +51,7 @@
 - Editorial Studio Phase 8: 41 Studio tests cover default mock mode, OpenAI and DeepSeek base profiles, explicit real models, JSON-mode request shape, exact message parsing, fences/trailing prose/malformed JSON/schema rejection, authentication, rate limits, network failure, timeouts, empty choices/content, refusals, truncation, and credential-safe errors without network calls. A clean `npm ci` installed 292 packages with 0 reported vulnerabilities, then `npm run verify` passed all 47 tests, content validation, 0 Astro diagnostics, and the 9-page build. Ponytail full used native `fetch`, `AbortSignal`, and Node env loading with no provider SDK or new dependency.
 - Editorial Studio Phase 9: the whole-repository Ponytail audit reviewed dependencies, exports, routes, prompts, filesystem code, Studio rendering, and styles. It found no removable dependency, dead route, client script, prompt field, or replaceable filesystem layer. The bounded refactor centralized candidate-record replacement and validation, deduplicated generation metadata, removed redundant mock schema passes and unused public types, and added URL validation at the form boundary for a net reduction of 6 lines across Studio source. `npm run verify` passed all 47 tests, content validation, strict TypeScript, 0 Astro diagnostics, and the 9-page build.
 
+- Editorial Studio Phase 10: added the affiliate operating contract, central destination tests, safe affiliate/ordinary link rendering checks, strict AI URL-field rejection, non-public program configuration, and the local status page. `npm run verify` passed formatting, all workspace type checks, 53 workspace tests (46 Studio tests), validation of 11 products/1 cluster/3 guides, 0 Astro diagnostics, and the 9-page static build; the artifact assertions found no affiliate-program identifiers in Astro output.
 - Phase 0: `git diff --check` passed; required architecture, URL-policy, replacement, redirect-boundary, and public-status terms confirmed. Ponytail review kept the phase to the four required documentation files with no speculative code or placeholder subsystems.
 - Phase 1: `npm run verify` passed with 0 Astro diagnostics, 0 TypeScript errors, and 2 route tests; `apps/site/dist/` contained one HTML page and no server artifacts. Ponytail review retained only the build, type, format, and test dependencies in active use; a two-line Node launcher avoided a cross-platform environment dependency.
 - Phase 2: strict checks, 6 tests, standalone validation, and the static build passed. A negative integration check confirmed that an unsafe temporary affiliate URL stops the Astro build with file, record, and field context. Ponytail review kept Zod as the only new runtime dependency and one shared filesystem reader outside the pure package.

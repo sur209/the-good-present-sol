@@ -62,6 +62,10 @@ import {
   validateProductUrl,
 } from "./product-catalog.ts";
 import { prepareRecommendationPrompt } from "./recommendation-prompt.ts";
+import {
+  missingAffiliateProgramConfiguration,
+  readAffiliateProgramRecords,
+} from "./modules/affiliate-operations/programs.ts";
 import { Publisher, clusterDraftToPublic, guideDraftToPublic } from "./publication.ts";
 import { REPOSITORY_ROOT, atomicWriteJson, readPublicContent } from "./repository.ts";
 import { STUDIO_HOST, createStudioServer } from "./server.ts";
@@ -229,6 +233,40 @@ test("acepta sólo URLs HTTP(S) absolutas", () => {
   assert.equal(validateProductUrl("/relative"), false);
 });
 
+test("lee configuración de afiliados sin secretos y detecta faltantes", () => {
+  const records = readAffiliateProgramRecords();
+  assert.equal(records.length, 1);
+  const program = records[0]!.program;
+  assert.ok(program);
+  assert.equal(program.programId, "amazon-associates");
+  assert.deepEqual(missingAffiliateProgramConfiguration(program), [
+    "store or associate identifier",
+    "allowed tracking ID",
+  ]);
+  assert.equal("apiKey" in program, false);
+  assert.equal("secret" in program, false);
+});
+
+test("muestra el estado de afiliados sólo dentro del Studio", async (context) => {
+  const directory = await mkdtemp(join(tmpdir(), "good-present-affiliate-status-"));
+  const server = createStudioServer(new DraftStore(directory));
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(async () => {
+    server.close();
+    await rm(directory, { recursive: true, force: true });
+  });
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+
+  const response = await fetch(`http://${STUDIO_HOST}:${address.port}/affiliate-programs`);
+  const html = await response.text();
+  assert.equal(response.status, 200);
+  assert.match(html, /amazon-associates/);
+  assert.match(html, /store or associate identifier/);
+  assert.doesNotMatch(html, /apiKey|password|accessToken|clientSecret/i);
+});
+
 test("escribe productos por ID y bloquea desactivar uno publicado", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-catalog-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
@@ -284,6 +322,10 @@ test("expone búsqueda y alta manual de productos por HTTP", async (context) => 
   const listResponse = await fetch(`${origin}/products?q=tumbler&status=active`);
   assert.equal(listResponse.status, 200);
   assert.match(await listResponse.text(), /Leak-Resistant Insulated Tumbler/);
+  const unsafeReturnPage = await fetch(
+    `${origin}/products/new?returnTo=${encodeURIComponent("https://evil.example")}`,
+  );
+  assert.doesNotMatch(await unsafeReturnPage.text(), /evil\.example/);
   const productDirectory = join(repository, "content", "products");
   const beforeCount = (await readdir(productDirectory)).length;
 
@@ -303,6 +345,75 @@ test("expone búsqueda y alta manual de productos por HTTP", async (context) => 
   assert.equal(createResponse.status, 303);
   assert.equal(createResponse.headers.get("location"), "/products?saved=1");
   assert.equal((await readdir(productDirectory)).length, beforeCount + 1);
+});
+
+test("renderiza sólo destinos del catálogo y distingue enlaces afiliados", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-affiliate-build-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const ordinary = catalog.get("product_badge-reel");
+  const { affiliateUrl: _ordinaryAffiliateUrl, ...ordinaryWithoutAffiliate } = ordinary;
+  await catalog.save({
+    ...ordinaryWithoutAffiliate,
+    productUrl: "https://merchant.test/badge-reel",
+  });
+  const unavailable = catalog.get("product_sleep-mask");
+  const {
+    affiliateUrl: _unavailableAffiliateUrl,
+    productUrl: _unavailableProductUrl,
+    ...unavailableWithoutLinks
+  } = unavailable;
+  await catalog.save(unavailableWithoutLinks);
+
+  await execFileAsync(process.execPath, [join(REPOSITORY_ROOT, "scripts", "astro.mjs"), "build"], {
+    cwd: join(REPOSITORY_ROOT, "apps", "site"),
+    env: { ...process.env, CONTENT_REPOSITORY_ROOT: repository },
+    maxBuffer: 10 * 1024 * 1024,
+    windowsHide: true,
+  });
+  const graduation = await readFile(
+    join(REPOSITORY_ROOT, "apps", "site", "dist", "nurse-gifts", "graduation", "index.html"),
+    "utf8",
+  );
+  const practical = await readFile(
+    join(REPOSITORY_ROOT, "apps", "site", "dist", "nurse-gifts", "practical", "index.html"),
+    "utf8",
+  );
+  const card = (html: string, productName: string): string => {
+    const nameIndex = html.lastIndexOf(productName);
+    assert.ok(nameIndex >= 0, `Missing ${productName}`);
+    const start = html.lastIndexOf("<article", nameIndex);
+    const end = html.indexOf("</article>", nameIndex);
+    assert.ok(start >= 0 && end >= 0);
+    return html.slice(start, end + "</article>".length);
+  };
+
+  const affiliateCard = card(graduation, "Local Coffee Shop Gift Card");
+  assert.match(affiliateCard, /href="https:\/\/example\.com\/gifts\/coffee-shop-card"/);
+  assert.match(affiliateCard, /target="_blank"/);
+  assert.match(affiliateCard, /rel="sponsored nofollow noopener"/);
+
+  const ordinaryCard = card(graduation, "Low-Profile Badge Reel");
+  assert.match(ordinaryCard, /href="https:\/\/merchant\.test\/badge-reel"/);
+  assert.match(ordinaryCard, /View product at/);
+  assert.match(ordinaryCard, /rel="nofollow noopener"/);
+  assert.doesNotMatch(ordinaryCard, /sponsored/);
+
+  const unavailableCard = card(practical, "Blackout Sleep Mask");
+  assert.doesNotMatch(unavailableCard, /href=/);
+
+  const staticFiles = await readdir(join(REPOSITORY_ROOT, "apps", "site", "dist"), {
+    recursive: true,
+  });
+  const staticHtml = (
+    await Promise.all(
+      staticFiles
+        .filter((file) => file.endsWith(".html"))
+        .map((file) => readFile(join(REPOSITORY_ROOT, "apps", "site", "dist", file), "utf8")),
+    )
+  ).join("\n");
+  assert.doesNotMatch(staticHtml, /amazon-associates|storeOrAssociateId|allowedTrackingIds/);
 });
 
 test("reabre un hub publicado conservando identidad y ruta", () => {
@@ -866,6 +977,18 @@ test("rechaza respuestas finales que cambian identidad o agregan URLs", async ()
       return changed as T;
     },
   };
+  const injectedAffiliateField: GuideGenerationProvider = {
+    providerId: "affiliate-field-injection",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      const response = await mock.generateStructured(request);
+      if (request.operation !== "final-guide") return response;
+      const changed = structuredClone(
+        response as { recommendations: Array<Record<string, unknown>> },
+      );
+      changed.recommendations[0]!.affiliateUrl = "https://example.com/attacker";
+      return changed as T;
+    },
+  };
   const injectedUrl: GuideGenerationProvider = {
     providerId: "url-injection",
     async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
@@ -881,6 +1004,7 @@ test("rechaza respuestas finales que cambian identidad o agregan URLs", async ()
 
   await assert.rejects(generateFinalGuide(draft, content, changedIdentity), /cambió IDs/);
   await assert.rejects(generateFinalGuide(draft, content, injectedUrl), /no puede contener URLs/);
+  await assert.rejects(generateFinalGuide(draft, content, injectedAffiliateField));
 });
 
 test("regenera sólo el slot reemplazado y lo devuelve a ready", async () => {

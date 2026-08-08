@@ -15,7 +15,7 @@ The filename stem must equal the record's stable `id`. Files are never named by 
 The Studio and public site import the same contract from `@the-good-present/content-schema`. Its public entry point exports:
 
 - `productSchema`, `clusterHubSchema`, and `giftGuideSchema` plus their inferred TypeScript types.
-- `productDestination` for the canonical affiliate-first merchant destination fallback.
+- `productDestination` for the canonical validated affiliate-first merchant destination fallback.
 - `PUBLIC_SCHEMA_VERSION`, `PRIMARY_AXES`, and `PUBLIC_CONTENT_DIRECTORIES`.
 - `clusterPath`, `guidePath`, `canonicalUrl`, and the reserved-path constants.
 - `validatePublicContent` for non-throwing validation and `assertValidPublicContent` for build boundaries.
@@ -182,7 +182,13 @@ The public build consumes the same validation result as the standalone validatio
 
 ## Affiliate links
 
-An outbound merchant control renders only when a validated destination exists. Affiliate destinations are manually controlled data and use safe absolute HTTP(S) URLs. Public links open in a new tab with `rel="sponsored nofollow noopener"`, identify the merchant, and never pass through an internal redirect. Development example URLs must be labeled as demos in both content and UI and replaced before production launch.
+Public guides resolve every outbound destination through the selected stable product ID and the central product catalog. `productDestination(product)` uses a valid `affiliateUrl` first, then a valid ordinary `productUrl`; it returns no destination when neither URL is valid. The guide record never stores a merchant URL.
+
+An affiliate destination is manually controlled editorial data and uses a safe absolute HTTP(S) URL. Affiliate links open in a new tab with `rel="sponsored nofollow noopener"`. An ordinary product URL opens in a new tab with `rel="nofollow noopener"` and uses a `View product at…` label, so a direct merchant link is not presented as an affiliate link. Products without a valid destination render no merchant CTA. Links are direct external anchors; there is no internal open-redirect route or URL parameter.
+
+The global disclosure is the public `/affiliate-disclosure/` page, linked from the site footer and available independently of any one guide. A guide places a short disclosure band near its commercial links when it contains affiliate destinations; the CTA itself identifies the merchant and uses the affiliate relation. Ordinary product links do not trigger an affiliate-only disclosure band. Development `example.com` URLs must be labeled as demos in both content and UI and replaced before production launch.
+
+Affiliate-program account configuration is non-public Studio data under `editorial-data/affiliate-programs/`. It records program identity, marketplace, store or associate identifier, allowed tracking IDs, disclosure text/version, and enabled state. It does not contain secrets, does not modify product records, and is not read by Astro.
 
 ## Studio and manual publishing workflow
 

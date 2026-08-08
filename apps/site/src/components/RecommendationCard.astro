@@ -12,7 +12,9 @@ interface Props {
 
 const { recommendation, product } = Astro.props;
 const destination = productDestination(product);
+const isAffiliate = Boolean(destination && destination === product.affiliateUrl);
 const isDemo = destination ? new URL(destination).hostname === "example.com" : false;
+const linkRel = isAffiliate ? "sponsored nofollow noopener" : "nofollow noopener";
 const merchantLabel = product.merchant.replace(" (demo)", "");
 const initials = product.name
   .split(/\s+/)
@@ -63,10 +65,12 @@ const accent = `recommendation--accent-${((recommendation.position - 1) % 4) + 1
             class="button button--small"
             href={destination}
             target="_blank"
-            rel="sponsored nofollow noopener"
+            rel={linkRel}
             aria-label={`${isDemo ? "View demo for" : "View"} ${product.name} at ${product.merchant} (opens in a new tab)`}
           >
-            {isDemo ? `View demo at ${merchantLabel}` : `View at ${product.merchant}`}
+            {isDemo
+              ? `View demo at ${merchantLabel}`
+              : `${isAffiliate ? "View at" : "View product at"} ${product.merchant}`}
           </a>
         )
       }

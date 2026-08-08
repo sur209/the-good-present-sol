@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import type { ClusterHub, GiftGuide, Product } from "./schemas.ts";
+import { productDestination, type ClusterHub, type GiftGuide, type Product } from "./schemas.ts";
 import {
   assertValidPublicContent,
   formatValidationIssues,
@@ -85,6 +85,25 @@ test("parses a complete valid public content graph", () => {
   assert.equal(content.products[0]?.id, product.id);
   assert.equal(content.clusters[0]?.navigationGroups[0]?.guideIds[0], guide.id);
   assert.equal(content.guides[0]?.recommendations[0]?.productId, product.id);
+});
+
+test("resolves one safe merchant destination from the central product record", () => {
+  const { affiliateUrl: _affiliateUrl, ...withoutAffiliate } = product;
+  const { affiliateUrl: _affiliateUrl2, productUrl: _productUrl, ...withoutLinks } = product;
+  assert.equal(productDestination(product), product.affiliateUrl);
+  assert.equal(
+    productDestination({ ...withoutAffiliate, productUrl: "https://merchant.test/item" }),
+    "https://merchant.test/item",
+  );
+  assert.equal(productDestination(withoutLinks), undefined);
+  assert.equal(
+    productDestination({
+      ...product,
+      affiliateUrl: "javascript:alert(1)",
+      productUrl: "https://merchant.test/fallback",
+    } as Product),
+    "https://merchant.test/fallback",
+  );
 });
 
 test("reports source-aware schema, URL, date, image, SEO, and draft-state failures", () => {

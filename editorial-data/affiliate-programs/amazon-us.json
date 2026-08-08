@@ -1,0 +1,9 @@
+{
+  "id": "amazon-us",
+  "programId": "amazon-associates",
+  "marketplace": "amazon.com",
+  "allowedTrackingIds": [],
+  "disclosureText": "The Good Present may earn a commission from qualifying purchases made through merchant links.",
+  "disclosureVersion": "2026-08-08",
+  "enabled": false
+}

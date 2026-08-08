@@ -46,7 +46,10 @@ const recommendations = [...guide.recommendations]
     product: productsById.get(recommendation.productId)!,
   }));
 const relatedGuides = (guide.relatedGuideIds ?? []).map((guideId) => guidesById.get(guideId)!);
-const hasCommercialLinks = recommendations.some(({ product }) => productDestination(product));
+const hasAffiliateLinks = recommendations.some(({ product }) => {
+  const destination = productDestination(product);
+  return Boolean(destination && destination === product.affiliateUrl);
+});
 const hasDemoLinks = recommendations.some(({ product }) => {
   const destination = productDestination(product);
   return destination ? new URL(destination).hostname === "example.com" : false;
@@ -157,7 +160,7 @@ const hasDemoLinks = recommendations.some(({ product }) => {
     </section>
 
     {
-      hasCommercialLinks && (
+      hasAffiliateLinks && (
         <aside class="guide-disclosure shell">
           <p>
             <strong>Affiliate disclosure:</strong> The Good Present may earn a commission from
