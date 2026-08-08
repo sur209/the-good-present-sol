@@ -36,10 +36,10 @@ The shared package remains independent of Astro and UI code. Repository tooling 
 
 ## Page types
 
-| Type | Responsibility | Product list |
-| --- | --- | --- |
-| `cluster-hub` | Introduce one coherent cluster and curate navigation to published child guides | Optional; not required for the MVP |
-| `gift-guide` | Resolve one differentiated intent with an explicit primary axis and editorial recommendations | Required and references catalog products by ID |
+| Type          | Responsibility                                                                                | Product list                                   |
+| ------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `cluster-hub` | Introduce one coherent cluster and curate navigation to published child guides                | Optional; not required for the MVP             |
+| `gift-guide`  | Resolve one differentiated intent with an explicit primary axis and editorial recommendations | Required and references catalog products by ID |
 
 A hub group is an editorial navigation choice, not a taxonomy result. It may reuse a guide in multiple groups, may only contain guides in its own cluster, and creates no route of its own. Empty groups do not render.
 
@@ -117,4 +117,3 @@ GitHub Pages cannot configure server-side HTTP status redirects, and static HTML
 ## Explicit exclusions
 
 The MVP excludes the local Studio, AI generation, brainstorming, legacy-content migration, authentication, databases, CMS integration, product imports, production API routes, redirect infrastructure, public search, facets, accounts, comments, wish lists, carts, product-detail pages, programmatic taxonomy pages, non-nurse clusters, and Spanish public pages.
-

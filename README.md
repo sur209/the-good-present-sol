@@ -17,7 +17,31 @@ The first vertical slice is the **Nurse Gifts** cluster. Published content is na
 
 The implementation is proceeding through the phases recorded in [docs/progress.md](docs/progress.md).
 
+## Local commands
+
+Use Node 22.12 or newer and npm 9.6.5 or newer:
+
+```sh
+npm install
+npm run dev
+```
+
+The root workspace commands are:
+
+| Command                    | Purpose                                                         |
+| -------------------------- | --------------------------------------------------------------- |
+| `npm run dev`              | Start the public Astro site locally                             |
+| `npm run build`            | Validate content and build static assets into `apps/site/dist/` |
+| `npm run preview`          | Preview the built public site                                   |
+| `npm run typecheck`        | Check all TypeScript and Astro files                            |
+| `npm run test`             | Run workspace tests                                             |
+| `npm run content:validate` | Validate all canonical public content                           |
+| `npm run format`           | Format tracked source files                                     |
+| `npm run format:check`     | Check formatting without changes                                |
+| `npm run verify`           | Run the important non-interactive checks and production build   |
+
+No globally installed command is required. The Astro launcher disables framework telemetry for deterministic local and CI execution; it does not change any user-level Astro setting.
+
 ## Deliberate MVP boundary
 
 This stage does not include an Editorial Studio, AI generation, brainstorming, legacy migration, authentication, a database, product imports, a CMS, public search or filters, accounts, comments, wish lists, carts, product-detail pages, localization routes, or redirects.
-

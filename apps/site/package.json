@@ -1,0 +1,19 @@
+{
+  "name": "@the-good-present/site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node ../../scripts/astro.mjs dev",
+    "build": "node ../../scripts/astro.mjs build",
+    "preview": "node ../../scripts/astro.mjs preview",
+    "typecheck": "node ../../scripts/astro.mjs check"
+  },
+  "dependencies": {
+    "@the-good-present/content-schema": "*",
+    "astro": "7.2.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10"
+  }
+}

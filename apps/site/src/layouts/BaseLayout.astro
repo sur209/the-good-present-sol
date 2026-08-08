@@ -1,0 +1,44 @@
+---
+import { PUBLIC_PATHS } from "@the-good-present/content-schema";
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="site-header">
+      <a class="brand" href={PUBLIC_PATHS.home} aria-label="The Good Present home">
+        <span aria-hidden="true">✦</span>
+        The Good Present
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href={PUBLIC_PATHS.giftGuides}>Gift guides</a>
+        <a href={PUBLIC_PATHS.about}>About</a>
+      </nav>
+    </header>
+    <main id="main-content">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <p>Thoughtful gifts, chosen with care.</p>
+      <nav aria-label="Footer navigation">
+        <a href={PUBLIC_PATHS.affiliateDisclosure}>Affiliate disclosure</a>
+      </nav>
+    </footer>
+  </body>
+</html>

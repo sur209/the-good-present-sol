@@ -16,13 +16,7 @@ The filename stem must equal the record's stable `id`. Files are never named by 
 type PageType = "cluster-hub" | "gift-guide";
 
 type PrimaryAxis =
-  | "general"
-  | "occasion"
-  | "recipient"
-  | "career-stage"
-  | "work-context"
-  | "gift-style"
-  | "budget";
+  "general" | "occasion" | "recipient" | "career-stage" | "work-context" | "gift-style" | "budget";
 ```
 
 Public dates are ISO 8601 calendar dates. Public content is `en-US`; monetary budget context is `USD`. Slugs are lowercase URL-safe path segments. URLs accept only absolute `http:` and `https:` values.
@@ -178,4 +172,3 @@ Until the local Studio exists:
 3. Reference products, clusters, and guides by stable ID.
 4. Run `npm run content:validate`.
 5. Run `npm run verify` before merging.
-
