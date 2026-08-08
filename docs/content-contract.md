@@ -15,6 +15,7 @@ The filename stem must equal the record's stable `id`. Files are never named by 
 The Studio and public site import the same contract from `@the-good-present/content-schema`. Its public entry point exports:
 
 - `productSchema`, `clusterHubSchema`, and `giftGuideSchema` plus their inferred TypeScript types.
+- `productDestination` for the canonical affiliate-first merchant destination fallback.
 - `PUBLIC_SCHEMA_VERSION`, `PRIMARY_AXES`, and `PUBLIC_CONTENT_DIRECTORIES`.
 - `clusterPath`, `guidePath`, `canonicalUrl`, and the reserved-path constants.
 - `validatePublicContent` for non-throwing validation and `assertValidPublicContent` for build boundaries.

@@ -6,6 +6,7 @@ import {
   PUBLIC_SCHEMA_VERSION,
   clusterPath,
   guidePath,
+  productDestination,
   type PrimaryAxis,
   type Product,
 } from "@the-good-present/content-schema";
@@ -580,6 +581,7 @@ function clusterPreviewPage(draft: ClusterDraft): string {
      ${warnings.length ? `<aside class="error"><strong>Vista previa incompleta</strong><ul>${warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul></aside>` : ""}
      <nav aria-label="Migas de pan"><span>Inicio</span> › <span>Guías de regalos</span> › <strong>${escapeHtml(draft.title ?? "Hub sin título")}</strong></nav>
      <p class="muted">Ruta canónica: <code>${escapeHtml(clusterRoute)}</code></p>
+     <section class="card"><h2>Metadata de publicación</h2><dl><dt>Título SEO</dt><dd>${escapeHtml(draft.seoTitle ?? "Falta el título SEO.")}</dd><dt>Descripción SEO</dt><dd>${escapeHtml(draft.seoDescription ?? "Falta la descripción SEO.")}</dd></dl></section>
      <header><div><h1>${escapeHtml(draft.title ?? "Hub sin título")}</h1><p>${escapeHtml(draft.excerpt ?? "Falta el extracto.")}</p></div></header>
      <section class="card"><h2>Introducción</h2><p>${escapeHtml(draft.introduction ?? "Falta la introducción.")}</p></section>
      <section><h2>Explorar guías</h2><div class="grid">${groups || '<p class="notice">No hay grupos con guías para mostrar.</p>'}</div></section>`,
@@ -1002,7 +1004,7 @@ function guidePreviewPage(draft: GuideDraft): string {
     .sort((left, right) => left.position - right.position)
     .map((recommendation) => {
       const product = recommendation.productId ? products.get(recommendation.productId) : undefined;
-      const destination = product?.affiliateUrl ?? product?.productUrl;
+      const destination = product ? productDestination(product) : undefined;
       return `<article class="card">
         <p class="muted">Recomendación ${recommendation.position}</p>
         <h2>${escapeHtml(recommendation.heading ?? product?.name ?? recommendation.slotLabel)}</h2>
@@ -1029,6 +1031,7 @@ function guidePreviewPage(draft: GuideDraft): string {
      ${validation.errors.length ? `<aside class="error"><strong>Vista previa incompleta</strong><ul>${validation.errors.map((error) => `<li>${escapeHtml(error)}</li>`).join("")}</ul></aside>` : ""}
      <nav aria-label="Migas de pan"><span>Inicio</span> › <span>Guías de regalos</span> › ${cluster ? `<a href="${escapeHtml(clusterPath(cluster.slug))}">${escapeHtml(cluster.title)}</a>` : "Cluster sin definir"} › <strong>${escapeHtml(draft.title ?? "Guía sin título")}</strong></nav>
      <p class="muted">Ruta canónica: <code>${escapeHtml(validation.route ?? "(ruta incompleta)")}</code></p>
+     <section class="card"><h2>Metadata de publicación</h2><dl><dt>Eje editorial</dt><dd>${draft.primaryAxis ? escapeHtml(axisLabels[draft.primaryAxis]) : "Falta el eje editorial."}</dd><dt>Intención</dt><dd>${escapeHtml(draft.primaryIntent ?? "Falta la intención principal.")}</dd>${draft.budgetContext ? `<dt>Presupuesto</dt><dd>${escapeHtml(draft.budgetContext.label)} USD</dd>` : ""}<dt>Título SEO</dt><dd>${escapeHtml(draft.seoTitle ?? "Falta el título SEO.")}</dd><dt>Descripción SEO</dt><dd>${escapeHtml(draft.seoDescription ?? "Falta la descripción SEO.")}</dd></dl></section>
      <header><div><p><a href="${cluster ? escapeHtml(clusterPath(cluster.slug)) : "#"}">← ${escapeHtml(cluster?.title ?? "Cluster")}</a></p><h1>${escapeHtml(draft.title ?? "Guía sin título")}</h1><p>${escapeHtml(draft.excerpt ?? "Falta el extracto.")}</p></div></header>
      <section class="card"><p>${escapeHtml(draft.introduction ?? "Falta la introducción.")}</p></section>
      <section><h2>Recomendaciones</h2><div class="grid">${recommendations || '<p class="notice">No hay recomendaciones.</p>'}</div></section>

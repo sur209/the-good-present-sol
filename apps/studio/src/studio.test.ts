@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { cp, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { once } from "node:events";
@@ -63,7 +63,7 @@ import {
 } from "./product-catalog.ts";
 import { prepareRecommendationPrompt } from "./recommendation-prompt.ts";
 import { Publisher, clusterDraftToPublic, guideDraftToPublic } from "./publication.ts";
-import { REPOSITORY_ROOT, readPublicContent } from "./repository.ts";
+import { REPOSITORY_ROOT, atomicWriteJson, readPublicContent } from "./repository.ts";
 import { STUDIO_HOST, createStudioServer } from "./server.ts";
 
 const execFileAsync = promisify(execFile);
@@ -157,6 +157,20 @@ test("guarda, relee y reemplaza borradores con escritura atómica", async (conte
   assert.equal(
     JSON.parse(await readFile(join(directory, "guide_atomic.json"), "utf8")).id,
     created.id,
+  );
+});
+
+test("limpia el temporal si falla el reemplazo atómico", async (context) => {
+  const directory = await mkdtemp(join(tmpdir(), "good-present-write-failure-"));
+  context.after(() => rm(directory, { recursive: true, force: true }));
+  const target = join(directory, "guide_failure.json");
+  await mkdir(target);
+
+  await assert.rejects(atomicWriteJson(target, { id: "guide_failure" }));
+  assert.deepEqual(await readdir(target), []);
+  assert.deepEqual(
+    (await readdir(directory)).filter((name) => name.endsWith(".tmp")),
+    [],
   );
 });
 
@@ -373,7 +387,9 @@ test("reabre, previsualiza y valida un hub por HTTP", async (context) => {
   const editorResponse = await fetch(`${origin}/drafts/cluster_nurse-gifts`);
   assert.match(await editorResponse.text(), /Navegación curada/);
   const previewResponse = await fetch(`${origin}/drafts/cluster_nurse-gifts/preview`);
-  assert.match(await previewResponse.text(), /Ruta canónica: <code>\/nurse-gifts\/<\/code>/);
+  const previewHtml = await previewResponse.text();
+  assert.match(previewHtml, /Ruta canónica: <code>\/nurse-gifts\/<\/code>/);
+  assert.match(previewHtml, /Metadata de publicación/);
   const validationResponse = await fetch(`${origin}/drafts/cluster_nurse-gifts/validate`);
   assert.match(await validationResponse.text(), /listo para la publicación/);
   assert.equal((await store.read("cluster_nurse-gifts")).status, "ready-to-publish");
@@ -420,6 +436,12 @@ test("construye un prompt de esquema determinista y sin selección comercial", (
   assert.match(first.prompt, /Do not suggest additional public pages/);
   assert.equal(first.input.requestedRecommendationCount, 4);
   assert.equal(first.input.currency, "USD");
+  assert.deepEqual(first.input.slotIds, [
+    "guide_outline_slot-1",
+    "guide_outline_slot-2",
+    "guide_outline_slot-3",
+    "guide_outline_slot-4",
+  ]);
 });
 
 test("rechaza esquemas truncados, conteos inconsistentes e IDs repetidos", () => {
@@ -469,6 +491,7 @@ test("el mock genera slots validados y guarda metadatos sin productos", async ()
   assert.equal(generated.status, "outline-ready");
   assert.equal(generated.outline?.slots.length, 5);
   assert.equal(generated.recommendations.length, 5);
+  assert.equal(generated.recommendations[0]!.id, "guide_mock-outline_slot-1");
   assert.ok(generated.recommendations.every((slot) => !slot.productId));
   assert.ok(generated.recommendations.every((slot) => slot.editorialStatus === "unassigned"));
   assert.equal(generated.generationMetadata?.providerId, "mock");
@@ -492,6 +515,32 @@ test("valida de nuevo la salida aunque el proveedor viole su contrato", async ()
   };
 
   await assert.rejects(generateGuideOutline(draft, content, invalidProvider));
+});
+
+test("rechaza IDs de recomendación elegidos por el proveedor", async () => {
+  const content = new ProductCatalog().read();
+  const draft = guideDraftSchema.parse({
+    ...createGuideDraft("guide_provider-identity"),
+    clusterId: content.clusters[0]!.id,
+    primaryAxis: "general",
+    primaryIntent: "Choose a useful nurse gift.",
+    questionnaire: normalizeQuestionnaire({ giftCount: "3" }),
+  });
+  const mock = new MockGuideGenerationProvider();
+  const provider: GuideGenerationProvider = {
+    providerId: "identity-test",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      const generated = await mock.generateStructured(request);
+      const changed = structuredClone(generated as { slots: Array<{ id: string }> });
+      changed.slots[0]!.id = "provider_owned-id";
+      return changed as T;
+    },
+  };
+
+  await assert.rejects(
+    generateGuideOutline(draft, content, provider),
+    /IDs estables asignados por el Studio/,
+  );
 });
 
 test("muestra el prompt antes de generar un esquema mock por HTTP", async (context) => {
@@ -597,6 +646,12 @@ test("seleccionar y reemplazar conserva la identidad editorial del slot", async 
   assert.equal(result.heading, "Existing heading");
   assert.equal(result.editorialDescription, "Existing description");
   assert.equal(result.editorialStatus, "needs-review");
+  assert.ok(content.products.some((product) => product.id === firstProduct.id));
+  assert.ok(
+    content.guides.some((guide) =>
+      guide.recommendations.some((recommendation) => recommendation.productId === firstProduct.id),
+    ),
+  );
 });
 
 test("bloquea duplicados accidentales y admite confirmación explícita", async () => {
@@ -938,6 +993,8 @@ test("genera, previsualiza, reemplaza y regenera una recomendación por HTTP", a
   const preview = await fetch(`${origin}/drafts/${draft.id}/preview`);
   const previewHtml = await preview.text();
   assert.match(previewHtml, /Ruta canónica: <code>\/nurse-gifts\/http-final\/<\/code>/);
+  assert.match(previewHtml, /Metadata de publicación/);
+  assert.match(previewHtml, /Título SEO/);
   assert.doesNotMatch(previewHtml, /Structured input|promptVersion/);
   const validation = await fetch(`${origin}/drafts/${draft.id}/validate`);
   assert.match(await validation.text(), /lista para la publicación/);
@@ -1052,6 +1109,19 @@ test("publica por ID estable, conserva publishedAt y rechaza conflictos antes de
     readFile(join(repository, "content", "guides", `${conflicting.id}.json`), "utf8"),
     /ENOENT/,
   );
+
+  const canonicalFile = join(repository, "content", "guides", `${existing.id}.json`);
+  const beforeInvalidRelationship = await readFile(canonicalFile, "utf8");
+  const current = publisher.read();
+  const invalidRelationship = guideDraftSchema.parse({
+    ...reopenGuideDraft(
+      current.guides.find((guide) => guide.id === existing.id)!,
+      current,
+    ),
+    relatedGuideIds: ["guide_missing"],
+  });
+  await assert.rejects(publisher.publishGuide(invalidRelationship), /no está publicada/);
+  assert.equal(await readFile(canonicalFile, "utf8"), beforeInvalidRelationship);
   assert.doesNotThrow(() => readPublicContent(repository));
 });
 
@@ -1123,6 +1193,57 @@ test("publicar una guía y enlazarla desde su hub produce ambas páginas reales"
     afterGuide,
   );
   await publisher.publishCluster(clusterDraft, new Date("2026-08-09T13:02:00.000Z"));
+
+  const linked = publisher.read();
+  const linkedGuide = linked.guides.find((item) => item.id === draft.id)!;
+  const revisedGuideSlug = `${linkedGuide.slug}-revised`;
+  const guideUpdate = guideDraftSchema.parse({
+    ...reopenGuideDraft(linkedGuide, linked),
+    slug: revisedGuideSlug,
+    title: `${linkedGuide.title} Updated`,
+  });
+  const guideUpdateResult = await publisher.publishGuide(
+    guideUpdate,
+    new Date("2026-08-10T13:03:00.000Z"),
+  );
+  const afterGuideUpdate = publisher.read();
+  const finalGuide = afterGuideUpdate.guides.find((item) => item.id === draft.id)!;
+  const revisedClusterSlug = `${cluster.slug}-revised`;
+  await publisher.publishCluster(
+    clusterDraftSchema.parse({
+      ...reopenClusterDraft(afterGuideUpdate.clusters.find((item) => item.id === cluster.id)!),
+      slug: revisedClusterSlug,
+    }),
+    new Date("2026-08-10T13:04:00.000Z"),
+  );
+
+  const catalog = new ProductCatalog(repository);
+  const directProduct = catalog.get(finalGuide.recommendations[0]!.productId);
+  const otherGuide = publisher
+    .read()
+    .guides.find(
+      (guide) =>
+        guide.id !== finalGuide.id &&
+        guide.recommendations.some(
+          (recommendation) => recommendation.productId === directProduct.id,
+        ),
+    );
+  assert.ok(otherGuide);
+  const otherRecommendation = structuredClone(
+    otherGuide.recommendations.find(
+      (recommendation) => recommendation.productId === directProduct.id,
+    )!,
+  );
+  const { affiliateUrl: _affiliateUrl, ...productWithoutAffiliate } = directProduct;
+  const directUrl = "https://example.com/direct-product-only";
+  await catalog.save({ ...productWithoutAffiliate, productUrl: directUrl });
+  const afterProductUpdate = catalog.read();
+  assert.deepEqual(
+    afterProductUpdate.guides
+      .find((guide) => guide.id === otherGuide.id)!
+      .recommendations.find((recommendation) => recommendation.id === otherRecommendation.id),
+    otherRecommendation,
+  );
   assert.doesNotThrow(() => readPublicContent(repository));
 
   await execFileAsync(process.execPath, [join(REPOSITORY_ROOT, "scripts", "astro.mjs"), "build"], {
@@ -1132,14 +1253,38 @@ test("publicar una guía y enlazarla desde su hub produce ambas páginas reales"
     windowsHide: true,
   });
   const output = join(REPOSITORY_ROOT, "apps", "site", "dist");
-  const hubHtml = await readFile(join(output, cluster.slug, "index.html"), "utf8");
+  const hubHtml = await readFile(join(output, revisedClusterSlug, "index.html"), "utf8");
   const guideHtml = await readFile(
-    join(output, cluster.slug, publishedGuide.slug, "index.html"),
+    join(output, revisedClusterSlug, revisedGuideSlug, "index.html"),
+    "utf8",
+  );
+  const otherGuideHtml = await readFile(
+    join(output, revisedClusterSlug, otherGuide.slug, "index.html"),
     "utf8",
   );
   assert.equal(guideResult.route, `/${cluster.slug}/${publishedGuide.slug}/`);
-  assert.match(hubHtml, new RegExp(`/${cluster.slug}/${publishedGuide.slug}/`));
-  assert.match(guideHtml, new RegExp(`href=["']/${cluster.slug}/["']`));
+  assert.equal(guideUpdateResult.route, `/${cluster.slug}/${revisedGuideSlug}/`);
+  assert.equal(finalGuide.id, publishedGuide.id);
+  assert.equal(finalGuide.publishedAt, publishedGuide.publishedAt);
+  assert.equal(finalGuide.updatedAt, "2026-08-10");
+  assert.match(hubHtml, new RegExp(`/${revisedClusterSlug}/${revisedGuideSlug}/`));
+  assert.match(guideHtml, new RegExp(`href=["']/${revisedClusterSlug}/["']`));
+  assert.match(guideHtml, /Updated/);
+  assert.match(guideHtml, new RegExp(directUrl));
+  assert.match(otherGuideHtml, new RegExp(directUrl));
+  const finalCluster = publisher.read().clusters.find((item) => item.id === cluster.id)!;
+  assert.equal(finalCluster.slug, revisedClusterSlug);
+  assert.equal(finalCluster.publishedAt, cluster.publishedAt);
+  assert.equal(
+    finalCluster.navigationGroups.some((group) => group.guideIds.includes(finalGuide.id)),
+    true,
+  );
+  await assert.doesNotReject(
+    readFile(join(repository, "content", "guides", `${finalGuide.id}.json`), "utf8"),
+  );
+  await assert.doesNotReject(
+    readFile(join(repository, "content", "clusters", `${cluster.id}.json`), "utf8"),
+  );
 });
 
 test("configura mock, OpenAI y DeepSeek sin asumir un modelo real", () => {

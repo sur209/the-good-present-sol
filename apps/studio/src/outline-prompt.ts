@@ -10,22 +10,54 @@ import {
 
 export const OUTLINE_PROMPT_VERSION = "outline-v1";
 
-export const outlinePromptInputSchema = z.strictObject({
-  language: z.literal("en-US"),
-  currency: z.literal("USD"),
-  cluster: z.strictObject({
-    id: z.string().min(1),
-    title: z.string().min(1),
-    excerpt: z.string().min(1),
-    introduction: z.string().min(1),
-  }),
-  primaryAxis: primaryAxisSchema,
-  primaryIntent: z.string().trim().min(1),
-  taxonomies: draftTaxonomiesSchema.optional(),
-  budgetContext: draftBudgetContextSchema.optional(),
-  questionnaire: guideQuestionnaireSchema,
-  requestedRecommendationCount: z.number().int().min(3).max(20),
-});
+function stableSlotIds(draft: GuideDraft): string[] {
+  const existing = [...draft.recommendations].sort((left, right) => left.position - right.position);
+  const used = new Set(existing.map((recommendation) => recommendation.id));
+  return Array.from({ length: draft.questionnaire.giftCount }, (_, index) => {
+    const existingId = existing[index]?.id;
+    if (existingId) return existingId;
+    const base = `${draft.id}_slot-${index + 1}`;
+    let id = base;
+    for (let suffix = 2; used.has(id); suffix += 1) id = `${base}-${suffix}`;
+    used.add(id);
+    return id;
+  });
+}
+
+export const outlinePromptInputSchema = z
+  .strictObject({
+    language: z.literal("en-US"),
+    currency: z.literal("USD"),
+    cluster: z.strictObject({
+      id: z.string().min(1),
+      title: z.string().min(1),
+      excerpt: z.string().min(1),
+      introduction: z.string().min(1),
+    }),
+    primaryAxis: primaryAxisSchema,
+    primaryIntent: z.string().trim().min(1),
+    taxonomies: draftTaxonomiesSchema.optional(),
+    budgetContext: draftBudgetContextSchema.optional(),
+    questionnaire: guideQuestionnaireSchema,
+    requestedRecommendationCount: z.number().int().min(3).max(20),
+    slotIds: z.array(z.string().trim().min(1)).min(3).max(20),
+  })
+  .superRefine((input, context) => {
+    if (input.slotIds.length !== input.requestedRecommendationCount) {
+      context.addIssue({
+        code: "custom",
+        path: ["slotIds"],
+        message: "The server-assigned slot ID count must match the requested recommendation count.",
+      });
+    }
+    if (new Set(input.slotIds).size !== input.slotIds.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["slotIds"],
+        message: "Server-assigned slot IDs must be unique.",
+      });
+    }
+  });
 
 export type OutlinePromptInput = z.infer<typeof outlinePromptInputSchema>;
 
@@ -44,7 +76,7 @@ export function buildOutlinePrompt(input: OutlinePromptInput): string {
     recommendationCount: validated.requestedRecommendationCount,
     slots: [
       {
-        id: "slot-1",
+        id: validated.slotIds[0]!,
         label: "Generic gift-slot label",
         intent: "Need this slot addresses",
         searchTerms: ["catalog search term"],
@@ -66,7 +98,7 @@ Rules:
 - Do not select or name a commercial product, merchant, affiliate URL, price, rating, review, discount, stock state, availability claim, or unsupported specification.
 - Do not write the complete guide or product-specific claims.
 - Do not suggest additional public pages, taxonomy combinations, routes, or article ideas.
-- Slot IDs must be unique, stable-looking values such as slot-1.
+- Preserve the supplied slot IDs exactly and return them in the supplied order.
 
 Structured input:
 ${JSON.stringify(validated, null, 2)}`;
@@ -100,6 +132,7 @@ export function prepareOutlinePrompt(
     ...(draft.budgetContext ? { budgetContext: draft.budgetContext } : {}),
     questionnaire: draft.questionnaire,
     requestedRecommendationCount: draft.questionnaire.giftCount,
+    slotIds: stableSlotIds(draft),
   });
   return { version: OUTLINE_PROMPT_VERSION, input, prompt: buildOutlinePrompt(input) };
 }

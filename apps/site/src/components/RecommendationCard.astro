@@ -1,5 +1,9 @@
 ---
-import type { GuideRecommendation, Product } from "@the-good-present/content-schema";
+import {
+  productDestination,
+  type GuideRecommendation,
+  type Product,
+} from "@the-good-present/content-schema";
 
 interface Props {
   recommendation: GuideRecommendation;
@@ -7,7 +11,7 @@ interface Props {
 }
 
 const { recommendation, product } = Astro.props;
-const destination = product.affiliateUrl;
+const destination = productDestination(product);
 const isDemo = destination ? new URL(destination).hostname === "example.com" : false;
 const merchantLabel = product.merchant.replace(" (demo)", "");
 const initials = product.name

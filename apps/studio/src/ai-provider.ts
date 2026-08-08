@@ -327,7 +327,7 @@ export class MockGuideGenerationProvider implements GuideGenerationProvider {
         editorialAngle: `Use ${input.primaryAxis} as the primary lens while keeping every slot aligned with the stated intent.`,
         recommendationCount: input.requestedRecommendationCount,
         slots: Array.from({ length: input.requestedRecommendationCount }, (_, index) => ({
-          id: `slot-${index + 1}`,
+          id: input.slotIds[index]!,
           label: `${input.primaryAxis} gift slot ${index + 1}`,
           intent: `A distinct, practical option that supports: ${input.primaryIntent}`,
           searchTerms: [

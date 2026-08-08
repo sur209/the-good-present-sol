@@ -83,6 +83,9 @@ export async function generateGuideOutline(
     schema: guideOutlineSchema,
   });
   const outline = guideOutlineSchema.parse(generated);
+  if (outline.slots.some((slot, index) => slot.id !== prepared.input.slotIds[index])) {
+    throw new TypeError("La respuesta cambiÃ³ los IDs estables asignados por el Studio.");
+  }
   return guideDraftSchema.parse({
     ...draft,
     status: "outline-ready",

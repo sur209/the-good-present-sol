@@ -18,6 +18,7 @@ export {
   guideRecommendationSchema,
   pageTypeSchema,
   primaryAxisSchema,
+  productDestination,
   productSchema,
   safeHttpUrlSchema,
 } from "./schemas.ts";
