@@ -1,10 +1,14 @@
 ---
+import { PUBLIC_PATHS } from "@the-good-present/content-schema";
+
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout
   title="Page Not Found | The Good Present"
   description="The requested page could not be found."
+  canonicalPath={PUBLIC_PATHS.notFound}
+  noindex
 >
   <section class="not-found shell">
     <div class="not-found__mark" aria-hidden="true">404</div>

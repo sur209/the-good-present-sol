@@ -1,9 +1,10 @@
 ---
-import { clusterPath } from "@the-good-present/content-schema";
+import { PUBLIC_PATHS, clusterPath } from "@the-good-present/content-schema";
 
 import GuideCard from "../components/GuideCard.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { clustersById, content } from "../lib/content.js";
+import { websiteStructuredData } from "../lib/structured-data.js";
 
 const featuredCluster = content.clusters[0]!;
 const latestGuides = [...content.guides]
@@ -16,6 +17,8 @@ const latestGuides = [...content.guides]
 <BaseLayout
   title="The Good Present | Gifts chosen with care"
   description="Warm, practical gift guides for the people who care for, protect, teach, and help others."
+  canonicalPath={PUBLIC_PATHS.home}
+  structuredData={websiteStructuredData(Astro.site!)}
 >
   <section class="home-hero shell">
     <div>

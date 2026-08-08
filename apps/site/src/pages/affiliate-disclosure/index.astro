@@ -1,10 +1,13 @@
 ---
+import { PUBLIC_PATHS } from "@the-good-present/content-schema";
+
 import BaseLayout from "../../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout
   title="Affiliate Disclosure | The Good Present"
   description="A plain-language explanation of affiliate links and editorial independence at The Good Present."
+  canonicalPath={PUBLIC_PATHS.affiliateDisclosure}
 >
   <article class="prose-page shell">
     <header class="prose-page__hero prose-page__hero--compact">

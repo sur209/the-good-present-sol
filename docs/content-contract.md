@@ -183,7 +183,33 @@ An outbound merchant control renders only when a validated destination exists. A
 
 ## Manual publishing workflow
 
-Until the local Studio exists:
+Until the local Studio exists, every record is edited as JSON and named by stable ID.
+
+### Add a product
+
+1. Choose a durable ID that describes identity, not a current URL or mutable display name.
+2. Create `content/products/{product-id}.json`; the filename stem and `id` must match.
+3. Add original catalog-neutral copy, a merchant, and only verified editorial metadata.
+4. Add `productUrl` or `affiliateUrl` only when an editor controls a safe absolute HTTP(S) destination.
+5. If `image` is present, add meaningful `imageAlt`. Do not add stock, availability, ratings, reviews, discounts, or unsupported exact prices.
+
+### Add a cluster hub
+
+1. Apply the public-URL rule in `docs/architecture.md`; a set of tags is not enough.
+2. Create `content/clusters/{cluster-id}.json` with a stable ID and an editable, globally unique, non-reserved slug.
+3. Curate `navigationGroups` by stable guide ID. Every listed guide must already be a published guide in this cluster.
+4. Leave a group empty only as a deliberate editorial placeholder; the public site does not render it.
+
+### Add a gift guide
+
+1. Confirm the intent is differentiated, substantial, and better than a section in an existing guide.
+2. Create `content/guides/{guide-id}.json`; keep the stable ID independent from the slug.
+3. Reference an existing published cluster, choose exactly one controlled `primaryAxis`, and write an explicit `primaryIntent`.
+4. Reference products by stable ID. Keep each recommendation ID and position unique and publish only `editorialStatus: "ready"`.
+5. Add only same-cluster published guides to `relatedGuideIds`. Secondary taxonomies remain metadata and never create routes.
+6. For a budget guide, record the editorial constraint in `budgetContext`; do not generate the guide from a price query.
+
+### Validate and publish
 
 1. Add or edit one stable-ID-named JSON file in the appropriate canonical directory.
 2. Keep slugs independent from IDs and apply the public-URL editorial rule in `docs/architecture.md`.

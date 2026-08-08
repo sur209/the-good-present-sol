@@ -96,7 +96,26 @@ Software must never create a route merely because tags or taxonomy values exist.
 
 ## Build and deployment boundary
 
-The public app uses Astro strict TypeScript and static output. Content validation runs independently and again as part of the production build, so invalid public records cannot deploy. The build output is `apps/site/dist/`. GitHub Pages receives only that static directory; no server runtime, API route, credentials, database, or Studio process is involved.
+The public app uses Astro strict TypeScript and static output. Content validation runs independently and when Astro loads its configuration, so invalid public records cannot build or deploy. The exact public build command is `npm run build`; output is `apps/site/dist/`. GitHub Pages receives only that static directory. No server runtime, API route, AI credential, database, or Studio process is involved.
+
+`npm run verify` checks formatting, strict TypeScript and Astro diagnostics, unit tests, content through the build boundary, and the production build. The public `site` is `https://thegoodpresent.com`; canonical metadata and sitemap URLs use centralized public paths from the shared package.
+
+## GitHub Pages and custom domain
+
+`.github/workflows/deploy-pages.yml` runs on pushes to `main` and manual dispatch. It installs with `npm ci`, then runs content validation, formatting checks, type checking, tests, and the public build in separate steps. It verifies and uploads `apps/site/dist/`, then deploys the artifact with GitHub's official Pages actions.
+
+`apps/site/public/CNAME` contains `thegoodpresent.com` and Astro copies it into the built artifact. GitHub's custom Actions publishing flow treats the custom-domain value in repository Pages settings as authoritative and may ignore an artifact `CNAME`; the file remains part of this contract because the MVP explicitly requires it and because it makes the intended domain visible in the static output.
+
+Initial repository-owner setup:
+
+1. In **Settings → Pages**, choose **GitHub Actions** as the publishing source.
+2. Verify ownership of `thegoodpresent.com` in GitHub before use.
+3. Add `thegoodpresent.com` as the custom domain in Pages settings.
+4. Configure the apex DNS records supported by the DNS provider using GitHub's current custom-domain instructions; avoid wildcard DNS records.
+5. Optionally configure `www` as GitHub recommends for the apex-domain variant.
+6. Enable **Enforce HTTPS** once DNS and certificate provisioning complete.
+
+DNS values can change, so this repository intentionally does not duplicate IP addresses. Use GitHub's current [custom-domain documentation](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site) when configuring DNS.
 
 ## Future compatibility
 

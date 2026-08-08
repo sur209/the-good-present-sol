@@ -1,10 +1,13 @@
 ---
+import { PUBLIC_PATHS } from "@the-good-present/content-schema";
+
 import BaseLayout from "../../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout
   title="About Our Editorial Method | The Good Present"
   description="How The Good Present builds useful, trustworthy gift guides around people, moments, and real routines."
+  canonicalPath={PUBLIC_PATHS.about}
 >
   <article class="prose-page shell">
     <header class="prose-page__hero">

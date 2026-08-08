@@ -2,6 +2,7 @@
 import {
   PUBLIC_PATHS,
   clusterPath,
+  guidePath,
   type ClusterHub,
   type GiftGuide,
 } from "@the-good-present/content-schema";
@@ -18,6 +19,7 @@ import {
   primaryAxisLabels,
   productsById,
 } from "../../../lib/content.js";
+import { breadcrumbStructuredData, guideStructuredData } from "../../../lib/structured-data.js";
 
 export function getStaticPaths() {
   return content.guides.map((guide) => {
@@ -35,6 +37,7 @@ interface Props {
 }
 
 const { cluster, guide } = Astro.props;
+const publicPath = guidePath(cluster.slug, guide.slug);
 const recommendations = [...guide.recommendations]
   .sort((left, right) => left.position - right.position)
   .map((recommendation) => ({
@@ -48,7 +51,24 @@ const hasDemoLinks = recommendations.some(({ product }) =>
 );
 ---
 
-<BaseLayout title={guide.seoTitle} description={guide.seoDescription} theme="guide">
+<BaseLayout
+  title={guide.seoTitle}
+  description={guide.seoDescription}
+  canonicalPath={publicPath}
+  theme="guide"
+  ogType="article"
+  publishedAt={guide.publishedAt}
+  updatedAt={guide.updatedAt}
+  structuredData={[
+    breadcrumbStructuredData(Astro.site!, [
+      { name: "Home", path: PUBLIC_PATHS.home },
+      { name: "Gift guides", path: PUBLIC_PATHS.giftGuides },
+      { name: cluster.title, path: clusterPath(cluster.slug) },
+      { name: guide.title, path: publicPath },
+    ]),
+    guideStructuredData(Astro.site!, cluster, guide),
+  ]}
+>
   <div class="shell">
     <Breadcrumbs
       items={[

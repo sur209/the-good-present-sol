@@ -10,6 +10,7 @@ import Breadcrumbs from "../../components/Breadcrumbs.astro";
 import GuideCard from "../../components/GuideCard.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { content, guidesById, primaryAxisLabels } from "../../lib/content.js";
+import { breadcrumbStructuredData, clusterStructuredData } from "../../lib/structured-data.js";
 
 export function getStaticPaths() {
   return content.clusters.map((cluster) => ({
@@ -24,6 +25,7 @@ interface Props {
 
 const { cluster } = Astro.props;
 const clusterGuides = content.guides.filter((guide) => guide.clusterId === cluster.id);
+const publicPath = clusterPath(cluster.slug);
 const navigationGroups = cluster.navigationGroups
   .map((group) => ({
     ...group,
@@ -32,7 +34,20 @@ const navigationGroups = cluster.navigationGroups
   .filter((group) => group.guides.length > 0);
 ---
 
-<BaseLayout title={cluster.seoTitle} description={cluster.seoDescription} theme="hub">
+<BaseLayout
+  title={cluster.seoTitle}
+  description={cluster.seoDescription}
+  canonicalPath={publicPath}
+  theme="hub"
+  structuredData={[
+    breadcrumbStructuredData(Astro.site!, [
+      { name: "Home", path: PUBLIC_PATHS.home },
+      { name: "Gift guides", path: PUBLIC_PATHS.giftGuides },
+      { name: cluster.title, path: publicPath },
+    ]),
+    clusterStructuredData(Astro.site!, cluster, clusterGuides),
+  ]}
+>
   <div class="shell">
     <Breadcrumbs
       items={[

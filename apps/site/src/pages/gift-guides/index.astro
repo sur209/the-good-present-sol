@@ -1,5 +1,5 @@
 ---
-import { clusterPath } from "@the-good-present/content-schema";
+import { PUBLIC_PATHS, clusterPath } from "@the-good-present/content-schema";
 
 import GuideCard from "../../components/GuideCard.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
@@ -9,6 +9,7 @@ import { content } from "../../lib/content.js";
 <BaseLayout
   title="Gift Guides | The Good Present"
   description="Browse every published gift cluster and human-edited guide from The Good Present."
+  canonicalPath={PUBLIC_PATHS.giftGuides}
 >
   <header class="listing-hero shell">
     <p class="eyebrow">All gift guides</p>
