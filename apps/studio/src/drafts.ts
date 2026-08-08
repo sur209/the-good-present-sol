@@ -51,13 +51,34 @@ export const guideOutlineSlotSchema = z.strictObject({
   budgetHint: optionalText,
 });
 
-export const guideOutlineSchema = z.strictObject({
-  provisionalTitle: z.string().trim().min(1),
-  audienceSummary: z.string().trim().min(1),
-  editorialAngle: z.string().trim().min(1),
-  recommendationCount: z.number().int().min(MIN_GIFT_COUNT).max(MAX_GIFT_COUNT),
-  slots: z.array(guideOutlineSlotSchema).min(MIN_GIFT_COUNT).max(MAX_GIFT_COUNT),
-});
+export const guideOutlineSchema = z
+  .strictObject({
+    provisionalTitle: z.string().trim().min(1),
+    audienceSummary: z.string().trim().min(1),
+    editorialAngle: z.string().trim().min(1),
+    recommendationCount: z.number().int().min(MIN_GIFT_COUNT).max(MAX_GIFT_COUNT),
+    slots: z.array(guideOutlineSlotSchema).min(MIN_GIFT_COUNT).max(MAX_GIFT_COUNT),
+  })
+  .superRefine((outline, context) => {
+    if (outline.recommendationCount !== outline.slots.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["slots"],
+        message: "La cantidad declarada debe coincidir con la cantidad de slots.",
+      });
+    }
+    const ids = new Set<string>();
+    outline.slots.forEach((slot, index) => {
+      if (ids.has(slot.id)) {
+        context.addIssue({
+          code: "custom",
+          path: ["slots", index, "id"],
+          message: `El ID de slot "${slot.id}" está duplicado.`,
+        });
+      }
+      ids.add(slot.id);
+    });
+  });
 
 export const draftRecommendationSchema = z.strictObject({
   id: contentIdSchema,
@@ -103,6 +124,27 @@ export const clusterDraftSchema = z.strictObject({
   ),
 });
 
+export const draftTaxonomiesSchema = z.strictObject({
+  occasions: optionalTextList.optional(),
+  recipients: optionalTextList.optional(),
+  careerStages: optionalTextList.optional(),
+  workContexts: optionalTextList.optional(),
+  giftStyles: optionalTextList.optional(),
+  budgetLabels: optionalTextList.optional(),
+});
+
+export const draftBudgetContextSchema = z
+  .strictObject({
+    currency: z.literal("USD"),
+    label: z.string().trim().min(1),
+    minimum: z.number().nonnegative().optional(),
+    maximum: z.number().nonnegative().optional(),
+  })
+  .refine(
+    ({ minimum, maximum }) => minimum === undefined || maximum === undefined || minimum <= maximum,
+    { path: ["maximum"], message: "El máximo debe ser mayor o igual que el mínimo." },
+  );
+
 export const guideDraftSchema = z.strictObject({
   ...draftBaseShape,
   draftType: z.literal("gift-guide"),
@@ -118,29 +160,8 @@ export const guideDraftSchema = z.strictObject({
   language: z.literal("en-US"),
   primaryAxis: primaryAxisSchema.optional(),
   primaryIntent: optionalText,
-  taxonomies: z
-    .strictObject({
-      occasions: optionalTextList.optional(),
-      recipients: optionalTextList.optional(),
-      careerStages: optionalTextList.optional(),
-      workContexts: optionalTextList.optional(),
-      giftStyles: optionalTextList.optional(),
-      budgetLabels: optionalTextList.optional(),
-    })
-    .optional(),
-  budgetContext: z
-    .strictObject({
-      currency: z.literal("USD"),
-      label: z.string().trim().min(1),
-      minimum: z.number().nonnegative().optional(),
-      maximum: z.number().nonnegative().optional(),
-    })
-    .refine(
-      ({ minimum, maximum }) =>
-        minimum === undefined || maximum === undefined || minimum <= maximum,
-      { path: ["maximum"], message: "El máximo debe ser mayor o igual que el mínimo." },
-    )
-    .optional(),
+  taxonomies: draftTaxonomiesSchema.optional(),
+  budgetContext: draftBudgetContextSchema.optional(),
   relatedGuideIds: z.array(contentIdSchema),
   questionnaire: guideQuestionnaireSchema,
   generationMetadata: generationMetadataSchema.optional(),

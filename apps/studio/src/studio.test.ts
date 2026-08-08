@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { once } from "node:events";
 import test from "node:test";
 
+import { MockGuideGenerationProvider, type GuideGenerationProvider } from "./ai-provider.ts";
 import {
   addGuideToGroup,
   moveGuideInGroup,
@@ -22,7 +23,10 @@ import {
   createGuideDraft,
   editorialDraftSchema,
   guideDraftSchema,
+  guideOutlineSchema,
 } from "./drafts.ts";
+import { generateGuideOutline, normalizeQuestionnaire } from "./guide-editor.ts";
+import { prepareOutlinePrompt } from "./outline-prompt.ts";
 import {
   ProductCatalog,
   matchProducts,
@@ -311,4 +315,170 @@ test("reabre, previsualiza y valida un hub por HTTP", async (context) => {
   const validationResponse = await fetch(`${origin}/drafts/cluster_nurse-gifts/validate`);
   assert.match(await validationResponse.text(), /listo para la publicación/);
   assert.equal((await store.read("cluster_nurse-gifts")).status, "ready-to-publish");
+});
+
+test("normaliza respuestas opcionales y aplica el valor predeterminado", () => {
+  assert.deepEqual(normalizeQuestionnaire({ recipient: "  ", giftCount: "" }), {
+    giftCount: DEFAULT_GIFT_COUNT,
+  });
+  assert.deepEqual(
+    normalizeQuestionnaire({
+      recipient: "  night-shift nurses  ",
+      interests: "  reading and travel ",
+      giftCount: "12",
+    }),
+    {
+      recipient: "night-shift nurses",
+      interests: "reading and travel",
+      giftCount: 12,
+    },
+  );
+  assert.throws(() => normalizeQuestionnaire({ giftCount: "2" }));
+  assert.throws(() => normalizeQuestionnaire({ giftCount: "21" }));
+  assert.throws(() => normalizeQuestionnaire({ giftCount: "4.5" }));
+});
+
+test("construye un prompt de esquema determinista y sin selección comercial", () => {
+  const content = new ProductCatalog().read();
+  const draft = guideDraftSchema.parse({
+    ...createGuideDraft("guide_outline"),
+    clusterId: content.clusters[0]!.id,
+    primaryAxis: "budget",
+    primaryIntent: "Help a friend choose a thoughtful nurse gift under $50.",
+    taxonomies: { recipients: ["nurses"], budgetLabels: ["under $50"] },
+    budgetContext: { currency: "USD", label: "Under $50", maximum: 50 },
+    questionnaire: normalizeQuestionnaire({ recipient: "a nurse friend", giftCount: "4" }),
+  });
+  const first = prepareOutlinePrompt(draft, content);
+  const second = prepareOutlinePrompt(draft, content);
+
+  assert.equal(first.prompt, second.prompt);
+  assert.match(first.prompt, /exactly one JSON object/);
+  assert.match(first.prompt, /Do not select or name a commercial product/);
+  assert.match(first.prompt, /Do not suggest additional public pages/);
+  assert.equal(first.input.requestedRecommendationCount, 4);
+  assert.equal(first.input.currency, "USD");
+});
+
+test("rechaza esquemas truncados, conteos inconsistentes e IDs repetidos", () => {
+  const base = {
+    provisionalTitle: "Test guide",
+    audienceSummary: "Test audience",
+    editorialAngle: "Test angle",
+    recommendationCount: 3,
+    slots: [1, 2, 3].map((position) => ({
+      id: `slot-${position}`,
+      label: `Slot ${position}`,
+      intent: `Intent ${position}`,
+      searchTerms: [`term ${position}`],
+    })),
+  };
+  assert.equal(guideOutlineSchema.safeParse(base).success, true);
+  assert.equal(guideOutlineSchema.safeParse({ ...base, recommendationCount: 4 }).success, false);
+  assert.equal(
+    guideOutlineSchema.safeParse({
+      ...base,
+      slots: [base.slots[0], base.slots[0], base.slots[2]],
+    }).success,
+    false,
+  );
+  assert.equal(
+    guideOutlineSchema.safeParse({ ...base, slots: base.slots.slice(0, 2) }).success,
+    false,
+  );
+});
+
+test("el mock genera slots validados y guarda metadatos sin productos", async () => {
+  const content = new ProductCatalog().read();
+  const draft = guideDraftSchema.parse({
+    ...createGuideDraft("guide_mock-outline"),
+    clusterId: content.clusters[0]!.id,
+    primaryAxis: "occasion",
+    primaryIntent: "Celebrate a nurse starting a new role.",
+    questionnaire: normalizeQuestionnaire({ occasion: "new role", giftCount: "5" }),
+  });
+  const generated = await generateGuideOutline(
+    draft,
+    content,
+    new MockGuideGenerationProvider(),
+    new Date("2026-08-08T15:00:00.000Z"),
+  );
+
+  assert.equal(generated.status, "outline-ready");
+  assert.equal(generated.outline?.slots.length, 5);
+  assert.equal(generated.recommendations.length, 5);
+  assert.ok(generated.recommendations.every((slot) => !slot.productId));
+  assert.ok(generated.recommendations.every((slot) => slot.editorialStatus === "unassigned"));
+  assert.equal(generated.generationMetadata?.providerId, "mock");
+  assert.equal(generated.generationMetadata?.validation.success, true);
+  assert.match(generated.generationMetadata?.prompt ?? "", /Structured input/);
+});
+
+test("valida de nuevo la salida aunque el proveedor viole su contrato", async () => {
+  const content = new ProductCatalog().read();
+  const draft = guideDraftSchema.parse({
+    ...createGuideDraft("guide_bad-provider"),
+    clusterId: content.clusters[0]!.id,
+    primaryAxis: "general",
+    primaryIntent: "Choose a useful nurse gift.",
+  });
+  const invalidProvider: GuideGenerationProvider = {
+    providerId: "invalid-test",
+    async generateStructured<T>() {
+      return { prose: "not the expected shape" } as T;
+    },
+  };
+
+  await assert.rejects(generateGuideOutline(draft, content, invalidProvider));
+});
+
+test("muestra el prompt antes de generar un esquema mock por HTTP", async (context) => {
+  const directory = await mkdtemp(join(tmpdir(), "good-present-outline-http-"));
+  const store = new DraftStore(directory);
+  const content = new ProductCatalog().read();
+  await store.save(
+    guideDraftSchema.parse({
+      ...createGuideDraft("guide_http-outline"),
+      clusterId: content.clusters[0]!.id,
+      slug: "http-outline",
+      primaryAxis: "recipient",
+      primaryIntent: "Help a friend choose a useful gift for a nurse.",
+      questionnaire: normalizeQuestionnaire({ giftCount: "3" }),
+    }),
+  );
+  const server = createStudioServer(store);
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(async () => {
+    server.close();
+    await rm(directory, { recursive: true, force: true });
+  });
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+
+  const editor = await fetch(`${origin}/drafts/guide_http-outline`);
+  const editorHtml = await editor.text();
+  assert.match(editorHtml, /Cuestionario opcional/);
+  assert.match(editorHtml, /min="3" max="20"/);
+  const prompt = await fetch(`${origin}/drafts/guide_http-outline/outline-prompt`);
+  assert.match(await prompt.text(), /Revisar prompt de esquema/);
+
+  const blocked = await fetch(`${origin}/drafts/guide_http-outline/outline/generate`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ promptVersion: "old-version" }),
+  });
+  assert.equal(blocked.status, 400);
+
+  const generated = await fetch(`${origin}/drafts/guide_http-outline/outline/generate`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ promptVersion: "outline-v1" }),
+    redirect: "manual",
+  });
+  assert.equal(generated.status, 303);
+  const saved = await store.read("guide_http-outline");
+  assert.equal(saved.draftType, "gift-guide");
+  assert.equal(saved.outline?.slots.length, 3);
 });

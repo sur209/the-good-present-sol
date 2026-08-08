@@ -9,6 +9,7 @@ import {
   type Product,
 } from "@the-good-present/content-schema";
 
+import { MockGuideGenerationProvider, type GuideGenerationProvider } from "./ai-provider.ts";
 import { DraftStore } from "./draft-store.ts";
 import {
   addGuideToGroup,
@@ -21,13 +22,18 @@ import {
   validateClusterDraft,
 } from "./cluster-editor.ts";
 import {
+  MAX_GIFT_COUNT,
+  MIN_GIFT_COUNT,
   clusterDraftSchema,
   createClusterDraft,
   createGuideDraft,
+  guideDraftSchema,
   type ClusterDraft,
   type EditorialDraft,
   type GuideDraft,
 } from "./drafts.ts";
+import { generateGuideOutline, normalizeQuestionnaire } from "./guide-editor.ts";
+import { prepareOutlinePrompt } from "./outline-prompt.ts";
 import {
   ProductCatalog,
   createProductId,
@@ -89,6 +95,7 @@ function page(title: string, body: string): string {
     label { display: grid; gap: .35rem; font-weight: 650; }
     input, select, textarea, button { font: inherit; }
     input, select, textarea { width: 100%; border: 1px solid #91887b; border-radius: .35rem; padding: .65rem; background: white; }
+    input[type="checkbox"] { width: auto; }
     button, .button { width: fit-content; border: 0; border-radius: 999px; padding: .7rem 1.1rem; background: #34271d; color: white; cursor: pointer; text-decoration: none; font-weight: 700; }
     dl { display: grid; grid-template-columns: max-content 1fr; gap: .5rem 1rem; }
     dt { font-weight: 700; }
@@ -100,6 +107,10 @@ function page(title: string, body: string): string {
     .status--inactive { background: #eee0df; color: #6d2924; }
     .wide { grid-column: 1 / -1; }
     ul { line-height: 1.6; }
+    pre { max-height: 34rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; background: #1e1b18; color: #fffaf0; padding: 1rem; border-radius: .5rem; }
+    .checks { display: grid; gap: .5rem; }
+    .checks label { display: flex; align-items: start; gap: .5rem; font-weight: 500; }
+    button:disabled { cursor: not-allowed; opacity: .45; }
   </style>
 </head>
 <body>
@@ -154,8 +165,8 @@ function requiredValue(form: URLSearchParams, name: string, label: string): stri
   return value;
 }
 
-function primaryAxisValue(form: URLSearchParams): PrimaryAxis {
-  const axis = requiredValue(form, "axis", "El eje") as PrimaryAxis;
+function primaryAxisValue(form: URLSearchParams, name = "axis"): PrimaryAxis {
+  const axis = requiredValue(form, name, "El eje") as PrimaryAxis;
   if (!PRIMARY_AXES.includes(axis)) throw new TypeError("El eje principal no es válido.");
   return axis;
 }
@@ -389,26 +400,6 @@ function newDraftPage(): string {
   );
 }
 
-function draftPage(draft: EditorialDraft): string {
-  const details = [
-    ["ID estable", draft.id],
-    ["Tipo", draft.draftType === "cluster-hub" ? "Hub de cluster" : "Guía de regalos"],
-    ["Estado", draft.status],
-    ["Idioma público", draft.language],
-    ["Slug", draft.slug ?? "Sin definir"],
-    ["Creado", formatDate(draft.createdAt)],
-    ["Actualizado", formatDate(draft.updatedAt)],
-  ];
-  return page(
-    draftName(draft),
-    `<p><a href="/">← Borradores</a></p>
-     <h1>${escapeHtml(draftName(draft))}</h1>
-     <p class="notice">Este ID es la identidad canónica y no es un campo editable.</p>
-     <dl>${details.map(([term, value]) => `<dt>${escapeHtml(term)}</dt><dd>${escapeHtml(value)}</dd>`).join("")}</dl>
-     <p class="muted">La edición completa se habilita en las próximas fases.</p>`,
-  );
-}
-
 function clusterEditorPage(draft: ClusterDraft): string {
   const content = readPublicContent();
   const guides = content.guides.filter((guide) => guide.clusterId === draft.id);
@@ -557,6 +548,189 @@ function clusterValidationPage(draft: ClusterDraft): string {
   );
 }
 
+function optionalNumber(form: URLSearchParams, name: string, label: string): number | undefined {
+  const value = optionalValue(form, name);
+  if (!value) return undefined;
+  const number = Number(value);
+  if (!Number.isFinite(number) || number < 0) {
+    throw new TypeError(`${label} debe ser un número mayor o igual que cero.`);
+  }
+  return number;
+}
+
+function guideArchitectureFromForm(draft: GuideDraft, form: URLSearchParams): GuideDraft {
+  const content = readPublicContent();
+  const clusterId = optionalValue(form, "clusterId");
+  if (clusterId && !content.clusters.some((cluster) => cluster.id === clusterId)) {
+    throw new TypeError("El cluster elegido no está publicado.");
+  }
+  const axisValue = optionalValue(form, "primaryAxis");
+  const primaryAxis = axisValue ? primaryAxisValue(form, "primaryAxis") : undefined;
+  const taxonomies = {
+    ...(listValue(form, "occasions") ? { occasions: listValue(form, "occasions") } : {}),
+    ...(listValue(form, "recipients") ? { recipients: listValue(form, "recipients") } : {}),
+    ...(listValue(form, "careerStages") ? { careerStages: listValue(form, "careerStages") } : {}),
+    ...(listValue(form, "workContexts") ? { workContexts: listValue(form, "workContexts") } : {}),
+    ...(listValue(form, "giftStyles") ? { giftStyles: listValue(form, "giftStyles") } : {}),
+    ...(listValue(form, "budgetLabels") ? { budgetLabels: listValue(form, "budgetLabels") } : {}),
+  };
+  const budgetLabel = optionalValue(form, "budgetLabel");
+  const minimum = optionalNumber(form, "budgetMinimum", "El presupuesto mínimo");
+  const maximum = optionalNumber(form, "budgetMaximum", "El presupuesto máximo");
+  if ((minimum !== undefined || maximum !== undefined) && !budgetLabel) {
+    throw new TypeError("Agregá una etiqueta para el contexto de presupuesto.");
+  }
+  const relatedGuideIds = form.getAll("relatedGuideIds").filter(Boolean);
+  if (new Set(relatedGuideIds).size !== relatedGuideIds.length) {
+    throw new TypeError("Las guías relacionadas no pueden repetirse.");
+  }
+  if (relatedGuideIds.includes(draft.id)) {
+    throw new TypeError("Una guía no puede relacionarse consigo misma.");
+  }
+  for (const relatedId of relatedGuideIds) {
+    const related = content.guides.find((guide) => guide.id === relatedId);
+    if (!related || !clusterId || related.clusterId !== clusterId) {
+      throw new TypeError("Las guías relacionadas deben estar publicadas en el mismo cluster.");
+    }
+  }
+  return guideDraftSchema.parse({
+    ...draft,
+    status: draft.outline ? "outline-ready" : "questionnaire",
+    clusterId,
+    slug: optionalValue(form, "slug"),
+    primaryAxis,
+    primaryIntent: optionalValue(form, "primaryIntent"),
+    taxonomies: Object.keys(taxonomies).length ? taxonomies : undefined,
+    budgetContext:
+      budgetLabel || minimum !== undefined || maximum !== undefined
+        ? {
+            currency: "USD",
+            label: budgetLabel,
+            ...(minimum !== undefined ? { minimum } : {}),
+            ...(maximum !== undefined ? { maximum } : {}),
+          }
+        : undefined,
+    relatedGuideIds,
+  });
+}
+
+function questionnaireFromForm(draft: GuideDraft, form: URLSearchParams): GuideDraft {
+  const questionnaire = normalizeQuestionnaire({
+    recipient: form.get("recipient") ?? undefined,
+    ageRange: form.get("ageRange") ?? undefined,
+    occasion: form.get("occasion") ?? undefined,
+    giftCount: form.get("giftCount") ?? undefined,
+    budget: form.get("budget") ?? undefined,
+    interests: form.get("interests") ?? undefined,
+    avoid: form.get("avoid") ?? undefined,
+    tone: form.get("tone") ?? undefined,
+    additional: form.get("additional") ?? undefined,
+  });
+  return guideDraftSchema.parse({
+    ...draft,
+    status: draft.outline ? "outline-ready" : "questionnaire",
+    questionnaire,
+  });
+}
+
+function guideEditorPage(draft: GuideDraft): string {
+  const content = readPublicContent();
+  const clusters = content.clusters
+    .map(
+      (cluster) =>
+        `<option value="${cluster.id}"${cluster.id === draft.clusterId ? " selected" : ""}>${escapeHtml(cluster.title)}</option>`,
+    )
+    .join("");
+  const axes = PRIMARY_AXES.map(
+    (axis) =>
+      `<option value="${axis}"${axis === draft.primaryAxis ? " selected" : ""}>${escapeHtml(axisLabels[axis])}</option>`,
+  ).join("");
+  const related = content.guides
+    .filter((guide) => guide.clusterId === draft.clusterId && guide.id !== draft.id)
+    .map(
+      (guide) =>
+        `<label><input type="checkbox" name="relatedGuideIds" value="${guide.id}"${draft.relatedGuideIds.includes(guide.id) ? " checked" : ""}> ${escapeHtml(guide.title)}</label>`,
+    )
+    .join("");
+  const q = draft.questionnaire;
+  const outline = draft.outline
+    ? `<section class="card">
+        <h2>Esquema generado</h2>
+        <p><strong>Título provisional:</strong> ${escapeHtml(draft.outline.provisionalTitle)}</p>
+        <p><strong>Audiencia:</strong> ${escapeHtml(draft.outline.audienceSummary)}</p>
+        <p><strong>Ángulo:</strong> ${escapeHtml(draft.outline.editorialAngle)}</p>
+        <ol>${draft.outline.slots.map((slot) => `<li><strong>${escapeHtml(slot.label)}</strong><br>${escapeHtml(slot.intent)}<br><span class="muted">Búsqueda: ${escapeHtml(slot.searchTerms.join(", "))}${slot.budgetHint ? ` · ${escapeHtml(slot.budgetHint)}` : ""}</span></li>`).join("")}</ol>
+      </section>`
+    : '<p class="notice">Todavía no hay un esquema. Guardá la arquitectura y el cuestionario antes de generar.</p>';
+  const metadata = draft.generationMetadata
+    ? `<p class="muted">Última generación: ${escapeHtml(draft.generationMetadata.providerId ?? "proveedor desconocido")} · ${escapeHtml(draft.generationMetadata.modelId ?? "modelo no informado")} · ${escapeHtml(draft.generationMetadata.promptVersion)} · ${escapeHtml(formatDate(draft.generationMetadata.generatedAt))}</p>`
+    : "";
+  return page(
+    draftName(draft),
+    `<p><a href="/">← Borradores</a></p>
+     <div class="actions"><div><h1>${escapeHtml(draftName(draft))}</h1><p><code>${escapeHtml(draft.id)}</code> · ${escapeHtml(draft.status)}</p></div><a class="button" href="/drafts/${draft.id}/outline-prompt">Ver prompt y generar</a></div>
+     <aside class="notice"><strong>Cómo funciona la arquitectura editorial</strong><p>Las taxonomías clasifican contenido; no crean URLs. Una ruta pública existe sólo al publicar un hub o una guía. Cada guía hija pertenece a un cluster válido. Las guías relacionadas son enlaces editoriales, no jerarquía. “Nurse Gifts Under $25” es una guía con eje <code>budget</code>, no un filtro generado.</p></aside>
+     <form method="post" action="/drafts/${draft.id}/guide/architecture" class="card">
+       <h2>Arquitectura de la guía</h2>
+       <div class="grid">
+         <label>Cluster<select name="clusterId"><option value="">Sin elegir</option>${clusters}</select></label>
+         <label>Slug<input name="slug" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value="${value(draft.slug)}"></label>
+         <label>Idioma público<input value="en-US" disabled></label>
+         <label>Eje principal<select name="primaryAxis"><option value="">Sin elegir</option>${axes}</select></label>
+         <label class="wide">Intención principal<textarea name="primaryIntent" rows="3">${value(draft.primaryIntent)}</textarea></label>
+         <label>Ocasiones, separadas por coma<input name="occasions" value="${listText(draft.taxonomies?.occasions)}"></label>
+         <label>Destinatarios<input name="recipients" value="${listText(draft.taxonomies?.recipients)}"></label>
+         <label>Etapas profesionales<input name="careerStages" value="${listText(draft.taxonomies?.careerStages)}"></label>
+         <label>Contextos laborales<input name="workContexts" value="${listText(draft.taxonomies?.workContexts)}"></label>
+         <label>Estilos de regalo<input name="giftStyles" value="${listText(draft.taxonomies?.giftStyles)}"></label>
+         <label>Etiquetas de presupuesto<input name="budgetLabels" value="${listText(draft.taxonomies?.budgetLabels)}"></label>
+         <label>Etiqueta de presupuesto<input name="budgetLabel" value="${value(draft.budgetContext?.label)}" placeholder="Under $50"></label>
+         <label>Mínimo USD<input type="number" min="0" step="0.01" name="budgetMinimum" value="${draft.budgetContext?.minimum ?? ""}"></label>
+         <label>Máximo USD<input type="number" min="0" step="0.01" name="budgetMaximum" value="${draft.budgetContext?.maximum ?? ""}"></label>
+         <fieldset class="wide"><legend>Guías relacionadas</legend><div class="checks">${related || "No hay otras guías publicadas en el cluster elegido."}</div></fieldset>
+       </div>
+       <button type="submit">Guardar arquitectura</button>
+     </form>
+     <form method="post" action="/drafts/${draft.id}/questionnaire" class="card">
+       <h2>Cuestionario opcional</h2>
+       <p>Podés dejar respuestas en blanco. La cantidad usa 8 por defecto.</p>
+       <div class="grid">
+         <label>¿Para quién está dirigida esta guía?<input name="recipient" value="${value(q.recipient)}"></label>
+         <label>¿Qué edad o rango de edad tiene?<input name="ageRange" value="${value(q.ageRange)}"></label>
+         <label>¿Para qué ocasión es?<input name="occasion" value="${value(q.occasion)}"></label>
+         <label>¿Cuántos regalos debería incluir?<input type="number" name="giftCount" min="${MIN_GIFT_COUNT}" max="${MAX_GIFT_COUNT}" required value="${q.giftCount}"></label>
+         <label>¿Qué presupuesto debería considerar?<input name="budget" value="${value(q.budget)}"></label>
+         <label>¿Qué intereses o pasatiempos tiene?<input name="interests" value="${value(q.interests)}"></label>
+         <label>¿Hay algo que deberíamos evitar?<input name="avoid" value="${value(q.avoid)}"></label>
+         <label>¿Qué tono debería tener la guía?<input name="tone" value="${value(q.tone)}"></label>
+         <label class="wide">¿Querés agregar alguna indicación adicional?<textarea name="additional" rows="3">${value(q.additional)}</textarea></label>
+       </div>
+       <button type="submit">Guardar cuestionario</button>
+     </form>
+     ${metadata}${outline}`,
+  );
+}
+
+async function readGuideDraft(store: DraftStore, id: string): Promise<GuideDraft> {
+  const draft = await store.read(id);
+  if (draft.draftType !== "gift-guide")
+    throw new TypeError("El borrador no es una guía de regalos.");
+  return draft;
+}
+
+function outlinePromptPage(draft: GuideDraft, provider: GuideGenerationProvider): string {
+  const prepared = prepareOutlinePrompt(draft, readPublicContent());
+  return page(
+    `Prompt de esquema · ${draftName(draft)}`,
+    `<p><a href="/drafts/${draft.id}">← Editar guía</a></p>
+     <h1>Revisar prompt de esquema</h1>
+     <p class="notice">Esta etapa crea sólo slots editoriales y términos de búsqueda. No selecciona productos ni escribe la guía completa.</p>
+     <p>Versión <code>${escapeHtml(prepared.version)}</code> · proveedor <code>${escapeHtml(provider.providerId)}</code>${provider.modelId ? ` · modelo <code>${escapeHtml(provider.modelId)}</code>` : ""}</p>
+     <pre>${escapeHtml(prepared.prompt)}</pre>
+     <form method="post" action="/drafts/${draft.id}/outline/generate"><input type="hidden" name="promptVersion" value="${escapeHtml(prepared.version)}"><button type="submit">Generar esquema con este prompt</button></form>`,
+  );
+}
+
 async function createCluster(store: DraftStore, form: URLSearchParams): Promise<ClusterDraft> {
   return store.save({
     ...createClusterDraft(),
@@ -579,7 +753,11 @@ async function createGuide(store: DraftStore, form: URLSearchParams): Promise<Gu
   });
 }
 
-export function createStudioServer(store = new DraftStore(), catalog = new ProductCatalog()) {
+export function createStudioServer(
+  store = new DraftStore(),
+  catalog = new ProductCatalog(),
+  provider: GuideGenerationProvider = new MockGuideGenerationProvider(),
+) {
   return createServer(async (request, response) => {
     try {
       const method = request.method ?? "GET";
@@ -748,6 +926,49 @@ export function createStudioServer(store = new DraftStore(), catalog = new Produ
         redirect(response, `/drafts/${draft.id}`);
         return;
       }
+      const saveGuideArchitectureMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/guide\/architecture$/.exec(url.pathname)
+          : null;
+      if (saveGuideArchitectureMatch?.[1]) {
+        const draft = await readGuideDraft(store, saveGuideArchitectureMatch[1]);
+        await store.save(guideArchitectureFromForm(draft, await readForm(request)));
+        redirect(response, `/drafts/${draft.id}`);
+        return;
+      }
+      const saveQuestionnaireMatch =
+        method === "POST" ? /^\/drafts\/([a-z0-9_-]+)\/questionnaire$/.exec(url.pathname) : null;
+      if (saveQuestionnaireMatch?.[1]) {
+        const draft = await readGuideDraft(store, saveQuestionnaireMatch[1]);
+        await store.save(questionnaireFromForm(draft, await readForm(request)));
+        redirect(response, `/drafts/${draft.id}`);
+        return;
+      }
+      const outlinePromptMatch =
+        method === "GET" ? /^\/drafts\/([a-z0-9_-]+)\/outline-prompt$/.exec(url.pathname) : null;
+      if (outlinePromptMatch?.[1]) {
+        send(
+          response,
+          200,
+          outlinePromptPage(await readGuideDraft(store, outlinePromptMatch[1]), provider),
+        );
+        return;
+      }
+      const generateOutlineMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/outline\/generate$/.exec(url.pathname)
+          : null;
+      if (generateOutlineMatch?.[1]) {
+        const form = await readForm(request);
+        if (form.get("promptVersion") !== "outline-v1") {
+          throw new TypeError("Revisá el prompt vigente antes de ejecutar la generación.");
+        }
+        const draft = await readGuideDraft(store, generateOutlineMatch[1]);
+        const generated = await generateGuideOutline(draft, readPublicContent(), provider);
+        await store.save(generated);
+        redirect(response, `/drafts/${draft.id}`);
+        return;
+      }
       if (method === "GET" && url.pathname === "/products") {
         send(response, 200, productListPage(catalog, url));
         return;
@@ -802,7 +1023,7 @@ export function createStudioServer(store = new DraftStore(), catalog = new Produ
         send(
           response,
           200,
-          draft.draftType === "cluster-hub" ? clusterEditorPage(draft) : draftPage(draft),
+          draft.draftType === "cluster-hub" ? clusterEditorPage(draft) : guideEditorPage(draft),
         );
         return;
       }
