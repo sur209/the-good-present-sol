@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "product_coffee-card",
+  "name": "Local Coffee Shop Gift Card",
+  "merchant": "Example Merchant (demo)",
+  "affiliateUrl": "https://example.com/gifts/coffee-shop-card",
+  "shortDescription": "A flexible treat for coffee, tea, or a snack at a shop the recipient already enjoys.",
+  "priceLabel": "Demo value: choose up to $25",
+  "categories": ["gift cards", "food and drink"],
+  "interests": ["coffee", "tea"],
+  "recipients": ["nurses", "new nurses", "nursing students"],
+  "occasions": ["graduation", "thank you"],
+  "status": "active"
+}

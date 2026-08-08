@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "product_sleep-mask",
+  "name": "Soft Blackout Sleep Mask",
+  "merchant": "Example Merchant (demo)",
+  "affiliateUrl": "https://example.com/gifts/blackout-sleep-mask",
+  "shortDescription": "A soft, adjustable sleep mask that helps make a bright room feel more rest-friendly.",
+  "priceLabel": "Demo price: under $25",
+  "categories": ["rest", "comfort"],
+  "recipients": ["nurses", "night-shift workers"],
+  "status": "active"
+}

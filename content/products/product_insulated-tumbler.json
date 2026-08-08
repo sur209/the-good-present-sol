@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "id": "product_insulated-tumbler",
+  "name": "Leak-Resistant Insulated Tumbler",
+  "merchant": "Example Merchant (demo)",
+  "affiliateUrl": "https://example.com/gifts/insulated-tumbler",
+  "shortDescription": "A reusable lidded tumbler designed to keep a drink close through a stop-and-start day.",
+  "priceLabel": "Demo price: varies",
+  "categories": ["drinkware", "work essentials"],
+  "recipients": ["nurses"],
+  "occasions": ["graduation", "thank you"],
+  "status": "active"
+}

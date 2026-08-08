@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "product_compression-socks",
+  "name": "Everyday Compression Socks",
+  "merchant": "Example Merchant (demo)",
+  "affiliateUrl": "https://example.com/gifts/compression-socks",
+  "shortDescription": "A practical pair of compression socks in a simple pattern for long days on foot.",
+  "priceLabel": "Demo price: under $25",
+  "categories": ["apparel", "comfort"],
+  "recipients": ["nurses", "nursing students"],
+  "status": "active"
+}

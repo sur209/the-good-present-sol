@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "id": "guide_nurse-under-25",
+  "pageType": "gift-guide",
+  "clusterId": "cluster_nurse-gifts",
+  "slug": "under-25",
+  "language": "en-US",
+  "title": "Thoughtful Nurse Gifts Under $25",
+  "excerpt": "Six small, useful gifts selected to feel personal without stretching a $25 budget.",
+  "introduction": "A modest budget can still hold a lot of attention. Rather than collecting every inexpensive item with a nurse label, we chose six ideas that can stand on their own and become more personal with the right color, size, local shop, or handwritten note. The budget is a real editorial constraint here, not an automatic price filter.",
+  "conclusion": "The easiest way to make a small gift feel generous is to be specific. Mention the moment, habit, or quality that made you think of them, then let one well-chosen item carry the gesture.",
+  "primaryAxis": "budget",
+  "primaryIntent": "Help someone choose a useful, personal nurse gift while keeping the total product budget at or below $25.",
+  "taxonomies": {
+    "recipients": ["nurses", "nursing students", "new nurses"],
+    "giftStyles": ["practical", "small gesture", "comfort"],
+    "budgetLabels": ["under $25"]
+  },
+  "budgetContext": {
+    "currency": "USD",
+    "label": "Under $25",
+    "maximum": 25
+  },
+  "relatedGuideIds": ["guide_nurse-graduation", "guide_nurse-practical"],
+  "seoTitle": "6 Thoughtful Nurse Gifts Under $25 | The Good Present",
+  "seoDescription": "Find six thoughtful nurse gifts under $25, selected by editors for usefulness, comfort, and a personal touch.",
+  "status": "published",
+  "publishedAt": "2026-08-04",
+  "updatedAt": "2026-08-08",
+  "recommendations": [
+    {
+      "id": "under-25_pocket-notebook",
+      "productId": "product_pocket-notebook",
+      "position": 1,
+      "heading": "A pocket-size place for everything else",
+      "editorialDescription": "Slim notebooks can hold grocery lists, class reminders, travel plans, or whatever the recipient prefers to keep off a phone. A small set feels finished without becoming a large desk accessory.",
+      "whyItFits": "It is flexible, easy to personalize by color, and useful beyond any single job context.",
+      "bestFor": "A list maker, student, or analog note taker",
+      "considerations": "Choose a ruling style and cover design that match how the recipient actually writes.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "under-25_badge-reel",
+      "productId": "product_badge-reel",
+      "position": 2,
+      "heading": "One bright detail for the workday",
+      "editorialDescription": "A simple badge reel can be a complete small gift when the design reflects the person rather than a stereotype about the profession. Add a short card and skip the oversized themed bundle.",
+      "whyItFits": "It offers a touch of personality at an approachable price and takes up almost no space.",
+      "bestFor": "A new nurse or student receiving a first badge",
+      "considerations": "Confirm personal badge reels are allowed and avoid designs that could snag or distract.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "under-25_hand-cream",
+      "productId": "product_hand-cream",
+      "position": 3,
+      "heading": "A small comfort, thoughtfully unscented",
+      "editorialDescription": "Two compact tubes make an easy thank-you that can be split between a bag and home. The fragrance-free choice keeps the gift understated and more considerate in shared spaces.",
+      "whyItFits": "It feels caring without requiring a large budget or creating decorative clutter.",
+      "bestFor": "A thank-you, care package, or just-because gift",
+      "considerations": "Review ingredients if you know the recipient has sensitivities or strong skincare preferences.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "under-25_compression-socks",
+      "productId": "product_compression-socks",
+      "position": 4,
+      "heading": "A practical pair in a pattern they would pick",
+      "editorialDescription": "Under a firm budget, fit and taste matter more than packaging. Choose a simple pair in the recipient's usual size and colors, then pair it with a note rather than padding the gift with filler.",
+      "whyItFits": "It is compact, workday-friendly, and more personal when selected around an existing preference.",
+      "bestFor": "Someone who already wears compression socks",
+      "considerations": "Ask about size and preferred compression level; do not guess about a personal fit item.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "under-25_sleep-mask",
+      "productId": "product_sleep-mask",
+      "position": 5,
+      "heading": "A softer cue for off-schedule rest",
+      "editorialDescription": "A blackout mask is a compact option for daytime sleepers and travelers. The adjustable, soft style makes a better gift than a highly contoured fit when you do not know exact preferences.",
+      "whyItFits": "It recognizes that rest can happen at unusual hours without turning the gift into a work accessory.",
+      "bestFor": "Night-shift nurses and frequent travelers",
+      "considerations": "Skip it if the recipient dislikes anything touching their face while they sleep.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "under-25_coffee-card",
+      "productId": "product_coffee-card",
+      "position": 6,
+      "heading": "A choose-your-own treat from a familiar stop",
+      "editorialDescription": "A modest card to a genuinely convenient local shop is more useful than a generic card for somewhere they never visit. It can become a drink, breakfast, or afternoon snack on the recipient's schedule.",
+      "whyItFits": "The choice stays with the recipient, while the shop and note make the gesture personal.",
+      "bestFor": "A quick thank-you when you know their regular stop",
+      "considerations": "Confirm the shop is convenient and offers something the recipient enjoys.",
+      "editorialStatus": "ready"
+    }
+  ]
+}

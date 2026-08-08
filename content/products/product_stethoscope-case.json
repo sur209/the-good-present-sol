@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "id": "product_stethoscope-case",
+  "name": "Protective Stethoscope Case",
+  "merchant": "Example Merchant (demo)",
+  "affiliateUrl": "https://example.com/gifts/stethoscope-case",
+  "shortDescription": "A zippered hard-shell case sized to keep a stethoscope and small accessories together in transit.",
+  "priceLabel": "Demo price: varies",
+  "categories": ["organization", "work essentials"],
+  "recipients": ["new nurses", "nursing students"],
+  "occasions": ["graduation", "new job"],
+  "status": "active"
+}

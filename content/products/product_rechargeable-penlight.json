@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "id": "product_rechargeable-penlight",
+  "name": "Rechargeable Pocket Penlight",
+  "merchant": "Example Merchant (demo)",
+  "affiliateUrl": "https://example.com/gifts/rechargeable-penlight",
+  "shortDescription": "A slim rechargeable light with a pocket clip for general everyday illumination.",
+  "priceLabel": "Demo price: varies",
+  "categories": ["tools", "work essentials"],
+  "recipients": ["new nurses", "nursing students"],
+  "occasions": ["graduation"],
+  "status": "active"
+}

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "product_pocket-notebook",
+  "name": "Pocket Notes Set",
+  "merchant": "Example Merchant (demo)",
+  "affiliateUrl": "https://example.com/gifts/pocket-notebook-set",
+  "shortDescription": "A set of slim, durable notebooks for lists, reminders, and off-shift plans.",
+  "priceLabel": "Demo price: under $25",
+  "categories": ["stationery", "work essentials"],
+  "recipients": ["nurses", "nursing students"],
+  "status": "active"
+}

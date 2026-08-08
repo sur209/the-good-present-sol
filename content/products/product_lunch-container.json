@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "product_lunch-container",
+  "name": "Compact Lunch Container Set",
+  "merchant": "Example Merchant (demo)",
+  "affiliateUrl": "https://example.com/gifts/lunch-container-set",
+  "shortDescription": "A nesting container set that keeps a packed meal organized without taking over a work bag.",
+  "priceLabel": "Demo price: varies",
+  "categories": ["meal prep", "work essentials"],
+  "recipients": ["nurses"],
+  "status": "active"
+}

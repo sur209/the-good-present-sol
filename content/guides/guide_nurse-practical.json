@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "id": "guide_nurse-practical",
+  "pageType": "gift-guide",
+  "clusterId": "cluster_nurse-gifts",
+  "slug": "practical",
+  "language": "en-US",
+  "title": "Practical Gifts for Nurses They Can Really Use",
+  "excerpt": "Six useful gifts chosen around commutes, packed meals, long days on foot, and better off-shift rest.",
+  "introduction": "Practical does not have to mean impersonal. The most useful gifts show that you noticed a real routine: the bag that is always overstuffed, the meal carried from home, the broken-up break, or the need to sleep when the rest of the world is awake. These picks earn their place by solving one modest problem well.",
+  "conclusion": "Before buying, ask one quiet question about size, schedule, commute, or preference. That small bit of attention is what turns a broadly useful product into a genuinely thoughtful gift.",
+  "primaryAxis": "gift-style",
+  "primaryIntent": "Find a genuinely useful nurse gift that supports a real workday or recovery routine without feeling clinical or generic.",
+  "taxonomies": {
+    "recipients": ["nurses"],
+    "workContexts": ["long shifts", "commuting", "night shift"],
+    "giftStyles": ["practical", "comfort", "organization"]
+  },
+  "relatedGuideIds": ["guide_nurse-graduation", "guide_nurse-under-25"],
+  "seoTitle": "6 Practical Gifts for Nurses They Will Use | The Good Present",
+  "seoDescription": "Shop six practical nurse gifts selected for real routines, from organized commutes and packed meals to comfort and rest.",
+  "status": "published",
+  "publishedAt": "2026-08-03",
+  "updatedAt": "2026-08-08",
+  "recommendations": [
+    {
+      "id": "practical_compression-socks",
+      "productId": "product_compression-socks",
+      "position": 1,
+      "heading": "A fresh pair for days spent on the move",
+      "editorialDescription": "Compression socks are a familiar workday staple, but the thoughtful choice is a pair that matches the recipient's taste rather than a loud profession-themed print. A simple pattern keeps the gift useful and easy to rotate into what they already wear.",
+      "whyItFits": "It responds to a routine built around long stretches on foot and is compact enough to be genuinely useful.",
+      "bestFor": "A nurse who has already mentioned wearing compression socks",
+      "considerations": "Compression level, fit, and size are personal; check what the recipient already prefers before buying.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "practical_tumbler",
+      "productId": "product_insulated-tumbler",
+      "position": 2,
+      "heading": "A lidded drink for stop-and-start breaks",
+      "editorialDescription": "When a break happens in fragments, a covered insulated tumbler is easier to return to than an open cup. A restrained shape and easy-clean lid matter more here than a slogan.",
+      "whyItFits": "It supports an existing hydration or coffee routine without asking the recipient to learn a new gadget.",
+      "bestFor": "The nurse whose coffee is rarely finished in one sitting",
+      "considerations": "Check cleaning instructions, cup-holder fit, and workplace rules for drinks.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "practical_lunch-container",
+      "productId": "product_lunch-container",
+      "position": 3,
+      "heading": "A compact system for a packed meal",
+      "editorialDescription": "Nesting containers make it easier to separate a main meal, a snack, and something small without filling an entire tote. The best set is simple to wash and shaped for the bag the recipient already carries.",
+      "whyItFits": "It removes a little friction from preparing and transporting food for a long day.",
+      "bestFor": "A nurse who regularly brings meals from home",
+      "considerations": "Confirm microwave, freezer, and dishwasher needs before choosing a material.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "practical_shift-tote",
+      "productId": "product_shift-tote",
+      "position": 4,
+      "heading": "A bag that keeps the commute from becoming a rummage",
+      "editorialDescription": "Here, the tote is not a graduation symbol; it is an organization tool. A roomy center and a few purposeful pockets can separate small essentials without the bulk of a highly specialized work bag.",
+      "whyItFits": "It helps the recipient create order around the things they already choose to carry.",
+      "bestFor": "A commuter whose current bag has become a catchall",
+      "considerations": "Ask how much they carry and whether they prefer a shoulder strap, handles, or a backpack.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "practical_hand-cream",
+      "productId": "product_hand-cream",
+      "position": 5,
+      "heading": "A fragrance-free comfort for bag and bedside",
+      "editorialDescription": "A small duo lets the recipient keep one tube close and one at home. Fragrance-free is the more considerate default for shared workplaces and for anyone whose preferences you do not know well.",
+      "whyItFits": "It is modest, easy to use, and centered on comfort rather than a novelty message.",
+      "bestFor": "A useful thank-you or small care package",
+      "considerations": "Check ingredient sensitivities and personal skincare preferences before gifting.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "practical_sleep-mask",
+      "productId": "product_sleep-mask",
+      "position": 6,
+      "heading": "A darker room when rest happens off schedule",
+      "editorialDescription": "A soft blackout mask is useful well beyond work: for daytime sleep, travel, or any room with stubborn light. An adjustable band makes it less of a guess than a fitted style.",
+      "whyItFits": "It supports off-shift recovery without turning sleep into another productivity project.",
+      "bestFor": "Night-shift nurses or frequent travelers",
+      "considerations": "Some people dislike pressure around the eyes, so treat this as a preference-led gift.",
+      "editorialStatus": "ready"
+    }
+  ]
+}

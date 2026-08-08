@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "cluster_nurse-gifts",
+  "pageType": "cluster-hub",
+  "slug": "nurse-gifts",
+  "language": "en-US",
+  "title": "Nurse Gifts",
+  "excerpt": "Warm, useful gift ideas for the nurses and new nurses you want to celebrate well.",
+  "introduction": "The best nurse gifts begin with the person, not the profession. Think about the moment you are marking, the routines that shape their week, and what would feel like genuine care rather than one more thing to store. These guides narrow the choices without pretending every nurse wants the same gift.",
+  "seoTitle": "Thoughtful Nurse Gifts for Every Moment | The Good Present",
+  "seoDescription": "Browse human-edited nurse gift guides for graduation, practical everyday giving, and thoughtful ideas under $25.",
+  "navigationGroups": [
+    {
+      "id": "group_by-occasion",
+      "label": "Celebrate a milestone",
+      "axis": "occasion",
+      "guideIds": ["guide_nurse-graduation"]
+    },
+    {
+      "id": "group_by-style",
+      "label": "Lead with usefulness",
+      "axis": "gift-style",
+      "guideIds": ["guide_nurse-practical"]
+    },
+    {
+      "id": "group_by-budget",
+      "label": "Keep it under $25",
+      "axis": "budget",
+      "guideIds": ["guide_nurse-under-25"]
+    }
+  ],
+  "status": "published",
+  "publishedAt": "2026-08-01",
+  "updatedAt": "2026-08-08"
+}

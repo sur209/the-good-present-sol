@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "id": "product_badge-reel",
+  "name": "Low-Profile Badge Reel",
+  "merchant": "Example Merchant (demo)",
+  "affiliateUrl": "https://example.com/gifts/badge-reel",
+  "shortDescription": "A compact retractable badge reel with a clean, cheerful design.",
+  "priceLabel": "Demo price: under $25",
+  "categories": ["accessories", "work essentials"],
+  "recipients": ["nurses", "new nurses", "nursing students"],
+  "occasions": ["graduation", "new job"],
+  "status": "active"
+}

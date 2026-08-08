@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "id": "guide_nurse-graduation",
+  "pageType": "gift-guide",
+  "clusterId": "cluster_nurse-gifts",
+  "slug": "graduation",
+  "language": "en-US",
+  "title": "Nurse Graduation Gifts for the Next Chapter",
+  "excerpt": "Six celebratory, grounded gifts that honor the work behind a nursing degree and the transition ahead.",
+  "introduction": "Nursing graduation closes a demanding chapter and opens a very practical one. A good gift can recognize both: the hours already invested and the new routines about to begin. We favored ideas that feel polished enough for a milestone but useful enough to stay in the graduate's life after the ceremony.",
+  "conclusion": "A graduation gift does not need to summarize an entire achievement. Choose one useful object or flexible treat, add a specific note about what you admire, and let the graduate decide how it fits into the next chapter.",
+  "primaryAxis": "occasion",
+  "primaryIntent": "Help someone choose a meaningful nursing graduation gift that balances celebration with the graduate's next-step routines.",
+  "taxonomies": {
+    "occasions": ["nursing graduation"],
+    "recipients": ["new nurses", "nursing graduates"],
+    "careerStages": ["new graduate", "first nursing role"],
+    "giftStyles": ["practical", "celebratory"]
+  },
+  "relatedGuideIds": ["guide_nurse-practical", "guide_nurse-under-25"],
+  "seoTitle": "6 Thoughtful Nurse Graduation Gifts | The Good Present",
+  "seoDescription": "Celebrate a new nurse with six useful, thoughtful graduation gifts chosen for the milestone and the next chapter.",
+  "status": "published",
+  "publishedAt": "2026-08-02",
+  "updatedAt": "2026-08-08",
+  "recommendations": [
+    {
+      "id": "graduation_shift-tote",
+      "productId": "product_shift-tote",
+      "position": 1,
+      "heading": "A polished tote for the first-week reset",
+      "editorialDescription": "A structured tote makes the move from school to a new role feel a little more settled. This one keeps everyday items in one place without looking like specialized equipment, so it can work for orientation, commuting, or an off-duty weekend.",
+      "whyItFits": "It marks the career transition while giving the graduate something they can organize around their own routine.",
+      "bestFor": "The graduate who likes a place for everything",
+      "considerations": "Ask about preferred color and whether they commute before choosing a size.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "graduation_stethoscope-case",
+      "productId": "product_stethoscope-case",
+      "position": 2,
+      "heading": "A protective case for a meaningful tool",
+      "editorialDescription": "A hard-shell case turns a loose piece of gear into an organized kit. It is especially thoughtful when the graduate already owns a stethoscope they want to protect between school, orientation, and work.",
+      "whyItFits": "The gift acknowledges the practical details of starting out without guessing which clinical tool they should use.",
+      "bestFor": "A graduate who already has a preferred stethoscope",
+      "considerations": "Confirm the case dimensions against the recipient's equipment before ordering.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "graduation_tumbler",
+      "productId": "product_insulated-tumbler",
+      "position": 3,
+      "heading": "An everyday upgrade they can make their own",
+      "editorialDescription": "A good tumbler is simple, personal, and easy to fold into a new routine. Choose a color the graduate actually likes and pair it with a handwritten note instead of turning it into a profession-themed novelty.",
+      "whyItFits": "It feels celebratory on day one and remains useful long after the graduation photos are put away.",
+      "bestFor": "Someone heading into a busy first role",
+      "considerations": "Check capacity, cleaning instructions, and workplace drink policies.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "graduation_penlight",
+      "productId": "product_rechargeable-penlight",
+      "position": 4,
+      "heading": "A small light for the new-work bag",
+      "editorialDescription": "A rechargeable pocket light is a compact addition to a graduate's general-purpose kit. The clip keeps it easy to find, and recharging avoids creating a drawer of half-used batteries.",
+      "whyItFits": "It is a practical gesture that recognizes the graduate is building new routines and organizing what they carry.",
+      "bestFor": "A graduate assembling a first work bag",
+      "considerations": "Confirm school or employer requirements; a gift should never replace required or employer-issued equipment.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "graduation_badge-reel",
+      "productId": "product_badge-reel",
+      "position": 5,
+      "heading": "A cheerful detail for a brand-new badge",
+      "editorialDescription": "A low-profile badge reel adds personality without becoming the whole gift. It works particularly well as part of a small graduation bundle with a card and one favorite snack.",
+      "whyItFits": "The new badge is a tangible sign of the transition, and this celebrates it in an understated way.",
+      "bestFor": "A graduate who enjoys small, useful accessories",
+      "considerations": "Look for a design that suits the recipient and confirm their workplace allows personal badge reels.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "graduation_coffee-card",
+      "productId": "product_coffee-card",
+      "position": 6,
+      "heading": "A flexible first-week treat",
+      "editorialDescription": "A gift card to a shop the graduate already visits gives them an easy coffee, tea, or snack when they want one. The personal part is the note: name the work you saw them put in and the future you are excited to watch unfold.",
+      "whyItFits": "It leaves the timing and choice to the graduate while still creating a small celebratory moment.",
+      "bestFor": "The graduate whose taste you know better than their gear list",
+      "considerations": "Choose a convenient local shop and confirm the recipient enjoys what it sells.",
+      "editorialStatus": "ready"
+    }
+  ]
+}

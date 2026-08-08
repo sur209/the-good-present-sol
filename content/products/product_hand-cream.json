@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "id": "product_hand-cream",
+  "name": "Fragrance-Free Hand Cream Duo",
+  "merchant": "Example Merchant (demo)",
+  "affiliateUrl": "https://example.com/gifts/hand-cream-duo",
+  "shortDescription": "Two travel-size tubes of fragrance-free hand cream for a bag, locker, or bedside table.",
+  "priceLabel": "Demo price: under $25",
+  "categories": ["self care", "comfort"],
+  "recipients": ["nurses", "caregivers"],
+  "occasions": ["thank you"],
+  "status": "active"
+}
