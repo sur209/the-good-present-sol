@@ -4,13 +4,10 @@ import {
   PUBLIC_CONTENT_DIRECTORIES,
   clusterHubSchema,
   clusterPath,
-  formatValidationIssues,
   giftGuideSchema,
   guidePath,
-  validatePublicContent,
   type ClusterHub,
   type GiftGuide,
-  type SourceRecord,
   type ValidatedPublicContent,
 } from "@the-good-present/content-schema";
 
@@ -18,7 +15,13 @@ import { readPublicContentSources } from "../../../scripts/content-files.ts";
 import { validateClusterDraft } from "./cluster-editor.ts";
 import type { ClusterDraft, EditorialDraft, GuideDraft } from "./drafts.ts";
 import { validateGuideDraft } from "./guide-editor.ts";
-import { REPOSITORY_ROOT, atomicWriteJson, readPublicContent } from "./repository.ts";
+import {
+  REPOSITORY_ROOT,
+  assertPublicContentCandidate,
+  atomicWriteJson,
+  readPublicContent,
+  replaceSourceRecord,
+} from "./repository.ts";
 
 export interface PublicationResult {
   action: "created" | "updated";
@@ -106,18 +109,6 @@ export function guideDraftToPublic(
   });
 }
 
-function replaceSource(sources: SourceRecord[], file: string, id: string, data: unknown): void {
-  const index = sources.findIndex(
-    (source) =>
-      typeof source.data === "object" &&
-      source.data !== null &&
-      "id" in source.data &&
-      source.data.id === id,
-  );
-  if (index === -1) sources.push({ file, data });
-  else sources[index] = { file, data };
-}
-
 export class Publisher {
   private readonly repositoryRoot: string;
 
@@ -141,8 +132,8 @@ export class Publisher {
     const record = clusterDraftToPublic(draft, content, now);
     const file = `${PUBLIC_CONTENT_DIRECTORIES.clusters}/${record.id}.json`;
     const sources = readPublicContentSources(this.repositoryRoot);
-    replaceSource(sources.clusters, file, record.id, record);
-    this.assertCandidate(sources);
+    replaceSourceRecord(sources.clusters, file, record);
+    assertPublicContentCandidate(sources, "La publicación dejaría inválido el contenido canónico.");
     // ponytail: one local editor writes one canonical record at a time; add locking only for concurrency.
     await atomicWriteJson(resolve(this.repositoryRoot, file), record);
     return {
@@ -160,8 +151,8 @@ export class Publisher {
     const cluster = content.clusters.find((item) => item.id === record.clusterId)!;
     const file = `${PUBLIC_CONTENT_DIRECTORIES.guides}/${record.id}.json`;
     const sources = readPublicContentSources(this.repositoryRoot);
-    replaceSource(sources.guides, file, record.id, record);
-    this.assertCandidate(sources);
+    replaceSourceRecord(sources.guides, file, record);
+    assertPublicContentCandidate(sources, "La publicación dejaría inválido el contenido canónico.");
     await atomicWriteJson(resolve(this.repositoryRoot, file), record);
     return {
       action: existing ? "updated" : "created",
@@ -169,14 +160,5 @@ export class Publisher {
       id: record.id,
       route: guidePath(cluster.slug, record.slug),
     };
-  }
-
-  private assertCandidate(sources: ReturnType<typeof readPublicContentSources>): void {
-    const validation = validatePublicContent(sources);
-    if (!validation.success) {
-      throw new TypeError(
-        `La publicación dejaría inválido el contenido canónico.\n${formatValidationIssues(validation.issues)}`,
-      );
-    }
   }
 }

@@ -10,9 +10,7 @@ import { promisify } from "node:util";
 import { z } from "zod";
 
 import {
-  AI_VENDOR_BASE_URLS,
   MockGuideGenerationProvider,
-  OpenAiCompatibleGuideGenerationProvider,
   ProviderError,
   createGuideGenerationProvider,
   parseExactStructuredContent,
@@ -1156,11 +1154,11 @@ test("configura mock, OpenAI y DeepSeek sin asumir un modelo real", () => {
 
   assert.equal(openai.provider, "openai-compatible");
   assert.equal(openai.vendor, "openai");
-  assert.equal(openai.baseUrl, AI_VENDOR_BASE_URLS.openai);
+  assert.equal(openai.baseUrl, "https://api.openai.com/v1");
   assert.equal(openai.timeoutMs, 60_000);
   assert.equal(deepseek.provider, "openai-compatible");
   assert.equal(deepseek.vendor, "deepseek");
-  assert.equal(deepseek.baseUrl, AI_VENDOR_BASE_URLS.deepseek);
+  assert.equal(deepseek.baseUrl, "https://api.deepseek.com");
   assert.throws(
     () => resolveAiConfiguration({ ...shared, AI_MODEL: "" }),
     /AI_MODEL es obligatorio/,
@@ -1172,14 +1170,13 @@ test("configura mock, OpenAI y DeepSeek sin asumir un modelo real", () => {
 });
 
 test("el adaptador compatible envía JSON mode y valida el objeto exacto", async () => {
-  const configuration = resolveAiConfiguration({
+  const environment = {
     AI_PROVIDER: "openai-compatible",
     AI_VENDOR: "deepseek",
     AI_API_KEY: "test-secret",
     AI_MODEL: "explicit-test-model",
     AI_TIMEOUT_MS: "500",
-  });
-  assert.equal(configuration.provider, "openai-compatible");
+  };
   let requestedUrl = "";
   let requestedInit: RequestInit | undefined;
   const fakeFetch: typeof fetch = async (input, init) => {
@@ -1192,7 +1189,7 @@ test("el adaptador compatible envía JSON mode y valida el objeto exacto", async
       { status: 200, headers: { "content-type": "application/json" } },
     );
   };
-  const provider = new OpenAiCompatibleGuideGenerationProvider(configuration, fakeFetch);
+  const provider = createGuideGenerationProvider(environment, fakeFetch);
   const schema = z.strictObject({ answer: z.literal("ready") });
   const result = await provider.generateStructured({
     operation: "outline",

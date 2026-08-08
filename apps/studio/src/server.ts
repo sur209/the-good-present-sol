@@ -62,6 +62,7 @@ import {
   matchProducts,
   productUsage,
   suggestProductsForSlot,
+  validateProductUrl,
   type ProductStatusFilter,
 } from "./product-catalog.ts";
 import { Publisher, type PublicationResult } from "./publication.ts";
@@ -217,6 +218,12 @@ function productFromForm(form: URLSearchParams, id = createProductId()): Product
   const brand = optionalValue(form, "brand");
   const productUrl = optionalValue(form, "productUrl");
   const affiliateUrl = optionalValue(form, "affiliateUrl");
+  if (!validateProductUrl(productUrl)) {
+    throw new TypeError("La URL del producto debe ser HTTP(S) y absoluta.");
+  }
+  if (!validateProductUrl(affiliateUrl)) {
+    throw new TypeError("La URL afiliada debe ser HTTP(S) y absoluta.");
+  }
   const verifiedFacts = listValue(form, "verifiedFacts", "\n");
   const priceLabel = optionalValue(form, "priceLabel");
   const image = optionalValue(form, "image");

@@ -3,7 +3,13 @@ import { mkdir, rename, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { assertValidPublicContent } from "@the-good-present/content-schema";
+import {
+  assertValidPublicContent,
+  formatValidationIssues,
+  validatePublicContent,
+  type PublicContentSources,
+  type SourceRecord,
+} from "@the-good-present/content-schema";
 
 import { readPublicContentSources } from "../../../scripts/content-files.ts";
 
@@ -11,6 +17,29 @@ export const REPOSITORY_ROOT = fileURLToPath(new URL("../../../", import.meta.ur
 
 export function readPublicContent(repositoryRoot = REPOSITORY_ROOT) {
   return assertValidPublicContent(readPublicContentSources(repositoryRoot));
+}
+
+export function replaceSourceRecord<T extends { id: string }>(
+  sources: SourceRecord[],
+  file: string,
+  data: T,
+): void {
+  const index = sources.findIndex(
+    (source) =>
+      typeof source.data === "object" &&
+      source.data !== null &&
+      "id" in source.data &&
+      source.data.id === data.id,
+  );
+  if (index === -1) sources.push({ file, data });
+  else sources[index] = { file, data };
+}
+
+export function assertPublicContentCandidate(sources: PublicContentSources, message: string): void {
+  const validation = validatePublicContent(sources);
+  if (!validation.success) {
+    throw new TypeError(`${message}\n${formatValidationIssues(validation.issues)}`);
+  }
 }
 
 export async function atomicWriteJson(file: string, data: unknown): Promise<void> {

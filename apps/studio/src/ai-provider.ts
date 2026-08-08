@@ -1,11 +1,6 @@
 import { z } from "zod";
 
-import { guideOutlineSchema } from "./drafts.ts";
-import {
-  finalPromptInputSchema,
-  generatedGuideSchema,
-  type FinalPromptInput,
-} from "./final-prompt.ts";
+import { finalPromptInputSchema, type FinalPromptInput } from "./final-prompt.ts";
 import { outlinePromptInputSchema } from "./outline-prompt.ts";
 import { recommendationPromptInputSchema } from "./recommendation-prompt.ts";
 
@@ -22,13 +17,13 @@ export interface GuideGenerationProvider {
   generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T>;
 }
 
-export const AI_VENDOR_BASE_URLS = {
+const AI_VENDOR_BASE_URLS = {
   openai: "https://api.openai.com/v1",
   deepseek: "https://api.deepseek.com",
 } as const;
 
-export type AiVendor = keyof typeof AI_VENDOR_BASE_URLS;
-export type ProviderErrorCode =
+type AiVendor = keyof typeof AI_VENDOR_BASE_URLS;
+type ProviderErrorCode =
   | "authentication"
   | "empty-response"
   | "invalid-json"
@@ -41,18 +36,16 @@ export type ProviderErrorCode =
   | "timeout"
   | "truncated";
 
-interface ProviderErrorOptions {
-  cause?: unknown;
-  requestId?: string;
-  status?: number;
-}
-
 export class ProviderError extends Error {
   readonly code: ProviderErrorCode;
   readonly requestId?: string;
   readonly status?: number;
 
-  constructor(message: string, code: ProviderErrorCode, options: ProviderErrorOptions = {}) {
+  constructor(
+    message: string,
+    code: ProviderErrorCode,
+    options: { cause?: unknown; requestId?: string; status?: number } = {},
+  ) {
     super(message, { cause: options.cause });
     this.name = "ProviderError";
     this.code = code;
@@ -69,7 +62,7 @@ export class ProviderError extends Error {
   }
 }
 
-export type AiConfiguration =
+type AiConfiguration =
   | { provider: "mock" }
   | {
       provider: "openai-compatible";
@@ -210,7 +203,7 @@ function statusError(response: Response): ProviderError {
 
 type CompatibleConfiguration = Extract<AiConfiguration, { provider: "openai-compatible" }>;
 
-export class OpenAiCompatibleGuideGenerationProvider implements GuideGenerationProvider {
+class OpenAiCompatibleGuideGenerationProvider implements GuideGenerationProvider {
   readonly providerId: string;
   readonly modelId: string;
   private readonly configuration: CompatibleConfiguration;
@@ -328,7 +321,7 @@ export class MockGuideGenerationProvider implements GuideGenerationProvider {
         input.taxonomies?.recipients?.[0] ??
         "the intended recipient";
       const budgetHint = input.budgetContext?.label ?? input.questionnaire.budget;
-      const outline = guideOutlineSchema.parse({
+      return request.schema.parse({
         provisionalTitle: `${input.cluster.title}: ${input.primaryIntent}`,
         audienceSummary: `A focused guide for someone choosing a gift for ${audience}.`,
         editorialAngle: `Use ${input.primaryAxis} as the primary lens while keeping every slot aligned with the stated intent.`,
@@ -344,7 +337,6 @@ export class MockGuideGenerationProvider implements GuideGenerationProvider {
           ...(budgetHint ? { budgetHint } : {}),
         })),
       });
-      return request.schema.parse(outline);
     }
     if (request.operation === "final-guide") {
       const input = finalPromptInputSchema.parse(request.input);
@@ -352,7 +344,7 @@ export class MockGuideGenerationProvider implements GuideGenerationProvider {
         input.guide.existingCopy.title ??
         input.guide.approvedOutline.provisionalTitle ??
         `${input.cluster.title} Gift Guide`;
-      const guide = generatedGuideSchema.parse({
+      return request.schema.parse({
         title,
         excerpt:
           input.guide.existingCopy.excerpt ??
@@ -369,7 +361,6 @@ export class MockGuideGenerationProvider implements GuideGenerationProvider {
           `Explore a focused ${input.cluster.title.toLocaleLowerCase("en-US")} guide with carefully selected products and original editorial context.`,
         recommendations: input.recommendations.map(mockRecommendation),
       });
-      return request.schema.parse(guide);
     }
     if (request.operation === "single-recommendation") {
       const input = recommendationPromptInputSchema.parse(request.input);

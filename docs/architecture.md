@@ -64,7 +64,7 @@ A hub group is an editorial navigation choice, not a taxonomy result. It may reu
 
 Every product, cluster, and guide has a stable unique `id`. Canonical JSON filenames equal that stable ID. A slug is editable public routing data; changing it does not rename the canonical file or change record identity.
 
-Pure functions in `packages/content-schema/` are the only route constructors used by the public site and future Studio:
+Pure functions in `packages/content-schema/` are the only route constructors used by the public site and Studio:
 
 ```text
 clusterPath(clusterSlug)             -> /{clusterSlug}/

@@ -182,8 +182,6 @@ export const editorialDraftSchema = z.discriminatedUnion("draftType", [
 
 export type GuideQuestionnaire = z.infer<typeof guideQuestionnaireSchema>;
 export type GenerationMetadata = z.infer<typeof generationMetadataSchema>;
-export type GuideOutline = z.infer<typeof guideOutlineSchema>;
-export type DraftRecommendation = z.infer<typeof draftRecommendationSchema>;
 export type ClusterDraft = z.infer<typeof clusterDraftSchema>;
 export type GuideDraft = z.infer<typeof guideDraftSchema>;
 export type EditorialDraft = z.infer<typeof editorialDraftSchema>;

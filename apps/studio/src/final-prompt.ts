@@ -104,7 +104,6 @@ export const finalPromptInputSchema = z.strictObject({
   recommendations: z.array(finalRecommendationInputSchema).min(1),
 });
 
-export type GeneratedRecommendation = z.infer<typeof generatedRecommendationSchema>;
 export type GeneratedGuide = z.infer<typeof generatedGuideSchema>;
 export type FinalPromptInput = z.infer<typeof finalPromptInputSchema>;
 

@@ -12,6 +12,7 @@ import {
   guideDraftSchema,
   guideOutlineSchema,
   guideQuestionnaireSchema,
+  type GenerationMetadata,
   type GuideDraft,
   type GuideQuestionnaire,
 } from "./drafts.ts";
@@ -49,6 +50,22 @@ export function normalizeQuestionnaire(input: QuestionnaireInput): GuideQuestion
   });
 }
 
+function generationMetadata(
+  provider: GuideGenerationProvider,
+  promptVersion: string,
+  prompt: string,
+  now: Date,
+): GenerationMetadata {
+  return {
+    providerId: provider.providerId,
+    ...(provider.modelId ? { modelId: provider.modelId } : {}),
+    generatedAt: now.toISOString(),
+    promptVersion,
+    prompt,
+    validation: { success: true },
+  };
+}
+
 export async function generateGuideOutline(
   draft: GuideDraft,
   content: ValidatedPublicContent,
@@ -70,14 +87,7 @@ export async function generateGuideOutline(
     ...draft,
     status: "outline-ready",
     outline,
-    generationMetadata: {
-      providerId: provider.providerId,
-      ...(provider.modelId ? { modelId: provider.modelId } : {}),
-      generatedAt: now.toISOString(),
-      promptVersion: prepared.version,
-      prompt: prepared.prompt,
-      validation: { success: true },
-    },
+    generationMetadata: generationMetadata(provider, prepared.version, prepared.prompt, now),
     recommendations: outline.slots.map((slot, index) => ({
       id: slot.id,
       position: index + 1,
@@ -278,14 +288,7 @@ export async function generateFinalGuide(
       } = existing;
       return { ...slot, ...recommendation, editorialStatus: "ready" };
     }),
-    generationMetadata: {
-      providerId: provider.providerId,
-      ...(provider.modelId ? { modelId: provider.modelId } : {}),
-      generatedAt: now.toISOString(),
-      promptVersion: prepared.version,
-      prompt: prepared.prompt,
-      validation: { success: true },
-    },
+    generationMetadata: generationMetadata(provider, prepared.version, prepared.prompt, now),
   });
 }
 
@@ -330,14 +333,12 @@ export async function regenerateRecommendation(
     ...draft,
     status: "editing",
     recommendations,
-    generationMetadata: {
-      providerId: provider.providerId,
-      ...(provider.modelId ? { modelId: provider.modelId } : {}),
-      generatedAt: now.toISOString(),
-      promptVersion: RECOMMENDATION_PROMPT_VERSION,
-      prompt: prepared.prompt,
-      validation: { success: true },
-    },
+    generationMetadata: generationMetadata(
+      provider,
+      RECOMMENDATION_PROMPT_VERSION,
+      prepared.prompt,
+      now,
+    ),
   });
 }
 
