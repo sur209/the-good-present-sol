@@ -1,6 +1,6 @@
-import { ContentValidationError, assertValidPublicContent } from "@the-good-present/content-schema";
+import { assertValidPublicContent } from "@the-good-present/content-schema";
 
-import { readPublicContentSources } from "./content-files.js";
+import { readPublicContentSources } from "./content-files.ts";
 
 try {
   const content = assertValidPublicContent(readPublicContentSources());
@@ -9,5 +9,5 @@ try {
   );
 } catch (error) {
   console.error(error instanceof Error ? error.message : error);
-  process.exitCode = error instanceof ContentValidationError ? 1 : 2;
+  process.exitCode = 1;
 }

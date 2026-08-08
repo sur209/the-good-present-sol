@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { RESERVED_PUBLIC_PATHS } from "./routes.js";
+import { RESERVED_PUBLIC_PATHS } from "./routes.ts";
 import {
   clusterHubSchema,
   giftGuideSchema,
@@ -8,7 +8,7 @@ import {
   type ClusterHub,
   type GiftGuide,
   type Product,
-} from "./schemas.js";
+} from "./schemas.ts";
 
 export interface SourceRecord {
   file: string;
@@ -399,18 +399,8 @@ export function formatValidationIssues(issues: ValidationIssue[]): string {
   ].join("\n");
 }
 
-export class ContentValidationError extends Error {
-  readonly issues: ValidationIssue[];
-
-  constructor(issues: ValidationIssue[]) {
-    super(formatValidationIssues(issues));
-    this.name = "ContentValidationError";
-    this.issues = issues;
-  }
-}
-
 export function assertValidPublicContent(sources: PublicContentSources): ValidatedPublicContent {
   const result = validatePublicContent(sources);
-  if (!result.success) throw new ContentValidationError(result.issues);
+  if (!result.success) throw new Error(formatValidationIssues(result.issues));
   return result.data;
 }

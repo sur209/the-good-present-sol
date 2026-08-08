@@ -1,15 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import type { ClusterHub, GiftGuide, Product } from "./schemas.js";
+import type { ClusterHub, GiftGuide, Product } from "./schemas.ts";
 import {
-  ContentValidationError,
   assertValidPublicContent,
   formatValidationIssues,
   type PublicContentSources,
   type SourceRecord,
   validatePublicContent,
-} from "./validation.js";
+} from "./validation.ts";
 
 const product: Product = {
   schemaVersion: 1,
@@ -240,7 +239,7 @@ test("reports duplicate identities, routes, filenames, and broken cross-record r
     assert.ok(issue.reason);
   }
 
-  assert.throws(() => assertValidPublicContent(sources), ContentValidationError);
+  assert.throws(() => assertValidPublicContent(sources), /Public content validation failed/);
 });
 
 test("surfaces JSON read errors with the source file", () => {

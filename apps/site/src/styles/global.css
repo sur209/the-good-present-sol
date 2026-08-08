@@ -54,14 +54,9 @@ a:hover {
   text-decoration-color: var(--color-coral);
 }
 
-a:focus-visible,
-summary:focus-visible {
+a:focus-visible {
   outline: 0.2rem solid var(--color-blue);
   outline-offset: 0.25rem;
-}
-
-img {
-  max-width: 100%;
 }
 
 h1,
@@ -1487,11 +1482,7 @@ code {
     scroll-behavior: auto;
   }
 
-  *,
-  *::before,
-  *::after {
+  * {
     transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
   }
 }

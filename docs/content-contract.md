@@ -18,7 +18,7 @@ The future Studio and public site import the same contract from `@the-good-prese
 - `PUBLIC_SCHEMA_VERSION`, `PRIMARY_AXES`, and `PUBLIC_CONTENT_DIRECTORIES`.
 - `clusterPath`, `guidePath`, `canonicalUrl`, and the reserved-path constants.
 - `validatePublicContent` for non-throwing validation and `assertValidPublicContent` for build boundaries.
-- `ContentValidationError` and `formatValidationIssues` for actionable output.
+- `formatValidationIssues` for actionable output.
 
 Run all canonical record and relation checks from the repository root with:
 

@@ -10,7 +10,7 @@ interface Props {
   ogType?: "website" | "article";
   publishedAt?: string;
   updatedAt?: string;
-  structuredData?: Record<string, unknown> | Record<string, unknown>[];
+  structuredData?: Record<string, unknown>[];
   noindex?: boolean;
 }
 
@@ -26,7 +26,6 @@ const {
   noindex = false,
 } = Astro.props;
 const canonical = canonicalUrl(Astro.site ?? "https://thegoodpresent.com", canonicalPath);
-const schemas = Array.isArray(structuredData) ? structuredData : [structuredData];
 ---
 
 <!doctype html>
@@ -50,7 +49,7 @@ const schemas = Array.isArray(structuredData) ? structuredData : [structuredData
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     {
-      schemas.map((schema) => (
+      structuredData.map((schema) => (
         <script is:inline type="application/ld+json" set:html={JSON.stringify(schema)} />
       ))
     }

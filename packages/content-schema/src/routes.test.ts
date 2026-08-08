@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { PUBLIC_PATHS, canonicalUrl, clusterPath, guidePath, isValidSlug } from "./routes.js";
+import { PUBLIC_PATHS, canonicalUrl, clusterPath, guidePath, isValidSlug } from "./routes.ts";
 
 test("builds the only supported public route shapes", () => {
   assert.equal(clusterPath("nurse-gifts"), "/nurse-gifts/");

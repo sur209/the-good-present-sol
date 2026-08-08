@@ -6,7 +6,7 @@ export {
   clusterPath,
   guidePath,
   isValidSlug,
-} from "./routes.js";
+} from "./routes.ts";
 
 export {
   PAGE_TYPES,
@@ -20,7 +20,7 @@ export {
   primaryAxisSchema,
   productSchema,
   safeHttpUrlSchema,
-} from "./schemas.js";
+} from "./schemas.ts";
 export type {
   ClusterHub,
   ClusterNavigationGroup,
@@ -29,18 +29,17 @@ export type {
   PageType,
   PrimaryAxis,
   Product,
-} from "./schemas.js";
+} from "./schemas.ts";
 
 export {
-  ContentValidationError,
   assertValidPublicContent,
   formatValidationIssues,
   validatePublicContent,
-} from "./validation.js";
+} from "./validation.ts";
 export type {
   PublicContentSources,
   SourceRecord,
   ValidatedPublicContent,
   ValidationIssue,
   ValidationResult,
-} from "./validation.js";
+} from "./validation.ts";

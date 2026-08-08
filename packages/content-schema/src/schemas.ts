@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { SLUG_PATTERN } from "./routes.js";
+import { SLUG_PATTERN } from "./routes.ts";
 
 export const PUBLIC_SCHEMA_VERSION = 1 as const;
 

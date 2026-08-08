@@ -12,6 +12,6 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "tsx --test \"src/**/*.test.ts\""
+    "test": "node --disable-warning=ExperimentalWarning --experimental-strip-types --test src/content.test.ts src/routes.test.ts"
   }
 }
