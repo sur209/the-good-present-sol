@@ -11,6 +11,17 @@ import {
 
 import { DraftStore } from "./draft-store.ts";
 import {
+  addGuideToGroup,
+  addNavigationGroup,
+  moveGuideInGroup,
+  moveNavigationGroup,
+  removeGuideFromGroup,
+  removeNavigationGroup,
+  reopenClusterDraft,
+  validateClusterDraft,
+} from "./cluster-editor.ts";
+import {
+  clusterDraftSchema,
   createClusterDraft,
   createGuideDraft,
   type ClusterDraft,
@@ -141,6 +152,12 @@ function requiredValue(form: URLSearchParams, name: string, label: string): stri
   const value = optionalValue(form, name);
   if (!value) throw new TypeError(`${label} es obligatorio.`);
   return value;
+}
+
+function primaryAxisValue(form: URLSearchParams): PrimaryAxis {
+  const axis = requiredValue(form, "axis", "El eje") as PrimaryAxis;
+  if (!PRIMARY_AXES.includes(axis)) throw new TypeError("El eje principal no es válido.");
+  return axis;
 }
 
 function listValue(form: URLSearchParams, name: string, separator = ","): string[] | undefined {
@@ -332,6 +349,12 @@ function newDraftPage(): string {
   const axisOptions = PRIMARY_AXES.map(
     (axis) => `<option value="${axis}">${escapeHtml(axisLabels[axis])}</option>`,
   ).join("");
+  const reopenClusters = content.clusters
+    .map(
+      (cluster) =>
+        `<li><form method="post" action="/drafts/reopen/cluster/${escapeHtml(cluster.id)}" class="actions"><span>${escapeHtml(cluster.title)} <code>${escapeHtml(cluster.id)}</code></span><button type="submit">Reabrir hub</button></form></li>`,
+    )
+    .join("");
 
   return page(
     "Crear borrador",
@@ -357,7 +380,12 @@ function newDraftPage(): string {
            <button type="submit">Crear guía</button>
          </form>
        </section>
-     </div>`,
+     </div>
+     <section class="card">
+       <h2>Reabrir un hub publicado</h2>
+       <p>Se conserva el ID estable y se crea o recupera su borrador local.</p>
+       <ul>${reopenClusters}</ul>
+     </section>`,
   );
 }
 
@@ -378,6 +406,154 @@ function draftPage(draft: EditorialDraft): string {
      <p class="notice">Este ID es la identidad canónica y no es un campo editable.</p>
      <dl>${details.map(([term, value]) => `<dt>${escapeHtml(term)}</dt><dd>${escapeHtml(value)}</dd>`).join("")}</dl>
      <p class="muted">La edición completa se habilita en las próximas fases.</p>`,
+  );
+}
+
+function clusterEditorPage(draft: ClusterDraft): string {
+  const content = readPublicContent();
+  const guides = content.guides.filter((guide) => guide.clusterId === draft.id);
+  const guidesById = new Map(guides.map((guide) => [guide.id, guide]));
+  const groups = draft.navigationGroups
+    .map((group, groupIndex) => {
+      const axisOptions = PRIMARY_AXES.map(
+        (axis) =>
+          `<option value="${axis}"${axis === group.axis ? " selected" : ""}>${escapeHtml(axisLabels[axis])}</option>`,
+      ).join("");
+      const guideRows = group.guideIds
+        .map((guideId, guideIndex) => {
+          const guide = guidesById.get(guideId);
+          return `<li>
+            <strong>${escapeHtml(guide?.title ?? guideId)}</strong>
+            <div class="actions">
+              <form method="post" action="/drafts/${draft.id}/groups/${group.id}/guides/${guideId}/up"><button type="submit"${guideIndex === 0 ? " disabled" : ""}>Subir</button></form>
+              <form method="post" action="/drafts/${draft.id}/groups/${group.id}/guides/${guideId}/down"><button type="submit"${guideIndex === group.guideIds.length - 1 ? " disabled" : ""}>Bajar</button></form>
+              <form method="post" action="/drafts/${draft.id}/groups/${group.id}/guides/${guideId}/remove"><button type="submit">Quitar</button></form>
+            </div>
+          </li>`;
+        })
+        .join("");
+      const availableGuides = guides.filter((guide) => !group.guideIds.includes(guide.id));
+      const addGuideForm = availableGuides.length
+        ? `<form method="post" action="/drafts/${draft.id}/groups/${group.id}/guides" class="actions">
+            <label>Agregar guía publicada<select name="guideId" required>${availableGuides.map((guide) => `<option value="${guide.id}">${escapeHtml(guide.title)}</option>`).join("")}</select></label>
+            <button type="submit">Agregar</button>
+          </form>`
+        : '<p class="muted">No hay más guías publicadas de este cluster para agregar.</p>';
+      return `<section class="card">
+        <div class="actions"><h3>Grupo ${groupIndex + 1}</h3><span><code>${escapeHtml(group.id)}</code></span></div>
+        <form method="post" action="/drafts/${draft.id}/groups/${group.id}">
+          <label>Etiqueta<input name="label" required value="${value(group.label)}"></label>
+          <label>Eje<select name="axis">${axisOptions}</select></label>
+          <button type="submit">Guardar grupo</button>
+        </form>
+        <div class="actions">
+          <form method="post" action="/drafts/${draft.id}/groups/${group.id}/up"><button type="submit"${groupIndex === 0 ? " disabled" : ""}>Subir grupo</button></form>
+          <form method="post" action="/drafts/${draft.id}/groups/${group.id}/down"><button type="submit"${groupIndex === draft.navigationGroups.length - 1 ? " disabled" : ""}>Bajar grupo</button></form>
+          <form method="post" action="/drafts/${draft.id}/groups/${group.id}/remove"><button type="submit">Eliminar grupo</button></form>
+        </div>
+        <h4>Guías incluidas</h4>
+        ${guideRows ? `<ol>${guideRows}</ol>` : '<p class="muted">Grupo vacío. No se publicará mientras siga vacío.</p>'}
+        ${addGuideForm}
+      </section>`;
+    })
+    .join("");
+  const newGroupAxes = PRIMARY_AXES.map(
+    (axis) => `<option value="${axis}">${escapeHtml(axisLabels[axis])}</option>`,
+  ).join("");
+  return page(
+    draftName(draft),
+    `<p><a href="/">← Borradores</a></p>
+     <div class="actions"><div><h1>${escapeHtml(draftName(draft))}</h1><p><code>${escapeHtml(draft.id)}</code> · ${escapeHtml(draft.status)}</p></div><a class="button" href="/drafts/${draft.id}/preview">Vista previa</a><a class="button" href="/drafts/${draft.id}/validate">Validar</a></div>
+     <p class="notice">El ID estable no se edita. El slug define la ruta, pero cambiarlo no cambia la identidad ni el nombre del archivo canónico.</p>
+     <form method="post" action="/drafts/${draft.id}/cluster" class="card">
+       <h2>Contenido del hub</h2>
+       <div class="grid">
+         <label>Slug<input name="slug" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value="${value(draft.slug)}"></label>
+         <label>Idioma público<input value="en-US" disabled></label>
+         <label class="wide">Título<input name="title" value="${value(draft.title)}"></label>
+         <label class="wide">Extracto<textarea name="excerpt" rows="3">${value(draft.excerpt)}</textarea></label>
+         <label class="wide">Introducción<textarea name="introduction" rows="6">${value(draft.introduction)}</textarea></label>
+         <label class="wide">Título SEO<input name="seoTitle" value="${value(draft.seoTitle)}"></label>
+         <label class="wide">Descripción SEO<textarea name="seoDescription" rows="3">${value(draft.seoDescription)}</textarea></label>
+       </div>
+       <button type="submit">Guardar contenido</button>
+     </form>
+     <section>
+       <h2>Navegación curada</h2>
+       <p>Un grupo enlaza sólo guías publicadas de este cluster. La misma guía puede incluirse expresamente en más de un grupo.</p>
+       <div class="grid">${groups || '<p class="notice">Todavía no hay grupos.</p>'}</div>
+       <form method="post" action="/drafts/${draft.id}/groups" class="card">
+         <h3>Agregar grupo</h3>
+         <label>Etiqueta<input name="label" required></label>
+         <label>Eje<select name="axis">${newGroupAxes}</select></label>
+         <button type="submit">Agregar grupo</button>
+       </form>
+     </section>`,
+  );
+}
+
+async function readClusterDraft(store: DraftStore, id: string): Promise<ClusterDraft> {
+  const draft = await store.read(id);
+  if (draft.draftType !== "cluster-hub")
+    throw new TypeError("El borrador no es un hub de cluster.");
+  return draft;
+}
+
+function updateClusterFromForm(draft: ClusterDraft, form: URLSearchParams): ClusterDraft {
+  return clusterDraftSchema.parse({
+    ...draft,
+    status: "editing",
+    slug: optionalValue(form, "slug"),
+    title: optionalValue(form, "title"),
+    excerpt: optionalValue(form, "excerpt"),
+    introduction: optionalValue(form, "introduction"),
+    seoTitle: optionalValue(form, "seoTitle"),
+    seoDescription: optionalValue(form, "seoDescription"),
+  });
+}
+
+function clusterPreviewPage(draft: ClusterDraft): string {
+  const content = readPublicContent();
+  const validation = validateClusterDraft(draft, content);
+  const guides = new Map(content.guides.map((guide) => [guide.id, guide]));
+  const clusterRoute = validation.route ?? "(ruta incompleta)";
+  const groups = draft.navigationGroups
+    .filter((group) => group.guideIds.length > 0)
+    .map(
+      (group) =>
+        `<section class="card"><p class="muted">${escapeHtml(axisLabels[group.axis])}</p><h2>${escapeHtml(group.label)}</h2><ul>${group.guideIds
+          .map((guideId) => {
+            const guide = guides.get(guideId);
+            return guide && draft.slug
+              ? `<li><a href="${escapeHtml(guidePath(draft.slug, guide.slug))}">${escapeHtml(guide.title)}</a></li>`
+              : `<li>${escapeHtml(guideId)} (no disponible)</li>`;
+          })
+          .join("")}</ul></section>`,
+    )
+    .join("");
+  const warnings = [...validation.errors, ...validation.warnings];
+  return page(
+    `Vista previa · ${draftName(draft)}`,
+    `<p><a href="/drafts/${draft.id}">← Editar hub</a></p>
+     ${warnings.length ? `<aside class="error"><strong>Vista previa incompleta</strong><ul>${warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul></aside>` : ""}
+     <nav aria-label="Migas de pan"><span>Inicio</span> › <span>Guías de regalos</span> › <strong>${escapeHtml(draft.title ?? "Hub sin título")}</strong></nav>
+     <p class="muted">Ruta canónica: <code>${escapeHtml(clusterRoute)}</code></p>
+     <header><div><h1>${escapeHtml(draft.title ?? "Hub sin título")}</h1><p>${escapeHtml(draft.excerpt ?? "Falta el extracto.")}</p></div></header>
+     <section class="card"><h2>Introducción</h2><p>${escapeHtml(draft.introduction ?? "Falta la introducción.")}</p></section>
+     <section><h2>Explorar guías</h2><div class="grid">${groups || '<p class="notice">No hay grupos con guías para mostrar.</p>'}</div></section>`,
+  );
+}
+
+function clusterValidationPage(draft: ClusterDraft): string {
+  const result = validateClusterDraft(draft, readPublicContent());
+  return page(
+    `Validación · ${draftName(draft)}`,
+    `<p><a href="/drafts/${draft.id}">← Editar hub</a></p>
+     <h1>Validación del hub</h1>
+     ${result.errors.length ? `<div class="error"><strong>Falta resolver:</strong><ul>${result.errors.map((error) => `<li>${escapeHtml(error)}</li>`).join("")}</ul></div>` : '<p class="notice">El borrador está listo para la publicación de cluster.</p>'}
+     ${result.warnings.length ? `<div class="notice"><strong>Avisos:</strong><ul>${result.warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul></div>` : ""}
+     ${result.route ? `<p>Ruta canónica: <code>${escapeHtml(result.route)}</code></p>` : ""}
+     <p>La publicación atómica se habilita en la fase de integración.</p>`,
   );
 }
 
@@ -415,6 +591,161 @@ export function createStudioServer(store = new DraftStore(), catalog = new Produ
       }
       if (method === "GET" && url.pathname === "/drafts/new") {
         send(response, 200, newDraftPage());
+        return;
+      }
+      const reopenClusterMatch =
+        method === "POST" ? /^\/drafts\/reopen\/cluster\/([a-z0-9_-]+)$/.exec(url.pathname) : null;
+      if (reopenClusterMatch?.[1]) {
+        const existing = (await store.list()).drafts.find(
+          (draft) => draft.id === reopenClusterMatch[1],
+        );
+        if (existing) {
+          if (existing.draftType !== "cluster-hub") {
+            throw new TypeError("Ya existe un borrador de otro tipo con ese ID.");
+          }
+          redirect(response, `/drafts/${existing.id}`);
+          return;
+        }
+        const cluster = readPublicContent().clusters.find(
+          (item) => item.id === reopenClusterMatch[1],
+        );
+        if (!cluster) throw new TypeError("El hub publicado no existe.");
+        const draft = await store.save(reopenClusterDraft(cluster));
+        redirect(response, `/drafts/${draft.id}`);
+        return;
+      }
+      const clusterPreviewMatch =
+        method === "GET" ? /^\/drafts\/([a-z0-9_-]+)\/preview$/.exec(url.pathname) : null;
+      if (clusterPreviewMatch?.[1]) {
+        send(
+          response,
+          200,
+          clusterPreviewPage(await readClusterDraft(store, clusterPreviewMatch[1])),
+        );
+        return;
+      }
+      const clusterValidationMatch =
+        method === "GET" ? /^\/drafts\/([a-z0-9_-]+)\/validate$/.exec(url.pathname) : null;
+      if (clusterValidationMatch?.[1]) {
+        let draft = await readClusterDraft(store, clusterValidationMatch[1]);
+        const validation = validateClusterDraft(draft, readPublicContent());
+        const status = validation.errors.length === 0 ? "ready-to-publish" : "editing";
+        if (draft.status !== status) draft = await store.save({ ...draft, status });
+        send(response, 200, clusterValidationPage(draft));
+        return;
+      }
+      const saveClusterMatch =
+        method === "POST" ? /^\/drafts\/([a-z0-9_-]+)\/cluster$/.exec(url.pathname) : null;
+      if (saveClusterMatch?.[1]) {
+        const draft = await readClusterDraft(store, saveClusterMatch[1]);
+        await store.save(updateClusterFromForm(draft, await readForm(request)));
+        redirect(response, `/drafts/${draft.id}`);
+        return;
+      }
+      const addGroupMatch =
+        method === "POST" ? /^\/drafts\/([a-z0-9_-]+)\/groups$/.exec(url.pathname) : null;
+      if (addGroupMatch?.[1]) {
+        const form = await readForm(request);
+        const draft = await readClusterDraft(store, addGroupMatch[1]);
+        await store.save(
+          addNavigationGroup(
+            draft,
+            requiredValue(form, "label", "La etiqueta"),
+            primaryAxisValue(form),
+          ),
+        );
+        redirect(response, `/drafts/${draft.id}`);
+        return;
+      }
+      const updateGroupMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/groups\/([a-z0-9_-]+)$/.exec(url.pathname)
+          : null;
+      if (updateGroupMatch?.[1] && updateGroupMatch[2]) {
+        const form = await readForm(request);
+        const draft = await readClusterDraft(store, updateGroupMatch[1]);
+        const groupId = updateGroupMatch[2];
+        if (!draft.navigationGroups.some((group) => group.id === groupId)) {
+          throw new TypeError("El grupo no existe.");
+        }
+        await store.save(
+          clusterDraftSchema.parse({
+            ...draft,
+            status: "editing",
+            navigationGroups: draft.navigationGroups.map((group) =>
+              group.id === groupId
+                ? {
+                    ...group,
+                    label: requiredValue(form, "label", "La etiqueta"),
+                    axis: primaryAxisValue(form),
+                  }
+                : group,
+            ),
+          }),
+        );
+        redirect(response, `/drafts/${draft.id}`);
+        return;
+      }
+      const groupActionMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/groups\/([a-z0-9_-]+)\/(up|down|remove)$/.exec(url.pathname)
+          : null;
+      if (groupActionMatch?.[1] && groupActionMatch[2] && groupActionMatch[3]) {
+        const draft = await readClusterDraft(store, groupActionMatch[1]);
+        const updated =
+          groupActionMatch[3] === "remove"
+            ? removeNavigationGroup(draft, groupActionMatch[2])
+            : moveNavigationGroup(
+                draft,
+                groupActionMatch[2],
+                groupActionMatch[3] === "up" ? -1 : 1,
+              );
+        await store.save(updated);
+        redirect(response, `/drafts/${draft.id}`);
+        return;
+      }
+      const addGuideMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/groups\/([a-z0-9_-]+)\/guides$/.exec(url.pathname)
+          : null;
+      if (addGuideMatch?.[1] && addGuideMatch[2]) {
+        const form = await readForm(request);
+        const draft = await readClusterDraft(store, addGuideMatch[1]);
+        await store.save(
+          addGuideToGroup(
+            draft,
+            addGuideMatch[2],
+            requiredValue(form, "guideId", "La guía"),
+            readPublicContent(),
+          ),
+        );
+        redirect(response, `/drafts/${draft.id}`);
+        return;
+      }
+      const guideActionMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/groups\/([a-z0-9_-]+)\/guides\/([a-z0-9_-]+)\/(up|down|remove)$/.exec(
+              url.pathname,
+            )
+          : null;
+      if (
+        guideActionMatch?.[1] &&
+        guideActionMatch[2] &&
+        guideActionMatch[3] &&
+        guideActionMatch[4]
+      ) {
+        const draft = await readClusterDraft(store, guideActionMatch[1]);
+        const updated =
+          guideActionMatch[4] === "remove"
+            ? removeGuideFromGroup(draft, guideActionMatch[2], guideActionMatch[3])
+            : moveGuideInGroup(
+                draft,
+                guideActionMatch[2],
+                guideActionMatch[3],
+                guideActionMatch[4] === "up" ? -1 : 1,
+              );
+        await store.save(updated);
+        redirect(response, `/drafts/${draft.id}`);
         return;
       }
       if (method === "GET" && url.pathname === "/products") {
@@ -467,7 +798,12 @@ export function createStudioServer(store = new DraftStore(), catalog = new Produ
       }
       const match = method === "GET" ? /^\/drafts\/([a-z0-9_-]+)$/.exec(url.pathname) : null;
       if (match?.[1]) {
-        send(response, 200, draftPage(await store.read(match[1])));
+        const draft = await store.read(match[1]);
+        send(
+          response,
+          200,
+          draft.draftType === "cluster-hub" ? clusterEditorPage(draft) : draftPage(draft),
+        );
         return;
       }
 

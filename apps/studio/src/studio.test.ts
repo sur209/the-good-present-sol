@@ -5,6 +5,13 @@ import { join } from "node:path";
 import { once } from "node:events";
 import test from "node:test";
 
+import {
+  addGuideToGroup,
+  moveGuideInGroup,
+  removeGuideFromGroup,
+  reopenClusterDraft,
+  validateClusterDraft,
+} from "./cluster-editor.ts";
 import { DraftStore, assertSafeDraftId } from "./draft-store.ts";
 import {
   DEFAULT_GIFT_COUNT,
@@ -216,4 +223,92 @@ test("expone búsqueda y alta manual de productos por HTTP", async (context) => 
   assert.equal(createResponse.status, 303);
   assert.equal(createResponse.headers.get("location"), "/products?saved=1");
   assert.equal((await readdir(productDirectory)).length, beforeCount + 1);
+});
+
+test("reabre un hub publicado conservando identidad y ruta", () => {
+  const content = new ProductCatalog().read();
+  const published = content.clusters[0]!;
+  const draft = reopenClusterDraft(published, new Date("2026-08-08T12:00:00.000Z"));
+  const validation = validateClusterDraft(draft, content);
+
+  assert.equal(draft.id, published.id);
+  assert.equal(draft.slug, published.slug);
+  assert.deepEqual(draft.navigationGroups, published.navigationGroups);
+  assert.deepEqual(validation.errors, []);
+  assert.equal(validation.route, "/nurse-gifts/");
+});
+
+test("valida slugs reservados y grupos de navegación canónicos", () => {
+  const content = new ProductCatalog().read();
+  const draft = reopenClusterDraft(content.clusters[0]!);
+  const firstGroup = draft.navigationGroups[0]!;
+  const broken = {
+    ...draft,
+    slug: "about",
+    navigationGroups: [
+      { ...firstGroup, guideIds: [firstGroup.guideIds[0]!, firstGroup.guideIds[0]!] },
+      { ...firstGroup },
+    ],
+  };
+  const validation = validateClusterDraft(broken, content);
+
+  assert.ok(validation.errors.some((error) => error.includes("reserved public path")));
+  assert.ok(validation.errors.some((error) => error.includes("ID de grupo")));
+  assert.ok(validation.errors.some((error) => error.includes("duplicada en el grupo")));
+});
+
+test("agrega, ordena y quita sólo hijos publicados del cluster", () => {
+  const content = new ProductCatalog().read();
+  const source = reopenClusterDraft(content.clusters[0]!);
+  const groupId = source.navigationGroups[0]!.id;
+  const empty = {
+    ...source,
+    navigationGroups: [{ ...source.navigationGroups[0]!, guideIds: [] }],
+  };
+  const firstId = content.guides[0]!.id;
+  const secondId = content.guides[1]!.id;
+  const withFirst = addGuideToGroup(empty, groupId, firstId, content);
+  const withSecond = addGuideToGroup(withFirst, groupId, secondId, content);
+  const moved = moveGuideInGroup(withSecond, groupId, secondId, -1);
+  const removed = removeGuideFromGroup(moved, groupId, secondId);
+
+  assert.deepEqual(moved.navigationGroups[0]!.guideIds, [secondId, firstId]);
+  assert.deepEqual(removed.navigationGroups[0]!.guideIds, [firstId]);
+  assert.throws(() => addGuideToGroup(withFirst, groupId, firstId, content), /ya está incluida/);
+  assert.throws(
+    () => addGuideToGroup({ ...empty, id: "cluster_other" }, groupId, firstId, content),
+    /pertenezcan a este cluster/,
+  );
+});
+
+test("reabre, previsualiza y valida un hub por HTTP", async (context) => {
+  const directory = await mkdtemp(join(tmpdir(), "good-present-cluster-http-"));
+  const store = new DraftStore(directory);
+  const server = createStudioServer(store);
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(async () => {
+    server.close();
+    await rm(directory, { recursive: true, force: true });
+  });
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+
+  const reopenResponse = await fetch(`${origin}/drafts/reopen/cluster/cluster_nurse-gifts`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: "",
+    redirect: "manual",
+  });
+  assert.equal(reopenResponse.status, 303);
+  assert.equal(reopenResponse.headers.get("location"), "/drafts/cluster_nurse-gifts");
+
+  const editorResponse = await fetch(`${origin}/drafts/cluster_nurse-gifts`);
+  assert.match(await editorResponse.text(), /Navegación curada/);
+  const previewResponse = await fetch(`${origin}/drafts/cluster_nurse-gifts/preview`);
+  assert.match(await previewResponse.text(), /Ruta canónica: <code>\/nurse-gifts\/<\/code>/);
+  const validationResponse = await fetch(`${origin}/drafts/cluster_nurse-gifts/validate`);
+  assert.match(await validationResponse.text(), /listo para la publicación/);
+  assert.equal((await store.read("cluster_nurse-gifts")).status, "ready-to-publish");
 });
