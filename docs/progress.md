@@ -1,5 +1,20 @@
 # Progress
 
+## Editorial Studio stage
+
+| Phase                       | Status   | Outcome                                                                                                                                                                                                   |
+| --------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0 — Compatibility audit     | Complete | Confirmed the workspace, public schemas, stable-ID filenames, shared route builders, content paths, replacement contract, Astro loading, commands, and publication boundary; clarified documentation only |
+| 1 — Local Studio foundation | Pending  |                                                                                                                                                                                                           |
+| 2 — Product catalog         | Pending  |                                                                                                                                                                                                           |
+| 3 — Cluster-hub editing     | Pending  |                                                                                                                                                                                                           |
+| 4 — Questionnaire and slots | Pending  |                                                                                                                                                                                                           |
+| 5 — Product selection       | Pending  |                                                                                                                                                                                                           |
+| 6 — Final guide editing     | Pending  |                                                                                                                                                                                                           |
+| 7 — Publication integration | Pending  |                                                                                                                                                                                                           |
+| 8 — Provider compatibility  | Pending  |                                                                                                                                                                                                           |
+| 9 — Ponytail audit          | Pending  |                                                                                                                                                                                                           |
+
 ## Phase status
 
 | Phase                                  | Status   | Outcome                                                                                                                                       |

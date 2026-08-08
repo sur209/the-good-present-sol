@@ -5,13 +5,18 @@
 The Good Present is a static publishing system with three version-controlled public record types: products, cluster hubs, and gift guides. JSON files under `content/` are the canonical published source. A small TypeScript package owns the public schemas, cross-record validation, error formatting, and route helpers. The Astro site reads those records at build time and produces static assets only.
 
 ```text
-content/*.json -> packages/content-schema -> apps/site -> apps/site/dist
-                              ^
-                              |
-                    future local Studio
+drafts/*.json -> apps/studio -> content/*.json -> packages/content-schema -> apps/site -> apps/site/dist
+                                  ^
+                                  `--- publication boundary
 ```
 
-The future Studio can manage richer drafts locally, but publication is a one-way boundary: it must write only records accepted by the public package. Draft-only metadata must never enter `content/`.
+The local Studio can manage richer drafts, but publication is a one-way boundary: it must write only records accepted by the public package. Draft-only metadata must never enter `content/`.
+
+## Local Studio integration contract
+
+`apps/studio/` is a localhost-only editorial tool, not part of the public Astro application or its production build. It may read and atomically write repository files, store validated working records under git-ignored `drafts/`, and call configured AI providers only from its server process. It must use the shared route helpers and publish canonical records to stable-ID-named files under `content/`.
+
+Draft IDs are the canonical public IDs. Reopening published content preserves that ID, and editing a slug changes only routing data; it never renames the canonical file or selects an update target by slug. The Studio adds no hosted backend, database, authentication, deployment path, public API route, or automatic Git operation.
 
 ## Repository structure
 
@@ -121,7 +126,7 @@ DNS values can change, so this repository intentionally does not duplicate IP ad
 
 ### Editorial Studio
 
-The Studio may later add Spanish-language interface copy and draft schemas. It must keep stable IDs, call the shared route helpers, and publish only schema-version-1 `en-US` records accepted by the canonical package. Public slugs remain editable independently of IDs. Draft review state, prompts, provider output, brainstorming, and operational metadata stay outside canonical public files.
+The Studio uses Spanish interface copy and separate draft schemas. It keeps stable IDs, calls the shared route helpers, and publishes only schema-version-1 `en-US` records accepted by the canonical package. Public slugs remain editable independently of IDs. Draft review state, prompts, provider output, questionnaire answers, and operational metadata stay outside canonical public files.
 
 ### Localization
 
@@ -135,4 +140,4 @@ GitHub Pages cannot configure server-side HTTP status redirects, and static HTML
 
 ## Explicit exclusions
 
-The MVP excludes the local Studio, AI generation, brainstorming, legacy-content migration, authentication, databases, CMS integration, product imports, production API routes, redirect infrastructure, public search, facets, accounts, comments, wish lists, carts, product-detail pages, programmatic taxonomy pages, non-nurse clusters, and Spanish public pages.
+The public runtime excludes the local Studio, AI credentials and generation, authentication, databases, production API routes, and server processes. The Studio stage excludes brainstorming, overlap analysis, legacy-content migration, automated product imports, unpublishing, deletion, and direct deployment. The overall MVP still excludes CMS integration, redirect infrastructure, public search, facets, accounts, comments, wish lists, carts, product-detail pages, programmatic taxonomy pages, and Spanish public pages.
