@@ -50,6 +50,54 @@ export function matchProducts(
     .sort((left, right) => left.name.localeCompare(right.name));
 }
 
+export interface ProductSlotQuery {
+  slotLabel: string;
+  slotIntent?: string | undefined;
+  searchTerms?: string[] | undefined;
+}
+
+function tokens(value: string): Set<string> {
+  return new Set(value.toLocaleLowerCase("en-US").match(/[\p{L}\p{N}]+/gu) ?? []);
+}
+
+export function suggestProductsForSlot(
+  products: Product[],
+  slot: ProductSlotQuery,
+  limit = 5,
+): Product[] {
+  const queryTokens = tokens(
+    [slot.slotLabel, slot.slotIntent, ...(slot.searchTerms ?? [])].filter(Boolean).join(" "),
+  );
+  // ponytail: a linear scan is the right ceiling for a local catalog; add an index only after it grows.
+  return products
+    .filter((product) => product.status === "active")
+    .map((product) => {
+      const productTokens = tokens(
+        [
+          product.name,
+          product.brand,
+          product.merchant,
+          product.shortDescription,
+          ...(product.categories ?? []),
+          ...(product.interests ?? []),
+          ...(product.recipients ?? []),
+          ...(product.occasions ?? []),
+        ]
+          .filter(Boolean)
+          .join(" "),
+      );
+      const score = [...queryTokens].filter((token) => productTokens.has(token)).length;
+      return { product, score };
+    })
+    .filter(({ score }) => score > 0)
+    .sort(
+      (left, right) =>
+        right.score - left.score || left.product.name.localeCompare(right.product.name),
+    )
+    .slice(0, limit)
+    .map(({ product }) => product);
+}
+
 export function productUsage(guides: GiftGuide[], productId: string): GiftGuide[] {
   return guides.filter((guide) =>
     guide.recommendations.some((recommendation) => recommendation.productId === productId),

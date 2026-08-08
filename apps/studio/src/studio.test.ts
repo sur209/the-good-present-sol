@@ -25,16 +25,38 @@ import {
   guideDraftSchema,
   guideOutlineSchema,
 } from "./drafts.ts";
-import { generateGuideOutline, normalizeQuestionnaire } from "./guide-editor.ts";
+import {
+  addManualRecommendation,
+  clearRecommendationProduct,
+  duplicateProductIds,
+  generateGuideOutline,
+  moveRecommendation,
+  normalizeQuestionnaire,
+  removeRecommendation,
+  selectRecommendationProduct,
+} from "./guide-editor.ts";
 import { prepareOutlinePrompt } from "./outline-prompt.ts";
 import {
   ProductCatalog,
   matchProducts,
   productUsage,
+  suggestProductsForSlot,
   validateProductUrl,
 } from "./product-catalog.ts";
 import { REPOSITORY_ROOT } from "./repository.ts";
 import { STUDIO_HOST, createStudioServer } from "./server.ts";
+
+async function generatedGuideDraft(id: string, giftCount = 3) {
+  const content = new ProductCatalog().read();
+  const draft = guideDraftSchema.parse({
+    ...createGuideDraft(id),
+    clusterId: content.clusters[0]!.id,
+    primaryAxis: "recipient",
+    primaryIntent: "Help a friend choose a useful gift for a nurse.",
+    questionnaire: normalizeQuestionnaire({ giftCount: String(giftCount) }),
+  });
+  return generateGuideOutline(draft, content, new MockGuideGenerationProvider());
+}
 
 test("discrimina borradores estrictos de hub y guía", () => {
   const cluster = createClusterDraft("cluster_test", new Date("2026-08-08T00:00:00.000Z"));
@@ -481,4 +503,212 @@ test("muestra el prompt antes de generar un esquema mock por HTTP", async (conte
   const saved = await store.read("guide_http-outline");
   assert.equal(saved.draftType, "gift-guide");
   assert.equal(saved.outline?.slots.length, 3);
+});
+
+test("sugiere productos activos con coincidencia textual determinista", () => {
+  const content = new ProductCatalog().read();
+  const suggestions = suggestProductsForSlot(content.products, {
+    slotLabel: "Insulated nurse drinkware",
+    slotIntent: "A reusable tumbler for long shifts",
+    searchTerms: ["insulated tumbler", "nurse drinkware"],
+  });
+
+  assert.equal(suggestions[0]?.id, "product_insulated-tumbler");
+  assert.ok(suggestions.every((product) => product.status === "active"));
+  assert.deepEqual(
+    suggestions,
+    suggestProductsForSlot(content.products, {
+      slotLabel: "Insulated nurse drinkware",
+      slotIntent: "A reusable tumbler for long shifts",
+      searchTerms: ["insulated tumbler", "nurse drinkware"],
+    }),
+  );
+});
+
+test("seleccionar y reemplazar conserva la identidad editorial del slot", async () => {
+  const content = new ProductCatalog().read();
+  const draft = await generatedGuideDraft("guide_replace-product");
+  const slot = draft.recommendations[0]!;
+  const firstProduct = content.products[0]!;
+  const secondProduct = content.products[1]!;
+  const selected = selectRecommendationProduct(draft, slot.id, firstProduct.id, content);
+  const withCopy = guideDraftSchema.parse({
+    ...selected,
+    recommendations: selected.recommendations.map((recommendation) =>
+      recommendation.id === slot.id
+        ? {
+            ...recommendation,
+            heading: "Existing heading",
+            editorialDescription: "Existing description",
+            whyItFits: "Existing rationale",
+          }
+        : recommendation,
+    ),
+  });
+  const replaced = selectRecommendationProduct(withCopy, slot.id, secondProduct.id, content);
+  const result = replaced.recommendations.find((recommendation) => recommendation.id === slot.id)!;
+
+  assert.equal(selected.recommendations[0]!.editorialStatus, "needs-generation");
+  assert.equal(result.id, slot.id);
+  assert.equal(result.position, slot.position);
+  assert.equal(result.slotLabel, slot.slotLabel);
+  assert.equal(result.slotIntent, slot.slotIntent);
+  assert.equal(result.productId, secondProduct.id);
+  assert.equal(result.heading, "Existing heading");
+  assert.equal(result.editorialDescription, "Existing description");
+  assert.equal(result.editorialStatus, "needs-review");
+});
+
+test("bloquea duplicados accidentales y admite confirmación explícita", async () => {
+  const content = new ProductCatalog().read();
+  const draft = await generatedGuideDraft("guide_duplicate-product");
+  const productId = content.products[0]!.id;
+  const first = selectRecommendationProduct(
+    draft,
+    draft.recommendations[0]!.id,
+    productId,
+    content,
+  );
+
+  assert.throws(
+    () => selectRecommendationProduct(first, first.recommendations[1]!.id, productId, content),
+    /Confirmá explícitamente/,
+  );
+  const confirmed = selectRecommendationProduct(
+    first,
+    first.recommendations[1]!.id,
+    productId,
+    content,
+    true,
+  );
+  assert.deepEqual(duplicateProductIds(confirmed), [productId]);
+  const cleared = clearRecommendationProduct(confirmed, confirmed.recommendations[1]!.id);
+  assert.equal(cleared.recommendations[1]!.productId, undefined);
+  assert.equal(cleared.recommendations[1]!.editorialStatus, "unassigned");
+});
+
+test("mueve, elimina y agrega slots sin cambiar IDs sobrevivientes", async () => {
+  const draft = await generatedGuideDraft("guide_slot-order");
+  const firstId = draft.recommendations[0]!.id;
+  const thirdId = draft.recommendations[2]!.id;
+  const moved = moveRecommendation(draft, thirdId, -1);
+  const added = addManualRecommendation(
+    moved,
+    "Manual comfort slot",
+    "A manually curated purpose",
+    ["comfort gift"],
+    "slot_manual",
+  );
+  const removed = removeRecommendation(added, firstId);
+
+  assert.equal(moved.recommendations[1]!.id, thirdId);
+  assert.equal(added.recommendations.at(-1)!.id, "slot_manual");
+  assert.deepEqual(
+    removed.recommendations.map((recommendation) => recommendation.position),
+    [1, 2, 3],
+  );
+  assert.ok(removed.recommendations.some((recommendation) => recommendation.id === thirdId));
+});
+
+test("bloquea regenerar el esquema después de seleccionar productos", async () => {
+  const content = new ProductCatalog().read();
+  const draft = await generatedGuideDraft("guide_locked-outline");
+  const selected = selectRecommendationProduct(
+    draft,
+    draft.recommendations[0]!.id,
+    content.products[0]!.id,
+    content,
+  );
+  await assert.rejects(
+    generateGuideOutline(selected, content, new MockGuideGenerationProvider()),
+    /Quitá las selecciones/,
+  );
+});
+
+test("selecciona, reemplaza y vuelve desde alta de producto por HTTP", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-selection-http-"));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const store = new DraftStore(join(repository, "drafts"));
+  const catalog = new ProductCatalog(repository);
+  const draft = await generatedGuideDraft("guide_http-selection");
+  await store.save(draft);
+  const server = createStudioServer(store, catalog);
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(async () => {
+    server.close();
+    await rm(repository, { recursive: true, force: true });
+  });
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+  const firstSlot = draft.recommendations[0]!.id;
+  const secondSlot = draft.recommendations[1]!.id;
+  const firstProduct = catalog.read().products[0]!;
+  const secondProduct = catalog.read().products[1]!;
+
+  const search = await fetch(`${origin}/drafts/${draft.id}?slot=${firstSlot}&productQ=tumbler`);
+  const searchHtml = await search.text();
+  assert.match(searchHtml, /Resultados del catálogo/);
+  assert.match(searchHtml, /Crear un producto nuevo y volver/);
+
+  const selected = await fetch(
+    `${origin}/drafts/${draft.id}/recommendations/${firstSlot}/product`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ productId: firstProduct.id }),
+      redirect: "manual",
+    },
+  );
+  assert.equal(selected.status, 303);
+
+  const duplicateBlocked = await fetch(
+    `${origin}/drafts/${draft.id}/recommendations/${secondSlot}/product`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ productId: firstProduct.id }),
+    },
+  );
+  assert.equal(duplicateBlocked.status, 400);
+  const duplicateAllowed = await fetch(
+    `${origin}/drafts/${draft.id}/recommendations/${secondSlot}/product`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ productId: firstProduct.id, allowDuplicate: "yes" }),
+      redirect: "manual",
+    },
+  );
+  assert.equal(duplicateAllowed.status, 303);
+
+  await fetch(`${origin}/drafts/${draft.id}/recommendations/${firstSlot}/product`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ productId: secondProduct.id }),
+    redirect: "manual",
+  });
+  const replaced = await store.read(draft.id);
+  assert.equal(replaced.draftType, "gift-guide");
+  assert.equal(replaced.recommendations[0]!.editorialStatus, "needs-review");
+  assert.match(await (await fetch(`${origin}/drafts/${draft.id}`)).text(), /Revisión obligatoria/);
+
+  const newProductPage = await fetch(
+    `${origin}/products/new?returnTo=${encodeURIComponent(`/drafts/${draft.id}`)}`,
+  );
+  assert.match(await newProductPage.text(), /name="returnTo"/);
+  const returnResponse = await fetch(`${origin}/products`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      returnTo: `/drafts/${draft.id}`,
+      name: "Draft-local catalog addition",
+      merchant: "Test merchant",
+      shortDescription: "Created without losing the guide draft.",
+      status: "inactive",
+    }),
+    redirect: "manual",
+  });
+  assert.equal(returnResponse.headers.get("location"), `/drafts/${draft.id}`);
 });

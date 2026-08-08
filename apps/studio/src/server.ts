@@ -32,13 +32,23 @@ import {
   type EditorialDraft,
   type GuideDraft,
 } from "./drafts.ts";
-import { generateGuideOutline, normalizeQuestionnaire } from "./guide-editor.ts";
+import {
+  addManualRecommendation,
+  clearRecommendationProduct,
+  duplicateProductIds,
+  generateGuideOutline,
+  moveRecommendation,
+  normalizeQuestionnaire,
+  removeRecommendation,
+  selectRecommendationProduct,
+} from "./guide-editor.ts";
 import { prepareOutlinePrompt } from "./outline-prompt.ts";
 import {
   ProductCatalog,
   createProductId,
   matchProducts,
   productUsage,
+  suggestProductsForSlot,
   type ProductStatusFilter,
 } from "./product-catalog.ts";
 import { readPublicContent } from "./repository.ts";
@@ -228,7 +238,11 @@ function listText(items: string[] | undefined, separator = ", "): string {
   return value(items?.join(separator));
 }
 
-function productFormPage(product?: Product): string {
+function safeReturnTo(value: string | null): string | undefined {
+  return value && /^\/drafts\/[a-z0-9_-]+$/.test(value) ? value : undefined;
+}
+
+function productFormPage(product?: Product, returnTo?: string): string {
   const editing = Boolean(product);
   const action = editing ? `/products/${encodeURIComponent(product!.id)}` : "/products";
   const submitLabel = editing ? "Guardar producto" : "Crear producto";
@@ -238,6 +252,7 @@ function productFormPage(product?: Product): string {
      <h1>${editing ? "Editar producto" : "Nuevo producto"}</h1>
      <p class="notice">${editing ? `El ID estable <code>${escapeHtml(product!.id)}</code> y el nombre del archivo no cambian.` : "El Studio asignará un ID estable. Los productos se pueden reutilizar en varias guías."}</p>
      <form method="post" action="${action}" class="card">
+       ${returnTo ? `<input type="hidden" name="returnTo" value="${escapeHtml(returnTo)}">` : ""}
        <div class="grid">
          <label>Nombre<input name="name" required value="${value(product?.name)}"></label>
          <label>Marca (opcional)<input name="brand" value="${value(product?.brand)}"></label>
@@ -558,6 +573,13 @@ function optionalNumber(form: URLSearchParams, name: string, label: string): num
   return number;
 }
 
+function guideWorkflowStatus(draft: GuideDraft): GuideDraft["status"] {
+  if (draft.recommendations.some((recommendation) => recommendation.productId)) {
+    return "selecting-products";
+  }
+  return draft.outline ? "outline-ready" : "questionnaire";
+}
+
 function guideArchitectureFromForm(draft: GuideDraft, form: URLSearchParams): GuideDraft {
   const content = readPublicContent();
   const clusterId = optionalValue(form, "clusterId");
@@ -595,7 +617,7 @@ function guideArchitectureFromForm(draft: GuideDraft, form: URLSearchParams): Gu
   }
   return guideDraftSchema.parse({
     ...draft,
-    status: draft.outline ? "outline-ready" : "questionnaire",
+    status: guideWorkflowStatus(draft),
     clusterId,
     slug: optionalValue(form, "slug"),
     primaryAxis,
@@ -628,12 +650,124 @@ function questionnaireFromForm(draft: GuideDraft, form: URLSearchParams): GuideD
   });
   return guideDraftSchema.parse({
     ...draft,
-    status: draft.outline ? "outline-ready" : "questionnaire",
+    status: guideWorkflowStatus(draft),
     questionnaire,
   });
 }
 
-function guideEditorPage(draft: GuideDraft): string {
+function productChoiceForm(
+  draft: GuideDraft,
+  recommendationId: string,
+  product: Product,
+  duplicate: boolean,
+  replacing: boolean,
+): string {
+  return `<form method="post" action="/drafts/${draft.id}/recommendations/${recommendationId}/product" class="card">
+    <input type="hidden" name="productId" value="${product.id}">
+    <strong>${escapeHtml(product.name)}</strong>
+    <span class="muted">${escapeHtml(product.merchant)}</span>
+    <p>${escapeHtml(product.shortDescription)}</p>
+    ${duplicate ? '<label><input type="checkbox" name="allowDuplicate" value="yes" required> Confirmo que quiero repetir este producto en la guía.</label>' : ""}
+    <button type="submit">${replacing ? "Reemplazar con este producto" : "Seleccionar"}</button>
+  </form>`;
+}
+
+function recommendationSelectionSection(draft: GuideDraft, url: URL): string {
+  const content = readPublicContent();
+  const productsById = new Map(content.products.map((product) => [product.id, product]));
+  const searchSlot = url.searchParams.get("slot");
+  const productQuery = url.searchParams.get("productQ") ?? "";
+  const duplicates = duplicateProductIds(draft);
+  const duplicateWarning = duplicates.length
+    ? `<div class="error"><strong>Productos repetidos confirmados:</strong> ${duplicates.map((id) => escapeHtml(productsById.get(id)?.name ?? id)).join(", ")}</div>`
+    : "";
+  const recommendations = [...draft.recommendations]
+    .sort((left, right) => left.position - right.position)
+    .map((recommendation, index) => {
+      const selected = recommendation.productId
+        ? productsById.get(recommendation.productId)
+        : undefined;
+      const isDuplicate = (productId: string) =>
+        draft.recommendations.some(
+          (item) => item.id !== recommendation.id && item.productId === productId,
+        );
+      const suggestions = suggestProductsForSlot(content.products, recommendation, 3)
+        .filter((product) => product.id !== recommendation.productId)
+        .map((product) =>
+          productChoiceForm(
+            draft,
+            recommendation.id,
+            product,
+            isDuplicate(product.id),
+            Boolean(selected),
+          ),
+        )
+        .join("");
+      const results =
+        searchSlot === recommendation.id
+          ? matchProducts(content.products, productQuery, "active")
+              .filter((product) => product.id !== recommendation.productId)
+              .map((product) =>
+                productChoiceForm(
+                  draft,
+                  recommendation.id,
+                  product,
+                  isDuplicate(product.id),
+                  Boolean(selected),
+                ),
+              )
+              .join("")
+          : "";
+      const replacementWarning =
+        recommendation.editorialStatus === "needs-review"
+          ? '<p class="error"><strong>Revisión obligatoria:</strong> el texto existente puede describir el producto anterior. Podés conservarlo temporalmente, pero la publicación queda bloqueada hasta editarlo o regenerar sólo esta recomendación.</p>'
+          : "";
+      return `<article class="card">
+        <div class="actions"><h3>${recommendation.position}. ${escapeHtml(recommendation.slotLabel)}</h3><span class="status">${escapeHtml(recommendation.editorialStatus)}</span></div>
+        ${recommendation.slotIntent ? `<p>${escapeHtml(recommendation.slotIntent)}</p>` : ""}
+        ${recommendation.searchTerms?.length ? `<p class="muted">Búsqueda sugerida: ${escapeHtml(recommendation.searchTerms.join(", "))}</p>` : ""}
+        ${recommendation.budgetHint ? `<p class="muted">Presupuesto: ${escapeHtml(recommendation.budgetHint)}</p>` : ""}
+        <div class="actions">
+          <form method="post" action="/drafts/${draft.id}/recommendations/${recommendation.id}/up"><button type="submit"${index === 0 ? " disabled" : ""}>Subir</button></form>
+          <form method="post" action="/drafts/${draft.id}/recommendations/${recommendation.id}/down"><button type="submit"${index === draft.recommendations.length - 1 ? " disabled" : ""}>Bajar</button></form>
+          <form method="post" action="/drafts/${draft.id}/recommendations/${recommendation.id}/remove"><button type="submit">Eliminar slot</button></form>
+        </div>
+        <section>
+          <h4>${selected ? "Producto seleccionado" : "Sin producto asignado"}</h4>
+          ${selected ? `<p><strong>${escapeHtml(selected.name)}</strong> · ${escapeHtml(selected.merchant)}${selected.status === "inactive" ? ' · <span class="error">Inactivo</span>' : ""}</p><p>${escapeHtml(selected.shortDescription)}</p>` : '<p class="notice">Podés dejar este slot sin asignar mientras trabajás.</p>'}
+          ${replacementWarning}
+          ${selected ? `<form method="post" action="/drafts/${draft.id}/recommendations/${recommendation.id}/product/clear"><button type="submit">Quitar selección</button></form>` : ""}
+        </section>
+        <details open>
+          <summary>${selected ? "Reemplazar producto" : "Sugerencias del catálogo"}</summary>
+          <div class="grid">${suggestions || '<p class="muted">No hay coincidencias sugeridas.</p>'}</div>
+        </details>
+        <form method="get" action="/drafts/${draft.id}" class="card">
+          <input type="hidden" name="slot" value="${recommendation.id}">
+          <label>Buscar en todo el catálogo<input type="search" name="productQ" value="${searchSlot === recommendation.id ? escapeHtml(productQuery) : ""}"></label>
+          <button type="submit">Buscar</button>
+        </form>
+        ${searchSlot === recommendation.id ? `<section><h4>Resultados del catálogo</h4><div class="grid">${results || '<p class="notice">No hay productos activos que coincidan.</p>'}</div></section>` : ""}
+        <p><a href="/products/new?returnTo=${encodeURIComponent(`/drafts/${draft.id}`)}">Crear un producto nuevo y volver a este borrador</a></p>
+      </article>`;
+    })
+    .join("");
+  return `<section>
+    <h2>Selección de productos</h2>
+    <p>Actualizar un producto cambia el catálogo compartido y todas sus guías. Reemplazarlo aquí cambia sólo este slot y conserva su ID, posición y propósito.</p>
+    ${duplicateWarning}
+    <div class="grid">${recommendations || '<p class="notice">No hay slots. Generá un esquema o agregá uno manualmente.</p>'}</div>
+    <form method="post" action="/drafts/${draft.id}/recommendations" class="card">
+      <h3>Agregar slot manual</h3>
+      <label>Nombre del slot<input name="slotLabel" required></label>
+      <label>Propósito (opcional)<textarea name="slotIntent" rows="2"></textarea></label>
+      <label>Términos de búsqueda, separados por coma<input name="searchTerms"></label>
+      <button type="submit">Agregar slot</button>
+    </form>
+  </section>`;
+}
+
+function guideEditorPage(draft: GuideDraft, url: URL): string {
   const content = readPublicContent();
   const clusters = content.clusters
     .map(
@@ -707,7 +841,7 @@ function guideEditorPage(draft: GuideDraft): string {
        </div>
        <button type="submit">Guardar cuestionario</button>
      </form>
-     ${metadata}${outline}`,
+     ${metadata}${outline}${recommendationSelectionSection(draft, url)}`,
   );
 }
 
@@ -720,14 +854,18 @@ async function readGuideDraft(store: DraftStore, id: string): Promise<GuideDraft
 
 function outlinePromptPage(draft: GuideDraft, provider: GuideGenerationProvider): string {
   const prepared = prepareOutlinePrompt(draft, readPublicContent());
+  const hasSelectedProducts = draft.recommendations.some(
+    (recommendation) => recommendation.productId,
+  );
   return page(
     `Prompt de esquema · ${draftName(draft)}`,
     `<p><a href="/drafts/${draft.id}">← Editar guía</a></p>
      <h1>Revisar prompt de esquema</h1>
      <p class="notice">Esta etapa crea sólo slots editoriales y términos de búsqueda. No selecciona productos ni escribe la guía completa.</p>
+     ${hasSelectedProducts ? '<p class="error">Quitá las selecciones de productos antes de regenerar el esquema para no perder trabajo editorial.</p>' : ""}
      <p>Versión <code>${escapeHtml(prepared.version)}</code> · proveedor <code>${escapeHtml(provider.providerId)}</code>${provider.modelId ? ` · modelo <code>${escapeHtml(provider.modelId)}</code>` : ""}</p>
      <pre>${escapeHtml(prepared.prompt)}</pre>
-     <form method="post" action="/drafts/${draft.id}/outline/generate"><input type="hidden" name="promptVersion" value="${escapeHtml(prepared.version)}"><button type="submit">Generar esquema con este prompt</button></form>`,
+     <form method="post" action="/drafts/${draft.id}/outline/generate"><input type="hidden" name="promptVersion" value="${escapeHtml(prepared.version)}"><button type="submit"${hasSelectedProducts ? " disabled" : ""}>Generar esquema con este prompt</button></form>`,
   );
 }
 
@@ -969,12 +1107,87 @@ export function createStudioServer(
         redirect(response, `/drafts/${draft.id}`);
         return;
       }
+      const addRecommendationMatch =
+        method === "POST" ? /^\/drafts\/([a-z0-9_-]+)\/recommendations$/.exec(url.pathname) : null;
+      if (addRecommendationMatch?.[1]) {
+        const form = await readForm(request);
+        const draft = await readGuideDraft(store, addRecommendationMatch[1]);
+        await store.save(
+          addManualRecommendation(
+            draft,
+            requiredValue(form, "slotLabel", "El nombre del slot"),
+            optionalValue(form, "slotIntent"),
+            listValue(form, "searchTerms"),
+          ),
+        );
+        redirect(response, `/drafts/${draft.id}`);
+        return;
+      }
+      const selectProductMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/recommendations\/([a-z0-9_-]+)\/product$/.exec(url.pathname)
+          : null;
+      if (selectProductMatch?.[1] && selectProductMatch[2]) {
+        const form = await readForm(request);
+        const draft = await readGuideDraft(store, selectProductMatch[1]);
+        await store.save(
+          selectRecommendationProduct(
+            draft,
+            selectProductMatch[2],
+            requiredValue(form, "productId", "El producto"),
+            readPublicContent(),
+            form.get("allowDuplicate") === "yes",
+          ),
+        );
+        redirect(response, `/drafts/${draft.id}`);
+        return;
+      }
+      const clearProductMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/recommendations\/([a-z0-9_-]+)\/product\/clear$/.exec(
+              url.pathname,
+            )
+          : null;
+      if (clearProductMatch?.[1] && clearProductMatch[2]) {
+        const draft = await readGuideDraft(store, clearProductMatch[1]);
+        await store.save(clearRecommendationProduct(draft, clearProductMatch[2]));
+        redirect(response, `/drafts/${draft.id}`);
+        return;
+      }
+      const recommendationActionMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/recommendations\/([a-z0-9_-]+)\/(up|down|remove)$/.exec(
+              url.pathname,
+            )
+          : null;
+      if (
+        recommendationActionMatch?.[1] &&
+        recommendationActionMatch[2] &&
+        recommendationActionMatch[3]
+      ) {
+        const draft = await readGuideDraft(store, recommendationActionMatch[1]);
+        const updated =
+          recommendationActionMatch[3] === "remove"
+            ? removeRecommendation(draft, recommendationActionMatch[2])
+            : moveRecommendation(
+                draft,
+                recommendationActionMatch[2],
+                recommendationActionMatch[3] === "up" ? -1 : 1,
+              );
+        await store.save(updated);
+        redirect(response, `/drafts/${draft.id}`);
+        return;
+      }
       if (method === "GET" && url.pathname === "/products") {
         send(response, 200, productListPage(catalog, url));
         return;
       }
       if (method === "GET" && url.pathname === "/products/new") {
-        send(response, 200, productFormPage());
+        send(
+          response,
+          200,
+          productFormPage(undefined, safeReturnTo(url.searchParams.get("returnTo"))),
+        );
         return;
       }
       const editProductMatch =
@@ -984,8 +1197,9 @@ export function createStudioServer(
         return;
       }
       if (method === "POST" && url.pathname === "/products") {
-        await catalog.save(productFromForm(await readForm(request)));
-        redirect(response, "/products?saved=1");
+        const form = await readForm(request);
+        await catalog.save(productFromForm(form));
+        redirect(response, safeReturnTo(form.get("returnTo")) ?? "/products?saved=1");
         return;
       }
       const saveProductMatch =
@@ -1023,7 +1237,9 @@ export function createStudioServer(
         send(
           response,
           200,
-          draft.draftType === "cluster-hub" ? clusterEditorPage(draft) : guideEditorPage(draft),
+          draft.draftType === "cluster-hub"
+            ? clusterEditorPage(draft)
+            : guideEditorPage(draft, url),
         );
         return;
       }
