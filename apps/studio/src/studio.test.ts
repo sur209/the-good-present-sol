@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import { cp, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { once } from "node:events";
@@ -16,6 +16,13 @@ import {
   editorialDraftSchema,
   guideDraftSchema,
 } from "./drafts.ts";
+import {
+  ProductCatalog,
+  matchProducts,
+  productUsage,
+  validateProductUrl,
+} from "./product-catalog.ts";
+import { REPOSITORY_ROOT } from "./repository.ts";
 import { STUDIO_HOST, createStudioServer } from "./server.ts";
 
 test("discrimina borradores estrictos de hub y guía", () => {
@@ -113,4 +120,100 @@ test("sirve la lista y crea un borrador por HTTP sólo en loopback", async (cont
   assert.equal(createResponse.status, 303);
   assert.match(createResponse.headers.get("location") ?? "", /^\/drafts\/cluster_/);
   assert.equal((await readdir(directory)).length, 1);
+});
+
+test("busca productos por texto y etiquetas, filtra estado y muestra uso", () => {
+  const content = new ProductCatalog().read();
+  const matches = matchProducts(content.products, "drinkware nurses", "active");
+  assert.ok(matches.some((product) => product.id === "product_insulated-tumbler"));
+  assert.ok(
+    productUsage(content.guides, "product_insulated-tumbler").some(
+      (guide) => guide.id === "guide_nurse-practical",
+    ),
+  );
+  assert.equal(matchProducts(content.products, "", "inactive").length, 0);
+});
+
+test("acepta sólo URLs HTTP(S) absolutas", () => {
+  assert.equal(validateProductUrl(undefined), true);
+  assert.equal(validateProductUrl("https://example.com/product"), true);
+  assert.equal(validateProductUrl("http://example.com/product"), true);
+  assert.equal(validateProductUrl("ftp://example.com/product"), false);
+  assert.equal(validateProductUrl("/relative"), false);
+});
+
+test("escribe productos por ID y bloquea desactivar uno publicado", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-catalog-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const product = await catalog.save({
+    schemaVersion: 1,
+    id: "product_test-catalog",
+    name: "Test catalog item",
+    merchant: "Test merchant",
+    productUrl: "https://example.com/test-catalog",
+    shortDescription: "A deterministic test product.",
+    categories: ["test"],
+    status: "inactive",
+    lastCheckedAt: "2026-08-08",
+  });
+
+  const file = join(repository, "content", "products", `${product.id}.json`);
+  assert.equal(JSON.parse(await readFile(file, "utf8")).id, product.id);
+  assert.equal(catalog.get(product.id).status, "inactive");
+  assert.deepEqual(
+    (await readdir(join(repository, "content", "products"))).filter((name) =>
+      name.endsWith(".tmp"),
+    ),
+    [],
+  );
+
+  const usedId = catalog.read().guides[0]!.recommendations[0]!.productId;
+  const usedProduct = catalog.get(usedId);
+  await assert.rejects(
+    catalog.save({ ...usedProduct, status: "inactive" }),
+    /dejaría inválido el contenido publicado/,
+  );
+});
+
+test("expone búsqueda y alta manual de productos por HTTP", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-product-http-"));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const server = createStudioServer(
+    new DraftStore(join(repository, "drafts")),
+    new ProductCatalog(repository),
+  );
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(async () => {
+    server.close();
+    await rm(repository, { recursive: true, force: true });
+  });
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+
+  const listResponse = await fetch(`${origin}/products?q=tumbler&status=active`);
+  assert.equal(listResponse.status, 200);
+  assert.match(await listResponse.text(), /Leak-Resistant Insulated Tumbler/);
+  const productDirectory = join(repository, "content", "products");
+  const beforeCount = (await readdir(productDirectory)).length;
+
+  const createResponse = await fetch(`${origin}/products`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      name: "Manual product",
+      merchant: "Manual merchant",
+      shortDescription: "Created from the native product form.",
+      productUrl: "https://example.com/manual-product",
+      status: "inactive",
+      lastCheckedAt: "2026-08-08",
+    }),
+    redirect: "manual",
+  });
+  assert.equal(createResponse.status, 303);
+  assert.equal(createResponse.headers.get("location"), "/products?saved=1");
+  assert.equal((await readdir(productDirectory)).length, beforeCount + 1);
 });

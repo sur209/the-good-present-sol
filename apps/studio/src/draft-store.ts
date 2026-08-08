@@ -1,11 +1,9 @@
-import { randomUUID } from "node:crypto";
-import { mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { editorialDraftSchema, type EditorialDraft } from "./drafts.ts";
+import { REPOSITORY_ROOT, atomicWriteJson } from "./repository.ts";
 
-export const REPOSITORY_ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 export const DEFAULT_DRAFT_DIRECTORY = resolve(REPOSITORY_ROOT, "drafts");
 
 const SAFE_DRAFT_ID = /^[a-z0-9]+(?:[-_][a-z0-9]+)*$/;
@@ -77,18 +75,10 @@ export class DraftStore {
   async save<T extends EditorialDraft>(draft: T, now = new Date()): Promise<T> {
     const parsed = editorialDraftSchema.parse({ ...draft, updatedAt: now.toISOString() }) as T;
     const target = this.file(parsed.id);
-    await mkdir(this.directory, { recursive: true });
-    const temporary = resolve(this.directory, `.${parsed.id}.${process.pid}.${randomUUID()}.tmp`);
 
     try {
-      await writeFile(temporary, `${JSON.stringify(parsed, null, 2)}\n`, {
-        encoding: "utf8",
-        flag: "wx",
-        mode: 0o600,
-      });
-      await rename(temporary, target);
+      await atomicWriteJson(target, parsed);
     } catch (error) {
-      await rm(temporary, { force: true });
       const reason = error instanceof Error ? error.message : String(error);
       throw new Error(`No se pudo guardar el borrador "${parsed.id}": ${reason}`, { cause: error });
     }
