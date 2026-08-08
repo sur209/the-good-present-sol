@@ -14,7 +14,7 @@ The first vertical slice is the **Nurse Gifts** cluster. Published content is na
 - `apps/studio/` is a local Spanish editorial tool that writes English public content through that contract.
 - Stable IDs are record identity. Editable slugs are routing fields and never determine canonical filenames.
 - Tags and taxonomies are metadata only. They never create public routes.
-- The future Editorial Studio may add draft-only models, but it may publish only records accepted by the canonical public schemas.
+- The Editorial Studio keeps draft-only models separate and publishes only records accepted by the canonical public schemas.
 
 The implementation is proceeding through the phases recorded in [docs/progress.md](docs/progress.md).
 
@@ -67,7 +67,7 @@ Working drafts are intentionally git-ignored: they may contain questionnaire ans
 
 ## Content and publication
 
-Stable IDs identify records and name canonical files; slugs are editable route fields. See [docs/content-contract.md](docs/content-contract.md) before adding a product, hub, or guide, and run `npm run content:validate` after every content edit. The shared package is the Studio publication boundary.
+Stable IDs identify records and name canonical files; slugs are editable route fields. The Studio's Publish action creates or updates the matching stable-ID file, validates the complete candidate graph, and never runs Git or deploys. See [docs/content-contract.md](docs/content-contract.md) before adding a product, hub, or guide, and run `npm run verify` before committing published changes.
 
 Seed merchant destinations use visibly labeled `example.com` demo links. They demonstrate affiliate placement and must be replaced with verified editorial destinations before launch.
 

@@ -4,10 +4,11 @@ import { assertValidPublicContent, type PrimaryAxis } from "@the-good-present/co
 
 import { readPublicContentSources } from "../../../../scripts/content-files.js";
 
-// ponytail: workspace scripts keep cwd at apps/site; pass a configured root if that changes.
-export const content = assertValidPublicContent(
-  readPublicContentSources(resolve(process.cwd(), "../..")),
-);
+// The override lets Studio publication tests build isolated canonical content without touching the repo.
+const repositoryRoot = process.env.CONTENT_REPOSITORY_ROOT
+  ? resolve(process.env.CONTENT_REPOSITORY_ROOT)
+  : resolve(process.cwd(), "../..");
+export const content = assertValidPublicContent(readPublicContentSources(repositoryRoot));
 export const productsById = new Map(content.products.map((product) => [product.id, product]));
 export const clustersById = new Map(content.clusters.map((cluster) => [cluster.id, cluster]));
 export const guidesById = new Map(content.guides.map((guide) => [guide.id, guide]));

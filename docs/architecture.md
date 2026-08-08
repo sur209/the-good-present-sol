@@ -16,7 +16,7 @@ The local Studio can manage richer drafts, but publication is a one-way boundary
 
 `apps/studio/` is a localhost-only editorial tool, not part of the public Astro application or its production build. It may read and atomically write repository files, store validated working records under git-ignored `drafts/`, and call configured AI providers only from its server process. It must use the shared route helpers and publish canonical records to stable-ID-named files under `content/`.
 
-Draft IDs are the canonical public IDs. Reopening published content preserves that ID, and editing a slug changes only routing data; it never renames the canonical file or selects an update target by slug. The Studio adds no hosted backend, database, authentication, deployment path, public API route, or automatic Git operation.
+Draft IDs are the canonical public IDs. Reopening published content preserves that ID, and editing a slug changes only routing data; it never renames the canonical file or selects an update target by slug. Before an atomic same-directory write, publication transforms the draft to a strict public record and validates the complete candidate content graph. Existing records retain `publishedAt`; every successful publication refreshes `updatedAt`. The Studio adds no hosted backend, database, authentication, deployment path, public API route, or automatic Git operation.
 
 ### Draft versioning decision
 

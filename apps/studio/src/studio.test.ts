@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
 import { cp, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { once } from "node:events";
 import test from "node:test";
+import { promisify } from "node:util";
 
 import {
   MockGuideGenerationProvider,
@@ -54,8 +56,11 @@ import {
   validateProductUrl,
 } from "./product-catalog.ts";
 import { prepareRecommendationPrompt } from "./recommendation-prompt.ts";
-import { REPOSITORY_ROOT } from "./repository.ts";
+import { Publisher, clusterDraftToPublic, guideDraftToPublic } from "./publication.ts";
+import { REPOSITORY_ROOT, readPublicContent } from "./repository.ts";
 import { STUDIO_HOST, createStudioServer } from "./server.ts";
+
+const execFileAsync = promisify(execFile);
 
 async function generatedGuideDraft(id: string, giftCount = 3) {
   const content = new ProductCatalog().read();
@@ -961,4 +966,172 @@ test("genera, previsualiza, reemplaza y regenera una recomendación por HTTP", a
   assert.equal(finalDraft.draftType, "gift-guide");
   assert.equal(finalDraft.recommendations[0]!.productId, replacement.id);
   assert.equal(finalDraft.recommendations[0]!.editorialStatus, "ready");
+});
+
+test("transforma borradores completos al esquema público sin campos editoriales", async () => {
+  const content = readPublicContent();
+  const draft = await generateFinalGuide(
+    await selectedGuideDraft("guide_public-shape"),
+    content,
+    new MockGuideGenerationProvider(),
+  );
+  const guide = guideDraftToPublic(draft, content, new Date("2026-08-09T00:00:00.000Z"));
+  const publicGuide = guide as unknown as Record<string, unknown>;
+  const recommendation = guide.recommendations[0] as unknown as Record<string, unknown>;
+
+  for (const draftOnlyField of [
+    "createdAt",
+    "draftType",
+    "generationMetadata",
+    "outline",
+    "questionnaire",
+  ]) {
+    assert.equal(draftOnlyField in publicGuide, false);
+  }
+  assert.equal("slotLabel" in recommendation, false);
+  assert.equal("selectionRationale" in recommendation, false);
+  assert.equal(guide.status, "published");
+  assert.equal(guide.updatedAt, "2026-08-09");
+
+  const emptyHub = clusterDraftSchema.parse({
+    ...createClusterDraft("cluster_empty-public"),
+    slug: "empty-public",
+    title: "Empty public hub",
+    excerpt: "A complete cluster excerpt.",
+    introduction: "A complete cluster introduction.",
+    seoTitle: "Empty public hub",
+    seoDescription: "A complete cluster SEO description.",
+  });
+  assert.deepEqual(clusterDraftToPublic(emptyHub, content).navigationGroups, []);
+});
+
+test("publica por ID estable, conserva publishedAt y rechaza conflictos antes de escribir", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-publication-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const publisher = new Publisher(repository);
+  const content = publisher.read();
+  const existing = content.guides[0]!;
+  const changedSlug = `${existing.slug}-revised`;
+  const draft = guideDraftSchema.parse({
+    ...reopenGuideDraft(existing, content),
+    slug: changedSlug,
+  });
+
+  const result = await publisher.publishGuide(draft, new Date("2026-08-09T12:00:00.000Z"));
+  const saved = JSON.parse(
+    await readFile(join(repository, "content", "guides", `${existing.id}.json`), "utf8"),
+  );
+  assert.equal(result.action, "updated");
+  assert.equal(result.file, `content/guides/${existing.id}.json`);
+  assert.equal(saved.id, existing.id);
+  assert.equal(saved.slug, changedSlug);
+  assert.equal(saved.publishedAt, existing.publishedAt);
+  assert.equal(saved.updatedAt, "2026-08-09");
+  assert.equal(
+    (await readdir(join(repository, "content", "guides"))).some((file) => file.endsWith(".tmp")),
+    false,
+  );
+
+  const conflicting = guideDraftSchema.parse({
+    ...(await generateFinalGuide(
+      await selectedGuideDraft("guide_conflicting-publication"),
+      content,
+      new MockGuideGenerationProvider(),
+    )),
+    slug: changedSlug,
+  });
+  await assert.rejects(publisher.publishGuide(conflicting), /slug ya pertenece/);
+  await assert.rejects(
+    readFile(join(repository, "content", "guides", `${conflicting.id}.json`), "utf8"),
+    /ENOENT/,
+  );
+  assert.doesNotThrow(() => readPublicContent(repository));
+});
+
+test("el botón Publicar escribe contenido canónico y explica commit y push", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-publish-http-"));
+  const draftsDirectory = await mkdtemp(join(tmpdir(), "good-present-publish-drafts-"));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const store = new DraftStore(draftsDirectory);
+  const content = readPublicContent(repository);
+  const complete = await generateFinalGuide(
+    await selectedGuideDraft("guide_http-publication"),
+    content,
+    new MockGuideGenerationProvider(),
+  );
+  await store.save(guideDraftSchema.parse({ ...complete, status: "ready-to-publish" }));
+  const server = createStudioServer(
+    store,
+    new ProductCatalog(repository),
+    new MockGuideGenerationProvider(),
+    new Publisher(repository),
+  );
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(async () => {
+    server.close();
+    await Promise.all([
+      rm(repository, { recursive: true, force: true }),
+      rm(draftsDirectory, { recursive: true, force: true }),
+    ]);
+  });
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+
+  const response = await fetch(
+    `http://${STUDIO_HOST}:${address.port}/drafts/${complete.id}/publish`,
+    {
+      method: "POST",
+    },
+  );
+  const html = await response.text();
+  assert.equal(response.status, 200);
+  assert.match(html, /Contenido creado/);
+  assert.match(html, /todavía hay que hacer commit y push/);
+  assert.match(html, new RegExp(`content/guides/${complete.id}\\.json`));
+  assert.doesNotThrow(() => readPublicContent(repository));
+});
+
+test("publicar una guía y enlazarla desde su hub produce ambas páginas reales", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-publish-build-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const publisher = new Publisher(repository);
+  const initial = publisher.read();
+  const draft = await generateFinalGuide(
+    await selectedGuideDraft("guide_editorial-integration"),
+    initial,
+    new MockGuideGenerationProvider(),
+    new Date("2026-08-09T13:00:00.000Z"),
+  );
+  const guideResult = await publisher.publishGuide(draft, new Date("2026-08-09T13:01:00.000Z"));
+  const afterGuide = publisher.read();
+  const publishedGuide = afterGuide.guides.find((item) => item.id === draft.id)!;
+  const cluster = afterGuide.clusters.find((item) => item.id === draft.clusterId)!;
+  let clusterDraft = reopenClusterDraft(cluster);
+  clusterDraft = addGuideToGroup(
+    clusterDraft,
+    clusterDraft.navigationGroups[0]!.id,
+    draft.id,
+    afterGuide,
+  );
+  await publisher.publishCluster(clusterDraft, new Date("2026-08-09T13:02:00.000Z"));
+  assert.doesNotThrow(() => readPublicContent(repository));
+
+  await execFileAsync(process.execPath, [join(REPOSITORY_ROOT, "scripts", "astro.mjs"), "build"], {
+    cwd: join(REPOSITORY_ROOT, "apps", "site"),
+    env: { ...process.env, CONTENT_REPOSITORY_ROOT: repository },
+    maxBuffer: 10 * 1024 * 1024,
+    windowsHide: true,
+  });
+  const output = join(REPOSITORY_ROOT, "apps", "site", "dist");
+  const hubHtml = await readFile(join(output, cluster.slug, "index.html"), "utf8");
+  const guideHtml = await readFile(
+    join(output, cluster.slug, publishedGuide.slug, "index.html"),
+    "utf8",
+  );
+  assert.equal(guideResult.route, `/${cluster.slug}/${publishedGuide.slug}/`);
+  assert.match(hubHtml, new RegExp(`/${cluster.slug}/${publishedGuide.slug}/`));
+  assert.match(guideHtml, new RegExp(`href=["']/${cluster.slug}/["']`));
 });

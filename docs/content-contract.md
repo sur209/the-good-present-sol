@@ -157,7 +157,7 @@ These are different operations:
 - **Product update:** the selected product remains the same while its merchant, URL, image, or other catalog metadata changes. The stable product ID stays in place, so every guide using it sees the update.
 - **Product replacement:** one guide recommendation changes from one product ID to another. Its recommendation `id` and `position` stay fixed; only that guide is affected.
 
-A future Studio replacement flow is:
+The Studio replacement flow is:
 
 ```text
 existing recommendation slot
@@ -181,9 +181,11 @@ The public build consumes the same validation result as the standalone validatio
 
 An outbound merchant control renders only when a validated destination exists. Affiliate destinations are manually controlled data and use safe absolute HTTP(S) URLs. Public links open in a new tab with `rel="sponsored nofollow noopener"`, identify the merchant, and never pass through an internal redirect. Development example URLs must be labeled as demos in both content and UI and replaced before production launch.
 
-## Manual publishing workflow
+## Studio and manual publishing workflow
 
-Until the local Studio exists, every record is edited as JSON and named by stable ID.
+The local Studio's Publish action creates or updates `content/{type}/{stable-id}.json`. It strips questionnaire answers, prompts, outline details, selection rationale, and other draft-only state; preserves `publishedAt` on updates; refreshes `updatedAt`; validates the complete candidate graph; and uses an atomic same-directory replacement. A slug edit changes the route field, never the filename or update identity. Publication does not run Git or deploy: the editor must review, commit, and push canonical changes separately.
+
+Direct JSON editing remains a supported fallback. Every canonical record is named by stable ID.
 
 ### Add a product
 
@@ -211,7 +213,7 @@ Until the local Studio exists, every record is edited as JSON and named by stabl
 
 ### Validate and publish
 
-1. Add or edit one stable-ID-named JSON file in the appropriate canonical directory.
+1. Use the Studio's Publish action or add/edit one stable-ID-named JSON file in the appropriate canonical directory.
 2. Keep slugs independent from IDs and apply the public-URL editorial rule in `docs/architecture.md`.
 3. Reference products, clusters, and guides by stable ID.
 4. Run `npm run content:validate`.

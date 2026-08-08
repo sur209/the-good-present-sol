@@ -59,6 +59,7 @@ import {
   suggestProductsForSlot,
   type ProductStatusFilter,
 } from "./product-catalog.ts";
+import { Publisher, type PublicationResult } from "./publication.ts";
 import {
   RECOMMENDATION_PROMPT_VERSION,
   prepareRecommendationPrompt,
@@ -582,7 +583,8 @@ function clusterValidationPage(draft: ClusterDraft): string {
      ${result.errors.length ? `<div class="error"><strong>Falta resolver:</strong><ul>${result.errors.map((error) => `<li>${escapeHtml(error)}</li>`).join("")}</ul></div>` : '<p class="notice">El borrador está listo para la publicación de cluster.</p>'}
      ${result.warnings.length ? `<div class="notice"><strong>Avisos:</strong><ul>${result.warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul></div>` : ""}
      ${result.route ? `<p>Ruta canónica: <code>${escapeHtml(result.route)}</code></p>` : ""}
-     <p>La publicación atómica se habilita en la fase de integración.</p>`,
+     <p><strong>Publicar crea o actualiza el contenido del repositorio. Para publicarlo en Internet todavía hay que hacer commit y push.</strong></p>
+     ${result.errors.length ? "" : `<form method="post" action="/drafts/${draft.id}/publish"><button type="submit">Publicar hub en el repositorio</button></form>`}`,
   );
 }
 
@@ -1031,7 +1033,19 @@ function guideValidationPage(draft: GuideDraft): string {
      <h1>Validación de la guía</h1>
      ${result.errors.length ? `<div class="error"><strong>Falta resolver:</strong><ul>${result.errors.map((error) => `<li>${escapeHtml(error)}</li>`).join("")}</ul></div>` : '<p class="notice">La guía está lista para la publicación.</p>'}
      ${result.route ? `<p>Ruta canónica: <code>${escapeHtml(result.route)}</code></p>` : ""}
-     <p>La publicación atómica se habilita en la fase de integración.</p>`,
+     <p><strong>Publicar crea o actualiza el contenido del repositorio. Para publicarlo en Internet todavía hay que hacer commit y push.</strong></p>
+     ${result.errors.length ? "" : `<form method="post" action="/drafts/${draft.id}/publish"><button type="submit">Publicar guía en el repositorio</button></form>`}`,
+  );
+}
+
+function publicationResultPage(draft: EditorialDraft, result: PublicationResult): string {
+  return page(
+    `Publicado · ${draftName(draft)}`,
+    `<p><a href="/drafts/${draft.id}">← Volver al borrador</a></p>
+     <h1>Contenido ${result.action === "created" ? "creado" : "actualizado"}</h1>
+     <p class="notice">Se escribió y validó el archivo canónico.</p>
+     <dl><dt>ID estable</dt><dd><code>${escapeHtml(result.id)}</code></dd><dt>Archivo</dt><dd><code>${escapeHtml(result.file)}</code></dd><dt>Ruta</dt><dd><code>${escapeHtml(result.route)}</code></dd></dl>
+     <p><strong>Publicar crea o actualiza el contenido del repositorio. Para publicarlo en Internet todavía hay que hacer commit y push.</strong></p>`,
   );
 }
 
@@ -1061,6 +1075,7 @@ export function createStudioServer(
   store = new DraftStore(),
   catalog = new ProductCatalog(),
   provider: GuideGenerationProvider = new MockGuideGenerationProvider(),
+  publisher = new Publisher(),
 ) {
   return createServer(async (request, response) => {
     try {
@@ -1142,6 +1157,17 @@ export function createStudioServer(
           if (draft.status !== status) draft = await store.save({ ...draft, status });
           send(response, 200, guideValidationPage(draft));
         }
+        return;
+      }
+      const publishMatch =
+        method === "POST" ? /^\/drafts\/([a-z0-9_-]+)\/publish$/.exec(url.pathname) : null;
+      if (publishMatch?.[1]) {
+        const draft = await store.read(publishMatch[1]);
+        if (draft.status !== "ready-to-publish") {
+          throw new TypeError("Validá el borrador antes de publicarlo.");
+        }
+        const result = await publisher.publish(draft);
+        send(response, 200, publicationResultPage(draft, result));
         return;
       }
       const saveClusterMatch =

@@ -181,7 +181,9 @@ export function validateClusterDraft(
       }
     }
   }
-  if (populatedGroups === 0) errors.push("Debe existir al menos un grupo con una guía publicada.");
+  if (populatedGroups === 0) {
+    warnings.push("El hub se publicará sin grupos hasta que existan guías hijas publicadas.");
+  }
 
   return { errors, warnings, ...(route ? { route } : {}) };
 }
