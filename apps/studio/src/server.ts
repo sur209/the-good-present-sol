@@ -4,6 +4,7 @@ import { pathToFileURL } from "node:url";
 import {
   PRIMARY_AXES,
   PUBLIC_SCHEMA_VERSION,
+  clusterPath,
   guidePath,
   type PrimaryAxis,
   type Product,
@@ -36,12 +37,19 @@ import {
   addManualRecommendation,
   clearRecommendationProduct,
   duplicateProductIds,
+  generateFinalGuide,
   generateGuideOutline,
   moveRecommendation,
   normalizeQuestionnaire,
+  regenerateRecommendation,
   removeRecommendation,
+  reopenGuideDraft,
   selectRecommendationProduct,
+  updateGuideEditorialCopy,
+  updateRecommendationEditorialCopy,
+  validateGuideDraft,
 } from "./guide-editor.ts";
+import { FINAL_PROMPT_VERSION, prepareFinalPrompt } from "./final-prompt.ts";
 import { prepareOutlinePrompt } from "./outline-prompt.ts";
 import {
   ProductCatalog,
@@ -51,6 +59,10 @@ import {
   suggestProductsForSlot,
   type ProductStatusFilter,
 } from "./product-catalog.ts";
+import {
+  RECOMMENDATION_PROMPT_VERSION,
+  prepareRecommendationPrompt,
+} from "./recommendation-prompt.ts";
 import { readPublicContent } from "./repository.ts";
 
 export const STUDIO_HOST = "127.0.0.1";
@@ -381,6 +393,12 @@ function newDraftPage(): string {
         `<li><form method="post" action="/drafts/reopen/cluster/${escapeHtml(cluster.id)}" class="actions"><span>${escapeHtml(cluster.title)} <code>${escapeHtml(cluster.id)}</code></span><button type="submit">Reabrir hub</button></form></li>`,
     )
     .join("");
+  const reopenGuides = content.guides
+    .map(
+      (guide) =>
+        `<li><form method="post" action="/drafts/reopen/guide/${escapeHtml(guide.id)}" class="actions"><span>${escapeHtml(guide.title)} <code>${escapeHtml(guide.id)}</code></span><button type="submit">Reabrir guía</button></form></li>`,
+    )
+    .join("");
 
   return page(
     "Crear borrador",
@@ -411,6 +429,11 @@ function newDraftPage(): string {
        <h2>Reabrir un hub publicado</h2>
        <p>Se conserva el ID estable y se crea o recupera su borrador local.</p>
        <ul>${reopenClusters}</ul>
+     </section>
+     <section class="card">
+       <h2>Reabrir una guía publicada</h2>
+       <p>Se conserva el ID, la selección de productos y la copia editorial publicada.</p>
+       <ul>${reopenGuides}</ul>
      </section>`,
   );
 }
@@ -655,6 +678,36 @@ function questionnaireFromForm(draft: GuideDraft, form: URLSearchParams): GuideD
   });
 }
 
+function guideCopyFromForm(draft: GuideDraft, form: URLSearchParams): GuideDraft {
+  return updateGuideEditorialCopy(draft, {
+    title: optionalValue(form, "title"),
+    excerpt: optionalValue(form, "excerpt"),
+    introduction: optionalValue(form, "introduction"),
+    conclusion: optionalValue(form, "conclusion"),
+    seoTitle: optionalValue(form, "seoTitle"),
+    seoDescription: optionalValue(form, "seoDescription"),
+  });
+}
+
+function recommendationCopyFromForm(
+  draft: GuideDraft,
+  recommendationId: string,
+  form: URLSearchParams,
+): GuideDraft {
+  return updateRecommendationEditorialCopy(
+    draft,
+    recommendationId,
+    {
+      heading: optionalValue(form, "heading"),
+      editorialDescription: optionalValue(form, "editorialDescription"),
+      whyItFits: optionalValue(form, "whyItFits"),
+      bestFor: optionalValue(form, "bestFor"),
+      considerations: optionalValue(form, "considerations"),
+    },
+    form.get("markReady") === "yes",
+  );
+}
+
 function productChoiceForm(
   draft: GuideDraft,
   recommendationId: string,
@@ -738,6 +791,20 @@ function recommendationSelectionSection(draft: GuideDraft, url: URL): string {
           ${replacementWarning}
           ${selected ? `<form method="post" action="/drafts/${draft.id}/recommendations/${recommendation.id}/product/clear"><button type="submit">Quitar selección</button></form>` : ""}
         </section>
+        ${
+          selected
+            ? `<form method="post" action="/drafts/${draft.id}/recommendations/${recommendation.id}/copy" class="card">
+          <h4>Editar esta recomendación</h4>
+          <label>Encabezado<input name="heading" value="${value(recommendation.heading)}"></label>
+          <label>Descripción editorial<textarea name="editorialDescription" rows="4">${value(recommendation.editorialDescription)}</textarea></label>
+          <label>Por qué encaja<textarea name="whyItFits" rows="3">${value(recommendation.whyItFits)}</textarea></label>
+          <label>Ideal para<input name="bestFor" value="${value(recommendation.bestFor)}"></label>
+          <label>Consideraciones<textarea name="considerations" rows="3">${value(recommendation.considerations)}</textarea></label>
+          <label><input type="checkbox" name="markReady" value="yes"> Revisé el producto actual y quiero marcar esta recomendación como lista.</label>
+          <div class="actions"><button type="submit">Guardar recomendación</button><a href="/drafts/${draft.id}/recommendations/${recommendation.id}/prompt">Ver prompt y regenerar sólo esta recomendación</a></div>
+        </form>`
+            : ""
+        }
         <details open>
           <summary>${selected ? "Reemplazar producto" : "Sugerencias del catálogo"}</summary>
           <div class="grid">${suggestions || '<p class="muted">No hay coincidencias sugeridas.</p>'}</div>
@@ -802,7 +869,7 @@ function guideEditorPage(draft: GuideDraft, url: URL): string {
   return page(
     draftName(draft),
     `<p><a href="/">← Borradores</a></p>
-     <div class="actions"><div><h1>${escapeHtml(draftName(draft))}</h1><p><code>${escapeHtml(draft.id)}</code> · ${escapeHtml(draft.status)}</p></div><a class="button" href="/drafts/${draft.id}/outline-prompt">Ver prompt y generar</a></div>
+     <div class="actions"><div><h1>${escapeHtml(draftName(draft))}</h1><p><code>${escapeHtml(draft.id)}</code> · ${escapeHtml(draft.status)}</p></div><a class="button" href="/drafts/${draft.id}/outline-prompt">Esquema</a><a class="button" href="/drafts/${draft.id}/final-prompt">Generación final</a><a class="button" href="/drafts/${draft.id}/preview">Vista previa</a><a class="button" href="/drafts/${draft.id}/validate">Validar</a></div>
      <aside class="notice"><strong>Cómo funciona la arquitectura editorial</strong><p>Las taxonomías clasifican contenido; no crean URLs. Una ruta pública existe sólo al publicar un hub o una guía. Cada guía hija pertenece a un cluster válido. Las guías relacionadas son enlaces editoriales, no jerarquía. “Nurse Gifts Under $25” es una guía con eje <code>budget</code>, no un filtro generado.</p></aside>
      <form method="post" action="/drafts/${draft.id}/guide/architecture" class="card">
        <h2>Arquitectura de la guía</h2>
@@ -824,6 +891,18 @@ function guideEditorPage(draft: GuideDraft, url: URL): string {
          <fieldset class="wide"><legend>Guías relacionadas</legend><div class="checks">${related || "No hay otras guías publicadas en el cluster elegido."}</div></fieldset>
        </div>
        <button type="submit">Guardar arquitectura</button>
+     </form>
+     <form method="post" action="/drafts/${draft.id}/guide/copy" class="card">
+       <h2>Copia editorial de la guía</h2>
+       <div class="grid">
+         <label class="wide">Título<input name="title" value="${value(draft.title)}"></label>
+         <label class="wide">Extracto<textarea name="excerpt" rows="3">${value(draft.excerpt)}</textarea></label>
+         <label class="wide">Introducción<textarea name="introduction" rows="6">${value(draft.introduction)}</textarea></label>
+         <label class="wide">Conclusión (opcional)<textarea name="conclusion" rows="4">${value(draft.conclusion)}</textarea></label>
+         <label class="wide">Título SEO<input name="seoTitle" value="${value(draft.seoTitle)}"></label>
+         <label class="wide">Descripción SEO<textarea name="seoDescription" rows="3">${value(draft.seoDescription)}</textarea></label>
+       </div>
+       <button type="submit">Guardar copia de la guía</button>
      </form>
      <form method="post" action="/drafts/${draft.id}/questionnaire" class="card">
        <h2>Cuestionario opcional</h2>
@@ -866,6 +945,93 @@ function outlinePromptPage(draft: GuideDraft, provider: GuideGenerationProvider)
      <p>Versión <code>${escapeHtml(prepared.version)}</code> · proveedor <code>${escapeHtml(provider.providerId)}</code>${provider.modelId ? ` · modelo <code>${escapeHtml(provider.modelId)}</code>` : ""}</p>
      <pre>${escapeHtml(prepared.prompt)}</pre>
      <form method="post" action="/drafts/${draft.id}/outline/generate"><input type="hidden" name="promptVersion" value="${escapeHtml(prepared.version)}"><button type="submit"${hasSelectedProducts ? " disabled" : ""}>Generar esquema con este prompt</button></form>`,
+  );
+}
+
+function finalPromptPage(draft: GuideDraft, provider: GuideGenerationProvider): string {
+  const prepared = prepareFinalPrompt(draft, readPublicContent());
+  return page(
+    `Prompt final · ${draftName(draft)}`,
+    `<p><a href="/drafts/${draft.id}">← Editar guía</a></p>
+     <h1>Revisar prompt de generación final</h1>
+     <p class="notice">El prompt contiene sólo los productos seleccionados y datos verificados del catálogo. Nunca incluye URLs afiliadas.</p>
+     <p>Versión <code>${escapeHtml(prepared.version)}</code> · proveedor <code>${escapeHtml(provider.providerId)}</code>${provider.modelId ? ` · modelo <code>${escapeHtml(provider.modelId)}</code>` : ""}</p>
+     <pre>${escapeHtml(prepared.prompt)}</pre>
+     <form method="post" action="/drafts/${draft.id}/final/generate"><input type="hidden" name="promptVersion" value="${escapeHtml(prepared.version)}"><button type="submit">Generar toda la copia editorial</button></form>`,
+  );
+}
+
+function recommendationPromptPage(
+  draft: GuideDraft,
+  recommendationId: string,
+  provider: GuideGenerationProvider,
+): string {
+  const prepared = prepareRecommendationPrompt(draft, recommendationId, readPublicContent());
+  return page(
+    `Prompt de recomendación · ${draftName(draft)}`,
+    `<p><a href="/drafts/${draft.id}">← Editar guía</a></p>
+     <h1>Regenerar una recomendación</h1>
+     <p class="notice">Sólo cambiará la copia del slot <code>${escapeHtml(recommendationId)}</code>. Su ID, posición, propósito y producto seleccionado se conservan.</p>
+     <p>Versión <code>${escapeHtml(prepared.version)}</code> · proveedor <code>${escapeHtml(provider.providerId)}</code>${provider.modelId ? ` · modelo <code>${escapeHtml(provider.modelId)}</code>` : ""}</p>
+     <pre>${escapeHtml(prepared.prompt)}</pre>
+     <form method="post" action="/drafts/${draft.id}/recommendations/${recommendationId}/regenerate"><input type="hidden" name="promptVersion" value="${escapeHtml(prepared.version)}"><button type="submit">Regenerar sólo esta recomendación</button></form>`,
+  );
+}
+
+function guidePreviewPage(draft: GuideDraft): string {
+  const content = readPublicContent();
+  const validation = validateGuideDraft(draft, content);
+  const cluster = content.clusters.find((item) => item.id === draft.clusterId);
+  const products = new Map(content.products.map((product) => [product.id, product]));
+  const guides = new Map(content.guides.map((guide) => [guide.id, guide]));
+  const recommendations = [...draft.recommendations]
+    .sort((left, right) => left.position - right.position)
+    .map((recommendation) => {
+      const product = recommendation.productId ? products.get(recommendation.productId) : undefined;
+      const destination = product?.affiliateUrl ?? product?.productUrl;
+      return `<article class="card">
+        <p class="muted">Recomendación ${recommendation.position}</p>
+        <h2>${escapeHtml(recommendation.heading ?? product?.name ?? recommendation.slotLabel)}</h2>
+        ${product ? `<p><strong>${escapeHtml(product.name)}</strong> · ${escapeHtml(product.merchant)}${product.priceLabel ? ` · ${escapeHtml(product.priceLabel)}` : ""}</p><p>${escapeHtml(product.shortDescription)}</p>` : '<p class="error">Producto sin resolver.</p>'}
+        <p>${escapeHtml(recommendation.editorialDescription ?? "Falta la descripción editorial.")}</p>
+        <p><strong>Por qué encaja:</strong> ${escapeHtml(recommendation.whyItFits ?? "Falta este motivo.")}</p>
+        ${recommendation.bestFor ? `<p><strong>Ideal para:</strong> ${escapeHtml(recommendation.bestFor)}</p>` : ""}
+        ${recommendation.considerations ? `<p><strong>Consideraciones:</strong> ${escapeHtml(recommendation.considerations)}</p>` : ""}
+        ${destination && product ? `<p><a href="${escapeHtml(destination)}" target="_blank" rel="sponsored nofollow noopener">Ver en ${escapeHtml(product.merchant)}</a></p>` : ""}
+      </article>`;
+    })
+    .join("");
+  const related = draft.relatedGuideIds
+    .map((id) => guides.get(id))
+    .filter((guide) => guide && cluster)
+    .map(
+      (guide) =>
+        `<li><a href="${escapeHtml(guidePath(cluster!.slug, guide!.slug))}">${escapeHtml(guide!.title)}</a></li>`,
+    )
+    .join("");
+  return page(
+    `Vista previa · ${draftName(draft)}`,
+    `<p><a href="/drafts/${draft.id}">← Editar guía</a></p>
+     ${validation.errors.length ? `<aside class="error"><strong>Vista previa incompleta</strong><ul>${validation.errors.map((error) => `<li>${escapeHtml(error)}</li>`).join("")}</ul></aside>` : ""}
+     <nav aria-label="Migas de pan"><span>Inicio</span> › <span>Guías de regalos</span> › ${cluster ? `<a href="${escapeHtml(clusterPath(cluster.slug))}">${escapeHtml(cluster.title)}</a>` : "Cluster sin definir"} › <strong>${escapeHtml(draft.title ?? "Guía sin título")}</strong></nav>
+     <p class="muted">Ruta canónica: <code>${escapeHtml(validation.route ?? "(ruta incompleta)")}</code></p>
+     <header><div><p><a href="${cluster ? escapeHtml(clusterPath(cluster.slug)) : "#"}">← ${escapeHtml(cluster?.title ?? "Cluster")}</a></p><h1>${escapeHtml(draft.title ?? "Guía sin título")}</h1><p>${escapeHtml(draft.excerpt ?? "Falta el extracto.")}</p></div></header>
+     <section class="card"><p>${escapeHtml(draft.introduction ?? "Falta la introducción.")}</p></section>
+     <section><h2>Recomendaciones</h2><div class="grid">${recommendations || '<p class="notice">No hay recomendaciones.</p>'}</div></section>
+     ${draft.conclusion ? `<section class="card"><h2>Conclusión</h2><p>${escapeHtml(draft.conclusion)}</p></section>` : ""}
+     ${related ? `<nav aria-label="Guías relacionadas"><h2>Guías relacionadas</h2><ul>${related}</ul>${cluster ? `<p><a href="${escapeHtml(clusterPath(cluster.slug))}">Volver a ${escapeHtml(cluster.title)}</a></p>` : ""}</nav>` : ""}`,
+  );
+}
+
+function guideValidationPage(draft: GuideDraft): string {
+  const result = validateGuideDraft(draft, readPublicContent());
+  return page(
+    `Validación · ${draftName(draft)}`,
+    `<p><a href="/drafts/${draft.id}">← Editar guía</a></p>
+     <h1>Validación de la guía</h1>
+     ${result.errors.length ? `<div class="error"><strong>Falta resolver:</strong><ul>${result.errors.map((error) => `<li>${escapeHtml(error)}</li>`).join("")}</ul></div>` : '<p class="notice">La guía está lista para la publicación.</p>'}
+     ${result.route ? `<p>Ruta canónica: <code>${escapeHtml(result.route)}</code></p>` : ""}
+     <p>La publicación atómica se habilita en la fase de integración.</p>`,
   );
 }
 
@@ -930,24 +1096,52 @@ export function createStudioServer(
         redirect(response, `/drafts/${draft.id}`);
         return;
       }
-      const clusterPreviewMatch =
+      const reopenGuideMatch =
+        method === "POST" ? /^\/drafts\/reopen\/guide\/([a-z0-9_-]+)$/.exec(url.pathname) : null;
+      if (reopenGuideMatch?.[1]) {
+        const existing = (await store.list()).drafts.find(
+          (draft) => draft.id === reopenGuideMatch[1],
+        );
+        if (existing) {
+          if (existing.draftType !== "gift-guide") {
+            throw new TypeError("Ya existe un borrador de otro tipo con ese ID.");
+          }
+          redirect(response, `/drafts/${existing.id}`);
+          return;
+        }
+        const content = readPublicContent();
+        const guide = content.guides.find((item) => item.id === reopenGuideMatch[1]);
+        if (!guide) throw new TypeError("La guía publicada no existe.");
+        const draft = await store.save(reopenGuideDraft(guide, content));
+        redirect(response, `/drafts/${draft.id}`);
+        return;
+      }
+      const previewMatch =
         method === "GET" ? /^\/drafts\/([a-z0-9_-]+)\/preview$/.exec(url.pathname) : null;
-      if (clusterPreviewMatch?.[1]) {
+      if (previewMatch?.[1]) {
+        const draft = await store.read(previewMatch[1]);
         send(
           response,
           200,
-          clusterPreviewPage(await readClusterDraft(store, clusterPreviewMatch[1])),
+          draft.draftType === "cluster-hub" ? clusterPreviewPage(draft) : guidePreviewPage(draft),
         );
         return;
       }
-      const clusterValidationMatch =
+      const validationMatch =
         method === "GET" ? /^\/drafts\/([a-z0-9_-]+)\/validate$/.exec(url.pathname) : null;
-      if (clusterValidationMatch?.[1]) {
-        let draft = await readClusterDraft(store, clusterValidationMatch[1]);
-        const validation = validateClusterDraft(draft, readPublicContent());
-        const status = validation.errors.length === 0 ? "ready-to-publish" : "editing";
-        if (draft.status !== status) draft = await store.save({ ...draft, status });
-        send(response, 200, clusterValidationPage(draft));
+      if (validationMatch?.[1]) {
+        let draft = await store.read(validationMatch[1]);
+        if (draft.draftType === "cluster-hub") {
+          const validation = validateClusterDraft(draft, readPublicContent());
+          const status = validation.errors.length === 0 ? "ready-to-publish" : "editing";
+          if (draft.status !== status) draft = await store.save({ ...draft, status });
+          send(response, 200, clusterValidationPage(draft));
+        } else {
+          const validation = validateGuideDraft(draft, readPublicContent());
+          const status = validation.errors.length === 0 ? "ready-to-publish" : "editing";
+          if (draft.status !== status) draft = await store.save({ ...draft, status });
+          send(response, 200, guideValidationPage(draft));
+        }
         return;
       }
       const saveClusterMatch =
@@ -1074,6 +1268,14 @@ export function createStudioServer(
         redirect(response, `/drafts/${draft.id}`);
         return;
       }
+      const saveGuideCopyMatch =
+        method === "POST" ? /^\/drafts\/([a-z0-9_-]+)\/guide\/copy$/.exec(url.pathname) : null;
+      if (saveGuideCopyMatch?.[1]) {
+        const draft = await readGuideDraft(store, saveGuideCopyMatch[1]);
+        await store.save(guideCopyFromForm(draft, await readForm(request)));
+        redirect(response, `/drafts/${draft.id}`);
+        return;
+      }
       const saveQuestionnaireMatch =
         method === "POST" ? /^\/drafts\/([a-z0-9_-]+)\/questionnaire$/.exec(url.pathname) : null;
       if (saveQuestionnaireMatch?.[1]) {
@@ -1092,6 +1294,16 @@ export function createStudioServer(
         );
         return;
       }
+      const finalPromptMatch =
+        method === "GET" ? /^\/drafts\/([a-z0-9_-]+)\/final-prompt$/.exec(url.pathname) : null;
+      if (finalPromptMatch?.[1]) {
+        send(
+          response,
+          200,
+          finalPromptPage(await readGuideDraft(store, finalPromptMatch[1]), provider),
+        );
+        return;
+      }
       const generateOutlineMatch =
         method === "POST"
           ? /^\/drafts\/([a-z0-9_-]+)\/outline\/generate$/.exec(url.pathname)
@@ -1104,6 +1316,73 @@ export function createStudioServer(
         const draft = await readGuideDraft(store, generateOutlineMatch[1]);
         const generated = await generateGuideOutline(draft, readPublicContent(), provider);
         await store.save(generated);
+        redirect(response, `/drafts/${draft.id}`);
+        return;
+      }
+      const generateFinalMatch =
+        method === "POST" ? /^\/drafts\/([a-z0-9_-]+)\/final\/generate$/.exec(url.pathname) : null;
+      if (generateFinalMatch?.[1]) {
+        const form = await readForm(request);
+        if (form.get("promptVersion") !== FINAL_PROMPT_VERSION) {
+          throw new TypeError("Revisá el prompt final vigente antes de generar.");
+        }
+        const draft = await readGuideDraft(store, generateFinalMatch[1]);
+        await store.save(await generateFinalGuide(draft, readPublicContent(), provider));
+        redirect(response, `/drafts/${draft.id}`);
+        return;
+      }
+      const recommendationPromptMatch =
+        method === "GET"
+          ? /^\/drafts\/([a-z0-9_-]+)\/recommendations\/([a-z0-9_-]+)\/prompt$/.exec(url.pathname)
+          : null;
+      if (recommendationPromptMatch?.[1] && recommendationPromptMatch[2]) {
+        send(
+          response,
+          200,
+          recommendationPromptPage(
+            await readGuideDraft(store, recommendationPromptMatch[1]),
+            recommendationPromptMatch[2],
+            provider,
+          ),
+        );
+        return;
+      }
+      const regenerateRecommendationMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/recommendations\/([a-z0-9_-]+)\/regenerate$/.exec(
+              url.pathname,
+            )
+          : null;
+      if (regenerateRecommendationMatch?.[1] && regenerateRecommendationMatch[2]) {
+        const form = await readForm(request);
+        if (form.get("promptVersion") !== RECOMMENDATION_PROMPT_VERSION) {
+          throw new TypeError("Revisá el prompt de recomendación vigente antes de generar.");
+        }
+        const draft = await readGuideDraft(store, regenerateRecommendationMatch[1]);
+        await store.save(
+          await regenerateRecommendation(
+            draft,
+            regenerateRecommendationMatch[2],
+            readPublicContent(),
+            provider,
+          ),
+        );
+        redirect(response, `/drafts/${draft.id}`);
+        return;
+      }
+      const saveRecommendationCopyMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/recommendations\/([a-z0-9_-]+)\/copy$/.exec(url.pathname)
+          : null;
+      if (saveRecommendationCopyMatch?.[1] && saveRecommendationCopyMatch[2]) {
+        const draft = await readGuideDraft(store, saveRecommendationCopyMatch[1]);
+        await store.save(
+          recommendationCopyFromForm(
+            draft,
+            saveRecommendationCopyMatch[2],
+            await readForm(request),
+          ),
+        );
         redirect(response, `/drafts/${draft.id}`);
         return;
       }

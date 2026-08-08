@@ -5,7 +5,11 @@ import { join } from "node:path";
 import { once } from "node:events";
 import test from "node:test";
 
-import { MockGuideGenerationProvider, type GuideGenerationProvider } from "./ai-provider.ts";
+import {
+  MockGuideGenerationProvider,
+  type GuideGenerationProvider,
+  type StructuredGenerationRequest,
+} from "./ai-provider.ts";
 import {
   addGuideToGroup,
   moveGuideInGroup,
@@ -29,12 +33,18 @@ import {
   addManualRecommendation,
   clearRecommendationProduct,
   duplicateProductIds,
+  generateFinalGuide,
   generateGuideOutline,
   moveRecommendation,
   normalizeQuestionnaire,
+  regenerateRecommendation,
   removeRecommendation,
+  reopenGuideDraft,
   selectRecommendationProduct,
+  updateRecommendationEditorialCopy,
+  validateGuideDraft,
 } from "./guide-editor.ts";
+import { prepareFinalPrompt } from "./final-prompt.ts";
 import { prepareOutlinePrompt } from "./outline-prompt.ts";
 import {
   ProductCatalog,
@@ -43,6 +53,7 @@ import {
   suggestProductsForSlot,
   validateProductUrl,
 } from "./product-catalog.ts";
+import { prepareRecommendationPrompt } from "./recommendation-prompt.ts";
 import { REPOSITORY_ROOT } from "./repository.ts";
 import { STUDIO_HOST, createStudioServer } from "./server.ts";
 
@@ -56,6 +67,24 @@ async function generatedGuideDraft(id: string, giftCount = 3) {
     questionnaire: normalizeQuestionnaire({ giftCount: String(giftCount) }),
   });
   return generateGuideOutline(draft, content, new MockGuideGenerationProvider());
+}
+
+async function selectedGuideDraft(id: string, giftCount = 3) {
+  const content = new ProductCatalog().read();
+  let draft = await generatedGuideDraft(id, giftCount);
+  draft = guideDraftSchema.parse({
+    ...draft,
+    slug: id.replace(/^guide_/, "").replaceAll("_", "-"),
+  });
+  for (const [index, recommendation] of draft.recommendations.entries()) {
+    draft = selectRecommendationProduct(
+      draft,
+      recommendation.id,
+      content.products[index]!.id,
+      content,
+    );
+  }
+  return draft;
 }
 
 test("discrimina borradores estrictos de hub y guía", () => {
@@ -711,4 +740,225 @@ test("selecciona, reemplaza y vuelve desde alta de producto por HTTP", async (co
     redirect: "manual",
   });
   assert.equal(returnResponse.headers.get("location"), `/drafts/${draft.id}`);
+});
+
+test("el prompt final contiene sólo datos seleccionados y ninguna URL", async () => {
+  const content = new ProductCatalog().read();
+  const draft = await selectedGuideDraft("guide_final-prompt");
+  const first = prepareFinalPrompt(draft, content);
+  const second = prepareFinalPrompt(draft, content);
+
+  assert.equal(first.prompt, second.prompt);
+  assert.equal(first.input.recommendations.length, draft.recommendations.length);
+  assert.deepEqual(
+    first.input.recommendations.map((recommendation) => recommendation.product.id),
+    draft.recommendations.map((recommendation) => recommendation.productId),
+  );
+  assert.doesNotMatch(first.prompt, /https?:\/\//i);
+  assert.doesNotMatch(first.prompt, /affiliateUrl/);
+  assert.match(first.prompt, new RegExp(content.products[0]!.name));
+  assert.match(first.prompt, /Return exactly one JSON object/);
+});
+
+test("el mock genera una guía completa lista con IDs y orden intactos", async () => {
+  const content = new ProductCatalog().read();
+  const draft = await selectedGuideDraft("guide_final-mock");
+  const generated = await generateFinalGuide(
+    draft,
+    content,
+    new MockGuideGenerationProvider(),
+    new Date("2026-08-08T18:00:00.000Z"),
+  );
+
+  assert.ok(generated.title);
+  assert.ok(generated.excerpt);
+  assert.ok(generated.introduction);
+  assert.ok(generated.seoTitle);
+  assert.ok(generated.seoDescription);
+  assert.deepEqual(
+    generated.recommendations.map(({ id, productId, position }) => ({ id, productId, position })),
+    draft.recommendations.map(({ id, productId, position }) => ({ id, productId, position })),
+  );
+  assert.ok(
+    generated.recommendations.every((recommendation) => recommendation.editorialStatus === "ready"),
+  );
+  assert.equal(generated.generationMetadata?.promptVersion, "final-guide-v1");
+  assert.deepEqual(validateGuideDraft(generated, content).errors, []);
+});
+
+test("rechaza respuestas finales que cambian identidad o agregan URLs", async () => {
+  const content = new ProductCatalog().read();
+  const draft = await selectedGuideDraft("guide_adversarial-final");
+  const mock = new MockGuideGenerationProvider();
+  const changedIdentity: GuideGenerationProvider = {
+    providerId: "changed-identity",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      const response = await mock.generateStructured(request);
+      if (request.operation !== "final-guide") return response;
+      const changed = structuredClone(response as { recommendations: Array<{ id: string }> });
+      changed.recommendations[0]!.id = "slot-unselected";
+      return changed as T;
+    },
+  };
+  const injectedUrl: GuideGenerationProvider = {
+    providerId: "url-injection",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      const response = await mock.generateStructured(request);
+      if (request.operation !== "final-guide") return response;
+      const changed = structuredClone(
+        response as { recommendations: Array<{ editorialDescription: string }> },
+      );
+      changed.recommendations[0]!.editorialDescription = "See https://example.com/unsafe";
+      return changed as T;
+    },
+  };
+
+  await assert.rejects(generateFinalGuide(draft, content, changedIdentity), /cambió IDs/);
+  await assert.rejects(generateFinalGuide(draft, content, injectedUrl), /no puede contener URLs/);
+});
+
+test("regenera sólo el slot reemplazado y lo devuelve a ready", async () => {
+  const content = new ProductCatalog().read();
+  const complete = await generateFinalGuide(
+    await selectedGuideDraft("guide_single-regeneration"),
+    content,
+    new MockGuideGenerationProvider(),
+  );
+  const target = complete.recommendations[0]!;
+  const replacement = content.products[3]!;
+  const replaced = selectRecommendationProduct(complete, target.id, replacement.id, content);
+  const untouched = structuredClone(replaced.recommendations[1]);
+  const prepared = prepareRecommendationPrompt(replaced, target.id, content);
+  const regenerated = await regenerateRecommendation(
+    replaced,
+    target.id,
+    content,
+    new MockGuideGenerationProvider(),
+  );
+  const result = regenerated.recommendations[0]!;
+
+  assert.equal(prepared.input.recommendation.product.id, replacement.id);
+  assert.doesNotMatch(prepared.prompt, /https?:\/\//i);
+  assert.equal(result.id, target.id);
+  assert.equal(result.position, target.position);
+  assert.equal(result.productId, replacement.id);
+  assert.equal(result.editorialStatus, "ready");
+  assert.deepEqual(regenerated.recommendations[1], untouched);
+  assert.equal(regenerated.generationMetadata?.promptVersion, "single-recommendation-v1");
+});
+
+test("la edición manual sólo marca ready con copia mínima completa", async () => {
+  const content = new ProductCatalog().read();
+  const draft = await selectedGuideDraft("guide_manual-ready");
+  const slotId = draft.recommendations[0]!.id;
+
+  assert.throws(
+    () => updateRecommendationEditorialCopy(draft, slotId, { heading: "Only a heading" }, true),
+    /se requieren producto, descripción editorial y motivo/,
+  );
+  const ready = updateRecommendationEditorialCopy(
+    draft,
+    slotId,
+    {
+      heading: "Manual heading",
+      editorialDescription: "Manual editorial description grounded in the selected product.",
+      whyItFits: "It serves the stable slot purpose.",
+    },
+    true,
+  );
+  assert.equal(ready.recommendations[0]!.editorialStatus, "ready");
+  assert.ok(
+    validateGuideDraft(ready, content).errors.some((error) => error.includes("no está listo")),
+  );
+});
+
+test("reabre una guía publicada con identidad y copia listas", () => {
+  const content = new ProductCatalog().read();
+  const published = content.guides[0]!;
+  const draft = reopenGuideDraft(published, content, new Date("2026-08-08T20:00:00.000Z"));
+
+  assert.equal(draft.id, published.id);
+  assert.equal(draft.slug, published.slug);
+  assert.deepEqual(
+    draft.recommendations.map((recommendation) => recommendation.id),
+    published.recommendations
+      .slice()
+      .sort((left, right) => left.position - right.position)
+      .map((recommendation) => recommendation.id),
+  );
+  assert.ok(
+    draft.recommendations.every((recommendation) => recommendation.editorialStatus === "ready"),
+  );
+  assert.deepEqual(validateGuideDraft(draft, content).errors, []);
+});
+
+test("genera, previsualiza, reemplaza y regenera una recomendación por HTTP", async (context) => {
+  const directory = await mkdtemp(join(tmpdir(), "good-present-final-http-"));
+  const store = new DraftStore(directory);
+  const content = new ProductCatalog().read();
+  const draft = await selectedGuideDraft("guide_http-final");
+  await store.save(draft);
+  const server = createStudioServer(store);
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(async () => {
+    server.close();
+    await rm(directory, { recursive: true, force: true });
+  });
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+
+  const promptResponse = await fetch(`${origin}/drafts/${draft.id}/final-prompt`);
+  assert.match(await promptResponse.text(), /Revisar prompt de generación final/);
+  const generatedResponse = await fetch(`${origin}/drafts/${draft.id}/final/generate`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ promptVersion: "final-guide-v1" }),
+    redirect: "manual",
+  });
+  assert.equal(generatedResponse.status, 303);
+  let saved = await store.read(draft.id);
+  assert.equal(saved.draftType, "gift-guide");
+  assert.ok(
+    saved.recommendations.every((recommendation) => recommendation.editorialStatus === "ready"),
+  );
+
+  const preview = await fetch(`${origin}/drafts/${draft.id}/preview`);
+  const previewHtml = await preview.text();
+  assert.match(previewHtml, /Ruta canónica: <code>\/nurse-gifts\/http-final\/<\/code>/);
+  assert.doesNotMatch(previewHtml, /Structured input|promptVersion/);
+  const validation = await fetch(`${origin}/drafts/${draft.id}/validate`);
+  assert.match(await validation.text(), /lista para la publicación/);
+  assert.equal((await store.read(draft.id)).status, "ready-to-publish");
+
+  saved = await store.read(draft.id);
+  assert.equal(saved.draftType, "gift-guide");
+  const target = saved.recommendations[0]!;
+  const replacement = content.products[3]!;
+  await fetch(`${origin}/drafts/${draft.id}/recommendations/${target.id}/product`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ productId: replacement.id }),
+    redirect: "manual",
+  });
+  assert.equal((await store.read(draft.id)).status, "selecting-products");
+  const singlePrompt = await fetch(
+    `${origin}/drafts/${draft.id}/recommendations/${target.id}/prompt`,
+  );
+  assert.match(await singlePrompt.text(), /Regenerar una recomendación/);
+  const regenerated = await fetch(
+    `${origin}/drafts/${draft.id}/recommendations/${target.id}/regenerate`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ promptVersion: "single-recommendation-v1" }),
+      redirect: "manual",
+    },
+  );
+  assert.equal(regenerated.status, 303);
+  const finalDraft = await store.read(draft.id);
+  assert.equal(finalDraft.draftType, "gift-guide");
+  assert.equal(finalDraft.recommendations[0]!.productId, replacement.id);
+  assert.equal(finalDraft.recommendations[0]!.editorialStatus, "ready");
 });
