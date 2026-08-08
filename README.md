@@ -1,6 +1,6 @@
 # The Good Present
 
-The Good Present is a warm, editorial gift-guide site for United States readers. This repository contains the static Astro public site and the versioned content contract that a future local Editorial Studio must publish against.
+The Good Present is a warm, editorial gift-guide site for United States readers. This repository contains the static Astro public site, its versioned content contract, and a localhost-only Editorial Studio.
 
 The first vertical slice is the **Nurse Gifts** cluster. Published content is natural US English, budgets use USD, and purchases happen on external merchant sites.
 
@@ -11,6 +11,7 @@ The first vertical slice is the **Nurse Gifts** cluster. Published content is na
 - `content/guides/` stores one published gift guide per stable guide ID.
 - `packages/content-schema/` is the only canonical public schema, validation, and route-building package.
 - `apps/site/` is a static Astro consumer of validated public content.
+- `apps/studio/` is a local Spanish editorial tool that writes English public content through that contract.
 - Stable IDs are record identity. Editable slugs are routing fields and never determine canonical filenames.
 - Tags and taxonomies are metadata only. They never create public routes.
 - The future Editorial Studio may add draft-only models, but it may publish only records accepted by the canonical public schemas.
@@ -21,7 +22,9 @@ The implementation is proceeding through the phases recorded in [docs/progress.m
 
 ```text
 apps/site/                  Astro public site; static output in apps/site/dist/
+apps/studio/                localhost-only Editorial Studio
 packages/content-schema/    canonical Zod schemas, validation, types, and routes
+drafts/                     local validated working files; git-ignored by default
 content/products/           stable-ID-named product records
 content/clusters/           stable-ID-named cluster-hub records
 content/guides/             stable-ID-named published guide records
@@ -47,6 +50,7 @@ The root workspace commands are:
 
 | Command                    | Purpose                                                         |
 | -------------------------- | --------------------------------------------------------------- |
+| `npm run studio`           | Start the Editorial Studio on `127.0.0.1`                       |
 | `npm run dev`              | Start the public Astro site locally                             |
 | `npm run build`            | Validate content and build static assets into `apps/site/dist/` |
 | `npm run preview`          | Preview the built public site                                   |
@@ -57,11 +61,13 @@ The root workspace commands are:
 | `npm run format:check`     | Check formatting without changes                                |
 | `npm run verify`           | Run the important non-interactive checks and production build   |
 
-The Astro launcher disables framework telemetry for deterministic local and CI execution; it does not change any user-level Astro setting.
+The Astro launcher disables framework telemetry for deterministic local and CI execution; it does not change any user-level Astro setting. The Studio defaults to `http://127.0.0.1:4322` and stores one validated JSON file per draft under `drafts/`.
+
+Working drafts are intentionally git-ignored: they may contain questionnaire answers and AI prompt metadata that do not belong in public history. Canonical files under `content/` remain version-controlled. Copy or back up `drafts/` explicitly if local draft history is needed.
 
 ## Content and publication
 
-Stable IDs identify records and name canonical files; slugs are editable route fields. See [docs/content-contract.md](docs/content-contract.md) before adding a product, hub, or guide, and run `npm run content:validate` after every content edit. The shared package is the publication boundary for the future local Studio.
+Stable IDs identify records and name canonical files; slugs are editable route fields. See [docs/content-contract.md](docs/content-contract.md) before adding a product, hub, or guide, and run `npm run content:validate` after every content edit. The shared package is the Studio publication boundary.
 
 Seed merchant destinations use visibly labeled `example.com` demo links. They demonstrate affiliate placement and must be replaced with verified editorial destinations before launch.
 
@@ -73,4 +79,4 @@ Before the first deployment, set the repository's **Settings → Pages → Sourc
 
 ## Deliberate MVP boundary
 
-This stage does not include an Editorial Studio, AI generation, brainstorming, legacy migration, authentication, a database, product imports, a CMS, public search or filters, accounts, comments, wish lists, carts, product-detail pages, localization routes, or redirects.
+The Studio is local only. This stage does not include brainstorming, legacy migration, authentication, a database, automatic product imports, a CMS, public search or filters, accounts, comments, wish lists, carts, product-detail pages, localization routes, redirects, unpublishing, or deletion.

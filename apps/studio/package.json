@@ -1,0 +1,15 @@
+{
+  "name": "@the-good-present/studio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "studio": "node --disable-warning=ExperimentalWarning --experimental-strip-types src/server.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "node --disable-warning=ExperimentalWarning --experimental-strip-types --test src/studio.test.ts"
+  },
+  "dependencies": {
+    "@the-good-present/content-schema": "*",
+    "zod": "4.4.3"
+  }
+}

@@ -2,18 +2,18 @@
 
 ## Editorial Studio stage
 
-| Phase                       | Status   | Outcome                                                                                                                                                                                                   |
-| --------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0 — Compatibility audit     | Complete | Confirmed the workspace, public schemas, stable-ID filenames, shared route builders, content paths, replacement contract, Astro loading, commands, and publication boundary; clarified documentation only |
-| 1 — Local Studio foundation | Pending  |                                                                                                                                                                                                           |
-| 2 — Product catalog         | Pending  |                                                                                                                                                                                                           |
-| 3 — Cluster-hub editing     | Pending  |                                                                                                                                                                                                           |
-| 4 — Questionnaire and slots | Pending  |                                                                                                                                                                                                           |
-| 5 — Product selection       | Pending  |                                                                                                                                                                                                           |
-| 6 — Final guide editing     | Pending  |                                                                                                                                                                                                           |
-| 7 — Publication integration | Pending  |                                                                                                                                                                                                           |
-| 8 — Provider compatibility  | Pending  |                                                                                                                                                                                                           |
-| 9 — Ponytail audit          | Pending  |                                                                                                                                                                                                           |
+| Phase                       | Status   | Outcome                                                                                                                                                                                                         |
+| --------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0 — Compatibility audit     | Complete | Confirmed the workspace, public schemas, stable-ID filenames, shared route builders, content paths, replacement contract, Astro loading, commands, and publication boundary; clarified documentation only       |
+| 1 — Local Studio foundation | Complete | Added a loopback-only stdlib HTTP server, Spanish draft list and creation forms, strict cluster/guide draft union, stable generated IDs, validated atomic JSON persistence, and default draft git-ignore policy |
+| 2 — Product catalog         | Pending  |                                                                                                                                                                                                                 |
+| 3 — Cluster-hub editing     | Pending  |                                                                                                                                                                                                                 |
+| 4 — Questionnaire and slots | Pending  |                                                                                                                                                                                                                 |
+| 5 — Product selection       | Pending  |                                                                                                                                                                                                                 |
+| 6 — Final guide editing     | Pending  |                                                                                                                                                                                                                 |
+| 7 — Publication integration | Pending  |                                                                                                                                                                                                                 |
+| 8 — Provider compatibility  | Pending  |                                                                                                                                                                                                                 |
+| 9 — Ponytail audit          | Pending  |                                                                                                                                                                                                                 |
 
 ## Phase status
 
@@ -36,6 +36,9 @@
 - MVP scope: Nurse Gifts hub plus graduation, practical, and under-$25 guides.
 
 ## Verification log
+
+- Editorial Studio Phase 0: the untouched baseline passed content validation, formatting, strict TypeScript and Astro diagnostics, 6 unit tests, and the 9-page static build. The compatibility audit required documentation clarification only; no public schema or runtime change was needed.
+- Editorial Studio Phase 1: Studio type checking and 6 focused tests cover draft discrimination, incomplete draft validity, gift-count bounds, atomic overwrite, validated reload, traversal rejection, loopback binding, and an HTTP create flow. Ponytail full kept the server on Node's standard library and reused the installed shared schema package and Zod dependency.
 
 - Phase 0: `git diff --check` passed; required architecture, URL-policy, replacement, redirect-boundary, and public-status terms confirmed. Ponytail review kept the phase to the four required documentation files with no speculative code or placeholder subsystems.
 - Phase 1: `npm run verify` passed with 0 Astro diagnostics, 0 TypeScript errors, and 2 route tests; `apps/site/dist/` contained one HTML page and no server artifacts. Ponytail review retained only the build, type, format, and test dependencies in active use; a two-line Node launcher avoided a cross-platform environment dependency.

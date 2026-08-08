@@ -1,5 +1,5 @@
 node_modules/
 .astro/
 dist/
+drafts/
 .DS_Store
-

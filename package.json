@@ -9,9 +9,11 @@
   },
   "workspaces": [
     "apps/site",
+    "apps/studio",
     "packages/content-schema"
   ],
   "scripts": {
+    "studio": "npm run studio --workspace @the-good-present/studio",
     "dev": "npm run dev --workspace @the-good-present/site",
     "build": "npm run build --workspace @the-good-present/site",
     "preview": "npm run preview --workspace @the-good-present/site",
@@ -20,7 +22,7 @@
     "content:validate": "node --disable-warning=ExperimentalWarning --experimental-strip-types scripts/content-validate.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "verify": "npm run format:check && npm run typecheck && npm run test && npm run build"
+    "verify": "npm run format:check && npm run typecheck && npm run test && npm run content:validate && npm run build"
   },
   "devDependencies": {
     "@types/node": "22.20.1",

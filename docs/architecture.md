@@ -18,12 +18,17 @@ The local Studio can manage richer drafts, but publication is a one-way boundary
 
 Draft IDs are the canonical public IDs. Reopening published content preserves that ID, and editing a slug changes only routing data; it never renames the canonical file or selects an update target by slug. The Studio adds no hosted backend, database, authentication, deployment path, public API route, or automatic Git operation.
 
+### Draft versioning decision
+
+The Studio stores one validated file at `drafts/{draft-id}.json` using an atomic same-directory rename. `drafts/` is git-ignored by default because questionnaire answers, prompts, generation metadata, and unfinished copy are local working state. Published canonical records under `content/` remain version-controlled. Editors who need draft history must back up or explicitly version that directory outside the default policy.
+
 ## Repository structure
 
 ```text
 /
 |-- apps/
-|   `-- site/                 static Astro public site
+|   |-- site/                 static Astro public site
+|   `-- studio/               localhost-only editorial server and UI
 |-- packages/
 |   `-- content-schema/       canonical public contract
 |-- content/
@@ -32,6 +37,7 @@ Draft IDs are the canonical public IDs. Reopening published content preserves th
 |   `-- guides/               one file per stable guide ID
 |-- scripts/                  repository-level read-only content tooling
 |-- docs/
+|-- drafts/                   local working records; git-ignored by default
 |-- .github/workflows/
 |-- package.json
 `-- README.md
