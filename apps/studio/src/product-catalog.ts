@@ -115,6 +115,10 @@ export class ProductCatalog {
     this.repositoryRoot = repositoryRoot;
   }
 
+  get root(): string {
+    return this.repositoryRoot;
+  }
+
   read() {
     return readPublicContent(this.repositoryRoot);
   }

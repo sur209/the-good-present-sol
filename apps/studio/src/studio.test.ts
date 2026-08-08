@@ -66,6 +66,15 @@ import {
   missingAffiliateProgramConfiguration,
   readAffiliateProgramRecords,
 } from "./modules/affiliate-operations/programs.ts";
+import {
+  ProductSourceStore,
+  findDuplicateProductSource,
+  findProductSource,
+  productSourcePath,
+  productSourceRecordSchema,
+  readProductSourceRecords,
+  type ProductSourceRecord,
+} from "./modules/product-sources/records.ts";
 import { Publisher, clusterDraftToPublic, guideDraftToPublic } from "./publication.ts";
 import { REPOSITORY_ROOT, atomicWriteJson, readPublicContent } from "./repository.ts";
 import { STUDIO_HOST, createStudioServer } from "./server.ts";
@@ -100,6 +109,25 @@ async function selectedGuideDraft(id: string, giftCount = 3) {
     );
   }
   return draft;
+}
+
+function sourceRecord(
+  productId: string,
+  overrides: Partial<ProductSourceRecord> = {},
+): ProductSourceRecord {
+  return productSourceRecordSchema.parse({
+    id: "source_test",
+    productId,
+    sourceKind: "manual",
+    provider: "Test provider",
+    marketplace: "test.example",
+    externalId: "external-123",
+    sourceUrl: "https://test.example/products/external-123",
+    importMethod: "manual",
+    importedAt: "2026-08-08T00:00:00.000Z",
+    sourceStatus: "active",
+    ...overrides,
+  });
 }
 
 test("discrimina borradores estrictos de hub y guía", () => {
@@ -265,6 +293,175 @@ test("muestra el estado de afiliados sólo dentro del Studio", async (context) =
   assert.match(html, /amazon-associates/);
   assert.match(html, /store or associate identifier/);
   assert.doesNotMatch(html, /apiKey|password|accessToken|clientSecret/i);
+});
+
+test("valida fuentes, conserva campos no pÃºblicos y acepta los cuatro tipos", () => {
+  const source = sourceRecord("product_badge-reel");
+  assert.equal(source.sourceKind, "manual");
+  for (const sourceKind of ["manual-amazon", "csv-import", "amazon-creators-api"] as const) {
+    assert.equal(
+      productSourceRecordSchema.safeParse({ ...source, id: `source_${sourceKind}`, sourceKind })
+        .success,
+      true,
+    );
+  }
+  assert.equal(
+    productSourceRecordSchema.safeParse({
+      ...source,
+      externalId: undefined,
+      marketplace: undefined,
+    }).success,
+    true,
+  );
+  assert.equal(
+    productSourceRecordSchema.safeParse({
+      ...source,
+      externalId: "external-123",
+      marketplace: undefined,
+    }).success,
+    false,
+  );
+  assert.equal(
+    productSourceRecordSchema.safeParse({ ...source, sourceUrl: "ftp://test.example/item" })
+      .success,
+    false,
+  );
+  assert.equal(
+    productSourceRecordSchema.safeParse({ ...source, publicAsin: "leak" }).success,
+    false,
+  );
+});
+
+test("detecta duplicados y encuentra una fuente por proveedor, marketplace e ID", () => {
+  const first = sourceRecord("product_badge-reel");
+  const second = sourceRecord("product_sleep-mask", { id: "source_second" });
+  assert.equal(
+    findProductSource([first], "test provider", "TEST.EXAMPLE", "EXTERNAL-123")?.id,
+    first.id,
+  );
+  assert.equal(findDuplicateProductSource([first], second)?.id, first.id);
+  assert.equal(findDuplicateProductSource([first], first), undefined);
+  assert.equal(
+    findDuplicateProductSource(
+      [first],
+      sourceRecord("product_sleep-mask", {
+        id: "source_other-marketplace",
+        marketplace: "other.example",
+      }),
+    ),
+    undefined,
+  );
+});
+
+test("persiste fuentes por ID, bloquea huÃ©rfanas y mantiene la salida pÃºblica separada", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-product-sources-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const store = new ProductSourceStore(repository);
+  const saved = await store.save(
+    sourceRecord("product_badge-reel", { id: "source_persisted" }),
+    catalog.read().products,
+  );
+  assert.equal(readProductSourceRecords(repository)[0]?.source?.id, saved.id);
+  assert.equal(store.forProduct("product_badge-reel", catalog.read().products).length, 1);
+  await assert.rejects(
+    store.save(
+      sourceRecord("product_sleep-mask", { id: "source_duplicate" }),
+      catalog.read().products,
+    ),
+    /ID externo.*ya existe/,
+  );
+  await store.save(
+    sourceRecord("product_badge-reel", {
+      id: "source_persisted",
+      externalId: "external-updated",
+      lastReviewedAt: "2026-08-09T00:00:00.000Z",
+    }),
+    catalog.read().products,
+  );
+  assert.equal(
+    store.get("source_persisted", catalog.read().products).externalId,
+    "external-updated",
+  );
+  await assert.rejects(
+    store.save(sourceRecord("product_missing", { id: "source_missing" }), catalog.read().products),
+    /producto canónico.*product_missing/,
+  );
+  assert.throws(() => productSourcePath(repository, "../outside"), /ID.*seguro/);
+  assert.deepEqual(
+    (await readdir(join(repository, "editorial-data", "product-sources"))).filter((name) =>
+      name.endsWith(".tmp"),
+    ),
+    [],
+  );
+
+  await execFileAsync(process.execPath, [join(REPOSITORY_ROOT, "scripts", "astro.mjs"), "build"], {
+    cwd: join(REPOSITORY_ROOT, "apps", "site"),
+    env: { ...process.env, CONTENT_REPOSITORY_ROOT: repository },
+    maxBuffer: 10 * 1024 * 1024,
+    windowsHide: true,
+  });
+  const outputFiles = await readdir(join(REPOSITORY_ROOT, "apps", "site", "dist"), {
+    recursive: true,
+  });
+  assert.doesNotMatch(outputFiles.join("\n"), /source_persisted/);
+  const outputText = (
+    await Promise.all(
+      outputFiles
+        .filter((file) => file.endsWith(".html"))
+        .map((file) => readFile(join(REPOSITORY_ROOT, "apps", "site", "dist", file), "utf8")),
+    )
+  ).join("\n");
+  assert.doesNotMatch(outputText, /source_persisted|external-updated|test\.example/);
+});
+
+test("muestra y guarda provenance desde el editor de producto sin tocar el producto canÃ³nico", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-product-source-http-"));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const server = createStudioServer(
+    new DraftStore(join(repository, "drafts")),
+    catalog,
+    new MockGuideGenerationProvider(),
+    new Publisher(repository),
+    sourceStore,
+  );
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(async () => {
+    server.close();
+    await rm(repository, { recursive: true, force: true });
+  });
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+  const productId = "product_badge-reel";
+  const editor = await fetch(`${origin}/products/${productId}/edit`);
+  assert.match(await editor.text(), /Provenance non pública/);
+
+  const response = await fetch(`${origin}/products/${productId}/sources`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      sourceId: "source_http",
+      sourceKind: "manual-amazon",
+      provider: "Amazon",
+      marketplace: "amazon.com",
+      externalId: "ASIN-HTTP",
+      sourceUrl: "https://amazon.com/dp/ASIN-HTTP",
+      importMethod: "manual",
+      importedAt: "2026-08-08T00:00:00.000Z",
+      sourceStatus: "needs-review",
+      notes: "Captured by an editor.",
+    }),
+    redirect: "manual",
+  });
+  assert.equal(response.status, 303);
+  assert.equal(response.headers.get("location"), `/products/${productId}/edit?saved=source`);
+  assert.equal(sourceStore.get("source_http", catalog.read().products).productId, productId);
+  assert.equal(catalog.get(productId).id, productId);
 });
 
 test("escribe productos por ID y bloquea desactivar uno publicado", async (context) => {

@@ -75,6 +75,15 @@ import {
   missingAffiliateProgramConfiguration,
   readAffiliateProgramRecords,
 } from "./modules/affiliate-operations/programs.ts";
+import {
+  PRODUCT_SOURCE_IMPORT_METHODS,
+  PRODUCT_SOURCE_KINDS,
+  PRODUCT_SOURCE_STATUSES,
+  ProductSourceStore,
+  createProductSourceId,
+  productSourceRecordSchema,
+  type ProductSourceRecord,
+} from "./modules/product-sources/records.ts";
 import { readPublicContent } from "./repository.ts";
 
 export const STUDIO_HOST = "127.0.0.1";
@@ -260,6 +269,78 @@ function productFromForm(form: URLSearchParams, id = createProductId()): Product
   };
 }
 
+const sourceKindLabels: Record<(typeof PRODUCT_SOURCE_KINDS)[number], string> = {
+  manual: "Manual",
+  "manual-amazon": "Manual · Amazon",
+  "csv-import": "Importación CSV",
+  "amazon-creators-api": "Amazon Creators API",
+};
+
+const sourceStatusLabels: Record<(typeof PRODUCT_SOURCE_STATUSES)[number], string> = {
+  active: "Activa",
+  inactive: "Inactiva",
+  "needs-review": "Necesita revisión",
+};
+
+function sourceTimestampValue(
+  form: URLSearchParams,
+  name: string,
+  fallback?: string,
+): string | undefined {
+  const raw = optionalValue(form, name);
+  if (!raw) return fallback;
+  const date = new Date(raw);
+  if (Number.isNaN(date.valueOf())) throw new TypeError(`La fecha ${name} no es válida.`);
+  return date.toISOString();
+}
+
+function sourceTimestampInput(value: string | undefined): string {
+  return value ? value.replace(/\.\d{3}Z$/, "").slice(0, 16) : "";
+}
+
+function productSourceFromForm(form: URLSearchParams, productId: string): ProductSourceRecord {
+  const sourceKind = requiredValue(form, "sourceKind", "El tipo de fuente");
+  if (!(PRODUCT_SOURCE_KINDS as readonly string[]).includes(sourceKind)) {
+    throw new TypeError("El tipo de fuente no es válido.");
+  }
+  const importMethod = optionalValue(form, "importMethod") ?? "manual";
+  if (!(PRODUCT_SOURCE_IMPORT_METHODS as readonly string[]).includes(importMethod)) {
+    throw new TypeError("El método de importación no es válido.");
+  }
+  const sourceStatus = optionalValue(form, "sourceStatus") ?? "active";
+  if (!(PRODUCT_SOURCE_STATUSES as readonly string[]).includes(sourceStatus)) {
+    throw new TypeError("El estado de la fuente no es válido.");
+  }
+  try {
+    return productSourceRecordSchema.parse({
+      id: optionalValue(form, "sourceId") ?? createProductSourceId(),
+      productId,
+      sourceKind,
+      provider: requiredValue(form, "provider", "El proveedor"),
+      ...(optionalValue(form, "marketplace")
+        ? { marketplace: optionalValue(form, "marketplace") }
+        : {}),
+      ...(optionalValue(form, "externalId")
+        ? { externalId: optionalValue(form, "externalId") }
+        : {}),
+      ...(optionalValue(form, "sourceUrl") ? { sourceUrl: optionalValue(form, "sourceUrl") } : {}),
+      importMethod,
+      importedAt: sourceTimestampValue(form, "importedAt", new Date().toISOString()),
+      ...(sourceTimestampValue(form, "lastReviewedAt")
+        ? { lastReviewedAt: sourceTimestampValue(form, "lastReviewedAt") }
+        : {}),
+      ...(sourceTimestampValue(form, "lastSynchronizedAt")
+        ? { lastSynchronizedAt: sourceTimestampValue(form, "lastSynchronizedAt") }
+        : {}),
+      sourceStatus,
+      ...(optionalValue(form, "notes") ? { notes: optionalValue(form, "notes") } : {}),
+    });
+  } catch (error) {
+    if (error instanceof TypeError) throw error;
+    throw new TypeError(error instanceof Error ? error.message : String(error));
+  }
+}
+
 function value(value: string | undefined): string {
   return escapeHtml(value ?? "");
 }
@@ -272,7 +353,65 @@ function safeReturnTo(value: string | null): string | undefined {
   return value && /^\/drafts\/[a-z0-9_-]+$/.test(value) ? value : undefined;
 }
 
-function productFormPage(product?: Product, returnTo?: string): string {
+function productSourceSection(
+  product: Product,
+  sources: ProductSourceRecord[],
+  selected?: ProductSourceRecord,
+): string {
+  const sourceCards = sources
+    .map(
+      (source) =>
+        `<article class="card">
+          <div class="actions"><h3>${escapeHtml(source.provider)}${source.marketplace ? ` · ${escapeHtml(source.marketplace)}` : ""}</h3><span class="status">${escapeHtml(sourceStatusLabels[source.sourceStatus])}</span></div>
+          <dl><dt>Tipo</dt><dd>${escapeHtml(sourceKindLabels[source.sourceKind])}</dd><dt>ID externo</dt><dd>${escapeHtml(source.externalId ?? "No informado")}</dd><dt>Importado</dt><dd>${escapeHtml(source.importedAt)}</dd><dt>Origen</dt><dd>${source.sourceUrl ? escapeHtml(source.sourceUrl) : "No informado"}</dd></dl>
+          ${source.notes ? `<p>${escapeHtml(source.notes)}</p>` : ""}
+          <a href="/products/${encodeURIComponent(product.id)}/edit?sourceId=${encodeURIComponent(source.id)}">Editar esta fuente</a>
+        </article>`,
+    )
+    .join("");
+  const options = PRODUCT_SOURCE_KINDS.map(
+    (kind) =>
+      `<option value="${kind}"${selected?.sourceKind === kind ? " selected" : ""}>${sourceKindLabels[kind]}</option>`,
+  ).join("");
+  const statusOptions = PRODUCT_SOURCE_STATUSES.map(
+    (status) =>
+      `<option value="${status}"${(selected?.sourceStatus ?? "active") === status ? " selected" : ""}>${sourceStatusLabels[status]}</option>`,
+  ).join("");
+  const methodOptions = PRODUCT_SOURCE_IMPORT_METHODS.map(
+    (method) =>
+      `<option value="${method}"${(selected?.importMethod ?? "manual") === method ? " selected" : ""}>${method}</option>`,
+  ).join("");
+  return `<section class="card">
+    <h2>Provenance non pública</h2>
+    <p class="notice">Estas fuentes sólo ayudan al Studio a recordar el origen del producto. No entran en la ficha pública ni reemplazan los campos editoriales.</p>
+    ${sourceCards || '<p class="muted">Todavía no hay fuentes registradas.</p>'}
+    <h3>${selected ? "Actualizar fuente" : "Agregar fuente"}</h3>
+    <form method="post" action="/products/${encodeURIComponent(product.id)}/sources">
+      ${selected ? `<input type="hidden" name="sourceId" value="${escapeHtml(selected.id)}">` : ""}
+      <div class="grid">
+        <label>Tipo<select name="sourceKind" required>${options}</select></label>
+        <label>Proveedor o merchant<input name="provider" required value="${value(selected?.provider)}"></label>
+        <label>Marketplace (opcional)<input name="marketplace" value="${value(selected?.marketplace)}"></label>
+        <label>ID externo (opcional)<input name="externalId" value="${value(selected?.externalId)}"></label>
+        <label>URL de origen (opcional)<input type="url" name="sourceUrl" value="${value(selected?.sourceUrl)}" placeholder="https://…"></label>
+        <label>Método<select name="importMethod">${methodOptions}</select></label>
+        <label>Importado en<input type="datetime-local" name="importedAt" value="${sourceTimestampInput(selected?.importedAt)}"></label>
+        <label>Revisado en (opcional)<input type="datetime-local" name="lastReviewedAt" value="${sourceTimestampInput(selected?.lastReviewedAt)}"></label>
+        <label>Sincronizado en (opcional)<input type="datetime-local" name="lastSynchronizedAt" value="${sourceTimestampInput(selected?.lastSynchronizedAt)}"></label>
+        <label>Estado<select name="sourceStatus">${statusOptions}</select></label>
+        <label class="wide">Notas<textarea name="notes" rows="3">${value(selected?.notes)}</textarea></label>
+      </div>
+      <button type="submit">${selected ? "Actualizar fuente" : "Guardar fuente"}</button>
+    </form>
+  </section>`;
+}
+
+function productFormPage(
+  product?: Product,
+  returnTo?: string,
+  sources: ProductSourceRecord[] = [],
+  selectedSource?: ProductSourceRecord,
+): string {
   const editing = Boolean(product);
   const action = editing ? `/products/${encodeURIComponent(product!.id)}` : "/products";
   const submitLabel = editing ? "Guardar producto" : "Crear producto";
@@ -302,7 +441,8 @@ function productFormPage(product?: Product, returnTo?: string): string {
          <label>Ocasiones, separadas por coma<input name="occasions" value="${listText(product?.occasions)}"></label>
        </div>
        <button type="submit">${submitLabel}</button>
-     </form>`,
+     </form>
+     ${product ? productSourceSection(product, sources, selectedSource) : ""}`,
   );
 }
 
@@ -1135,6 +1275,7 @@ export function createStudioServer(
   catalog = new ProductCatalog(),
   provider: GuideGenerationProvider = new MockGuideGenerationProvider(),
   publisher = new Publisher(),
+  sourceStore = new ProductSourceStore(catalog.root),
 ) {
   return createServer(async (request, response) => {
     try {
@@ -1561,7 +1702,26 @@ export function createStudioServer(
       const editProductMatch =
         method === "GET" ? /^\/products\/([a-z0-9_-]+)\/edit$/.exec(url.pathname) : null;
       if (editProductMatch?.[1]) {
-        send(response, 200, productFormPage(catalog.get(editProductMatch[1])));
+        const product = catalog.get(editProductMatch[1]);
+        const products = catalog.read().products;
+        const sources = sourceStore.forProduct(product.id, products);
+        const sourceId = url.searchParams.get("sourceId");
+        const selectedSource = sourceId ? sourceStore.get(sourceId, products) : undefined;
+        if (selectedSource && selectedSource.productId !== product.id) {
+          throw new TypeError("La fuente no pertenece a este producto.");
+        }
+        send(response, 200, productFormPage(product, undefined, sources, selectedSource));
+        return;
+      }
+      const saveProductSourceMatch =
+        method === "POST" ? /^\/products\/([a-z0-9_-]+)\/sources$/.exec(url.pathname) : null;
+      if (saveProductSourceMatch?.[1]) {
+        const product = catalog.get(saveProductSourceMatch[1]);
+        await sourceStore.save(
+          productSourceFromForm(await readForm(request), product.id),
+          catalog.read().products,
+        );
+        redirect(response, `/products/${encodeURIComponent(product.id)}/edit?saved=source`);
         return;
       }
       if (method === "POST" && url.pathname === "/products") {

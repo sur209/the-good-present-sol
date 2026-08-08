@@ -190,6 +190,14 @@ The global disclosure is the public `/affiliate-disclosure/` page, linked from t
 
 Affiliate-program account configuration is non-public Studio data under `editorial-data/affiliate-programs/`. It records program identity, marketplace, store or associate identifier, allowed tracking IDs, disclosure text/version, and enabled state. It does not contain secrets, does not modify product records, and is not read by Astro.
 
+## Product source provenance
+
+The canonical `Product` remains the editorial catalog record used by guides and Astro. Optional non-public `ProductSourceRecord` files live under `editorial-data/product-sources/`, owned by the Studio product-sources module. They record source kind, provider, marketplace, external ID, source URL, import and review timestamps, status, and notes without extending or changing the public product schema.
+
+Source records are validated independently and must reference an existing canonical product. External IDs are unique within `(provider, marketplace, externalId)`; lookup and duplicate detection use that tuple. Updating or replacing a source record does not change the canonical product's stable ID or overwrite its merchant, URL, copy, or other editorial fields. No API, scraping, synchronization, or public ASIN requirement exists in this stage.
+
+The Studio product editor shows and persists this provenance locally. The Astro build reads only `content/`, so source records and their provider identifiers do not enter public pages or static output.
+
 ## Studio and manual publishing workflow
 
 The local Studio's Publish action creates or updates `content/{type}/{stable-id}.json`. It strips questionnaire answers, prompts, outline details, selection rationale, and other draft-only state; preserves `publishedAt` on updates; refreshes `updatedAt`; validates the complete candidate graph; and uses an atomic same-directory replacement. A slug edit changes the route field, never the filename or update identity. Publication does not run Git or deploy: the editor must review, commit, and push canonical changes separately.

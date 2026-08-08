@@ -28,6 +28,10 @@
 | 5 — SEO, accessibility, and deployment | Complete | Added canonical/OG metadata, sitemap, robots, accurate JSON-LD, accessibility hardening, CNAME, GitHub Pages Actions, and complete docs       |
 | 6 — Ponytail audit                     | Complete | Replaced the TS runner with Node 22, removed duplicate build validation and speculative APIs, and deleted unused CSS                          |
 
+## Phase 11 - Product source provenance
+
+Complete. Added Studio-owned source records with strict kinds, stable file IDs, provider/marketplace/external-ID uniqueness and lookup, missing-product checks, atomic persistence, product-editor integration, and public-build exclusion.
+
 ## Current contract
 
 - Source of truth: stable-ID-named JSON files under `content/`.
@@ -35,6 +39,7 @@
 - Public output: static Astro assets in `apps/site/dist/`.
 - Merchant destinations: validated affiliate-first resolution from the central product catalog; no internal outbound redirect exists.
 - Affiliate operations: non-public records under `editorial-data/affiliate-programs/` and a read-only Studio status page; no secrets or automatic link generation.
+- Product provenance: non-public records under `editorial-data/product-sources/`; canonical products remain independent editorial entities, and source identifiers never enter Astro output.
 - URL policy: only differentiated, substantial editorial intents receive routes; taxonomies never create pages.
 - MVP scope: Nurse Gifts hub plus graduation, practical, and under-$25 guides.
 
@@ -52,6 +57,7 @@
 - Editorial Studio Phase 9: the whole-repository Ponytail audit reviewed dependencies, exports, routes, prompts, filesystem code, Studio rendering, and styles. It found no removable dependency, dead route, client script, prompt field, or replaceable filesystem layer. The bounded refactor centralized candidate-record replacement and validation, deduplicated generation metadata, removed redundant mock schema passes and unused public types, and added URL validation at the form boundary for a net reduction of 6 lines across Studio source. `npm run verify` passed all 47 tests, content validation, strict TypeScript, 0 Astro diagnostics, and the 9-page build.
 
 - Editorial Studio Phase 10: added the affiliate operating contract, central destination tests, safe affiliate/ordinary link rendering checks, strict AI URL-field rejection, non-public program configuration, and the local status page. `npm run verify` passed formatting, all workspace type checks, 53 workspace tests (46 Studio tests), validation of 11 products/1 cluster/3 guides, 0 Astro diagnostics, and the 9-page static build; the artifact assertions found no affiliate-program identifiers in Astro output.
+- Editorial Studio Phase 11: added strict non-public product-source records for manual, manual-Amazon, CSV, and future Amazon Creators API provenance; provider/marketplace/external-ID lookup and duplicate blocking; stable-ID atomic updates; missing-product and safe-path checks; product-editor integration; and a public-build exclusion scan. The focused Studio suite passed with no source identifiers in Astro output.
 - Phase 0: `git diff --check` passed; required architecture, URL-policy, replacement, redirect-boundary, and public-status terms confirmed. Ponytail review kept the phase to the four required documentation files with no speculative code or placeholder subsystems.
 - Phase 1: `npm run verify` passed with 0 Astro diagnostics, 0 TypeScript errors, and 2 route tests; `apps/site/dist/` contained one HTML page and no server artifacts. Ponytail review retained only the build, type, format, and test dependencies in active use; a two-line Node launcher avoided a cross-platform environment dependency.
 - Phase 2: strict checks, 6 tests, standalone validation, and the static build passed. A negative integration check confirmed that an unsafe temporary affiliate URL stops the Astro build with file, record, and field context. Ponytail review kept Zod as the only new runtime dependency and one shared filesystem reader outside the pure package.
