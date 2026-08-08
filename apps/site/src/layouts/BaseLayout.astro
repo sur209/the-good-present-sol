@@ -5,9 +5,10 @@ import "../styles/global.css";
 interface Props {
   title: string;
   description: string;
+  theme?: "default" | "hub" | "guide";
 }
 
-const { title, description } = Astro.props;
+const { title, description, theme = "default" } = Astro.props;
 ---
 
 <!doctype html>
@@ -19,26 +20,41 @@ const { title, description } = Astro.props;
     <meta name="description" content={description} />
     <title>{title}</title>
   </head>
-  <body>
+  <body class:list={[theme !== "default" && `theme-${theme}`]}>
     <a class="skip-link" href="#main-content">Skip to content</a>
-    <header class="site-header">
-      <a class="brand" href={PUBLIC_PATHS.home} aria-label="The Good Present home">
-        <span aria-hidden="true">✦</span>
-        The Good Present
-      </a>
-      <nav aria-label="Primary navigation">
-        <a href={PUBLIC_PATHS.giftGuides}>Gift guides</a>
-        <a href={PUBLIC_PATHS.about}>About</a>
-      </nav>
+    <header class="site-header-shell">
+      <div class="site-header">
+        <a class="brand" href={PUBLIC_PATHS.home} aria-label="The Good Present home">
+          <span aria-hidden="true">✦</span>
+          The Good Present
+        </a>
+        <nav aria-label="Primary navigation">
+          <a href={PUBLIC_PATHS.giftGuides}>Gift guides</a>
+          <a href={PUBLIC_PATHS.about}>Our method</a>
+        </nav>
+      </div>
     </header>
     <main id="main-content">
       <slot />
     </main>
-    <footer class="site-footer">
-      <p>Thoughtful gifts, chosen with care.</p>
-      <nav aria-label="Footer navigation">
-        <a href={PUBLIC_PATHS.affiliateDisclosure}>Affiliate disclosure</a>
-      </nav>
+    <footer class="site-footer-shell">
+      <div class="site-footer">
+        <div>
+          <a class="brand brand--footer" href={PUBLIC_PATHS.home}>
+            <span aria-hidden="true">✦</span>
+            The Good Present
+          </a>
+          <p>Useful, human-edited gift guides for people who show up for others.</p>
+        </div>
+        <nav aria-label="Footer navigation">
+          <a href={PUBLIC_PATHS.giftGuides}>Gift guides</a>
+          <a href={PUBLIC_PATHS.about}>About</a>
+          <a href={PUBLIC_PATHS.affiliateDisclosure}>Affiliate disclosure</a>
+        </nav>
+        <p class="site-footer__note">
+          Made for US readers · Prices and purchases live with merchants.
+        </p>
+      </div>
     </footer>
   </body>
 </html>

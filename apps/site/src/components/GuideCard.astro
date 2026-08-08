@@ -1,0 +1,29 @@
+---
+import { guidePath, type ClusterHub, type GiftGuide } from "@the-good-present/content-schema";
+
+import { formatDate, primaryAxisLabels } from "../lib/content.js";
+
+interface Props {
+  guide: GiftGuide;
+  cluster: ClusterHub;
+  number?: number;
+}
+
+const { guide, cluster, number } = Astro.props;
+const date = guide.updatedAt ?? guide.publishedAt;
+---
+
+<article class="guide-card">
+  <a href={guidePath(cluster.slug, guide.slug)}>
+    <div class="guide-card__topline">
+      <span>{primaryAxisLabels[guide.primaryAxis]}</span>
+      {number && <span aria-hidden="true">0{number}</span>}
+    </div>
+    <h3>{guide.title}</h3>
+    <p>{guide.excerpt}</p>
+    <div class="guide-card__footer">
+      <span>{cluster.title}</span>
+      <time datetime={date}>{guide.updatedAt ? "Updated" : "Published"} {formatDate(date)}</time>
+    </div>
+  </a>
+</article>

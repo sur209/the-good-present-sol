@@ -1,0 +1,132 @@
+---
+import {
+  PUBLIC_PATHS,
+  clusterPath,
+  guidePath,
+  type ClusterHub,
+} from "@the-good-present/content-schema";
+
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import GuideCard from "../../components/GuideCard.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { content, guidesById, primaryAxisLabels } from "../../lib/content.js";
+
+export function getStaticPaths() {
+  return content.clusters.map((cluster) => ({
+    params: { clusterSlug: cluster.slug },
+    props: { cluster },
+  }));
+}
+
+interface Props {
+  cluster: ClusterHub;
+}
+
+const { cluster } = Astro.props;
+const clusterGuides = content.guides.filter((guide) => guide.clusterId === cluster.id);
+const navigationGroups = cluster.navigationGroups
+  .map((group) => ({
+    ...group,
+    guides: group.guideIds.map((guideId) => guidesById.get(guideId)!),
+  }))
+  .filter((group) => group.guides.length > 0);
+---
+
+<BaseLayout title={cluster.seoTitle} description={cluster.seoDescription} theme="hub">
+  <div class="shell">
+    <Breadcrumbs
+      items={[
+        { label: "Home", href: PUBLIC_PATHS.home },
+        { label: "Gift guides", href: PUBLIC_PATHS.giftGuides },
+        { label: cluster.title },
+      ]}
+    />
+  </div>
+
+  <header class="hub-hero shell">
+    <div>
+      <p class="eyebrow">Editorial cluster</p>
+      <h1>{cluster.title}</h1>
+      <p class="lede">{cluster.excerpt}</p>
+    </div>
+    <div class="hub-hero__intro">
+      <span class="hub-hero__star" aria-hidden="true">✦</span>
+      <p>{cluster.introduction}</p>
+    </div>
+  </header>
+
+  <section class="hub-paths section shell" aria-labelledby="choose-path">
+    <div class="section-heading section-heading--split">
+      <div>
+        <p class="eyebrow">Choose your way in</p>
+        <h2 id="choose-path">Three needs. Three focused guides.</h2>
+      </div>
+      <p>These groups are selected by editors. Tags do not create extra pages.</p>
+    </div>
+
+    <div class="hub-paths__list">
+      {
+        navigationGroups.map((group, index) => (
+          <section class="hub-path" aria-labelledby={`group-${group.id}`}>
+            <div class="hub-path__number" aria-hidden="true">
+              0{index + 1}
+            </div>
+            <div>
+              <p class="kicker">{primaryAxisLabels[group.axis]}</p>
+              <h3 id={`group-${group.id}`}>{group.label}</h3>
+            </div>
+            <ul>
+              {group.guides.map((guide) => (
+                <li>
+                  <a href={guidePath(cluster.slug, guide.slug)}>
+                    <span>{guide.title}</span>
+                    <span aria-hidden="true">↗</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="section section--ink" aria-labelledby="featured-guides">
+    <div class="shell">
+      <div class="section-heading section-heading--split">
+        <div>
+          <p class="eyebrow">Featured guides</p>
+          <h2 id="featured-guides">Useful context before product picks.</h2>
+        </div>
+        <a class="text-link text-link--light" href={PUBLIC_PATHS.giftGuides}>
+          All gift guides <span aria-hidden="true">→</span>
+        </a>
+      </div>
+      <div class="guide-grid">
+        {
+          clusterGuides.map((guide, index) => (
+            <GuideCard guide={guide} cluster={cluster} number={index + 1} />
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="hub-method section shell" aria-labelledby="hub-method-heading">
+    <div>
+      <p class="eyebrow">How this cluster works</p>
+      <h2 id="hub-method-heading">Broad enough to explore. Focused enough to help.</h2>
+    </div>
+    <div>
+      <p>
+        The hub holds the whole Nurse Gifts collection. Each child guide answers a more specific
+        question with its own criteria and recommendation copy.
+      </p>
+      <p>
+        We do not publish every combination of occasion, recipient, style, and price. If a need is
+        better served by a section inside an existing guide, it stays a section.
+      </p>
+      <a class="button button--outline" href={clusterPath(cluster.slug)}>Back to the top</a>
+    </div>
+  </section>
+</BaseLayout>

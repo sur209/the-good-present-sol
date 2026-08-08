@@ -1,0 +1,71 @@
+---
+import type { GuideRecommendation, Product } from "@the-good-present/content-schema";
+
+interface Props {
+  recommendation: GuideRecommendation;
+  product: Product;
+}
+
+const { recommendation, product } = Astro.props;
+const destination = product.affiliateUrl;
+const isDemo = destination ? new URL(destination).hostname === "example.com" : false;
+const merchantLabel = product.merchant.replace(" (demo)", "");
+const initials = product.name
+  .split(/\s+/)
+  .slice(0, 2)
+  .map((word) => word[0])
+  .join("");
+const accent = `recommendation--accent-${((recommendation.position - 1) % 4) + 1}`;
+---
+
+<article class:list={["recommendation", accent]} id={`pick-${recommendation.position}`}>
+  <div class="recommendation__visual" aria-hidden="true">
+    <span>{initials}</span>
+    <small>Pick {recommendation.position}</small>
+  </div>
+  <div class="recommendation__body">
+    <p class="recommendation__position">Recommendation {recommendation.position}</p>
+    <h2>{recommendation.heading ?? product.name}</h2>
+    {recommendation.heading && <p class="recommendation__product">{product.name}</p>}
+    <p class="recommendation__catalog">{product.shortDescription}</p>
+    <p>{recommendation.editorialDescription}</p>
+    <div class="why-box">
+      <h3>Why it fits</h3>
+      <p>{recommendation.whyItFits}</p>
+    </div>
+    {
+      (recommendation.bestFor || recommendation.considerations) && (
+        <dl class="recommendation__details">
+          {recommendation.bestFor && (
+            <div>
+              <dt>Best for</dt>
+              <dd>{recommendation.bestFor}</dd>
+            </div>
+          )}
+          {recommendation.considerations && (
+            <div>
+              <dt>Before you buy</dt>
+              <dd>{recommendation.considerations}</dd>
+            </div>
+          )}
+        </dl>
+      )
+    }
+    <div class="recommendation__commerce">
+      {product.priceLabel && <span>{product.priceLabel}</span>}
+      {
+        destination && (
+          <a
+            class="button button--small"
+            href={destination}
+            target="_blank"
+            rel="sponsored nofollow noopener"
+            aria-label={`${isDemo ? "View demo for" : "View"} ${product.name} at ${product.merchant} (opens in a new tab)`}
+          >
+            {isDemo ? `View demo at ${merchantLabel}` : `View at ${product.merchant}`}
+          </a>
+        )
+      }
+    </div>
+  </div>
+</article>

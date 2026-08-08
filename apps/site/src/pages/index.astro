@@ -1,17 +1,127 @@
 ---
+import { clusterPath } from "@the-good-present/content-schema";
+
+import GuideCard from "../components/GuideCard.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { clustersById, content } from "../lib/content.js";
+
+const featuredCluster = content.clusters[0]!;
+const latestGuides = [...content.guides]
+  .sort((left, right) =>
+    (right.updatedAt ?? right.publishedAt).localeCompare(left.updatedAt ?? left.publishedAt),
+  )
+  .slice(0, 3);
 ---
 
 <BaseLayout
-  title="The Good Present"
-  description="Warm, practical gift guides for the people who care for others."
+  title="The Good Present | Gifts chosen with care"
+  description="Warm, practical gift guides for the people who care for, protect, teach, and help others."
 >
-  <section class="shell foundation-hero">
-    <p class="eyebrow">A thoughtful gift starts with paying attention.</p>
-    <h1>Good gifts for people who do good.</h1>
-    <p>
-      The Good Present is building useful, human-edited guides for the people who care for, protect,
-      teach, and help others.
-    </p>
+  <section class="home-hero shell">
+    <div>
+      <p class="eyebrow">A thoughtful gift starts with paying attention.</p>
+      <h1>Good gifts for people who do good.</h1>
+      <p class="lede">
+        Human-edited ideas for the people who care for, protect, teach, and help others—chosen
+        around real moments and routines.
+      </p>
+      <div class="button-row">
+        <a class="button" href={clusterPath(featuredCluster.slug)}>Explore nurse gifts</a>
+        <a class="text-link" href="/about/">How we choose <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+    <div class="home-hero__art" aria-hidden="true">
+      <span class="shape shape--one"></span>
+      <span class="shape shape--two"></span>
+      <span class="shape shape--three">GOOD<br />GIFTS</span>
+      <span class="shape shape--four">✦</span>
+    </div>
   </section>
+
+  <section class="section shell" aria-labelledby="cluster-heading">
+    <div class="section-heading">
+      <p class="eyebrow">Begin here</p>
+      <h2 id="cluster-heading">One caring profession. Three useful ways in.</h2>
+    </div>
+    <div class="cluster-feature__panel">
+      <div>
+        <p class="kicker">Featured cluster</p>
+        <h3>{featuredCluster.title}</h3>
+        <p>{featuredCluster.excerpt}</p>
+        <a class="text-link" href={clusterPath(featuredCluster.slug)}>
+          Browse the complete cluster <span aria-hidden="true">→</span>
+        </a>
+      </div>
+      <ol class="cluster-feature__routes">
+        {
+          featuredCluster.navigationGroups.map((group, index) => (
+            <li>
+              <span>0{index + 1}</span>
+              <strong>{group.label}</strong>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section--color" aria-labelledby="latest-heading">
+    <div class="shell">
+      <div class="section-heading section-heading--split">
+        <div>
+          <p class="eyebrow">Latest guides</p>
+          <h2 id="latest-heading">A shorter path to the right idea.</h2>
+        </div>
+        <a class="text-link" href="/gift-guides/"
+          >See every guide <span aria-hidden="true">→</span></a
+        >
+      </div>
+      <div class="guide-grid">
+        {
+          latestGuides.map((guide, index) => {
+            const cluster = clustersById.get(guide.clusterId)!;
+            return <GuideCard guide={guide} cluster={cluster} number={index + 1} />;
+          })
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="method section shell" aria-labelledby="method-heading">
+    <div class="method__intro">
+      <p class="eyebrow">Our editorial method</p>
+      <h2 id="method-heading">Less scrolling. More noticing.</h2>
+      <p>
+        We build a guide only when it answers a distinct need. Products can appear more than once,
+        but the reason for choosing them has to fit the guide in front of you.
+      </p>
+    </div>
+    <ol class="method__steps">
+      <li>
+        <span>01</span><strong>Start with a real moment</strong><p>
+          Graduation, a thank-you, a new role, or a useful everyday gesture.
+        </p>
+      </li>
+      <li>
+        <span>02</span><strong>Choose around a routine</strong><p>
+          We look for modest ways a gift can fit the recipient's actual life.
+        </p>
+      </li>
+      <li>
+        <span>03</span><strong>Say why it belongs</strong><p>
+          Every recommendation includes context, tradeoffs, and what to check first.
+        </p>
+      </li>
+    </ol>
+  </section>
+
+  <aside class="disclosure-band">
+    <div class="shell disclosure-band__inner">
+      <p>
+        <strong>A clear commercial note.</strong> We may earn a commission from qualifying merchant links.
+        Selection and copy remain editorial.
+      </p>
+      <a href="/affiliate-disclosure/">Read our affiliate disclosure</a>
+    </div>
+  </aside>
 </BaseLayout>

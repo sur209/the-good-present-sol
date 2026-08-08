@@ -1,0 +1,198 @@
+---
+import {
+  PUBLIC_PATHS,
+  clusterPath,
+  type ClusterHub,
+  type GiftGuide,
+} from "@the-good-present/content-schema";
+
+import Breadcrumbs from "../../../components/Breadcrumbs.astro";
+import GuideCard from "../../../components/GuideCard.astro";
+import RecommendationCard from "../../../components/RecommendationCard.astro";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import {
+  clustersById,
+  content,
+  formatDate,
+  guidesById,
+  primaryAxisLabels,
+  productsById,
+} from "../../../lib/content.js";
+
+export function getStaticPaths() {
+  return content.guides.map((guide) => {
+    const cluster = clustersById.get(guide.clusterId)!;
+    return {
+      params: { clusterSlug: cluster.slug, guideSlug: guide.slug },
+      props: { cluster, guide },
+    };
+  });
+}
+
+interface Props {
+  cluster: ClusterHub;
+  guide: GiftGuide;
+}
+
+const { cluster, guide } = Astro.props;
+const recommendations = [...guide.recommendations]
+  .sort((left, right) => left.position - right.position)
+  .map((recommendation) => ({
+    recommendation,
+    product: productsById.get(recommendation.productId)!,
+  }));
+const relatedGuides = (guide.relatedGuideIds ?? []).map((guideId) => guidesById.get(guideId)!);
+const hasCommercialLinks = recommendations.some(({ product }) => product.affiliateUrl);
+const hasDemoLinks = recommendations.some(({ product }) =>
+  product.affiliateUrl ? new URL(product.affiliateUrl).hostname === "example.com" : false,
+);
+---
+
+<BaseLayout title={guide.seoTitle} description={guide.seoDescription} theme="guide">
+  <div class="shell">
+    <Breadcrumbs
+      items={[
+        { label: "Home", href: PUBLIC_PATHS.home },
+        { label: "Gift guides", href: PUBLIC_PATHS.giftGuides },
+        { label: cluster.title, href: clusterPath(cluster.slug) },
+        { label: guide.title },
+      ]}
+    />
+  </div>
+
+  <article>
+    <header class="guide-hero shell">
+      <div>
+        <a class="back-link" href={clusterPath(cluster.slug)}>
+          <span aria-hidden="true">←</span>
+          {cluster.title}
+        </a>
+        <p class="eyebrow">{primaryAxisLabels[guide.primaryAxis]}</p>
+        <h1>{guide.title}</h1>
+        <p class="lede">{guide.excerpt}</p>
+      </div>
+      <aside class="guide-context" aria-label="Guide context">
+        <span class="guide-context__mark" aria-hidden="true">✦</span>
+        <dl>
+          <div>
+            <dt>Editorial focus</dt>
+            <dd>{guide.primaryIntent}</dd>
+          </div>
+          {
+            guide.budgetContext && (
+              <div>
+                <dt>Budget</dt>
+                <dd>
+                  {guide.budgetContext.label} {guide.budgetContext.currency}
+                </dd>
+              </div>
+            )
+          }
+          <div>
+            <dt>Published</dt>
+            <dd><time datetime={guide.publishedAt}>{formatDate(guide.publishedAt)}</time></dd>
+          </div>
+        </dl>
+      </aside>
+    </header>
+
+    <div class="guide-intro shell">
+      <p>{guide.introduction}</p>
+      <nav class="pick-index" aria-label="Recommendations in this guide">
+        <p class="kicker">In this guide</p>
+        <ol>
+          {
+            recommendations.map(({ recommendation, product }) => (
+              <li>
+                <a href={`#pick-${recommendation.position}`}>{product.name}</a>
+              </li>
+            ))
+          }
+        </ol>
+      </nav>
+    </div>
+
+    {
+      hasDemoLinks && (
+        <aside class="demo-notice shell">
+          <strong>Demonstration catalog:</strong> Product buttons on this version lead to visibly
+          labeled <code>example.com</code> pages. They show placement only and are not production
+          shopping destinations.
+        </aside>
+      )
+    }
+
+    <section class="recommendations shell" aria-label="Gift recommendations">
+      <ol class="recommendation-list">
+        {
+          recommendations.map(({ recommendation, product }) => (
+            <li>
+              <RecommendationCard recommendation={recommendation} product={product} />
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    {
+      hasCommercialLinks && (
+        <aside class="guide-disclosure shell">
+          <p>
+            <strong>Affiliate disclosure:</strong> The Good Present may earn a commission from
+            qualifying purchases made through merchant links. The merchant controls current product
+            information and purchase terms.
+          </p>
+          <a href={PUBLIC_PATHS.affiliateDisclosure}>Read the full disclosure</a>
+        </aside>
+      )
+    }
+
+    {
+      guide.conclusion && (
+        <section class="guide-conclusion shell" aria-labelledby="conclusion-heading">
+          <p class="eyebrow">One last thought</p>
+          <h2 id="conclusion-heading">Make the choice feel like them.</h2>
+          <p>{guide.conclusion}</p>
+        </section>
+      )
+    }
+
+    {
+      relatedGuides.length > 0 && (
+        <section class="section section--color" aria-labelledby="related-heading">
+          <div class="shell">
+            <div class="section-heading section-heading--split">
+              <div>
+                <p class="eyebrow">Keep exploring</p>
+                <h2 id="related-heading">Related {cluster.title.toLowerCase()} guides</h2>
+              </div>
+              <a class="text-link" href={clusterPath(cluster.slug)}>
+                Return to {cluster.title} <span aria-hidden="true">→</span>
+              </a>
+            </div>
+            <div class="guide-grid guide-grid--two">
+              {relatedGuides.map((related, index) => (
+                <GuideCard guide={related} cluster={cluster} number={index + 1} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )
+    }
+
+    <footer class="guide-byline shell">
+      <p>
+        Published <time datetime={guide.publishedAt}>{formatDate(guide.publishedAt)}</time>
+        {
+          guide.updatedAt && (
+            <>
+              {" "}
+              · Updated <time datetime={guide.updatedAt}>{formatDate(guide.updatedAt)}</time>
+            </>
+          )
+        }
+      </p>
+      <a href={clusterPath(cluster.slug)}>More from {cluster.title}</a>
+    </footer>
+  </article>
+</BaseLayout>

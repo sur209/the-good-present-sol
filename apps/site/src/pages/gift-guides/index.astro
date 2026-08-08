@@ -1,0 +1,46 @@
+---
+import { clusterPath } from "@the-good-present/content-schema";
+
+import GuideCard from "../../components/GuideCard.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { content } from "../../lib/content.js";
+---
+
+<BaseLayout
+  title="Gift Guides | The Good Present"
+  description="Browse every published gift cluster and human-edited guide from The Good Present."
+>
+  <header class="listing-hero shell">
+    <p class="eyebrow">All gift guides</p>
+    <h1>Find the right doorway, not a wall of products.</h1>
+    <p class="lede">
+      Start with who you are celebrating, then choose the moment, priority, or budget that best
+      matches what you need.
+    </p>
+  </header>
+
+  <div class="shell cluster-list">
+    {
+      content.clusters.map((cluster, clusterIndex) => {
+        const guides = content.guides.filter((guide) => guide.clusterId === cluster.id);
+        return (
+          <section class="cluster-list__section" aria-labelledby={`cluster-${cluster.id}`}>
+            <div class="cluster-list__intro">
+              <p class="kicker">Cluster 0{clusterIndex + 1}</p>
+              <h2 id={`cluster-${cluster.id}`}>{cluster.title}</h2>
+              <p>{cluster.excerpt}</p>
+              <a class="button button--outline" href={clusterPath(cluster.slug)}>
+                Visit {cluster.title}
+              </a>
+            </div>
+            <div class="guide-grid guide-grid--two">
+              {guides.map((guide, index) => (
+                <GuideCard guide={guide} cluster={cluster} number={index + 1} />
+              ))}
+            </div>
+          </section>
+        );
+      })
+    }
+  </div>
+</BaseLayout>
