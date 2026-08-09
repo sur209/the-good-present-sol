@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { cp, mkdir, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { once } from "node:events";
@@ -8,6 +8,8 @@ import test from "node:test";
 import { promisify } from "node:util";
 
 import { z } from "zod";
+
+import type { Product } from "@the-good-present/content-schema";
 
 import {
   MockGuideGenerationProvider,
@@ -74,6 +76,7 @@ import {
   normalizeAmazonUrl,
   validateAmazonAffiliateIntake,
 } from "./modules/affiliate-operations/amazon.ts";
+import { validateAffiliateOperations } from "./modules/affiliate-operations/validation.ts";
 import {
   ProductSourceStore,
   findDuplicateProductSource,
@@ -481,6 +484,155 @@ test("muestra el estado de afiliados sólo dentro del Studio", async (context) =
   assert.match(html, /amazon-associates/);
   assert.match(html, /store or associate identifier/);
   assert.doesNotMatch(html, /apiKey|password|accessToken|clientSecret/i);
+
+  const qaResponse = await fetch(`http://${STUDIO_HOST}:${address.port}/affiliate-operations`);
+  const qaHtml = await qaResponse.text();
+  assert.equal(qaResponse.status, 200);
+  assert.match(qaHtml, /QA de enlaces afiliados/);
+  assert.match(qaHtml, /product_shift-tote/);
+  assert.match(qaHtml, /affiliateUrl\.program/);
+});
+
+test("reporta cobertura, tracking, programas, hosts, disclosure y protocolos con severidades distintas", async (context) => {
+  const base = readPublicContent();
+  const productById = (id: string) => base.products.find((product) => product.id === id)!;
+  const withoutUrls = (id: string) => {
+    const { affiliateUrl: _affiliateUrl, productUrl: _productUrl, ...product } = productById(id);
+    return product;
+  };
+  const replacements = new Map<string, Product>([
+    [
+      "product_badge-reel",
+      {
+        ...productById("product_badge-reel"),
+        productUrl: "https://www.amazon.com/dp/B012345678",
+        affiliateUrl: "https://www.amazon.com/dp/B012345678?tag=thegoodpresent-20",
+      },
+    ],
+    [
+      "product_coffee-card",
+      {
+        ...withoutUrls("product_coffee-card"),
+        affiliateUrl: "https://www.amazon.com/dp/C012345678?tag=wrong-tag",
+      },
+    ],
+    [
+      "product_compression-socks",
+      {
+        ...withoutUrls("product_compression-socks"),
+        productUrl: "https://merchant.test/compression-socks",
+      },
+    ],
+    ["product_sleep-mask", withoutUrls("product_sleep-mask")],
+    [
+      "product_pocket-notebook",
+      {
+        ...withoutUrls("product_pocket-notebook"),
+        affiliateUrl: "https://unknown.example/pocket-notebook",
+      },
+    ],
+    [
+      "product_hand-cream",
+      {
+        ...withoutUrls("product_hand-cream"),
+        affiliateUrl: "https://disabled.example/hand-cream?tag=disabled-tag",
+      },
+    ],
+    [
+      "product_rechargeable-penlight",
+      {
+        ...withoutUrls("product_rechargeable-penlight"),
+        affiliateUrl: "https://amzn.to/short-code",
+      },
+    ],
+    [
+      "product_insulated-tumbler",
+      { ...withoutUrls("product_insulated-tumbler"), affiliateUrl: "javascript:alert(1)" },
+    ],
+  ]);
+  const content = {
+    ...base,
+    products: base.products.map((product) => replacements.get(product.id) ?? product),
+    guides: [
+      {
+        ...base.guides[0]!,
+        recommendations: [
+          "product_badge-reel",
+          "product_coffee-card",
+          "product_compression-socks",
+          "product_sleep-mask",
+          "product_pocket-notebook",
+          "product_hand-cream",
+          "product_rechargeable-penlight",
+          "product_insulated-tumbler",
+        ].map((productId, index) => ({
+          ...base.guides[0]!.recommendations[0]!,
+          id: `qa_${index + 1}`,
+          productId,
+          position: index + 1,
+        })),
+      },
+    ],
+  };
+  const disabledProgram = affiliateProgramSchema.parse({
+    ...configuredAmazonProgram(),
+    id: "disabled-store",
+    programId: "disabled-program",
+    marketplace: "disabled.example",
+    approvedHosts: ["disabled.example"],
+    allowedTrackingIds: ["disabled-tag"],
+    enabled: false,
+  });
+  const siteDistRoot = await mkdtemp(join(tmpdir(), "good-present-affiliate-qa-output-"));
+  context.after(() => rm(siteDistRoot, { recursive: true, force: true }));
+  const routeDirectory = join(siteDistRoot, "nurse-gifts", "graduation");
+  await mkdir(routeDirectory, { recursive: true });
+  await writeFile(
+    join(routeDirectory, "index.html"),
+    '<html><article class="recommendation"></article></html>',
+  );
+
+  const report = validateAffiliateOperations(
+    content,
+    [
+      {
+        file: "editorial-data/affiliate-programs/amazon-us.json",
+        program: configuredAmazonProgram(),
+      },
+      { file: "editorial-data/affiliate-programs/disabled-store.json", program: disabledProgram },
+    ],
+    { siteDistRoot },
+  );
+
+  assert.equal(report.coverage.filter((entry) => entry.kind === "affiliate").length, 5);
+  assert.equal(report.coverage.filter((entry) => entry.kind === "ordinary").length, 1);
+  assert.equal(report.coverage.filter((entry) => entry.kind === "none").length, 2);
+  assert.ok(report.warnings.length > 0);
+  assert.ok(report.errors.length > 0);
+  assert.ok(report.warnings.every((finding) => finding.severity === "warning"));
+  assert.ok(report.errors.every((finding) => finding.severity === "error"));
+  assert.ok(
+    report.warnings.some((finding) => finding.reason.includes("Sólo hay una URL ordinaria")),
+  );
+  assert.ok(report.warnings.some((finding) => finding.reason.includes("No hay URL de salida")));
+  assert.ok(
+    report.warnings.some((finding) => finding.reason.includes("No hay un programa afiliado")),
+  );
+  assert.ok(report.errors.some((finding) => finding.reason.includes("no está aprobado")));
+  assert.ok(report.errors.some((finding) => finding.reason.includes("desactivado")));
+  assert.ok(report.errors.some((finding) => finding.reason.includes("no coincide")));
+  assert.ok(report.warnings.some((finding) => finding.reason.includes("enlace corto")));
+  assert.ok(report.errors.some((finding) => finding.reason.includes("protocolo inseguro")));
+  assert.ok(report.errors.some((finding) => finding.field === "guide-disclosure"));
+  for (const finding of report.findings) {
+    assert.ok(finding.productId);
+    assert.ok(finding.product);
+    assert.ok(finding.guideId);
+    assert.ok(finding.guide);
+    assert.ok(finding.route);
+    assert.ok(finding.field);
+    assert.ok(finding.reason);
+  }
 });
 
 test("valida fuentes, conserva campos no pÃºblicos y acepta los cuatro tipos", () => {
@@ -1114,6 +1266,45 @@ test("renderiza sólo destinos del catálogo y distingue enlaces afiliados", asy
     )
   ).join("\n");
   assert.doesNotMatch(staticHtml, /amazon-associates|storeOrAssociateId|allowedTrackingIds/);
+});
+
+test("renderiza disclosure en guías con afiliados y lo omite sin enlaces afiliados", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-disclosure-build-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  for (const productId of [
+    "product_pocket-notebook",
+    "product_badge-reel",
+    "product_hand-cream",
+    "product_compression-socks",
+    "product_sleep-mask",
+    "product_coffee-card",
+  ]) {
+    const product = catalog.get(productId);
+    const { affiliateUrl: _affiliateUrl, ...ordinaryProduct } = product;
+    await catalog.save({
+      ...ordinaryProduct,
+      productUrl: `https://merchant.test/${productId}`,
+    });
+  }
+
+  await execFileAsync(process.execPath, [join(REPOSITORY_ROOT, "scripts", "astro.mjs"), "build"], {
+    cwd: join(REPOSITORY_ROOT, "apps", "site"),
+    env: { ...process.env, CONTENT_REPOSITORY_ROOT: repository },
+    maxBuffer: 10 * 1024 * 1024,
+    windowsHide: true,
+  });
+  const graduation = await readFile(
+    join(REPOSITORY_ROOT, "apps", "site", "dist", "nurse-gifts", "graduation", "index.html"),
+    "utf8",
+  );
+  const under25 = await readFile(
+    join(REPOSITORY_ROOT, "apps", "site", "dist", "nurse-gifts", "under-25", "index.html"),
+    "utf8",
+  );
+  assert.match(graduation, /guide-disclosure/);
+  assert.doesNotMatch(under25, /guide-disclosure/);
 });
 
 test("reabre un hub publicado conservando identidad y ruta", () => {

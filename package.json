@@ -20,9 +20,10 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "content:validate": "node --disable-warning=ExperimentalWarning --experimental-strip-types scripts/content-validate.ts",
+    "affiliate:validate": "node --disable-warning=ExperimentalWarning --experimental-strip-types scripts/affiliate-validate.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "verify": "npm run format:check && npm run typecheck && npm run test && npm run content:validate && npm run build"
+    "verify": "npm run format:check && npm run typecheck && npm run test && npm run content:validate && npm run build && npm run affiliate:validate"
   },
   "devDependencies": {
     "@types/node": "22.20.1",

@@ -1,4 +1,5 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import {
@@ -75,6 +76,7 @@ import {
   missingAffiliateProgramConfiguration,
   readAffiliateProgramRecords,
 } from "./modules/affiliate-operations/programs.ts";
+import { validateAffiliateOperations } from "./modules/affiliate-operations/validation.ts";
 import {
   createAmazonProductSourceRecord,
   isApprovedAmazonUsHost,
@@ -172,7 +174,7 @@ function page(title: string, body: string): string {
 <body>
   <header>
     <a href="/">The Good Present · Studio</a>
-    <nav aria-label="Principal"><a href="/">Borradores</a><a href="/drafts/new">Crear</a><a href="/products">Productos</a><a href="/products/intake">Ingreso asistido</a><a href="/affiliate-programs">Programas afiliados</a></nav>
+    <nav aria-label="Principal"><a href="/">Borradores</a><a href="/drafts/new">Crear</a><a href="/products">Productos</a><a href="/products/intake">Ingreso asistido</a><a href="/affiliate-programs">Programas afiliados</a><a href="/affiliate-operations">QA afiliados</a></nav>
   </header>
   <main>${body}</main>
 </body>
@@ -754,6 +756,49 @@ function affiliateProgramStatusPage(repositoryRoot = REPOSITORY_ROOT): string {
      <p class="notice">Esta pantalla no genera enlaces, importa reportes ni guarda secretos. Las credenciales futuras deben vivir en el proceso del servidor.</p>
      ${cards || '<p class="notice">No hay programas configurados. Agregá un JSON en <code>editorial-data/affiliate-programs/</code>.</p>'}
      <p class="muted">La configuración de afiliados nunca entra en <code>content/</code> ni en la salida estática de Astro.</p>`,
+  );
+}
+
+function affiliateValidationPage(repositoryRoot = REPOSITORY_ROOT): string {
+  const report = validateAffiliateOperations(
+    readPublicContent(repositoryRoot),
+    readAffiliateProgramRecords(repositoryRoot),
+    {
+      siteDistRoot: resolve(repositoryRoot, "apps/site/dist"),
+    },
+  );
+  const counts = report.coverage.reduce(
+    (result, entry) => {
+      result[entry.kind] += 1;
+      return result;
+    },
+    { affiliate: 0, ordinary: 0, none: 0 },
+  );
+  const coverage = report.coverage
+    .map(
+      (entry) => `<article class="card">
+        <div class="actions"><h3>${escapeHtml(entry.product)}</h3><span class="status">${escapeHtml(entry.kind)}</span></div>
+        <dl><dt>Producto</dt><dd><code>${escapeHtml(entry.productId)}</code></dd><dt>Guía</dt><dd>${escapeHtml(entry.guide)} <code>${escapeHtml(entry.guideId)}</code></dd><dt>Ruta</dt><dd><code>${escapeHtml(entry.route)}</code></dd><dt>Destino</dt><dd>${entry.destination ? escapeHtml(entry.destination) : "Sin CTA"}</dd></dl>
+      </article>`,
+    )
+    .join("");
+  const findings = report.findings
+    .map(
+      (finding) => `<article class="card">
+        <div class="actions"><h3>${escapeHtml(finding.field)}</h3><span class="status status--${finding.severity === "error" ? "inactive" : "active"}">${escapeHtml(finding.severity)}</span></div>
+        <dl><dt>Producto</dt><dd>${escapeHtml(finding.product)} <code>${escapeHtml(finding.productId)}</code></dd><dt>Guía</dt><dd>${escapeHtml(finding.guide)} <code>${escapeHtml(finding.guideId)}</code></dd><dt>Ruta</dt><dd><code>${escapeHtml(finding.route)}</code></dd><dt>Campo</dt><dd><code>${escapeHtml(finding.field)}</code></dd><dt>Razón</dt><dd>${escapeHtml(finding.reason)}</dd></dl>
+      </article>`,
+    )
+    .join("");
+  return page(
+    "Affiliate QA",
+    `<div class="actions"><div><h1>QA de enlaces afiliados</h1><p>Revisión local de cobertura, tracking, hosts, CTA y disclosure de las guías publicadas.</p></div></div>
+     <p class="notice">No se hacen requests de red, no se siguen enlaces y no se reescriben URLs. Salida renderizada: <strong>${escapeHtml(report.renderedOutput)}</strong>.</p>
+     <div class="grid"><article class="card"><h2>${counts.affiliate}</h2><p>Recomendaciones con enlace afiliado</p></article><article class="card"><h2>${counts.ordinary}</h2><p>Con sólo URL ordinaria</p></article><article class="card"><h2>${counts.none}</h2><p>Sin URL de salida</p></article><article class="card"><h2>${report.errors.length}</h2><p>Errores · ${report.warnings.length} advertencias</p></article></div>
+     <h2>Cobertura publicada</h2>
+     <div class="grid">${coverage || '<p class="notice">No hay recomendaciones publicadas.</p>'}</div>
+     <h2>Hallazgos</h2>
+     <div class="grid">${findings || '<p class="notice">No hay hallazgos.</p>'}</div>`,
   );
 }
 
@@ -1910,6 +1955,10 @@ export function createStudioServer(
       }
       if (method === "GET" && url.pathname === "/affiliate-programs") {
         send(response, 200, affiliateProgramStatusPage(catalog.root));
+        return;
+      }
+      if (method === "GET" && url.pathname === "/affiliate-operations") {
+        send(response, 200, affiliateValidationPage(catalog.root));
         return;
       }
       if (method === "GET" && url.pathname === "/products/intake") {

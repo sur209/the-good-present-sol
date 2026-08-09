@@ -65,6 +65,18 @@ The confirmation step is the only Amazon intake write path. Generic product edit
 
 The global disclosure is the public `/affiliate-disclosure/` page and its persistent footer link. A short near-link disclosure appears on a guide when at least one recommendation resolves to an affiliate URL. It explains the possible commission and that the merchant controls current product terms. Ordinary direct product links do not receive affiliate wording or the `sponsored` relation.
 
+## Affiliate QA review
+
+The Studio page at `/affiliate-operations` and the read-only command `npm run affiliate:validate` use the same local report. It lists every published recommendation as one of:
+
+- `affiliate`: the central destination resolver selects `affiliateUrl`.
+- `ordinary`: only `productUrl` is available; this is a monetization gap, not a product-contract error.
+- `none`: no outbound URL is available; this is also a review warning, not an automatic product invalidation.
+
+Each finding includes the product ID/name, guide ID/title, canonical route, stored field, severity, and reason. Hard errors cover unsafe protocols, unexpected non-demo hosts, disabled programs, visible tracking-ID mismatches, and rendered CTA/disclosure contract failures. Warnings cover unknown or incomplete program context, short links whose final parameters are not visible locally, missing visible tracking tags, and monetization gaps. The command exits non-zero only for hard errors.
+
+When `apps/site/dist/` exists, the report also checks each rendered guide route: affiliate CTAs must use the affiliate destination with `target="_blank"` and `sponsored nofollow noopener`; ordinary CTAs must use the ordinary destination with `nofollow noopener`; guides with affiliate CTAs must render `guide-disclosure`, and guides without them must not. Run the command after `npm run build` for this rendered-output check; no build step, network request, redirect follow, link checker, URL rewrite, or disclosure rewrite is performed by the QA command.
+
 ## Verification
 
 From the repository root:
@@ -74,6 +86,9 @@ npm run content:validate
 npm run typecheck
 npm run test
 npm run build
+npm run affiliate:validate
 ```
+
+The QA tests cover coverage categories, warnings versus hard errors, unknown and disabled programs, unsafe protocols, host and tracking mismatches, short-link review warnings, rendered merchant CTAs, and disclosure behavior with and without affiliate links. Existing content and provenance tests continue to verify that non-public records never enter the Astro build.
 
 The tests cover central affiliate-first resolution, ordinary and missing destinations, safe target/rel attributes, strict AI URL boundaries, the Studio status page, Amazon URL shapes and ASIN extraction, approved/unexpected hosts, visible/missing/unexpected tracking tags, short-link warnings, duplicate ASIN/normalized-link blocking, explicit confirmation, no-network validation, and a static-output scan confirming that program identifiers and source provenance do not enter Astro output.
