@@ -59,6 +59,21 @@ Complete. Added `/products/intake` inside the existing Studio. It keeps source f
 
 Complete. Added one shared Studio-owned validator for published recommendation coverage, affiliate/ordinary/absent destinations, local program status, visible tracking IDs, short-link review, unsafe protocols, unexpected hosts, rendered merchant CTA relations, and guide disclosure presence. The existing conditional public disclosure remains the only public rendering path; the validator only reads canonical content, affiliate records, and an optional existing Astro build. `/affiliate-operations` exposes the same report in the local Studio, and `npm run affiliate:validate` exits non-zero only for hard errors. No network requests, link checks, URL rewriting, disclosure rewriting, crawler, or new runtime package were added.
 
+## Phase 3.0 - Nurse Gifts audit and approved briefs
+
+Complete. Audited the canonical Nurse Gifts hub and its three published guides, checked the four requested slugs with the shared route contract, and approved differentiated briefs plus implementation gates for nursing students, personalized, night shift, and Christmas. The work is documentation-only: no public record, product, route, draft, schema, Studio module, or publication behavior changed. Product reuse is limited to current active catalog records and remains subject to the existing provenance, intake, affiliate, and QA workflows documented in [the Nurse Gifts roadmap](nurse-cluster-roadmap.md).
+
+| Page                          | Stable ID                | Route                            | Axis               | Status                      |
+| ----------------------------- | ------------------------ | -------------------------------- | ------------------ | --------------------------- |
+| Nurse Gifts hub               | `cluster_nurse-gifts`    | `/nurse-gifts/`                  | Curated hub groups | Published; audited          |
+| Nurse graduation gifts        | `guide_nurse-graduation` | `/nurse-gifts/graduation/`       | `occasion`         | Published; audited          |
+| Practical gifts for nurses    | `guide_nurse-practical`  | `/nurse-gifts/practical/`        | `gift-style`       | Published; audited          |
+| Nurse gifts under $25         | `guide_nurse-under-25`   | `/nurse-gifts/under-25/`         | `budget`           | Published; audited          |
+| Gifts for nursing students    | Not assigned             | `/nurse-gifts/nursing-students/` | `career-stage`     | Brief approved; not created |
+| Personalized gifts for nurses | Not assigned             | `/nurse-gifts/personalized/`     | `gift-style`       | Brief approved; not created |
+| Gifts for night-shift nurses  | Not assigned             | `/nurse-gifts/night-shift/`      | `work-context`     | Brief approved; not created |
+| Christmas gifts for nurses    | Not assigned             | `/nurse-gifts/christmas/`        | `occasion`         | Brief approved; not created |
+
 ## Verification log
 
 - Editorial Studio Phase 0: the untouched baseline passed content validation, formatting, strict TypeScript and Astro diagnostics, 6 unit tests, and the 9-page static build. The compatibility audit required documentation clarification only; no public schema or runtime change was needed.
@@ -84,3 +99,4 @@ Complete. Added one shared Studio-owned validator for published recommendation c
 - Phase 4: Astro built all 9 required routes; artifact checks confirmed 6 recommendations per guide, published-only hub links, visible merchant names, safe affiliate relations, demo and affiliate disclosures, English documents, and zero client JavaScript. Sites guidance kept imagery to typography, CSS shapes, and layout; Ponytail review retained four shared components and removed unused styling hooks.
 - Phase 5: Astro diagnostics returned 0 errors, warnings, and hints. The production artifact contained 9 HTML pages, 8 indexable sitemap URLs, `robots.txt`, and the exact `CNAME`. Static SEO/accessibility checks confirmed unique metadata, canonical URLs, accurate Article/CollectionPage/Breadcrumb JSON-LD, ordered headings, one main/H1 per page, valid focus targets, unique IDs, safe external links, no `hreflang`, and AA contrast for core color pairs. Ponytail review added only Astro's official sitemap integration and GitHub's official Pages actions.
 - Phase 6: the whole-repository Ponytail audit found a net reduction of 26 lines and one direct dependency. Native Node 22 now runs TypeScript validation and tests; the content import remains the single production build boundary. Removed duplicate startup validation, a custom error subclass, unused prop flexibility, and dead CSS. A clean `npm ci`, the negative build check, and the complete verification suite passed.
+- Phase 3.0: baseline `content:validate` accepted 11 products, 1 cluster, and 3 guides, and the baseline Astro build produced 9 pages. The four proposed slugs passed the shared route, reserved-path, and collision checks. After the documentation-only audit, `npm run verify` passed formatting, all workspace type checks, 66 tests (59 Studio and 7 shared-schema), content validation, the 9-page build, and affiliate QA with only the expected 18 demo-link warnings. The 14-file public artifact retained composite SHA-256 `36E4729DAC7F47228DBB46D8B07E073C65C2884D176D8129DFDEE55A873492B5`.
