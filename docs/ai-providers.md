@@ -24,7 +24,7 @@ No model is hard-coded as universally available. Choose an identifier enabled fo
 AI_PROVIDER=mock
 ```
 
-The mock is deterministic, needs no Internet or credential, and supports outline, final-guide, and single-recommendation generation. Tests always inject mock or fake HTTP responses.
+The mock is deterministic, needs no Internet or credential, and supports outline, final-guide, single-recommendation, and divergent opportunity-candidate generation. Opportunity fixtures combine ten editorial problem lenses with five audience contexts, allowing the same provider boundary to return the default 20 or any requested count up to 50 without external data. Tests always inject mock or fake HTTP responses.
 
 ### OpenAI profile
 
@@ -66,6 +66,8 @@ Every operation builds a deterministic prompt that says `JSON`, includes a compa
 
 It never silently repairs output. The operation-specific Zod schema validates the parsed object again, followed by domain validation for stable IDs, selected products, ordering, forbidden URLs, and publication readiness.
 
+For `opportunity-candidates`, the response schema exposes only editorial proposal fields. It rejects protected IDs/product identities, URLs, extra fields, duplicate titles, invented external metrics or performance claims, and counts above 50. The Studio, not the model, assigns candidate IDs and proposed slugs, applies an unassessed `hold` gate, runs deterministic Opportunity Lab comparison, validates each existing-domain record, and then persists candidates. Generation-session metadata stores the provider/model IDs and exact prompt but never configuration or credentials.
+
 ## Credentials and diagnostics
 
 The API key exists only in the local server process and the outbound Authorization header. It is never rendered in the browser, passed to Astro, written to a draft, included in generation metadata, logged, or published. Complete provider responses and provider error bodies are not persisted or logged.
@@ -81,4 +83,4 @@ The Studio shows short Spanish errors. Its terminal logs only a safe code plus H
 | Empty or refused output        | Review the safe UI message and prompt preview; retry deliberately      |
 | Invalid JSON/schema            | Keep the draft, inspect the prompt, and retry or use mock/manual copy  |
 
-There is no automatic retry, streaming, provider SDK, tool calling, Responses API, Assistants API, embedding, or vendor-specific agent behavior in this MVP.
+There is no automatic retry, streaming, provider SDK, tool calling, Responses API, Assistants API, embedding, ranking, convergent candidate evaluation, or vendor-specific agent behavior in this MVP.

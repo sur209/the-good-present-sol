@@ -1,6 +1,6 @@
 # Content Opportunity Lab
 
-Phase 5.0 establishes the smallest non-public domain for recording article opportunities before editorial planning. Phase 5.1 adds read-only, deterministic comparison against the editorial state. Neither phase generates candidates, makes decisions, creates briefs or drafts, or publishes content.
+Phase 5.0 establishes the smallest non-public domain for recording article opportunities before editorial planning. Phase 5.1 adds read-only, deterministic comparison against the editorial state. Phase 5.2 adds provider-neutral divergent candidate generation. No Lab phase makes an automatic editorial decision, creates briefs or drafts, or publishes content.
 
 ## Ownership and storage
 
@@ -9,11 +9,14 @@ The Studio-owned implementation lives in:
 ```text
 apps/studio/src/modules/content-opportunity-lab/
 editorial-data/article-candidates/{candidate-id}.json
+editorial-data/opportunity-generation-sessions/{generation-id}.json
 ```
 
 Each filename stem must match its stable `candidate_...` ID. The module validates every record and its canonical cluster/content references, rejects unsafe paths, and writes JSON through the existing atomic same-directory file operation. These records are versioned editorial data outside `content/`; Astro continues to read only canonical products, clusters, and guides under `content/`.
 
 `packages/content-schema` remains unchanged. Candidates are internal opportunity analysis, not a fourth public content type.
+
+Generation-session records contain the selected cluster/objective, market, language, optional planning horizon and imported summaries, provider/model IDs, prompt version, exact prompt, timestamp, and system-assigned candidate IDs. They never contain provider credentials or complete provider envelopes.
 
 ## ArticleCandidate contract
 
@@ -120,19 +123,31 @@ Prior decisions retain the 5.0 action, reason, date, and optional target ID. The
 
 The existing advisory recommendation remains advisory. A valid deliberate human decision may disagree with it; comparison never rejects, merges, holds, shortlists, or creates anything automatically.
 
+## Divergent AI generation
+
+Phase 5.2 adds a generation form to `/opportunities` and one `opportunity-candidates` operation to the existing structured-generation provider. It uses the same mock-by-default and OpenAI/DeepSeek-compatible adapter and exact JSON/Zod validation boundary as guide generation.
+
+Supported session objectives are cluster expansion, missing intents, seasonal ideas, section opportunities, existing-product reuse, possible cannibalization review, and localization candidates. The deterministic prompt may include the selected cluster, its published pages, matching drafts, supplied approved briefs, prior human candidate decisions, canonical primary axes, observed taxonomy values, active-catalog product categories, target market/language, planning horizon, and imported signal summaries supplied by later modules. The default is 20 candidates; the request and response boundaries reject more than 50.
+
+Each untrusted proposal must contain a title, one canonical primary axis, one primary intent, problem solved, audience, secondary taxonomies, proposed sections, distinctive product categories, a potential-overlap hypothesis, and the literal provenance marker `editorial-hypothesis-only`. Strict output rejects extra fields, URLs, duplicate normalized titles, protected canonical IDs/product identities, and external-performance language such as search volume, keyword difficulty, Search Console, Pinterest, traffic, conversion, or affiliate-performance claims.
+
+The AI does not return candidate IDs, slugs, statuses, scores, decisions, URLs, product identities, or affiliate data. The Studio assigns a random stable candidate ID, derives the non-public proposed slug, sets `generated`, fills the authoritative 5.0 score fields with zero as an explicit **unassessed** sentinel, and forces the advisory action to `hold`. The advisory reason labels the potential-overlap text as an AI hypothesis; zero is not a low evaluation and the candidate has not entered convergent review.
+
+Before any write, the Studio validates the full batch as 5.0 `ArticleCandidate` records and runs the authoritative 5.1 comparison for every candidate. Only 5.1 medium/high primary-intent, proposed-section, and product-category signals become stored overlap records; their canonical IDs, levels, and reasons come from deterministic comparison, not the model. Public contract violations remain visible on candidate detail and do not become automatic decisions. After all candidates and the generation-session record validate, candidate files use the existing atomic store and the session metadata uses the existing atomic JSON writer.
+
 ## Existing-system boundaries
 
 - I.0 Product Coverage Analysis remains the sole implementation of deterministic product-coverage signals. The Lab neither copies nor replaces that logic.
 - Product catalog, product-source provenance, and affiliate operations are unchanged.
-- No provider adapter or AI operation is called.
-- Deterministic comparison is read-only and local; no AI generation/evaluation, product-first mode, coverage-first mode, or sourcing loop exists.
+- The existing provider adapter is reused unchanged apart from the new structured operation; there is no second adapter, SDK, retry, streaming, agent, embedding, or retrieval layer.
+- Deterministic comparison remains local and authoritative; divergent generation adds no convergent evaluation, ranking, product-first mode, coverage-first mode, or sourcing loop.
 - No `EditorialBrief` or `GuideDraft` is created.
 - No canonical content, public route, preview, or publication behavior is added.
 - Any later GuideDraft work must enter the existing Goal 2 workflow and publish through its current validation and atomic publication boundary.
 
 ## Verification
 
-The Studio tests cover strict schemas, the full score bounds, all five decisions, early status transitions, decision/target consistency, stable-ID paths, canonical references, atomic replacement, normalization, all eight comparison signal kinds, low/medium/high thresholds, public-contract separation, approved-brief input, prior-decision evidence history, human override, list/detail rendering, persisted decisions, and a real Astro build that excludes a sentinel candidate.
+The Studio tests cover strict schemas, the full score bounds, all five decisions, early status transitions, decision/target consistency, stable-ID paths, canonical references, atomic replacement, normalization, all eight comparison signal kinds, low/medium/high thresholds, public-contract separation, approved-brief input, prior-decision evidence history, human override, deterministic generation prompts, mock output, malformed output, provider failure, default/maximum limits, credential-free metadata, Studio generation, and a real Astro build that excludes candidates and generation sessions.
 
 Run:
 

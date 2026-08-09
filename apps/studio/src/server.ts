@@ -124,6 +124,13 @@ import {
   type OpportunityComparisonTargetKind,
   type OpportunitySignalKind,
 } from "./modules/content-opportunity-lab/comparison.ts";
+import {
+  DEFAULT_OPPORTUNITY_CANDIDATE_COUNT,
+  MAX_OPPORTUNITY_CANDIDATE_COUNT,
+  OPPORTUNITY_GENERATION_PROMPT_VERSION,
+  OPPORTUNITY_SESSION_OBJECTIVES,
+  generateDivergentOpportunities,
+} from "./modules/content-opportunity-lab/generation.ts";
 import { REPOSITORY_ROOT, readPublicContent } from "./repository.ts";
 
 export const STUDIO_HOST = "127.0.0.1";
@@ -984,6 +991,17 @@ const opportunityDecisionLabels: Record<(typeof CANDIDATE_DECISIONS)[number], st
   reject: "Rechazar",
 };
 
+const opportunityObjectiveLabels: Record<(typeof OPPORTUNITY_SESSION_OBJECTIVES)[number], string> =
+  {
+    "expand-cluster": "Expandir un cluster",
+    "find-missing-intents": "Buscar intenciones faltantes",
+    "find-seasonal-opportunities": "Buscar oportunidades estacionales",
+    "find-section-opportunities": "Buscar oportunidades de sección",
+    "reuse-existing-products": "Reutilizar productos existentes",
+    "review-cannibalization": "Revisar posible canibalización",
+    "find-localization-candidates": "Buscar candidatos de localización",
+  };
+
 const opportunitySignalLabels: Record<OpportunitySignalKind, string> = {
   "normalized-title": "Título normalizado",
   "slug-tokens": "Tokens del slug",
@@ -1044,8 +1062,22 @@ function opportunityComparisonCards(
     .join("");
 }
 
-function opportunityListPage(store: ArticleCandidateStore): string {
+function opportunityListPage(
+  store: ArticleCandidateStore,
+  content: ReturnType<typeof readPublicContent>,
+  provider: GuideGenerationProvider,
+): string {
   const candidates = store.list();
+  const clusterOptions = content.clusters
+    .map(
+      (cluster) =>
+        `<option value="${escapeHtml(cluster.id)}">${escapeHtml(cluster.title)}</option>`,
+    )
+    .join("");
+  const objectiveOptions = OPPORTUNITY_SESSION_OBJECTIVES.map(
+    (objective) =>
+      `<option value="${objective}">${escapeHtml(opportunityObjectiveLabels[objective])}</option>`,
+  ).join("");
   const list = candidates.length
     ? `<div class="grid">${candidates
         .map(
@@ -1063,6 +1095,23 @@ function opportunityListPage(store: ArticleCandidateStore): string {
     `<h1>Oportunidades de contenido</h1>
      <p>Los candidatos registran análisis editorial previo. No son briefs, GuideDrafts ni contenido público.</p>
      <p class="notice">Los puntajes son ayudas editoriales independientes de 0 a 5; no son métricas SEO objetivas ni se suman en un ranking.</p>
+     <section class="card wide">
+       <h2>Generación divergente</h2>
+       <p>El proveedor propone hipótesis editoriales. El Studio asigna IDs y slugs, ejecuta la comparación determinista y guarda los candidatos como <code>generated</code>, sin evaluarlos ni decidir por ellos.</p>
+       <p class="muted">Proveedor: ${escapeHtml(provider.providerId)}${provider.modelId ? ` · ${escapeHtml(provider.modelId)}` : ""}. Los valores 0 de candidatos generados significan “sin evaluar”.</p>
+       <form method="post" action="/opportunities/generate">
+         <input type="hidden" name="promptVersion" value="${OPPORTUNITY_GENERATION_PROMPT_VERSION}">
+         <label>Cluster<select name="clusterId" required>${clusterOptions}</select></label>
+         <label>Objetivo de sesión<select name="sessionObjective" required>${objectiveOptions}</select></label>
+         <label>Cantidad<input type="number" name="candidateCount" min="1" max="${MAX_OPPORTUNITY_CANDIDATE_COUNT}" value="${DEFAULT_OPPORTUNITY_CANDIDATE_COUNT}" required></label>
+         <label>Mercado objetivo<input name="targetMarket" value="US" required></label>
+         <label>Idioma<input name="language" value="en-US" required></label>
+         <label>Horizonte de planificación (opcional)<input name="planningHorizon" placeholder="Próximos 6 meses"></label>
+         <button type="submit">Generar candidatos</button>
+       </form>
+       <p class="muted">Esta etapa no acepta métricas externas desde el formulario y no crea briefs, borradores ni publicaciones.</p>
+     </section>
+     <h2>Candidatos guardados</h2>
      ${list}`,
   );
 }
@@ -2319,7 +2368,61 @@ export function createStudioServer(
         return;
       }
       if (method === "GET" && url.pathname === "/opportunities") {
-        send(response, 200, opportunityListPage(candidateStore));
+        send(
+          response,
+          200,
+          opportunityListPage(candidateStore, readPublicContent(catalog.root), provider),
+        );
+        return;
+      }
+      if (method === "POST" && url.pathname === "/opportunities/generate") {
+        const form = await readForm(request);
+        if (form.get("promptVersion") !== OPPORTUNITY_GENERATION_PROMPT_VERSION) {
+          throw new TypeError("Revisá el prompt divergente vigente antes de generar.");
+        }
+        const candidateCount = Number(requiredValue(form, "candidateCount", "La cantidad"));
+        if (
+          !Number.isInteger(candidateCount) ||
+          candidateCount < 1 ||
+          candidateCount > MAX_OPPORTUNITY_CANDIDATE_COUNT
+        ) {
+          throw new TypeError(
+            `La cantidad debe ser un entero entre 1 y ${MAX_OPPORTUNITY_CANDIDATE_COUNT}.`,
+          );
+        }
+        const listed = await store.list();
+        if (listed.errors.length) {
+          throw new TypeError(
+            `No se puede generar contra borradores inválidos: ${listed.errors.join("; ")}`,
+          );
+        }
+        const content = readPublicContent(catalog.root);
+        const sessionObjective = requiredValue(form, "sessionObjective", "El objetivo de sesión");
+        if (!(OPPORTUNITY_SESSION_OBJECTIVES as readonly string[]).includes(sessionObjective)) {
+          throw new TypeError("El objetivo de sesión no es válido.");
+        }
+        await generateDivergentOpportunities(
+          {
+            clusterId: requiredValue(form, "clusterId", "El cluster"),
+            sessionObjective: sessionObjective as (typeof OPPORTUNITY_SESSION_OBJECTIVES)[number],
+            candidateCount,
+            targetMarket: requiredValue(form, "targetMarket", "El mercado objetivo"),
+            language: requiredValue(form, "language", "El idioma"),
+            ...(optionalValue(form, "planningHorizon")
+              ? { planningHorizon: optionalValue(form, "planningHorizon") }
+              : {}),
+          },
+          {
+            content,
+            drafts: listed.drafts,
+            existingCandidates: candidateStore.list(),
+            approvedBriefs,
+            provider,
+            candidateStore,
+            repositoryRoot: catalog.root,
+          },
+        );
+        redirect(response, "/opportunities");
         return;
       }
       const opportunityMatch =

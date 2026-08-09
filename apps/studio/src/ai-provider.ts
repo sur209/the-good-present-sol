@@ -3,9 +3,13 @@ import { z } from "zod";
 import { finalPromptInputSchema, type FinalPromptInput } from "./final-prompt.ts";
 import { outlinePromptInputSchema } from "./outline-prompt.ts";
 import { recommendationPromptInputSchema } from "./recommendation-prompt.ts";
+import {
+  mockOpportunityGeneration,
+  opportunityGenerationPromptInputSchema,
+} from "./modules/content-opportunity-lab/generation.ts";
 
 export interface StructuredGenerationRequest<T> {
-  operation: "outline" | "final-guide" | "single-recommendation";
+  operation: "outline" | "final-guide" | "single-recommendation" | "opportunity-candidates";
   prompt: string;
   input: unknown;
   schema: z.ZodType<T>;
@@ -314,6 +318,11 @@ export class MockGuideGenerationProvider implements GuideGenerationProvider {
   readonly modelId = "mock-editorial-v1";
 
   async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+    if (request.operation === "opportunity-candidates") {
+      return request.schema.parse(
+        mockOpportunityGeneration(opportunityGenerationPromptInputSchema.parse(request.input)),
+      );
+    }
     if (request.operation === "outline") {
       const input = outlinePromptInputSchema.parse(request.input);
       const audience =

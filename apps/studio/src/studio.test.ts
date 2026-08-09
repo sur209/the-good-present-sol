@@ -107,6 +107,16 @@ import {
   normalizeComparisonText,
   type ApprovedEditorialBriefComparisonRecord,
 } from "./modules/content-opportunity-lab/comparison.ts";
+import {
+  DEFAULT_OPPORTUNITY_CANDIDATE_COUNT,
+  MAX_OPPORTUNITY_CANDIDATE_COUNT,
+  OPPORTUNITY_GENERATION_PROMPT_VERSION,
+  generateDivergentOpportunities,
+  generatedOpportunityBatchSchema,
+  opportunityGenerationSessionPath,
+  opportunityGenerationSessionSchema,
+  prepareOpportunityGenerationPrompt,
+} from "./modules/content-opportunity-lab/generation.ts";
 import { Publisher, clusterDraftToPublic, guideDraftToPublic } from "./publication.ts";
 import { REPOSITORY_ROOT, atomicWriteJson, readPublicContent } from "./repository.ts";
 import { STUDIO_HOST, createStudioServer } from "./server.ts";
@@ -915,6 +925,198 @@ test("separa colisiones públicas, conserva decisiones previas y permite el over
   assert.equal(current.advisory.recommendation, "hold");
 });
 
+test("construye un prompt divergente determinista y rechaza evidencia o campos protegidos", async () => {
+  const content = readPublicContent();
+  const request = {
+    clusterId: "cluster_nurse-gifts",
+    sessionObjective: "find-missing-intents" as const,
+    candidateCount: 2,
+    targetMarket: "US",
+    language: "en-US",
+    planningHorizon: "Next six months",
+  };
+  const draft = createGuideDraft("guide_prompt-context");
+  const first = prepareOpportunityGenerationPrompt(request, content, [draft], [], []);
+  const second = prepareOpportunityGenerationPrompt(request, content, [draft], [], []);
+  assert.equal(first.prompt, second.prompt);
+  assert.equal(first.version, OPPORTUNITY_GENERATION_PROMPT_VERSION);
+  assert.match(first.prompt, /conceptually distinct/);
+  assert.match(first.prompt, /Do not rank, score, shortlist/);
+  assert.doesNotMatch(first.prompt, /AI_API_KEY|authorization/i);
+
+  const mock = new MockGuideGenerationProvider();
+  const generated = await mock.generateStructured({
+    operation: "opportunity-candidates",
+    prompt: first.prompt,
+    input: first.input,
+    schema: generatedOpportunityBatchSchema,
+  });
+  assert.equal(generated.candidates.length, 2);
+  assert.ok(
+    generated.candidates.every(
+      ({ evidenceBasis }) => evidenceBasis === "editorial-hypothesis-only",
+    ),
+  );
+  assert.equal(
+    generatedOpportunityBatchSchema.safeParse({
+      candidates: [{ ...generated.candidates[0], id: "candidate_ai-controlled" }],
+    }).success,
+    false,
+  );
+  assert.equal(
+    generatedOpportunityBatchSchema.safeParse({
+      candidates: [
+        {
+          ...generated.candidates[0],
+          problemSolved: "Targets a high search volume with low keyword difficulty.",
+        },
+      ],
+    }).success,
+    false,
+  );
+  assert.equal(
+    generatedOpportunityBatchSchema.safeParse({
+      candidates: Array.from({ length: MAX_OPPORTUNITY_CANDIDATE_COUNT + 1 }, (_, index) => ({
+        ...generated.candidates[0],
+        proposedTitle: `Distinct candidate ${index}`,
+      })),
+    }).success,
+    false,
+  );
+  assert.equal(
+    generatedOpportunityBatchSchema.safeParse({
+      candidates: Array.from({ length: MAX_OPPORTUNITY_CANDIDATE_COUNT }, (_, index) => ({
+        ...generated.candidates[0],
+        proposedTitle: `Allowed candidate ${index}`,
+      })),
+    }).success,
+    true,
+  );
+});
+
+test("genera 20 candidatos mock, compara antes de persistir y guarda metadata sin credenciales", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-opportunity-generation-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const content = readPublicContent(repository);
+  const candidateStore = new ArticleCandidateStore(repository);
+  const provider = new MockGuideGenerationProvider();
+  const result = await generateDivergentOpportunities(
+    {
+      clusterId: "cluster_nurse-gifts",
+      sessionObjective: "expand-cluster",
+      targetMarket: "US",
+      language: "en-US",
+    },
+    {
+      content,
+      drafts: [],
+      existingCandidates: [],
+      provider,
+      candidateStore,
+      repositoryRoot: repository,
+      now: new Date("2026-08-09T12:00:00.000Z"),
+    },
+  );
+
+  assert.equal(result.candidates.length, DEFAULT_OPPORTUNITY_CANDIDATE_COUNT);
+  assert.equal(result.comparisons.length, DEFAULT_OPPORTUNITY_CANDIDATE_COUNT);
+  assert.equal(candidateStore.list().length, DEFAULT_OPPORTUNITY_CANDIDATE_COUNT);
+  assert.ok(result.candidates.every(({ status }) => status === "generated"));
+  assert.ok(result.candidates.every(({ advisory }) => advisory.recommendation === "hold"));
+  assert.ok(
+    result.candidates.every(({ scores }) => Object.values(scores).every((score) => score === 0)),
+  );
+  assert.ok(result.candidates.every(({ id }) => /^candidate_[a-f0-9-]+$/.test(id)));
+  assert.ok(result.candidates.every(({ proposedSlug }) => !proposedSlug.includes("candidate_")));
+  assert.ok(
+    result.candidates.every(({ overlapSignals }) =>
+      overlapSignals.every(({ reason }) => /shared|match|containment/i.test(reason)),
+    ),
+  );
+
+  const storedSession = opportunityGenerationSessionSchema.parse(
+    JSON.parse(
+      await readFile(opportunityGenerationSessionPath(repository, result.session.id), "utf8"),
+    ),
+  );
+  assert.equal(storedSession.requestedCandidateCount, DEFAULT_OPPORTUNITY_CANDIDATE_COUNT);
+  assert.equal(storedSession.providerId, "mock");
+  assert.doesNotMatch(JSON.stringify(storedSession), /api[_-]?key|authorization|bearer/i);
+});
+
+test("no persiste ante límites inválidos, salida inválida o fallas del proveedor", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-opportunity-failure-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const content = readPublicContent(repository);
+  const candidateStore = new ArticleCandidateStore(repository);
+  let calls = 0;
+  const invalidProvider: GuideGenerationProvider = {
+    providerId: "invalid-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      calls += 1;
+      return request.schema.parse({ candidates: [] });
+    },
+  };
+  const generationContext = {
+    content,
+    drafts: [],
+    existingCandidates: [],
+    provider: invalidProvider,
+    candidateStore,
+    repositoryRoot: repository,
+  };
+
+  await assert.rejects(
+    generateDivergentOpportunities(
+      {
+        clusterId: "cluster_nurse-gifts",
+        sessionObjective: "expand-cluster",
+        candidateCount: MAX_OPPORTUNITY_CANDIDATE_COUNT + 1,
+        targetMarket: "US",
+        language: "en-US",
+      },
+      generationContext,
+    ),
+  );
+  assert.equal(calls, 0);
+  await assert.rejects(
+    generateDivergentOpportunities(
+      {
+        clusterId: "cluster_nurse-gifts",
+        sessionObjective: "expand-cluster",
+        candidateCount: 1,
+        targetMarket: "US",
+        language: "en-US",
+      },
+      generationContext,
+    ),
+  );
+  assert.equal(calls, 1);
+
+  const failedProvider: GuideGenerationProvider = {
+    providerId: "failed-fixture",
+    async generateStructured<T>(): Promise<T> {
+      throw new ProviderError("Provider unavailable.", "network");
+    },
+  };
+  await assert.rejects(
+    generateDivergentOpportunities(
+      {
+        clusterId: "cluster_nurse-gifts",
+        sessionObjective: "expand-cluster",
+        candidateCount: 1,
+        targetMarket: "US",
+        language: "en-US",
+      },
+      { ...generationContext, provider: failedProvider },
+    ),
+    /Provider unavailable/,
+  );
+  assert.deepEqual(candidateStore.list(), []);
+});
+
 test("persiste candidatos atómicamente por ID seguro y valida referencias canónicas", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-opportunities-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
@@ -999,6 +1201,28 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
   assert.equal(listResponse.status, 200);
   assert.match(listHtml, new RegExp(sentinel));
   assert.match(listHtml, /no son métricas SEO objetivas/);
+  assert.match(listHtml, /Generación divergente/);
+  assert.match(listHtml, /Buscar candidatos de localización/);
+
+  const generationResponse = await fetch(`${origin}/opportunities/generate`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      promptVersion: OPPORTUNITY_GENERATION_PROMPT_VERSION,
+      clusterId: "cluster_nurse-gifts",
+      sessionObjective: "find-section-opportunities",
+      candidateCount: "2",
+      targetMarket: "US",
+      language: "en-US",
+    }),
+    redirect: "manual",
+  });
+  assert.equal(generationResponse.status, 303);
+  assert.equal(candidateStore.list().length, 3);
+  assert.equal(
+    (await readdir(join(repository, "editorial-data", "opportunity-generation-sessions"))).length,
+    1,
+  );
   const detailResponse = await fetch(`${origin}/opportunities/${candidate.id}`);
   const detailHtml = await detailResponse.text();
   assert.equal(detailResponse.status, 200);
@@ -1040,7 +1264,10 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
         .map((file) => readFile(join(REPOSITORY_ROOT, "apps", "site", "dist", file), "utf8")),
     )
   ).join("\n");
-  assert.doesNotMatch(outputFiles.join("\n"), /opportunities|article-candidates/);
+  assert.doesNotMatch(
+    outputFiles.join("\n"),
+    /opportunities|article-candidates|opportunity-generation-sessions/,
+  );
   assert.doesNotMatch(outputHtml, new RegExp(sentinel));
   assert.doesNotMatch(outputHtml, /article-candidate|candidate_nurse-shift-recovery/);
 });

@@ -38,6 +38,19 @@ const textList = z.array(nonEmptyText);
 const timestamp = z.iso.datetime({ offset: true });
 const editorialScore = z.number().int().min(0).max(5);
 
+export const candidateTaxonomiesSchema = z.strictObject({
+  occasions: textList.optional(),
+  recipients: textList.optional(),
+  careerStages: textList.optional(),
+  workContexts: textList.optional(),
+  giftStyles: textList.optional(),
+  budgetLabels: textList.optional(),
+});
+
+export const candidateSectionsSchema = z
+  .array(z.strictObject({ heading: nonEmptyText, purpose: nonEmptyText }))
+  .min(1);
+
 export const candidateScoresSchema = z.strictObject({
   intentDifferentiation: editorialScore,
   editorialUsefulness: editorialScore,
@@ -84,17 +97,8 @@ export const articleCandidateSchema = z
     primaryIntent: nonEmptyText,
     problemSolved: nonEmptyText,
     targetAudience: nonEmptyText,
-    secondaryTaxonomies: z.strictObject({
-      occasions: textList.optional(),
-      recipients: textList.optional(),
-      careerStages: textList.optional(),
-      workContexts: textList.optional(),
-      giftStyles: textList.optional(),
-      budgetLabels: textList.optional(),
-    }),
-    proposedSections: z
-      .array(z.strictObject({ heading: nonEmptyText, purpose: nonEmptyText }))
-      .min(1),
+    secondaryTaxonomies: candidateTaxonomiesSchema,
+    proposedSections: candidateSectionsSchema,
     distinctiveProductCategories: textList.min(1),
     closestExistingContentIds: z.array(safeId),
     overlapSignals: z.array(
