@@ -83,6 +83,11 @@ import {
   readProductSourceRecords,
   type ProductSourceRecord,
 } from "./modules/product-sources/records.ts";
+import {
+  commitManualProductIntake,
+  prepareManualProductIntake,
+  type ManualProductIntakeInput,
+} from "./modules/product-intelligence/intake.ts";
 import { Publisher, clusterDraftToPublic, guideDraftToPublic } from "./publication.ts";
 import { REPOSITORY_ROOT, atomicWriteJson, readPublicContent } from "./repository.ts";
 import { STUDIO_HOST, createStudioServer } from "./server.ts";
@@ -161,6 +166,69 @@ function amazonIntakeInput(
     trackingId: "thegoodpresent-20",
     ...overrides,
   };
+}
+
+function manualProductIntakeInput(
+  overrides: Partial<ManualProductIntakeInput> = {},
+): ManualProductIntakeInput {
+  return {
+    productUrl: "https://www.amazon.com/dp/Z123456789",
+    asin: "Z123456789",
+    name: "Manual intake product",
+    brand: "Manual Brand",
+    merchant: "Amazon",
+    shortDescription: "Original editorial copy for a manually reviewed product.",
+    sourceFacts: ["Vacuum insulated", "BPA-free materials"],
+    verifiedFacts: ["Vacuum insulated"],
+    verifiedFactsConfirmed: true,
+    categories: ["nurse gifts"],
+    interests: ["practical gifts"],
+    recipients: ["nurses"],
+    occasions: ["graduation"],
+    image: "https://images.example.test/manual-intake.png",
+    imageAlt: "A manually reviewed product",
+    imageRightsNotes: "Editor verified the image reference and rights status.",
+    provenanceNotes: "Entered from an editor-verified source record.",
+    status: "active",
+    ...overrides,
+  };
+}
+
+function manualProductIntakeForm(
+  input: ManualProductIntakeInput,
+  overrides: Record<string, string> = {},
+): URLSearchParams {
+  const values: Record<string, string> = {
+    name: input.name,
+    merchant: input.merchant,
+    shortDescription: input.shortDescription,
+    sourceFacts: input.sourceFacts.join("\n"),
+    verifiedFacts: input.verifiedFacts.join("\n"),
+    status: input.status,
+  };
+  for (const [name, value] of Object.entries({
+    productUrl: input.productUrl,
+    affiliateUrl: input.affiliateUrl,
+    asin: input.asin,
+    trackingId: input.trackingId,
+    brand: input.brand,
+    priceLabel: input.priceLabel,
+    image: input.image,
+    imageAlt: input.imageAlt,
+    imageRightsNotes: input.imageRightsNotes,
+    provenanceNotes: input.provenanceNotes,
+    categories: input.categories?.join(","),
+    interests: input.interests?.join(","),
+    recipients: input.recipients?.join(","),
+    occasions: input.occasions?.join(","),
+    productId: input.productId,
+    sourceId: input.sourceId,
+    importedAt: input.importedAt,
+  })) {
+    if (value !== undefined) values[name] = value;
+  }
+  if (input.verifiedFactsConfirmed) values.verifiedFactsConfirmed = "yes";
+  return new URLSearchParams({ ...values, ...overrides });
 }
 
 test("discrimina borradores estrictos de hub y guía", () => {
@@ -746,6 +814,237 @@ test("expone búsqueda y alta manual de productos por HTTP", async (context) => 
   assert.equal(createResponse.status, 303);
   assert.equal(createResponse.headers.get("location"), "/products?saved=1");
   assert.equal((await readdir(productDirectory)).length, beforeCount + 1);
+});
+
+test("prepara el ingreso asistido y separa fuente, hechos verificados y copy editorial", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-product-intake-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+
+  const preview = prepareManualProductIntake(manualProductIntakeInput(), repository);
+  assert.deepEqual(preview.errors, []);
+  assert.equal(preview.product?.verifiedFacts?.[0], "Vacuum insulated");
+  assert.equal(preview.source?.sourceKind, "manual");
+  assert.equal(preview.source?.externalId, "Z123456789");
+  assert.deepEqual(preview.source?.sourceFacts, ["Vacuum insulated", "BPA-free materials"]);
+  assert.equal("sourceFacts" in (preview.product ?? {}), false);
+  assert.equal("imageRightsNotes" in (preview.product ?? {}), false);
+
+  const invalid = prepareManualProductIntake(
+    manualProductIntakeInput({ productUrl: "ftp://amazon.example/item", name: "" }),
+    repository,
+  );
+  assert.ok(invalid.errors.some((error) => error.includes("productUrl")));
+  assert.ok(invalid.errors.some((error) => error.includes("name")));
+
+  const unconfirmed = prepareManualProductIntake(
+    manualProductIntakeInput({ verifiedFactsConfirmed: false }),
+    repository,
+  );
+  assert.ok(unconfirmed.errors.some((error) => error.includes("Afirmá")));
+
+  const exactPrice = prepareManualProductIntake(
+    manualProductIntakeInput({ priceLabel: "$19.99" }),
+    repository,
+  );
+  assert.ok(exactPrice.errors.some((error) => error.includes("precio actual exacto")));
+
+  await mkdir(join(repository, "editorial-data", "affiliate-programs"), { recursive: true });
+  await atomicWriteJson(
+    join(repository, "editorial-data", "affiliate-programs", "amazon-us.json"),
+    configuredAmazonProgram(),
+  );
+  const affiliatePreview = prepareManualProductIntake(
+    manualProductIntakeInput({
+      productUrl: "https://www.amazon.com/dp/Y123456789",
+      asin: "Y123456789",
+      affiliateUrl: "https://www.amazon.com/dp/Y123456789?tag=thegoodpresent-20",
+      trackingId: "thegoodpresent-20",
+      name: "Manual intake affiliate product",
+    }),
+    repository,
+  );
+  assert.deepEqual(affiliatePreview.errors, []);
+  assert.equal(
+    affiliatePreview.product?.affiliateUrl,
+    "https://www.amazon.com/dp/Y123456789?tag=thegoodpresent-20",
+  );
+  assert.equal(affiliatePreview.source?.sourceKind, "manual-amazon");
+  assert.equal(affiliatePreview.source?.productId, affiliatePreview.product?.id);
+});
+
+test("guarda producto y fuente con rollback y previene duplicados", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-product-intake-atomic-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+
+  const firstPreview = prepareManualProductIntake(manualProductIntakeInput(), repository);
+  assert.deepEqual(firstPreview.errors, []);
+  await commitManualProductIntake(firstPreview, repository);
+  const catalog = new ProductCatalog(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const firstProduct = catalog
+    .read()
+    .products.find((product) => product.name === "Manual intake product")!;
+  const firstSource = sourceStore.forProduct(firstProduct.id, catalog.read().products)[0]!;
+  assert.equal(firstSource.productId, firstProduct.id);
+  assert.deepEqual(firstSource.sourceFacts, ["Vacuum insulated", "BPA-free materials"]);
+
+  const duplicate = prepareManualProductIntake(manualProductIntakeInput(), repository);
+  assert.ok(duplicate.duplicates.some((match) => match.kind === "asin"));
+  assert.ok(duplicate.errors.some((error) => error.includes("ASIN ya está vinculado")));
+  assert.ok(duplicate.errors.some((error) => error.includes("producto parece duplicar")));
+
+  const identityDuplicate = prepareManualProductIntake(
+    manualProductIntakeInput({
+      productUrl: "https://www.amazon.com/dp/Y123456789",
+      asin: "Y123456789",
+    }),
+    repository,
+  );
+  assert.ok(
+    identityDuplicate.errors.some((error) => error.includes("coinciden nombre, marca y comercio")),
+  );
+
+  const failedPreview = prepareManualProductIntake(
+    manualProductIntakeInput({
+      productUrl: "https://www.amazon.com/dp/X123456789",
+      asin: "X123456789",
+      name: "Rollback product",
+    }),
+    repository,
+  );
+  assert.deepEqual(failedPreview.errors, []);
+  let writes = 0;
+  await assert.rejects(
+    commitManualProductIntake(failedPreview, repository, async (file, data) => {
+      writes += 1;
+      if (writes === 2) throw new Error("injected source failure");
+      await atomicWriteJson(file, data);
+    }),
+    /injected source failure/,
+  );
+  assert.equal(writes, 2);
+  await assert.rejects(
+    readFile(join(repository, "content", "products", `${failedPreview.product!.id}.json`)),
+    /ENOENT/,
+  );
+  assert.equal(sourceStore.list(catalog.read().products).length, 1);
+  assert.doesNotThrow(() => catalog.read());
+});
+
+test("crea un producto desde el Studio, lo selecciona en un GuideDraft y excluye la fuente del build", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-product-intake-integration-"));
+  context.after(async () => {
+    await rm(repository, { recursive: true, force: true });
+  });
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourceStore = new ProductSourceStore(repository);
+  const draft = await generateGuideOutline(
+    guideDraftSchema.parse({
+      ...createGuideDraft("guide_manual-intake"),
+      clusterId: catalog.read().clusters[0]!.id,
+      primaryAxis: "recipient",
+      primaryIntent: "Help a nurse choose a practical graduation gift.",
+      questionnaire: normalizeQuestionnaire({ giftCount: "3" }),
+    }),
+    catalog.read(),
+    new MockGuideGenerationProvider(),
+  );
+  await draftStore.save(draft);
+
+  const server = createStudioServer(
+    draftStore,
+    catalog,
+    new MockGuideGenerationProvider(),
+    new Publisher(repository),
+    sourceStore,
+  );
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(() => server.close());
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+  const input = manualProductIntakeInput({
+    productUrl: "https://www.amazon.com/dp/W123456789",
+    asin: "W123456789",
+    name: "HTTP intake product",
+    sourceFacts: ["INTERNAL_SOURCE_FACT_20260808"],
+    verifiedFacts: ["INTERNAL_SOURCE_FACT_20260808"],
+  });
+  const returnTo = `/drafts/${draft.id}`;
+  const pageResponse = await fetch(
+    `${origin}/products/intake?returnTo=${encodeURIComponent(returnTo)}`,
+  );
+  const pageHtml = await pageResponse.text();
+  assert.equal(pageResponse.status, 200);
+  assert.match(pageHtml, /Información de la fuente/);
+  assert.match(pageHtml, /Copy editorial original/);
+
+  const previewResponse = await fetch(`${origin}/products/intake`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: manualProductIntakeForm(input, { returnTo }),
+  });
+  assert.equal(previewResponse.status, 200);
+  assert.match(await previewResponse.text(), /Vista previa lista/);
+  assert.equal(
+    catalog.read().products.some((product) => product.id === input.productId),
+    false,
+  );
+
+  const saveResponse = await fetch(`${origin}/products/intake`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: manualProductIntakeForm(input, { returnTo, confirm: "yes" }),
+    redirect: "manual",
+  });
+  assert.equal(saveResponse.status, 303);
+  assert.equal(saveResponse.headers.get("location"), returnTo);
+  const product = catalog.read().products.find((item) => item.name === input.name)!;
+  const source = sourceStore.forProduct(product.id, catalog.read().products)[0]!;
+  assert.equal(source.productId, product.id);
+  assert.deepEqual(source.sourceFacts, input.sourceFacts);
+
+  const selectedDraft = guideDraftSchema.parse(await draftStore.read(draft.id));
+  const slot = selectedDraft.recommendations[0]!;
+  const selectionResponse = await fetch(
+    `${origin}/drafts/${draft.id}/recommendations/${slot.id}/product`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ productId: product.id }),
+      redirect: "manual",
+    },
+  );
+  assert.equal(selectionResponse.status, 303);
+  assert.equal(
+    guideDraftSchema.parse(await draftStore.read(draft.id)).recommendations[0]!.productId,
+    product.id,
+  );
+
+  await execFileAsync(process.execPath, [join(REPOSITORY_ROOT, "scripts", "astro.mjs"), "build"], {
+    cwd: join(REPOSITORY_ROOT, "apps", "site"),
+    env: { ...process.env, CONTENT_REPOSITORY_ROOT: repository },
+    maxBuffer: 10 * 1024 * 1024,
+    windowsHide: true,
+  });
+  const outputFiles = await readdir(join(REPOSITORY_ROOT, "apps", "site", "dist"), {
+    recursive: true,
+  });
+  const outputHtml = (
+    await Promise.all(
+      outputFiles
+        .filter((file) => file.endsWith(".html"))
+        .map((file) => readFile(join(REPOSITORY_ROOT, "apps", "site", "dist", file), "utf8")),
+    )
+  ).join("\n");
+  assert.doesNotMatch(outputFiles.join("\n"), new RegExp(source.id));
+  assert.doesNotMatch(outputHtml, /INTERNAL_SOURCE_FACT_20260808|rights status/);
+  assert.doesNotMatch(outputHtml, /editorial-data|manual-amazon|amazon-us/);
 });
 
 test("renderiza sólo destinos del catálogo y distingue enlaces afiliados", async (context) => {

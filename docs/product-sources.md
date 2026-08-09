@@ -31,6 +31,8 @@ type ProductSourceRecord = {
   lastSynchronizedAt?: string;
   sourceStatus: "active" | "inactive" | "needs-review";
   notes?: string;
+  sourceFacts?: string[];
+  imageRightsNotes?: string;
   originalProductUrl?: string;
   originalAffiliateUrl?: string;
   normalizedAffiliateUrl?: string;
@@ -61,6 +63,18 @@ Open a product in `/products/{product-id}/edit`. The non-public provenance secti
 
 For a product that has no external ID, use `manual` and record the provider, source URL, import timestamp, status, and notes as available. Add `marketplace` and `externalId` only when the source system supplies them. Use the Amazon intake for `manual-amazon`; the generic provenance form cannot create that kind.
 
+## Assisted manual product intake
+
+Use `/products/intake` when an editor needs to create a new canonical product and its source record together. The form keeps source evidence separate from original editorial copy:
+
+- Amazon product URLs, editor-entered ASINs, pasted affiliate URLs, source facts, and image rights/provenance notes stay in the non-public source record.
+- The editor writes the name, merchant, short description, and selected `verifiedFacts` as original catalog copy. Every selected fact must be affirmed as supported by the entered source facts.
+- A price entry is a durable editorial label or range only; an exact current price is rejected. Images are references only, are never downloaded automatically, and require alt text plus rights/provenance notes.
+
+The intake performs local HTTPS/host/ASIN checks, detects duplicate ASINs and likely canonical duplicates, and shows both the canonical `Product` and source record before saving. The editor must confirm explicitly. The Studio writes `content/products/{product-id}.json` and `editorial-data/product-sources/{source-id}.json` with rollback if the second write fails. No Amazon page is fetched, no HTML is extracted, no browser is automated, no Creators API call is made, and no affiliate URL is generated.
+
+ASINs, source facts, and provenance notes are internal Studio data. The canonical product may contain only the editor-approved public fields from the shared schema, and guide changes still require the existing Goal 2 draft, preview, validation, and publication workflow.
+
 ## Verification
 
 From the repository root:
@@ -72,4 +86,4 @@ npm run content:validate
 npm run build
 ```
 
-Studio tests cover schema strictness, all source kinds, safe IDs and paths, persistence and replacement, uniqueness and lookup, missing canonical products, editor integration, temporary-file cleanup, and exclusion from Astro output.
+Studio tests cover schema strictness, all source kinds, safe IDs and paths, persistence and replacement, uniqueness and lookup, missing canonical products, editor integration, manual intake validation and confirmation, duplicate prevention, rollback after partial failure, source-to-product linking, temporary-file cleanup, guide selection, and exclusion from Astro output.

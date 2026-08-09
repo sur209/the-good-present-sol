@@ -46,6 +46,8 @@ export const productSourceRecordSchema = z
     lastSynchronizedAt: timestamp.optional(),
     sourceStatus: z.enum(PRODUCT_SOURCE_STATUSES),
     notes: nonEmptyText.optional(),
+    sourceFacts: z.array(nonEmptyText).optional(),
+    imageRightsNotes: nonEmptyText.optional(),
     originalProductUrl: safeHttpUrlSchema.optional(),
     originalAffiliateUrl: safeHttpUrlSchema.optional(),
     normalizedAffiliateUrl: safeHttpUrlSchema.optional(),

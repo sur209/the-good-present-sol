@@ -31,6 +31,19 @@ Products are edited at `/products/{product-id}/edit`. Ordinary product destinati
 
 The Studio does not generate or repair Amazon links, fetch Amazon pages, expand redirects, parse HTML, use browser automation, call Creators API, or accept Amazon credentials. Tracking mismatches are shown before a write. Product and source changes do not publish guides; any guide change still follows the Goal 2 preview, validation, and publication workflow below.
 
+## Assisted manual product intake
+
+Use `/products/intake` for a new product when the editor has a pasted Amazon product URL, an optional affiliate URL from the affiliate intake, and editor-verified catalog information. The Studio does not fetch Amazon, scrape HTML, expand short links, download images, call Creators API, copy marketplace descriptions, or generate an affiliate URL.
+
+1. Enter the Amazon URL and/or ASIN. The Studio checks only the submitted strings and approved HTTPS hosts.
+2. Enter source facts and original editorial fields separately. Select only facts supported by the entered source facts and affirm that support before saving.
+3. Add an image reference only when its alt text and rights/provenance notes are known. Use a durable price label or range; exact current prices are not stored.
+4. Review the proposed canonical `Product` and non-public source record. Duplicate ASINs and likely duplicate canonical products block the write.
+5. Confirm explicitly. The Studio writes the product and source record together with rollback on partial failure.
+6. If the product is being added for a guide, return to the GuideDraft, select the new active product by stable ID, and continue through the normal copy review and Goal 2 publication workflow.
+
+ASINs, source facts, tracking IDs, original URLs, and provenance notes remain internal Studio data. They do not enter the Astro build or guide records.
+
 ## Cluster-hub workflow
 
 1. Create a cluster draft or reopen a published hub by stable ID.

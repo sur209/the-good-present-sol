@@ -91,6 +91,12 @@ import {
   productSourceRecordSchema,
   type ProductSourceRecord,
 } from "./modules/product-sources/records.ts";
+import {
+  commitManualProductIntake,
+  prepareManualProductIntake,
+  type ManualProductIntakeInput,
+  type ManualProductIntakePreview,
+} from "./modules/product-intelligence/intake.ts";
 import { REPOSITORY_ROOT, readPublicContent } from "./repository.ts";
 
 export const STUDIO_HOST = "127.0.0.1";
@@ -166,7 +172,7 @@ function page(title: string, body: string): string {
 <body>
   <header>
     <a href="/">The Good Present · Studio</a>
-    <nav aria-label="Principal"><a href="/">Borradores</a><a href="/drafts/new">Crear</a><a href="/products">Productos</a><a href="/affiliate-programs">Programas afiliados</a></nav>
+    <nav aria-label="Principal"><a href="/">Borradores</a><a href="/drafts/new">Crear</a><a href="/products">Productos</a><a href="/products/intake">Ingreso asistido</a><a href="/affiliate-programs">Programas afiliados</a></nav>
   </header>
   <main>${body}</main>
 </body>
@@ -276,6 +282,35 @@ function productFromForm(form: URLSearchParams, id = createProductId()): Product
     ...(occasions ? { occasions } : {}),
     status,
     ...(lastCheckedAt ? { lastCheckedAt } : {}),
+  };
+}
+
+function manualProductIntakeFromForm(form: URLSearchParams): ManualProductIntakeInput {
+  return {
+    productUrl: optionalValue(form, "productUrl"),
+    affiliateUrl: optionalValue(form, "affiliateUrl"),
+    asin: optionalValue(form, "asin"),
+    trackingId: optionalValue(form, "trackingId"),
+    name: form.get("name")?.trim() ?? "",
+    brand: optionalValue(form, "brand"),
+    merchant: form.get("merchant")?.trim() ?? "",
+    shortDescription: form.get("shortDescription")?.trim() ?? "",
+    sourceFacts: listValue(form, "sourceFacts", "\n") ?? [],
+    verifiedFacts: listValue(form, "verifiedFacts", "\n") ?? [],
+    verifiedFactsConfirmed: form.get("verifiedFactsConfirmed") === "yes",
+    priceLabel: optionalValue(form, "priceLabel"),
+    categories: listValue(form, "categories"),
+    interests: listValue(form, "interests"),
+    recipients: listValue(form, "recipients"),
+    occasions: listValue(form, "occasions"),
+    image: optionalValue(form, "image"),
+    imageAlt: optionalValue(form, "imageAlt"),
+    imageRightsNotes: optionalValue(form, "imageRightsNotes"),
+    provenanceNotes: optionalValue(form, "provenanceNotes"),
+    status: form.get("status") as Product["status"],
+    productId: optionalValue(form, "productId"),
+    sourceId: optionalValue(form, "sourceId"),
+    importedAt: optionalValue(form, "importedAt"),
   };
 }
 
@@ -531,6 +566,106 @@ function productFormPage(
   );
 }
 
+function emptyManualProductIntake(): ManualProductIntakeInput {
+  return {
+    name: "",
+    merchant: "",
+    shortDescription: "",
+    sourceFacts: [],
+    verifiedFacts: [],
+    verifiedFactsConfirmed: false,
+    status: "active",
+  };
+}
+
+function manualProductIntakePage(preview?: ManualProductIntakePreview, returnTo?: string): string {
+  const input = preview?.input ?? emptyManualProductIntake();
+  const errors = preview?.errors ?? [];
+  const warnings = preview?.warnings ?? [];
+  const errorHtml = errors.length
+    ? `<div class="error"><strong>La revisión necesita cambios.</strong><ul>${errors.map((error) => `<li>${escapeHtml(error)}</li>`).join("")}</ul></div>`
+    : preview
+      ? '<p class="notice"><strong>Vista previa lista.</strong> Todavía no se escribió ningún archivo.</p>'
+      : "";
+  const warningHtml = warnings.length
+    ? `<div class="notice"><strong>Notas de revisión</strong><ul>${warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul></div>`
+    : "";
+  const duplicateHtml = preview?.duplicates.length
+    ? `<div class="error"><strong>Posibles duplicados</strong><ul>${preview.duplicates.map((duplicate) => `<li>${escapeHtml(duplicate.kind)} · ${escapeHtml(duplicate.productId)}${duplicate.sourceId ? ` · ${escapeHtml(duplicate.sourceId)}` : ""}: ${escapeHtml(duplicate.reason)}</li>`).join("")}</ul></div>`
+    : "";
+  const statusOptions = ["active", "inactive"]
+    .map(
+      (status) =>
+        `<option value="${status}"${input.status === status ? " selected" : ""}>${status === "active" ? "Activo" : "Inactivo"}</option>`,
+    )
+    .join("");
+  const hidden = [
+    returnTo ? `<input type="hidden" name="returnTo" value="${escapeHtml(returnTo)}">` : "",
+    input.productId
+      ? `<input type="hidden" name="productId" value="${escapeHtml(input.productId)}">`
+      : "",
+    input.sourceId
+      ? `<input type="hidden" name="sourceId" value="${escapeHtml(input.sourceId)}">`
+      : "",
+    input.importedAt
+      ? `<input type="hidden" name="importedAt" value="${escapeHtml(input.importedAt)}">`
+      : "",
+  ].join("");
+  const productPreview = preview?.product
+    ? `<pre>${escapeHtml(JSON.stringify(preview.product, null, 2))}</pre>`
+    : '<p class="muted">Se mostrará después de completar los campos válidos.</p>';
+  const sourcePreview = preview?.source
+    ? `<pre>${escapeHtml(JSON.stringify(preview.source, null, 2))}</pre>`
+    : '<p class="muted">Se mostrará después de completar los campos válidos.</p>';
+
+  return page(
+    "Ingreso manual de producto",
+    `<p><a href="/products">← Catálogo</a></p>
+     <h1>Ingreso manual de producto</h1>
+     <p class="notice">Este flujo acepta sólo información pegada y verificada por el editor. No visita Amazon, no raspa páginas, no descarga imágenes y no genera URLs afiliadas.</p>
+     ${errorHtml}${warningHtml}${duplicateHtml}
+     <form method="post" action="/products/intake" class="card">
+       ${hidden}
+       <section>
+         <h2>Información de la fuente</h2>
+         <p class="muted">Estos datos describen el origen y permanecen en el registro no público de Studio.</p>
+         <div class="grid">
+           <label>URL de producto Amazon (opcional si ingresás el ASIN)<input type="url" name="productUrl" value="${value(input.productUrl)}" placeholder="https://www.amazon.com/dp/..."></label>
+           <label>ASIN (opcional si aparece en la URL)<input name="asin" value="${value(input.asin)}" pattern="[A-Za-z0-9]{10}"></label>
+           <label>URL afiliada pegada desde el intake de afiliados (opcional)<input type="url" name="affiliateUrl" value="${value(input.affiliateUrl)}" placeholder="https://www.amazon.com/dp/...?...tag=..."></label>
+           <label>Tracking ID verificado (si hay URL afiliada)<input name="trackingId" value="${value(input.trackingId)}"></label>
+           <label class="wide">Hechos ingresados desde la fuente (uno por línea)<textarea name="sourceFacts" rows="4">${listText(input.sourceFacts, "\n")}</textarea></label>
+           <label class="wide">Notas de procedencia o derechos de imagen<textarea name="provenanceNotes" rows="3">${value(input.provenanceNotes)}</textarea></label>
+         </div>
+       </section>
+       <section>
+         <h2>Copy editorial original</h2>
+         <p class="muted">Esta copia la escribe el editor. No se copia automáticamente ninguna descripción del comerciante.</p>
+         <div class="grid">
+           <label>Nombre<input name="name" required value="${value(input.name)}"></label>
+           <label>Marca (opcional)<input name="brand" value="${value(input.brand)}"></label>
+           <label>Comercio<input name="merchant" required value="${value(input.merchant)}"></label>
+           <label>Estado<select name="status">${statusOptions}</select></label>
+           <label class="wide">Descripción breve original<textarea name="shortDescription" rows="3" required>${value(input.shortDescription)}</textarea></label>
+           <label class="wide">Datos verificados seleccionados (uno por línea)<textarea name="verifiedFacts" rows="4">${listText(input.verifiedFacts, "\n")}</textarea></label>
+           <label class="wide"><input type="checkbox" name="verifiedFactsConfirmed" value="yes"${input.verifiedFactsConfirmed ? " checked" : ""}> Afirmo que cada dato verificado seleccionado está respaldado por los hechos ingresados de la fuente.</label>
+           <label>Etiqueta de precio revisada, no precio vivo<input name="priceLabel" value="${value(input.priceLabel)}" placeholder="Menos de $25"></label>
+           <label>Referencia de imagen, sin descarga automática<input name="image" value="${value(input.image)}" placeholder="https://... o /images/..."></label>
+           <label>Texto alternativo de imagen<input name="imageAlt" value="${value(input.imageAlt)}"></label>
+           <label>Notas específicas de derechos/procedencia de imagen<input name="imageRightsNotes" value="${value(input.imageRightsNotes)}"></label>
+           <label>Categorías, separadas por coma<input name="categories" value="${listText(input.categories)}"></label>
+           <label>Intereses, separados por coma<input name="interests" value="${listText(input.interests)}"></label>
+           <label>Destinatarios, separados por coma<input name="recipients" value="${listText(input.recipients)}"></label>
+           <label>Ocasiones, separadas por coma<input name="occasions" value="${listText(input.occasions)}"></label>
+         </div>
+       </section>
+       <label><input type="checkbox" name="confirm" value="yes"> Confirmo la vista previa y autorizo escribir el Product canónico y su registro de fuente de forma atómica.</label>
+       <button type="submit">Revisar y guardar producto</button>
+     </form>
+     ${preview ? `<div class="grid"><section class="card"><h2>Product canónico previsto</h2>${productPreview}</section><section class="card"><h2>Registro de fuente no público previsto</h2>${sourcePreview}</section></div>` : ""}`,
+  );
+}
+
 function productListPage(catalog: ProductCatalog, url: URL): string {
   const query = url.searchParams.get("q")?.trim() ?? "";
   const requestedStatus = url.searchParams.get("status") ?? "all";
@@ -569,7 +704,7 @@ function productListPage(catalog: ProductCatalog, url: URL): string {
     .join("");
   return page(
     "Productos",
-    `<div class="actions"><div><h1>Catálogo de productos</h1><p>Buscá por nombre, marca, comercio, categoría, interés, destinatario u ocasión.</p></div><a class="button" href="/products/new">Agregar producto</a></div>
+    `<div class="actions"><div><h1>Catálogo de productos</h1><p>Buscá por nombre, marca, comercio, categoría, interés, destinatario u ocasión.</p></div><div class="actions"><a class="button" href="/products/intake">Ingreso asistido</a><a class="button" href="/products/new">Agregar producto</a></div></div>
      ${saved}
      <form method="get" action="/products" class="card">
        <div class="grid">
@@ -1099,7 +1234,7 @@ function recommendationSelectionSection(draft: GuideDraft, url: URL): string {
           <button type="submit">Buscar</button>
         </form>
         ${searchSlot === recommendation.id ? `<section><h4>Resultados del catálogo</h4><div class="grid">${results || '<p class="notice">No hay productos activos que coincidan.</p>'}</div></section>` : ""}
-        <p><a href="/products/new?returnTo=${encodeURIComponent(`/drafts/${draft.id}`)}">Crear un producto nuevo y volver a este borrador</a></p>
+        <p><a href="/products/new?returnTo=${encodeURIComponent(`/drafts/${draft.id}`)}">Crear un producto nuevo y volver a este borrador</a> · <a href="/products/intake?returnTo=${encodeURIComponent(`/drafts/${draft.id}`)}">ingreso asistido</a></p>
       </article>`;
     })
     .join("");
@@ -1726,7 +1861,7 @@ export function createStudioServer(
             draft,
             selectProductMatch[2],
             requiredValue(form, "productId", "El producto"),
-            readPublicContent(),
+            catalog.read(),
             form.get("allowDuplicate") === "yes",
           ),
         );
@@ -1775,6 +1910,14 @@ export function createStudioServer(
       }
       if (method === "GET" && url.pathname === "/affiliate-programs") {
         send(response, 200, affiliateProgramStatusPage(catalog.root));
+        return;
+      }
+      if (method === "GET" && url.pathname === "/products/intake") {
+        send(
+          response,
+          200,
+          manualProductIntakePage(undefined, safeReturnTo(url.searchParams.get("returnTo"))),
+        );
         return;
       }
       if (method === "GET" && url.pathname === "/products/new") {
@@ -1852,6 +1995,22 @@ export function createStudioServer(
         });
         await sourceStore.save(source, catalog.read().products);
         redirect(response, `/products/${encodeURIComponent(product.id)}/edit?saved=amazon`);
+        return;
+      }
+      if (method === "POST" && url.pathname === "/products/intake") {
+        const form = await readForm(request);
+        const input = manualProductIntakeFromForm(form);
+        const preview = prepareManualProductIntake(input, catalog.root);
+        if (preview.errors.length || form.get("confirm") !== "yes") {
+          send(
+            response,
+            preview.errors.length ? 400 : 200,
+            manualProductIntakePage(preview, safeReturnTo(form.get("returnTo"))),
+          );
+          return;
+        }
+        await commitManualProductIntake(preview, catalog.root);
+        redirect(response, safeReturnTo(form.get("returnTo")) ?? "/products?saved=intake");
         return;
       }
       if (method === "POST" && url.pathname === "/products") {
