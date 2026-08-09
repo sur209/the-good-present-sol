@@ -7,9 +7,18 @@ import {
   mockOpportunityGeneration,
   opportunityGenerationPromptInputSchema,
 } from "./modules/content-opportunity-lab/generation.ts";
+import {
+  mockOpportunityEvaluation,
+  opportunityEvaluationPromptInputSchema,
+} from "./modules/content-opportunity-lab/evaluation.ts";
 
 export interface StructuredGenerationRequest<T> {
-  operation: "outline" | "final-guide" | "single-recommendation" | "opportunity-candidates";
+  operation:
+    | "outline"
+    | "final-guide"
+    | "single-recommendation"
+    | "opportunity-candidates"
+    | "opportunity-evaluations";
   prompt: string;
   input: unknown;
   schema: z.ZodType<T>;
@@ -318,6 +327,11 @@ export class MockGuideGenerationProvider implements GuideGenerationProvider {
   readonly modelId = "mock-editorial-v1";
 
   async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+    if (request.operation === "opportunity-evaluations") {
+      return request.schema.parse(
+        mockOpportunityEvaluation(opportunityEvaluationPromptInputSchema.parse(request.input)),
+      );
+    }
     if (request.operation === "opportunity-candidates") {
       return request.schema.parse(
         mockOpportunityGeneration(opportunityGenerationPromptInputSchema.parse(request.input)),

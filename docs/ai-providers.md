@@ -24,7 +24,7 @@ No model is hard-coded as universally available. Choose an identifier enabled fo
 AI_PROVIDER=mock
 ```
 
-The mock is deterministic, needs no Internet or credential, and supports outline, final-guide, single-recommendation, and divergent opportunity-candidate generation. Opportunity fixtures combine ten editorial problem lenses with five audience contexts, allowing the same provider boundary to return the default 20 or any requested count up to 50 without external data. Tests always inject mock or fake HTTP responses.
+The mock is deterministic, needs no Internet or credential, and supports outline, final-guide, single-recommendation, divergent opportunity-candidate generation, and convergent opportunity evaluation. Opportunity fixtures combine ten editorial problem lenses with five audience contexts, allowing the same provider boundary to return the default 20 or any requested count up to 50 without external data. The convergent fixture returns separate advisory judgments and a human-review hold without taking an editorial action. Tests always inject mock or fake HTTP responses.
 
 ### OpenAI profile
 
@@ -68,6 +68,8 @@ It never silently repairs output. The operation-specific Zod schema validates th
 
 For `opportunity-candidates`, the response schema exposes only editorial proposal fields. It rejects protected IDs/product identities, URLs, extra fields, duplicate titles, invented external metrics or performance claims, and counts above 50. The Studio, not the model, assigns candidate IDs and proposed slugs, applies an unassessed `hold` gate, runs deterministic Opportunity Lab comparison, validates each existing-domain record, and then persists candidates. Generation-session metadata stores the provider/model IDs and exact prompt but never configuration or credentials.
 
+For `opportunity-evaluations`, the deterministic prompt supplies candidate facts, authoritative 5.1 comparison reports, authoritative I.0 product coverage, and optional imported signals with provenance and date range as separate structures. The strict response must evaluate every selected candidate exactly once, keep all eleven 0–10 judgments separate, omit a composite score, explain every recommendation, require a published-guide target only for section/merge advice, and add an actionable explanation for high thin-content or cannibalization risk. The Studio validates the response, advances candidates only to `evaluated`, and stores the validated judgment and credential-free metadata without the complete raw provider response. Shortlisting and later decisions remain human actions.
+
 ## Credentials and diagnostics
 
 The API key exists only in the local server process and the outbound Authorization header. It is never rendered in the browser, passed to Astro, written to a draft, included in generation metadata, logged, or published. Complete provider responses and provider error bodies are not persisted or logged.
@@ -83,4 +85,4 @@ The Studio shows short Spanish errors. Its terminal logs only a safe code plus H
 | Empty or refused output        | Review the safe UI message and prompt preview; retry deliberately      |
 | Invalid JSON/schema            | Keep the draft, inspect the prompt, and retry or use mock/manual copy  |
 
-There is no automatic retry, streaming, provider SDK, tool calling, Responses API, Assistants API, embedding, ranking, convergent candidate evaluation, or vendor-specific agent behavior in this MVP.
+There is no automatic retry, streaming, provider SDK, tool calling, Responses API, Assistants API, embedding, ranking, automatic editorial decision, or vendor-specific agent behavior in this MVP.

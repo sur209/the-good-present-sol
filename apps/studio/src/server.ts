@@ -131,6 +131,12 @@ import {
   OPPORTUNITY_SESSION_OBJECTIVES,
   generateDivergentOpportunities,
 } from "./modules/content-opportunity-lab/generation.ts";
+import {
+  OPPORTUNITY_EVALUATION_PROMPT_VERSION,
+  OpportunityEvaluationStore,
+  evaluateConvergentOpportunities,
+  type OpportunityEvaluationSession,
+} from "./modules/content-opportunity-lab/evaluation.ts";
 import { REPOSITORY_ROOT, readPublicContent } from "./repository.ts";
 
 export const STUDIO_HOST = "127.0.0.1";
@@ -1090,11 +1096,18 @@ function opportunityListPage(
         )
         .join("")}</div>`
     : '<p class="notice">Todavía no hay oportunidades guardadas.</p>';
+  const evaluationChoices = candidates
+    .filter(({ status }) => status === "generated")
+    .map(
+      (candidate) =>
+        `<label><input type="checkbox" name="candidateId" value="${escapeHtml(candidate.id)}"> ${escapeHtml(candidate.proposedTitle)} <code>${escapeHtml(candidate.id)}</code></label>`,
+    )
+    .join("");
   return page(
     "Oportunidades de contenido",
     `<h1>Oportunidades de contenido</h1>
      <p>Los candidatos registran análisis editorial previo. No son briefs, GuideDrafts ni contenido público.</p>
-     <p class="notice">Los puntajes son ayudas editoriales independientes de 0 a 5; no son métricas SEO objetivas ni se suman en un ranking.</p>
+     <p class="notice">Los puntajes son ayudas editoriales independientes de 0 a 10; no son métricas SEO objetivas ni se suman en un ranking.</p>
      <section class="card wide">
        <h2>Generación divergente</h2>
        <p>El proveedor propone hipótesis editoriales. El Studio asigna IDs y slugs, ejecuta la comparación determinista y guarda los candidatos como <code>generated</code>, sin evaluarlos ni decidir por ellos.</p>
@@ -1111,6 +1124,23 @@ function opportunityListPage(
        </form>
        <p class="muted">Esta etapa no acepta métricas externas desde el formulario y no crea briefs, borradores ni publicaciones.</p>
      </section>
+     <section class="card wide">
+       <h2>Evaluación convergente</h2>
+       <p>Seleccioná candidatos <code>generated</code> para evaluarlos juntos. La IA interpreta la evidencia determinista e importada, pero sólo puede moverlos a <code>evaluated</code>.</p>
+       <form method="post" action="/opportunities/evaluate">
+         <input type="hidden" name="promptVersion" value="${OPPORTUNITY_EVALUATION_PROMPT_VERSION}">
+         <fieldset class="checks"><legend>Candidatos</legend>${evaluationChoices || '<p class="muted">No hay candidatos pendientes de evaluación.</p>'}</fieldset>
+         <fieldset><legend>Señal importada opcional</legend>
+           <label>ID estable<input name="signalId" placeholder="signal_..."></label>
+           <label>Fuente<input name="signalSource" placeholder="Exportación manual"></label>
+           <label>Desde<input type="date" name="signalFrom"></label>
+           <label>Hasta<input type="date" name="signalTo"></label>
+           <label>Resumen<textarea name="signalSummary" rows="3"></textarea></label>
+         </fieldset>
+         <button type="submit"${evaluationChoices ? "" : " disabled"}>Evaluar selección</button>
+       </form>
+       <p class="muted">La fuente y el rango de fechas se conservan; ausencia de datos no equivale a cero. Shortlist y decisiones posteriores siguen siendo humanas.</p>
+     </section>
      <h2>Candidatos guardados</h2>
      ${list}`,
   );
@@ -1119,6 +1149,7 @@ function opportunityListPage(
 function opportunityDetailPage(
   candidate: ArticleCandidate,
   comparison: OpportunityComparisonReport,
+  evaluation?: OpportunityEvaluationSession,
 ): string {
   const taxonomies = Object.entries(candidate.secondaryTaxonomies)
     .map(
@@ -1143,9 +1174,30 @@ function opportunityDetailPage(
   const scores = (Object.entries(candidate.scores) as [keyof ArticleCandidate["scores"], number][])
     .map(
       ([name, score]) =>
-        `<dt>${escapeHtml(opportunityScoreLabels[name])}</dt><dd>${score} / 5</dd>`,
+        `<dt>${escapeHtml(opportunityScoreLabels[name])}</dt><dd>${score} / 10</dd>`,
     )
     .join("");
+  const aiJudgment = evaluation?.aiJudgment.evaluations.find(
+    ({ candidateId }) => candidateId === candidate.id,
+  );
+  const importedEvidence = evaluation?.importedSignals.length
+    ? `<ul>${evaluation.importedSignals
+        .map(
+          (signal) =>
+            `<li><code>${escapeHtml(signal.id)}</code> · ${escapeHtml(signal.source)} · ${escapeHtml(signal.dateRange.from)}–${escapeHtml(signal.dateRange.to)}<br>${escapeHtml(signal.summary)}</li>`,
+        )
+        .join("")}</ul>`
+    : '<p class="muted">No se suministraron señales importadas.</p>';
+  const missingEvidence = aiJudgment?.missingEvidence.length
+    ? `<ul>${aiJudgment.missingEvidence.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
+    : '<p class="muted">La IA no marcó evidencia faltante.</p>';
+  const deterministicEvidence = evaluation
+    ? `<section class="card"><h2>Evidencia determinista</h2><p class="notice">Señales derivadas por el sistema; no son razonamiento de IA.</p><dl><dt>Comparaciones 5.1</dt><dd>${comparison.nearestEditorialState.length} estados editoriales · ${comparison.priorDecisionHistory.length} decisiones previas</dd><dt>Cobertura I.0</dt><dd>${evaluation.productCoverage.catalogHealth.substantialCategories.length} categorías sustanciales · ${evaluation.productCoverage.catalogHealth.singleProductCategories.length} categorías de un producto · ${evaluation.productCoverage.catalogHealth.activeProductsUnused.length} productos activos sin uso · ${evaluation.productCoverage.catalogHealth.productsReusedAcrossGuides.length} productos con reutilización alta</dd></dl></section>`
+    : "";
+  const evaluationAid = aiJudgment
+    ? `${deterministicEvidence}<section class="card"><h2>Juicio de IA</h2><p class="notice">Interpretación consultiva, no evidencia observada ni decisión.</p><dl>${scores}</dl><h3>Recomendación</h3><p><strong>${escapeHtml(opportunityDecisionLabels[aiJudgment.recommendation])}</strong>${aiJudgment.targetContentId ? ` · <code>${escapeHtml(aiJudgment.targetContentId)}</code>` : ""}</p><p>${escapeHtml(aiJudgment.explanation)}</p>${aiJudgment.thinContentRiskAction ? `<p><strong>Acción por contenido débil:</strong> ${escapeHtml(aiJudgment.thinContentRiskAction)}</p>` : ""}${aiJudgment.cannibalizationRiskAction ? `<p><strong>Acción por canibalización:</strong> ${escapeHtml(aiJudgment.cannibalizationRiskAction)}</p>` : ""}<h3>Evidencia faltante</h3>${missingEvidence}<h3>Síntesis del lote</h3><p>${escapeHtml(evaluation!.aiJudgment.batchSynthesis)}</p></section>
+       <section class="card"><h2>Señales importadas</h2><p class="notice">Evidencia factual importada con procedencia y rango de fechas.</p>${importedEvidence}</section>`
+    : `<section class="card"><h2>Ayuda editorial guardada</h2><p class="notice">Sin una sesión convergente registrada. Los ceros de candidatos generados significan “sin evaluar”.</p><dl>${scores}</dl><h3>Recomendación consultiva</h3><p><strong>${escapeHtml(opportunityDecisionLabels[candidate.advisory.recommendation])}</strong></p><p>${escapeHtml(candidate.advisory.reason)}</p></section>`;
   const decision = candidate.decision
     ? `<dl><dt>Decisión</dt><dd>${escapeHtml(opportunityDecisionLabels[candidate.decision.action])}</dd><dt>Razón</dt><dd>${escapeHtml(candidate.decision.reason)}</dd><dt>Fecha</dt><dd>${escapeHtml(formatDate(candidate.decision.decidedAt))}</dd>${candidate.decision.targetContentId ? `<dt>Contenido destino</dt><dd><code>${escapeHtml(candidate.decision.targetContentId)}</code></dd>` : ""}</dl>`
     : '<p class="muted">Todavía no hay una decisión humana.</p>';
@@ -1188,9 +1240,8 @@ function opportunityDetailPage(
        <section class="card"><h2>Taxonomías secundarias</h2><dl>${taxonomies || "<dt>Valores</dt><dd>—</dd>"}</dl></section>
        <section class="card wide"><h2>Secciones propuestas</h2><ol>${sections}</ol><h3>Categorías de producto distintivas</h3><p>${escapeHtml(candidate.distinctiveProductCategories.join(", ") || "—")}</p></section>
        <section class="card"><h2>Contenido cercano</h2><p>${candidate.closestExistingContentIds.map((id) => `<code>${escapeHtml(id)}</code>`).join(", ") || "—"}</p><h3>Señales de solapamiento</h3>${overlaps}</section>
-       <section class="card"><h2>Puntajes separados</h2><p class="notice">Ayudas editoriales de 0 a 5; no son métricas SEO objetivas ni un puntaje agregado.</p><dl>${scores}</dl></section>
-       <section class="card"><h2>Recomendación consultiva</h2><p><strong>${escapeHtml(opportunityDecisionLabels[candidate.advisory.recommendation])}</strong></p><p>${escapeHtml(candidate.advisory.reason)}</p><p class="muted">Es orientativa: no bloquea una decisión humana válida y deliberada.</p></section>
-       <section class="card"><h2>Decisión registrada</h2>${decision}</section>
+       ${evaluationAid}
+       <section class="card"><h2>Decisión humana</h2>${decision}<p class="muted">Puede contradecir la recomendación de IA; no se ejecuta automáticamente.</p></section>
        <section class="card"><h2>Trazabilidad</h2><dl><dt>Señales importadas</dt><dd>${candidate.sourceSignalIds?.map((id) => `<code>${escapeHtml(id)}</code>`).join(", ") || "—"}</dd><dt>EditorialBrief</dt><dd>${candidate.editorialBriefId ? `<code>${escapeHtml(candidate.editorialBriefId)}</code>` : "—"}</dd><dt>GuideDraft</dt><dd>${candidate.guideDraftId ? `<code>${escapeHtml(candidate.guideDraftId)}</code>` : "—"}</dd></dl><p class="muted">Cada referencia conserva un ciclo de vida separado; esta pantalla no crea briefs ni GuideDrafts.</p></section>
      </div>
      <section><h2>Comparación determinista</h2><p class="notice">Las ocho señales se mantienen separadas y explican sus coincidencias. El orden usa solamente la cantidad visible de señales high y medium; no existe un puntaje total ni una decisión automática.</p></section>
@@ -1943,6 +1994,7 @@ export function createStudioServer(
   sourceStore = new ProductSourceStore(catalog.root),
   candidateStore = new ArticleCandidateStore(catalog.root),
   approvedBriefs: readonly ApprovedEditorialBriefComparisonRecord[] = [],
+  evaluationStore = new OpportunityEvaluationStore(catalog.root),
 ) {
   return createServer(async (request, response) => {
     try {
@@ -2425,6 +2477,65 @@ export function createStudioServer(
         redirect(response, "/opportunities");
         return;
       }
+      if (method === "POST" && url.pathname === "/opportunities/evaluate") {
+        const form = await readForm(request);
+        if (form.get("promptVersion") !== OPPORTUNITY_EVALUATION_PROMPT_VERSION) {
+          throw new TypeError("Revisá el prompt convergente vigente antes de evaluar.");
+        }
+        const candidateIds = form
+          .getAll("candidateId")
+          .filter((value): value is string => typeof value === "string" && Boolean(value));
+        if (!candidateIds.length) throw new TypeError("Seleccioná al menos un candidato.");
+        const importedValues = [
+          "signalId",
+          "signalSource",
+          "signalFrom",
+          "signalTo",
+          "signalSummary",
+        ].map((name) => optionalValue(form, name));
+        const importedSignals = importedValues.some(Boolean)
+          ? [
+              {
+                id: requiredValue(form, "signalId", "El ID de señal"),
+                source: requiredValue(form, "signalSource", "La fuente de señal"),
+                dateRange: {
+                  from: requiredValue(form, "signalFrom", "La fecha inicial"),
+                  to: requiredValue(form, "signalTo", "La fecha final"),
+                },
+                summary: requiredValue(form, "signalSummary", "El resumen de señal"),
+              },
+            ]
+          : [];
+        const listed = await store.list();
+        if (listed.errors.length) {
+          throw new TypeError(
+            `No se puede evaluar contra borradores inválidos: ${listed.errors.join("; ")}`,
+          );
+        }
+        const content = readPublicContent(catalog.root);
+        const guideDrafts = listed.drafts.filter(
+          (draft): draft is GuideDraft => draft.draftType === "gift-guide",
+        );
+        await evaluateConvergentOpportunities(
+          { candidateIds, importedSignals },
+          {
+            content,
+            drafts: listed.drafts,
+            existingCandidates: candidateStore.list(),
+            productCoverage: analyzeProductCoverage(
+              content,
+              guideDrafts,
+              readProductGapReports(catalog.root),
+            ),
+            approvedBriefs,
+            provider,
+            candidateStore,
+            evaluationStore,
+          },
+        );
+        redirect(response, `/opportunities/${encodeURIComponent(candidateIds[0]!)}`);
+        return;
+      }
       const opportunityMatch =
         method === "GET" ? /^\/opportunities\/(candidate_[a-z0-9_-]+)$/.exec(url.pathname) : null;
       if (opportunityMatch?.[1]) {
@@ -2447,6 +2558,7 @@ export function createStudioServer(
               candidateStore.list(),
               approvedBriefs,
             ),
+            evaluationStore.latestForCandidate(candidate.id),
           ),
         );
         return;

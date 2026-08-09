@@ -117,6 +117,16 @@ import {
   opportunityGenerationSessionSchema,
   prepareOpportunityGenerationPrompt,
 } from "./modules/content-opportunity-lab/generation.ts";
+import {
+  OPPORTUNITY_EVALUATION_PROMPT_VERSION,
+  OpportunityEvaluationStore,
+  evaluateConvergentOpportunities,
+  importedEvaluationSignalSchema,
+  opportunityAiJudgmentSchema,
+  opportunityEvaluationSessionPath,
+  opportunityEvaluationSessionSchema,
+  prepareOpportunityEvaluationPrompt,
+} from "./modules/content-opportunity-lab/evaluation.ts";
 import { Publisher, clusterDraftToPublic, guideDraftToPublic } from "./publication.ts";
 import { REPOSITORY_ROOT, atomicWriteJson, readPublicContent } from "./repository.ts";
 import { STUDIO_HOST, createStudioServer } from "./server.ts";
@@ -728,7 +738,7 @@ test("valida candidatos, puntajes separados, decisiones y transiciones acotadas"
   assert.equal(
     articleCandidateSchema.safeParse({
       ...generated,
-      scores: { ...generated.scores, editorialUsefulness: 6 },
+      scores: { ...generated.scores, editorialUsefulness: 11 },
     }).success,
     false,
   );
@@ -994,6 +1004,190 @@ test("construye un prompt divergente determinista y rechaza evidencia o campos p
   );
 });
 
+test("construye un prompt convergente determinista y valida puntajes, destinos y procedencia", () => {
+  const content = readPublicContent();
+  const candidate = articleCandidate();
+  const importedSignal = {
+    id: "signal_manual-window",
+    source: "Manual analytics export",
+    dateRange: { from: "2026-07-01", to: "2026-07-31" },
+    summary: "Editors observed repeated interest in post-shift recovery during this window.",
+  };
+  const request = { candidateIds: [candidate.id], importedSignals: [importedSignal] };
+  const coverage = analyzeProductCoverage(content);
+  const first = prepareOpportunityEvaluationPrompt(request, content, [], [candidate], coverage);
+  const second = prepareOpportunityEvaluationPrompt(request, content, [], [candidate], coverage);
+  assert.equal(first.prompt, second.prompt);
+  assert.equal(first.version, OPPORTUNITY_EVALUATION_PROMPT_VERSION);
+  assert.match(first.prompt, /system-derived facts/);
+  assert.match(first.prompt, /Missing evidence.*never be treated as zero/);
+  assert.match(first.prompt, /Do not calculate or return a composite score/);
+  assert.doesNotMatch(first.prompt, /AI_API_KEY|authorization/i);
+
+  assert.equal(importedEvaluationSignalSchema.safeParse(importedSignal).success, true);
+  assert.equal(
+    importedEvaluationSignalSchema.safeParse({
+      ...importedSignal,
+      dateRange: { from: "2026-08-01", to: "2026-07-01" },
+    }).success,
+    false,
+  );
+  const judgment = {
+    candidateId: candidate.id,
+    scores: { ...candidate.scores, editorialUsefulness: 10 },
+    recommendation: "hold" as const,
+    explanation: "Keep the candidate pending a human comparison.",
+    missingEvidence: [],
+  };
+  assert.equal(opportunityAiJudgmentSchema.safeParse(judgment).success, true);
+  assert.equal(
+    opportunityAiJudgmentSchema.safeParse({
+      ...judgment,
+      scores: { ...judgment.scores, intentDifferentiation: 11 },
+    }).success,
+    false,
+  );
+  assert.equal(
+    opportunityAiJudgmentSchema.safeParse({
+      ...judgment,
+      scores: { ...judgment.scores, intentDifferentiation: -1 },
+    }).success,
+    false,
+  );
+  assert.equal(
+    opportunityAiJudgmentSchema.safeParse({ ...judgment, recommendation: "merge" }).success,
+    false,
+  );
+  assert.equal(
+    opportunityAiJudgmentSchema.safeParse({
+      ...judgment,
+      recommendation: "merge",
+      targetContentId: "guide_nurse-practical",
+    }).success,
+    true,
+  );
+  assert.equal(
+    opportunityAiJudgmentSchema.safeParse({
+      ...judgment,
+      targetContentId: "guide_nurse-practical",
+    }).success,
+    false,
+  );
+  assert.equal(
+    opportunityAiJudgmentSchema.safeParse({
+      ...judgment,
+      scores: { ...judgment.scores, thinContentRisk: 7 },
+    }).success,
+    false,
+  );
+  assert.equal(
+    opportunityAiJudgmentSchema.safeParse({
+      ...judgment,
+      scores: { ...judgment.scores, thinContentRisk: 7 },
+      thinContentRiskAction: "Compare the proposed sections and hold if two cannot stand alone.",
+    }).success,
+    true,
+  );
+});
+
+test("evalúa un lote sólo hasta evaluated y guarda metadata validada sin respuesta cruda", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-opportunity-evaluation-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const content = readPublicContent(repository);
+  const candidateStore = new ArticleCandidateStore(repository);
+  const evaluationStore = new OpportunityEvaluationStore(repository);
+  const candidate = articleCandidate({ proposedTitle: "PRIVATE_EVALUATION_SENTINEL" });
+  await candidateStore.save(candidate);
+  const result = await evaluateConvergentOpportunities(
+    {
+      candidateIds: [candidate.id],
+      importedSignals: [
+        {
+          id: "signal_manual-window",
+          source: "Manual export",
+          dateRange: { from: "2026-07-01", to: "2026-07-31" },
+          summary: "Observed editor-supplied interest during the stated window.",
+        },
+      ],
+    },
+    {
+      content,
+      drafts: [],
+      existingCandidates: [candidate],
+      productCoverage: analyzeProductCoverage(content),
+      provider: new MockGuideGenerationProvider(),
+      candidateStore,
+      evaluationStore,
+      now: new Date("2026-08-09T14:00:00.000Z"),
+    },
+  );
+
+  assert.equal(result.candidates[0]?.status, "evaluated");
+  assert.equal(result.candidates[0]?.decision, undefined);
+  assert.equal(result.candidates[0]?.advisory.recommendation, "hold");
+  assert.equal(result.candidates[0]?.scores.editorialUsefulness, 7);
+  assert.deepEqual(result.candidates[0]?.sourceSignalIds, [
+    "gap_nurse-night-shift",
+    "signal_manual-window",
+  ]);
+  const stored = opportunityEvaluationSessionSchema.parse(
+    JSON.parse(
+      await readFile(opportunityEvaluationSessionPath(repository, result.session.id), "utf8"),
+    ),
+  );
+  assert.equal(stored.providerId, "mock");
+  assert.equal(stored.importedSignals[0]?.source, "Manual export");
+  assert.equal("rawResponse" in stored, false);
+  assert.doesNotMatch(JSON.stringify(stored), /api[_-]?key|authorization|bearer/i);
+  assert.equal(candidateStore.get(candidate.id).status, "evaluated");
+});
+
+test("rechaza salida convergente inválida sin escribir candidatos ni evaluaciones", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-opportunity-evaluation-failure-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const content = readPublicContent(repository);
+  const candidateStore = new ArticleCandidateStore(repository);
+  const evaluationStore = new OpportunityEvaluationStore(repository);
+  const candidate = articleCandidate();
+  await candidateStore.save(candidate);
+  const invalidProvider: GuideGenerationProvider = {
+    providerId: "invalid-evaluation-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      return request.schema.parse({
+        batchSynthesis: "Invalid provider fixture.",
+        evaluations: [
+          {
+            candidateId: candidate.id,
+            scores: { ...candidate.scores, maintenanceCost: 11 },
+            recommendation: "hold",
+            explanation: "This must fail the score boundary.",
+            missingEvidence: [],
+          },
+        ],
+      });
+    },
+  };
+
+  await assert.rejects(
+    evaluateConvergentOpportunities(
+      { candidateIds: [candidate.id] },
+      {
+        content,
+        drafts: [],
+        existingCandidates: [candidate],
+        productCoverage: analyzeProductCoverage(content),
+        provider: invalidProvider,
+        candidateStore,
+        evaluationStore,
+      },
+    ),
+  );
+  assert.equal(candidateStore.get(candidate.id).status, "generated");
+  assert.deepEqual(evaluationStore.list(), []);
+});
+
 test("genera 20 candidatos mock, compara antes de persistir y guarda metadata sin credenciales", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-opportunity-generation-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
@@ -1161,7 +1355,7 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
   await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
   const sentinel = "INTERNAL_OPPORTUNITY_SENTINEL_20260809";
   const candidateStore = new ArticleCandidateStore(repository);
-  const candidate = articleCandidate({ proposedTitle: sentinel, status: "shortlisted" });
+  const candidate = articleCandidate({ proposedTitle: sentinel });
   await candidateStore.save(candidate);
   const approvedBrief: ApprovedEditorialBriefComparisonRecord = {
     id: "brief_http-comparison",
@@ -1202,6 +1396,7 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
   assert.match(listHtml, new RegExp(sentinel));
   assert.match(listHtml, /no son métricas SEO objetivas/);
   assert.match(listHtml, /Generación divergente/);
+  assert.match(listHtml, /Evaluación convergente/);
   assert.match(listHtml, /Buscar candidatos de localización/);
 
   const generationResponse = await fetch(`${origin}/opportunities/generate`, {
@@ -1223,6 +1418,26 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
     (await readdir(join(repository, "editorial-data", "opportunity-generation-sessions"))).length,
     1,
   );
+  const evaluationResponse = await fetch(`${origin}/opportunities/evaluate`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      promptVersion: OPPORTUNITY_EVALUATION_PROMPT_VERSION,
+      candidateId: candidate.id,
+      signalId: "signal_http-window",
+      signalSource: "Manual HTTP fixture",
+      signalFrom: "2026-07-01",
+      signalTo: "2026-07-31",
+      signalSummary: "Editor-supplied observation for the integration test.",
+    }),
+    redirect: "manual",
+  });
+  assert.equal(evaluationResponse.status, 303);
+  assert.equal(candidateStore.get(candidate.id).status, "evaluated");
+  assert.equal(
+    (await readdir(join(repository, "editorial-data", "opportunity-evaluations"))).length,
+    1,
+  );
   const detailResponse = await fetch(`${origin}/opportunities/${candidate.id}`);
   const detailHtml = await detailResponse.text();
   assert.equal(detailResponse.status, 200);
@@ -1233,6 +1448,18 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
   assert.match(detailHtml, /guía publicada/);
   assert.match(detailHtml, /EditorialBrief aprobado/);
   assert.match(detailHtml, /no crea briefs ni GuideDrafts/);
+  assert.match(detailHtml, /Juicio de IA/);
+  assert.match(detailHtml, /Evidencia determinista/);
+  assert.match(detailHtml, /Cobertura I\.0/);
+  assert.match(detailHtml, /Manual HTTP fixture/);
+
+  const shortlistResponse = await fetch(`${origin}/opportunities/${candidate.id}/status`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ status: "shortlisted" }),
+    redirect: "manual",
+  });
+  assert.equal(shortlistResponse.status, 303);
 
   const decisionResponse = await fetch(`${origin}/opportunities/${candidate.id}/decision`, {
     method: "POST",
@@ -1247,6 +1474,12 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
   assert.equal(decisionResponse.status, 303);
   assert.equal(candidateStore.get(candidate.id).status, "converted-to-section");
   assert.equal(candidateStore.get(candidate.id).decision?.targetContentId, "guide_nurse-practical");
+  assert.equal(candidateStore.get(candidate.id).advisory.recommendation, "hold");
+  assert.equal(candidateStore.get(candidate.id).decision?.action, "add-as-section");
+  await assert.rejects(readFile(join(repository, "drafts", `${candidate.id}.json`), "utf8"));
+  await assert.rejects(
+    readFile(join(repository, "content", "guides", `${candidate.id}.json`), "utf8"),
+  );
 
   await execFileAsync(process.execPath, [join(REPOSITORY_ROOT, "scripts", "astro.mjs"), "build"], {
     cwd: join(REPOSITORY_ROOT, "apps", "site"),
@@ -1266,7 +1499,7 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
   ).join("\n");
   assert.doesNotMatch(
     outputFiles.join("\n"),
-    /opportunities|article-candidates|opportunity-generation-sessions/,
+    /opportunities|article-candidates|opportunity-generation-sessions|opportunity-evaluations/,
   );
   assert.doesNotMatch(outputHtml, new RegExp(sentinel));
   assert.doesNotMatch(outputHtml, /article-candidate|candidate_nurse-shift-recovery/);

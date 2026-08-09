@@ -36,7 +36,7 @@ const candidateId = safeId.regex(/^candidate_/, 'Must start with "candidate_".')
 const nonEmptyText = z.string().trim().min(1);
 const textList = z.array(nonEmptyText);
 const timestamp = z.iso.datetime({ offset: true });
-const editorialScore = z.number().int().min(0).max(5);
+const editorialScore = z.number().int().min(0).max(10);
 
 export const candidateTaxonomiesSchema = z.strictObject({
   occasions: textList.optional(),
