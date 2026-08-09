@@ -1,23 +1,23 @@
 # Nurse Gifts cluster roadmap
 
-Phase 3.0 is a documentation-only audit and implementation backlog. It approves four editorial briefs, not four public records. No guide ID, product, route, hub change, draft, or final article copy is created here. Later implementation must use the existing product intake, source-provenance, affiliate QA, GuideDraft, preview, and atomic publication workflows.
+Phase 3.0 was a documentation-only audit and implementation backlog. It approved four editorial briefs, not four public records. Phase 3.1 below records the nursing-students GuideDraft and its product-data publication gate. Later implementation must use the existing product intake, source-provenance, affiliate QA, GuideDraft, preview, and atomic publication workflows.
 
 The proposed sections below are editorial beats for later drafting and recommendation selection. They do not require a new public schema field.
 
 ## Page status
 
-| Page                          | Stable ID                | Slug and route                                        | Primary axis                                          | Status                                    |
-| ----------------------------- | ------------------------ | ----------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------- |
-| Nurse Gifts hub               | `cluster_nurse-gifts`    | `nurse-gifts` - `/nurse-gifts/`                       | Hub groups use `occasion`, `gift-style`, and `budget` | Published; audited                        |
-| Nurse graduation gifts        | `guide_nurse-graduation` | `graduation` - `/nurse-gifts/graduation/`             | `occasion`                                            | Published; audited                        |
-| Practical gifts for nurses    | `guide_nurse-practical`  | `practical` - `/nurse-gifts/practical/`               | `gift-style`                                          | Published; audited                        |
-| Nurse gifts under $25         | `guide_nurse-under-25`   | `under-25` - `/nurse-gifts/under-25/`                 | `budget`                                              | Published; audited                        |
-| Gifts for nursing students    | Not assigned             | `nursing-students` - `/nurse-gifts/nursing-students/` | `career-stage`                                        | Brief approved; no draft or public record |
-| Personalized gifts for nurses | Not assigned             | `personalized` - `/nurse-gifts/personalized/`         | `gift-style`                                          | Brief approved; no draft or public record |
-| Gifts for night-shift nurses  | Not assigned             | `night-shift` - `/nurse-gifts/night-shift/`           | `work-context`                                        | Brief approved; no draft or public record |
-| Christmas gifts for nurses    | Not assigned             | `christmas` - `/nurse-gifts/christmas/`               | `occasion`                                            | Brief approved; no draft or public record |
+| Page                          | Stable ID                      | Slug and route                                        | Primary axis                                          | Status                                                   |
+| ----------------------------- | ------------------------------ | ----------------------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------- |
+| Nurse Gifts hub               | `cluster_nurse-gifts`          | `nurse-gifts` - `/nurse-gifts/`                       | Hub groups use `occasion`, `gift-style`, and `budget` | Published; audited                                       |
+| Nurse graduation gifts        | `guide_nurse-graduation`       | `graduation` - `/nurse-gifts/graduation/`             | `occasion`                                            | Published; audited                                       |
+| Practical gifts for nurses    | `guide_nurse-practical`        | `practical` - `/nurse-gifts/practical/`               | `gift-style`                                          | Published; audited                                       |
+| Nurse gifts under $25         | `guide_nurse-under-25`         | `under-25` - `/nurse-gifts/under-25/`                 | `budget`                                              | Published; audited                                       |
+| Gifts for nursing students    | `guide_nurse-nursing-students` | `nursing-students` - `/nurse-gifts/nursing-students/` | `career-stage`                                        | Draft complete; publication blocked by product-data gaps |
+| Personalized gifts for nurses | Not assigned                   | `personalized` - `/nurse-gifts/personalized/`         | `gift-style`                                          | Brief approved; no draft or public record                |
+| Gifts for night-shift nurses  | Not assigned                   | `night-shift` - `/nurse-gifts/night-shift/`           | `work-context`                                        | Brief approved; no draft or public record                |
+| Christmas gifts for nurses    | Not assigned                   | `christmas` - `/nurse-gifts/christmas/`               | `occasion`                                            | Brief approved; no draft or public record                |
 
-Proposed stable IDs remain deliberately unassigned until an editor creates each GuideDraft. A working slug is not record identity and this document does not reserve a URL.
+The three remaining briefs stay deliberately unassigned until an editor creates each GuideDraft. A working slug is not record identity and the blocked nursing-students draft does not reserve a public URL.
 
 ## Existing implementation audit
 
@@ -63,6 +63,20 @@ A "gap" means the current catalog has no product whose stored facts establish th
 - **Product gaps:** A verified structured study/planning option beyond pocket notes; a clearly student-appropriate off-shift recovery option that does not duplicate the under-$25 list; launch-ready sources and destinations for every reused demo product.
 - **Expected internal links:** The hub through standard breadcrumbs/back links; `guide_nurse-graduation` for readers approaching completion; `guide_nurse-under-25` for a strict budget. Later hub placement should use a career-stage group; its stable group ID is decided in the hub draft, not here.
 - **Similarity risk:** It can collapse into graduation if it celebrates completion, or into under-$25 if it becomes a list of small accessories. Keep every criterion anchored to active study and clinical-training life.
+
+## Phase 3.1 implementation record: Nursing students
+
+The approved nursing-students brief was taken through the existing Studio draft workflow on 2026-08-09. The new stable guide ID is `guide_nurse-nursing-students`; the working slug remains `nursing-students`, so the intended route remains `/nurse-gifts/nursing-students/` without making the slug the record identity.
+
+- **GuideDraft:** `drafts/guide_nurse-nursing-students.json` (git-ignored working data).
+- **Product-gap report:** `editorial-data/product-gaps/gap_nurse-nursing-students.json`.
+- **Primary axis:** `career-stage`.
+- **Primary intent:** Help someone choose a gift for a person currently in nursing school that supports study and clinical-training routines without guessing at program requirements or treating them as an employed nurse.
+- **Draft coverage:** Five active catalog candidates have original guide-specific copy and remain `needs-review`; the off-shift recovery slot is `unassigned` because no distinct verified candidate exists.
+- **Publication decision:** Blocked. The assigned candidates have no stored `verifiedFacts`, `lastCheckedAt`, or product-source records, and their destinations are demo URLs. No fabricated product, merchant, price, policy, fit, or availability claim was added.
+- **Public-content decision:** No `content/guides/` file, hub navigation group, route output, or reciprocal public link was written. The existing hub therefore continues to link only to published guides.
+
+The draft uses the two existing same-cluster editorial targets from the brief: `guide_nurse-graduation` for readers approaching completion and `guide_nurse-under-25` for strict budgets. Those links remain draft-only until the guide clears product review and is published through the normal atomic workflow.
 
 ## Approved brief 2: Personalized gifts for nurses
 

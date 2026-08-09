@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "id": "gap_nurse-nursing-students",
+  "recordType": "product-gap-report",
+  "guideId": "guide_nurse-nursing-students",
+  "clusterId": "cluster_nurse-gifts",
+  "route": "/nurse-gifts/nursing-students/",
+  "checkedAt": "2026-08-09",
+  "status": "blocked",
+  "candidateProductIds": [
+    "product_pocket-notebook",
+    "product_stethoscope-case",
+    "product_rechargeable-penlight",
+    "product_compression-socks",
+    "product_coffee-card",
+    "product_badge-reel",
+    "product_sleep-mask"
+  ],
+  "catalogSnapshot": {
+    "activeCandidateProductIds": [
+      "product_pocket-notebook",
+      "product_stethoscope-case",
+      "product_rechargeable-penlight",
+      "product_compression-socks",
+      "product_coffee-card",
+      "product_badge-reel",
+      "product_sleep-mask"
+    ],
+    "verifiedCandidateProductIds": [],
+    "productSourceRecordCount": 0
+  },
+  "slots": [
+    {
+      "id": "nursing-students_study-organization",
+      "label": "Study organization",
+      "category": "Study organization",
+      "status": "needs-review",
+      "productId": "product_pocket-notebook",
+      "reason": "The active catalog has a compatible pocket-notebook record, but it has no verified facts, review date, source record, or launch-ready destination."
+    },
+    {
+      "id": "nursing-students_clinical-carry",
+      "label": "Clinical-day carry or protection",
+      "category": "Clinical-day carry or protection",
+      "status": "needs-review",
+      "productId": "product_stethoscope-case",
+      "reason": "The active catalog has a compatible case record, but fit, school policy, source facts, and destination are unverified."
+    },
+    {
+      "id": "nursing-students_school-accessory",
+      "label": "Small school-approved accessory",
+      "category": "Small school-approved accessory",
+      "status": "needs-review",
+      "productId": "product_rechargeable-penlight",
+      "reason": "The active catalog has a compatible penlight record, but program or placement permission and the product facts are unverified."
+    },
+    {
+      "id": "nursing-students_fit-comfort",
+      "label": "Personal-fit comfort",
+      "category": "Personal-fit comfort",
+      "status": "needs-review",
+      "productId": "product_compression-socks",
+      "reason": "The active catalog has a compatible comfort record, but size, fit, source facts, and destination are unverified."
+    },
+    {
+      "id": "nursing-students_flexible-treat",
+      "label": "Flexible food or drink treat",
+      "category": "Flexible food or drink treat",
+      "status": "needs-review",
+      "productId": "product_coffee-card",
+      "reason": "The active catalog has a compatible gift-card record, but merchant, value, source facts, and destination are still demo data."
+    },
+    {
+      "id": "nursing-students_off-shift-recovery",
+      "label": "Off-shift recovery",
+      "category": "Off-shift recovery",
+      "status": "unassigned",
+      "reason": "No verified student-appropriate recovery option is available that adds useful coverage beyond the existing under-$25 sleep-mask recommendation."
+    }
+  ],
+  "gaps": [
+    "A verified structured study or planning option beyond pocket notes.",
+    "A clearly student-appropriate off-shift recovery option that does not duplicate the under-$25 guide.",
+    "Launch-ready source records, review dates, and destinations for every reused candidate."
+  ],
+  "blockers": [
+    "The five assigned candidates have no verifiedFacts or lastCheckedAt fields.",
+    "The product-source ledger contains zero records for the candidate products.",
+    "The candidate destinations are demo URLs and cannot support public publication.",
+    "One recommendation remains unassigned, so the existing Studio readiness gate must reject publication."
+  ],
+  "nextActions": [
+    "Verify each exact candidate through the existing product intake and source-provenance workflow.",
+    "Replace demo destinations and run affiliate QA before returning any recommendation to ready.",
+    "Add and verify a distinct recovery product and reassess structured study coverage.",
+    "Regenerate or edit only the affected recommendations, preview, validate, and publish the guide and hub atomically after all slots are ready."
+  ]
+}

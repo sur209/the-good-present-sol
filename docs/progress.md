@@ -63,16 +63,22 @@ Complete. Added one shared Studio-owned validator for published recommendation c
 
 Complete. Audited the canonical Nurse Gifts hub and its three published guides, checked the four requested slugs with the shared route contract, and approved differentiated briefs plus implementation gates for nursing students, personalized, night shift, and Christmas. The work is documentation-only: no public record, product, route, draft, schema, Studio module, or publication behavior changed. Product reuse is limited to current active catalog records and remains subject to the existing provenance, intake, affiliate, and QA workflows documented in [the Nurse Gifts roadmap](nurse-cluster-roadmap.md).
 
-| Page                          | Stable ID                | Route                            | Axis               | Status                      |
-| ----------------------------- | ------------------------ | -------------------------------- | ------------------ | --------------------------- |
-| Nurse Gifts hub               | `cluster_nurse-gifts`    | `/nurse-gifts/`                  | Curated hub groups | Published; audited          |
-| Nurse graduation gifts        | `guide_nurse-graduation` | `/nurse-gifts/graduation/`       | `occasion`         | Published; audited          |
-| Practical gifts for nurses    | `guide_nurse-practical`  | `/nurse-gifts/practical/`        | `gift-style`       | Published; audited          |
-| Nurse gifts under $25         | `guide_nurse-under-25`   | `/nurse-gifts/under-25/`         | `budget`           | Published; audited          |
-| Gifts for nursing students    | Not assigned             | `/nurse-gifts/nursing-students/` | `career-stage`     | Brief approved; not created |
-| Personalized gifts for nurses | Not assigned             | `/nurse-gifts/personalized/`     | `gift-style`       | Brief approved; not created |
-| Gifts for night-shift nurses  | Not assigned             | `/nurse-gifts/night-shift/`      | `work-context`     | Brief approved; not created |
-| Christmas gifts for nurses    | Not assigned             | `/nurse-gifts/christmas/`        | `occasion`         | Brief approved; not created |
+| Page                          | Stable ID                      | Route                            | Axis               | Status                                       |
+| ----------------------------- | ------------------------------ | -------------------------------- | ------------------ | -------------------------------------------- |
+| Nurse Gifts hub               | `cluster_nurse-gifts`          | `/nurse-gifts/`                  | Curated hub groups | Published; audited                           |
+| Nurse graduation gifts        | `guide_nurse-graduation`       | `/nurse-gifts/graduation/`       | `occasion`         | Published; audited                           |
+| Practical gifts for nurses    | `guide_nurse-practical`        | `/nurse-gifts/practical/`        | `gift-style`       | Published; audited                           |
+| Nurse gifts under $25         | `guide_nurse-under-25`         | `/nurse-gifts/under-25/`         | `budget`           | Published; audited                           |
+| Gifts for nursing students    | `guide_nurse-nursing-students` | `/nurse-gifts/nursing-students/` | `career-stage`     | Draft complete; blocked by product-data gaps |
+| Personalized gifts for nurses | Not assigned                   | `/nurse-gifts/personalized/`     | `gift-style`       | Brief approved; not created                  |
+| Gifts for night-shift nurses  | Not assigned                   | `/nurse-gifts/night-shift/`      | `work-context`     | Brief approved; not created                  |
+| Christmas gifts for nurses    | Not assigned                   | `/nurse-gifts/christmas/`        | `occasion`         | Brief approved; not created                  |
+
+## Phase 3.1 - Nursing students guide
+
+Blocked on 2026-08-09 after completing the existing GuideDraft workflow. Created the stable-ID draft `drafts/guide_nurse-nursing-students.json` with the `career-stage` axis, explicit student-focused intent, original US English copy, five active catalog candidates marked `needs-review`, and one unassigned off-shift recovery slot. Created the non-public gap report at `editorial-data/product-gaps/gap_nurse-nursing-students.json`.
+
+The guide was not published: the reused seed products have no `verifiedFacts` or `lastCheckedAt`, the product-source ledger has no records, and all candidate destinations remain demo URLs. No canonical guide file, hub group, public route, or reciprocal public link changed. Publication remains blocked until the existing intake, source-provenance, affiliate QA, preview, and atomic publication workflow clears every recommendation.
 
 ## Verification log
 
@@ -92,6 +98,7 @@ Complete. Audited the canonical Nurse Gifts hub and its three published guides, 
 - Editorial Studio Phase 12: added the Amazon US profile and manual SiteStripe/Associates Central intake. The focused Studio suite passed 54 tests covering URL shapes, ASIN extraction, approved/unexpected hosts, HTTPS, correct/missing/unexpected visible tags, short-link warnings, duplicate ASINs and normalized affiliate URLs, no Amazon network calls, explicit confirmation before persistence, source-to-product linking, and non-public source fields.
 - Editorial Studio Phase 13: added assisted manual product intake with source/editorial separation, verified-fact affirmation, image rights notes, price-label protection, duplicate prevention, explicit preview confirmation, source-to-product linking, atomic rollback tests, GuideDraft selection, and Astro exclusion. The focused Studio suite passed 57 tests.
 - Editorial Studio Phase 14: added affiliate coverage classes, warnings versus hard errors, unknown/disabled program checks, stored tracking-ID and short-link review, unsafe-protocol and unexpected-host findings, rendered CTA/disclosure checks, the Studio QA page, and `npm run affiliate:validate` after the static build. The focused Studio suite passed 59 tests; the full verification path remains network-free.
+- Phase 3.1: completed the nursing-students GuideDraft and validated the non-public product-gap report against the local Studio schema. The public publication gate remained closed because the catalog has no verified candidate facts or product-source records, and one recovery slot is unassigned; the existing hub and public route set were left unchanged.
 - Phase 0: `git diff --check` passed; required architecture, URL-policy, replacement, redirect-boundary, and public-status terms confirmed. Ponytail review kept the phase to the four required documentation files with no speculative code or placeholder subsystems.
 - Phase 1: `npm run verify` passed with 0 Astro diagnostics, 0 TypeScript errors, and 2 route tests; `apps/site/dist/` contained one HTML page and no server artifacts. Ponytail review retained only the build, type, format, and test dependencies in active use; a two-line Node launcher avoided a cross-platform environment dependency.
 - Phase 2: strict checks, 6 tests, standalone validation, and the static build passed. A negative integration check confirmed that an unsafe temporary affiliate URL stops the Astro build with file, record, and field context. Ponytail review kept Zod as the only new runtime dependency and one shared filesystem reader outside the pure package.
