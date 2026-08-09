@@ -1,6 +1,6 @@
 # Nurse Gifts cluster roadmap
 
-Phase 3.0 was a documentation-only audit and implementation backlog. It approved four editorial briefs, not four public records. Phase 3.1 below records the nursing-students GuideDraft and its product-data publication gate. Later implementation must use the existing product intake, source-provenance, affiliate QA, GuideDraft, preview, and atomic publication workflows.
+Phase 3.0 was a documentation-only audit and implementation backlog. It approved four editorial briefs, not four public records. Phase 3.1 below records the nursing-students GuideDraft and its product-data publication gate. Phase 3.2 below records the personalized GuideDraft and its product-data publication gate. Later implementation must use the existing product intake, source-provenance, affiliate QA, GuideDraft, preview, and atomic publication workflows.
 
 The proposed sections below are editorial beats for later drafting and recommendation selection. They do not require a new public schema field.
 
@@ -13,11 +13,11 @@ The proposed sections below are editorial beats for later drafting and recommend
 | Practical gifts for nurses    | `guide_nurse-practical`        | `practical` - `/nurse-gifts/practical/`               | `gift-style`                                          | Published; audited                                       |
 | Nurse gifts under $25         | `guide_nurse-under-25`         | `under-25` - `/nurse-gifts/under-25/`                 | `budget`                                              | Published; audited                                       |
 | Gifts for nursing students    | `guide_nurse-nursing-students` | `nursing-students` - `/nurse-gifts/nursing-students/` | `career-stage`                                        | Draft complete; publication blocked by product-data gaps |
-| Personalized gifts for nurses | Not assigned                   | `personalized` - `/nurse-gifts/personalized/`         | `gift-style`                                          | Brief approved; no draft or public record                |
+| Personalized gifts for nurses | `guide_nurse-personalized`     | `personalized` - `/nurse-gifts/personalized/`         | `gift-style`                                          | Draft complete; publication blocked by product-data gaps |
 | Gifts for night-shift nurses  | Not assigned                   | `night-shift` - `/nurse-gifts/night-shift/`           | `work-context`                                        | Brief approved; no draft or public record                |
 | Christmas gifts for nurses    | Not assigned                   | `christmas` - `/nurse-gifts/christmas/`               | `occasion`                                            | Brief approved; no draft or public record                |
 
-The three remaining briefs stay deliberately unassigned until an editor creates each GuideDraft. A working slug is not record identity and the blocked nursing-students draft does not reserve a public URL.
+The two remaining briefs stay deliberately unassigned until an editor creates each GuideDraft. A working slug is not record identity, and the blocked nursing-students and personalized drafts do not reserve public URLs.
 
 ## Existing implementation audit
 
@@ -91,7 +91,22 @@ The draft uses the two existing same-cluster editorial targets from the brief: `
 - **Catalog products that may be reused:** None are currently eligible because no canonical record stores customization facts. The form factors represented by `product_badge-reel`, `product_insulated-tumbler`, `product_shift-tote`, and `product_stethoscope-case` may be reassessed only if editors verify that the exact existing item supports customization. A stable product ID must never be reused for a different personalized item.
 - **Product gaps:** Verified customization coverage across several categories; stored lead-time, proof, character-limit, placement, and return facts; a non-work personalized option; launch-ready product sources and destinations.
 - **Expected internal links:** The hub; `guide_nurse-practical` for buyers who decide usefulness matters more than customization; `guide_nurse-graduation` when the personalization marks that specific milestone. Later hub placement can reuse `group_by-style` only after its label is broadened beyond usefulness.
-- **Similarity risk:** Without exact customization facts, this becomes the general hub or practical guide with "add their name" appended. Do not implement the guide until the catalog can support multiple genuinely personalized categories.
+- **Similarity risk:** Without exact customization facts, this becomes the general hub or practical guide with "add their name" appended. Do not publish the guide until the catalog can support multiple genuinely personalized categories.
+
+## Phase 3.2 implementation record: Personalized nurse gifts
+
+The approved personalized brief was taken through the existing Studio GuideDraft workflow on 2026-08-09. The new stable guide ID is `guide_nurse-personalized`; the working slug remains `personalized`, so the intended route remains `/nurse-gifts/personalized/` without making the slug the record identity.
+
+- **GuideDraft:** `drafts/guide_nurse-personalized.json` (git-ignored working data).
+- **Product-gap report:** `editorial-data/product-gaps/gap_nurse-personalized.json`.
+- **Primary axis:** `gift-style`.
+- **Primary intent:** Help a buyer choose personalization that feels useful and specific rather than generic or decorative-only.
+- **Draft coverage:** Six original US English editorial slots cover personalized work accessories, carry or organization, drinkware or home use, message-led keepsakes, fast turnaround, and an off-shift interest. All six remain `unassigned` because no active catalog record stores verified customization facts.
+- **Generation boundary:** The first-stage outline is complete with stable slots. The existing final-generation stage was not run because it requires selected products and would have no truthful product input.
+- **Publication decision:** Blocked. The active form-factor leads have no verified customization method, placement, character or artwork limits, proofing, lead-time, workplace-suitability, return, or launch-ready destination facts; the product-source ledger is empty and all candidate destinations are demo URLs.
+- **Public-content decision:** No `content/guides/` file, hub navigation group, public route output, or reciprocal public link was written. The existing hub continues to link only to published guides.
+
+The draft keeps `guide_nurse-practical` as the usefulness comparison and `guide_nurse-graduation` as the milestone-specific comparison. Those links remain draft-only until product review clears the publication gate. The exact personalized products must be verified through the existing intake and provenance workflow; no existing product ID may be repurposed for a different item.
 
 ## Approved brief 3: Gifts for night-shift nurses
 
@@ -145,10 +160,12 @@ The shared `guidePath()` helper produced all four proposed paths. Each slug matc
 | `night-shift`      | `/nurse-gifts/night-shift/`      | Yes   | No       | No                 |
 | `christmas`        | `/nurse-gifts/christmas/`        | Yes   | No       | No                 |
 
+The personalized path was also checked with the shared route helper and remains collision-free. Because its GuideDraft is blocked before publication, `apps/site/dist/nurse-gifts/personalized/index.html` was not generated and the hub contains no link to it.
+
 Baseline checks passed before documentation changes:
 
 - `npm run content:validate`: 11 products, 1 cluster, and 3 guides.
 - `npm run build`: 9 static pages, including only the hub and the three existing Nurse Gifts child routes.
 - Baseline `apps/site/dist/`: 14 files with composite SHA-256 `36E4729DAC7F47228DBB46D8B07E073C65C2884D176D8129DFDEE55A873492B5`.
 
-Final `npm run verify` reproduced that 14-file public artifact and composite hash. Only this roadmap and `docs/progress.md` changed.
+The Phase 3.0 final `npm run verify` reproduced that 14-file public artifact and composite hash. At that point, only this roadmap and `docs/progress.md` changed; Phase 3.2 adds the blocked personalized product-gap report while keeping the ignored draft and public content out of the artifact.

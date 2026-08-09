@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "id": "gap_nurse-personalized",
+  "recordType": "product-gap-report",
+  "guideId": "guide_nurse-personalized",
+  "clusterId": "cluster_nurse-gifts",
+  "route": "/nurse-gifts/personalized/",
+  "checkedAt": "2026-08-09",
+  "status": "blocked",
+  "candidateProductIds": [
+    "product_badge-reel",
+    "product_insulated-tumbler",
+    "product_shift-tote",
+    "product_stethoscope-case"
+  ],
+  "catalogSnapshot": {
+    "activeCandidateProductIds": [
+      "product_badge-reel",
+      "product_insulated-tumbler",
+      "product_shift-tote",
+      "product_stethoscope-case"
+    ],
+    "verifiedCandidateProductIds": [],
+    "productSourceRecordCount": 0
+  },
+  "slots": [
+    {
+      "id": "personalized-work-accessory",
+      "label": "Personalized work accessory",
+      "category": "Personalized work accessory",
+      "status": "unassigned",
+      "reason": "The active badge-reel form factor is only a lead: its canonical record has no verified customization method, placement, character limits, workplace suitability, or launch-ready destination."
+    },
+    {
+      "id": "personalized-carry-organization",
+      "label": "Personalized carry or organization item",
+      "category": "Personalized carry or organization item",
+      "status": "unassigned",
+      "reason": "The active shift-tote and stethoscope-case form factors have no verified evidence that the exact catalog items can be personalized or that the resulting fit and returns are understood."
+    },
+    {
+      "id": "personalized-drinkware-home",
+      "label": "Personalized drinkware or home-use item",
+      "category": "Personalized drinkware or home-use item",
+      "status": "unassigned",
+      "reason": "The active insulated-tumbler record stores no verified customization options, care details, proofing rules, lead time, or destination for a specific personalized item."
+    },
+    {
+      "id": "personalized-message-keepsake",
+      "label": "Message-led keepsake",
+      "category": "Message-led keepsake",
+      "status": "unassigned",
+      "reason": "No active canonical product has verified message, artwork, proofing, placement, or return facts for a keepsake."
+    },
+    {
+      "id": "personalized-fast-turnaround",
+      "label": "Fast-turnaround personalized option",
+      "category": "Fast-turnaround personalized option",
+      "status": "unassigned",
+      "reason": "No active canonical product has a verified processing or delivery window tied to an exact personalization option and buyer destination."
+    },
+    {
+      "id": "personalized-off-shift-interest",
+      "label": "Fully off-shift personalized gift tied to an interest",
+      "category": "Fully off-shift personalized gift tied to an interest",
+      "status": "unassigned",
+      "reason": "The catalog has no verified interest-led personalized product unrelated to nursing slogans or work equipment."
+    }
+  ],
+  "gaps": [
+    "Verified customization coverage across work accessory, carry or organization, drinkware or home-use, keepsake, fast-turnaround, and off-shift interest categories.",
+    "Stored facts for the exact customization method, placement, character or artwork limits, proofing, lead time, workplace suitability, care, and return limits.",
+    "At least one non-work personalized option tied to a real recipient interest.",
+    "Launch-ready source records, review dates, and destinations for every selected product."
+  ],
+  "blockers": [
+    "No canonical product record stores verified customization facts, so the four active form-factor leads are not eligible recommendations.",
+    "The product-source ledger contains zero records for the candidate products.",
+    "All candidate destinations use the demo merchant and example.com URLs.",
+    "All six recommendation slots remain unassigned, and the existing Studio readiness gate blocks publication without active reviewed products and recommendation copy."
+  ],
+  "nextActions": [
+    "Verify exact personalized items through the existing manual product-intake and product-source workflows, storing only editor-supported facts.",
+    "Record customization method, placement, limits, proofing, lead time, workplace suitability, care, and return facts before selecting any product.",
+    "Add and verify an interest-led off-shift option plus enough category coverage to keep the page differentiated from the practical guide.",
+    "Replace demo destinations, run affiliate QA, select only eligible active products, review every recommendation, preview, and publish the guide and hub atomically when all gates pass."
+  ]
+}
