@@ -1,6 +1,6 @@
 # Content Opportunity Lab
 
-Phase 5.0 establishes the smallest non-public domain for recording article opportunities before editorial planning. Phase 5.1 adds read-only, deterministic comparison against the editorial state. Phase 5.2 adds provider-neutral divergent candidate generation. Phase 5.3 adds advisory convergent AI evaluation of a selected candidate batch. Phase 5.4 adds the human-controlled decision, EditorialBrief, and existing Goal 2 GuideDraft handoff. No Lab phase makes an automatic editorial decision or publishes content.
+Phase 5.0 establishes the smallest non-public domain for recording article opportunities before editorial planning. Phase 5.1 adds read-only, deterministic comparison against the editorial state. Phase 5.2 adds provider-neutral divergent candidate generation. Phase 5.3 adds advisory convergent AI evaluation of a selected candidate batch. Phase 5.4 adds the human-controlled decision, EditorialBrief, and existing Goal 2 GuideDraft handoff. I.1 adds intent-first, product-first, and coverage-first entry modes to that same lifecycle. No Lab phase makes an automatic editorial decision or publishes content.
 
 ## Ownership and storage
 
@@ -18,7 +18,7 @@ Each filename stem must match its stable `candidate_...` ID. The module validate
 
 `packages/content-schema` remains unchanged. Candidates and briefs are internal editorial records, not public content types.
 
-Generation-session records contain the selected cluster/objective, market, language, optional planning horizon and imported summaries, provider/model IDs, prompt version, exact prompt, timestamp, and system-assigned candidate IDs. Generated candidates link back to that session. Regeneration sessions also retain the source candidate and, when present, its source generation session. They never contain provider credentials or complete provider envelopes.
+Generation-session records contain the selected mode, cluster/objective, exact source product/category/I.0 signal IDs, market, language, optional planning horizon and imported summaries, provider/model IDs, prompt version, exact prompt, timestamp, and system-assigned candidate IDs. Generated candidates link back to that session and retain the same mode/source trace. Regeneration sessions also retain the source candidate and, when present, its source generation session. They never contain provider credentials or complete provider envelopes.
 
 Evaluation records keep four distinct structures: candidate facts, system-derived 5.1 comparison and I.0 product-coverage evidence, optional imported signals with source and date range, and validated AI judgments. Human decisions remain only on their candidate records. Evaluation metadata includes provider/model IDs, prompt version, exact prompt, and timestamp, but no credentials or complete provider envelope.
 
@@ -34,6 +34,8 @@ An `ArticleCandidate` contains:
 - closest existing cluster/guide IDs and explicit overlap signals with kind, level, and reason;
 - eleven separate bounded editorial scores;
 - an advisory recommendation and reason;
+- optional generation mode and exact product/category/I.0 source IDs;
+- generated differentiation, maintenance implications, product requirements, and catalog-gap hypotheses;
 - optional imported source-signal IDs;
 - an optional human decision;
 - optional `EditorialBrief` and `GuideDraft` IDs for later traceability; and
@@ -97,6 +99,20 @@ The existing local Spanish Studio provides:
 
 The `create-article` decision creates one editable brief and redirects to it. Section, merge, hold, and reject decisions update only the candidate record. Section and merge require a canonical guide target; merge, hold, and rejection retain the required human reason.
 
+## I.1 session modes
+
+The generation form exposes three mutually explicit starting points without adding another candidate or decision model:
+
+| Mode             | Required starting input                                                        | Result                                                                                                                                                |
+| ---------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `intent-first`   | A concrete audience, problem, occasion, or editorial intent                    | Proposals identify product requirements and possible catalog gaps.                                                                                    |
+| `product-first`  | At least one editor-selected active canonical product ID or active category ID | Proposals must retain a real audience/problem/intent, substantive sections, explicit differentiation and maintenance implications, and 2+ categories. |
+| `coverage-first` | At least one selected deterministic I.0 signal ID                              | The selected I.0 records supply their exact contributing product/category IDs; later evaluation may advise page, section, merge, hold, or rejection.  |
+
+Category IDs are deterministic `category_...` identifiers derived from exact normalized catalog category values or explicit I.0 gap requirements; product-first accepts only active catalog categories. They do not create a second category catalog. Coverage selectors are deterministic read models over the existing I.0 analysis. Product and category sources remain deterministic evidence, imported summaries remain observed evidence, generated framing remains AI interpretation, and only the existing decision actions record human judgment.
+
+Every mode calls the same divergent operation, creates ordinary `ArticleCandidate` records, runs the authoritative 5.1 comparison before persistence, enters the existing convergent evaluation, and uses the existing five human decisions. A selected product, a broad category, an unused product, or a catalog gap never creates or authorizes a URL.
+
 ## Deterministic comparison
 
 Phase 5.1 calculates comparisons at read time and saves no score, snapshot, recommendation, or decision. It compares every candidate with:
@@ -135,7 +151,7 @@ Phase 5.2 adds a generation form to `/opportunities` and one `opportunity-candid
 
 Supported session objectives are cluster expansion, missing intents, seasonal ideas, section opportunities, existing-product reuse, possible cannibalization review, and localization candidates. The deterministic prompt may include the selected cluster, its published pages, matching drafts, supplied approved briefs, prior human candidate decisions, canonical primary axes, observed taxonomy values, active-catalog product categories, target market/language, planning horizon, and imported signal summaries supplied by later modules. The default is 20 candidates; the request and response boundaries reject more than 50.
 
-Each untrusted proposal must contain a title, one canonical primary axis, one primary intent, problem solved, audience, secondary taxonomies, proposed sections, distinctive product categories, a potential-overlap hypothesis, and the literal provenance marker `editorial-hypothesis-only`. Strict output rejects extra fields, URLs, duplicate normalized titles, protected canonical IDs/product identities, and external-performance language such as search volume, keyword difficulty, Search Console, Pinterest, traffic, conversion, or affiliate-performance claims.
+Each untrusted proposal must contain a title, one canonical primary axis, one primary intent, problem solved, audience, secondary taxonomies, proposed sections, distinctive product categories, differentiation, maintenance implications, product requirements, explicit catalog-gap hypotheses, a potential-overlap hypothesis, and the literal provenance marker `editorial-hypothesis-only`. Product-first additionally requires at least two distinct active categories and at least one selected source category. Strict output rejects extra fields, URLs, duplicate normalized titles, protected canonical IDs/product identities, and external-performance language such as search volume, keyword difficulty, Search Console, Pinterest, traffic, conversion, or affiliate-performance claims.
 
 The AI does not return candidate IDs, slugs, statuses, scores, decisions, URLs, product identities, or affiliate data. The Studio assigns a random stable candidate ID, derives the non-public proposed slug, sets `generated`, fills the authoritative 5.0 score fields with zero as an explicit **unassessed** sentinel, and forces the advisory action to `hold`. The advisory reason labels the potential-overlap text as an AI hypothesis; zero is not a low evaluation and the candidate has not entered convergent review.
 
@@ -147,7 +163,7 @@ An editor may request regenerated alternatives from an existing candidate. The n
 
 Phase 5.3 adds one `opportunity-evaluations` operation to the same structured-generation provider. The dedicated deterministic prompt evaluates one to 50 selected `generated` candidates together. It receives candidate facts, complete 5.1 comparison reports, existing public pages, drafts, supplied approved briefs, prior rejected/merged/held/section-converted history, and the existing I.0 product-coverage analysis. Candidate-set synthesis and likely candidate-to-candidate overlap remain explicitly AI interpretation; the evaluator does not create a second deterministic comparison implementation.
 
-Optional imported signals require a stable ID, source label, inclusive ISO date range, and editor-supplied summary. Missing imported evidence is not assigned a numeric zero. The validated response returns eleven separate integer 0–10 judgments, a batch synthesis, missing-evidence notes, an explanation, and one advisory recommendation for every selected candidate. There is no composite score. `add-as-section` and `merge` require an existing published-guide target; other recommendations reject a target. Thin-content or cannibalization risk of 7 or more requires a corresponding actionable explanation.
+Optional imported signals require a stable ID, source label, inclusive ISO date range, and editor-supplied summary. Missing imported evidence is not assigned a numeric zero. The validated response returns eleven separate integer 0–10 judgments, explicit product-concentration and catalog-volatility assessments, a batch synthesis, missing-evidence notes, an explanation, and one advisory recommendation for every selected candidate. The required fields cover thin-content risk, cannibalization risk, product concentration risk, catalog volatility, and product-reuse potential without a composite score. `add-as-section` and `merge` require an existing published-guide target; other recommendations reject a target. Thin-content or cannibalization risk of 7 or more requires a corresponding actionable explanation.
 
 Provider output is untrusted JSON and must evaluate every selected candidate exactly once. A successful evaluation copies the validated scores and advisory explanation into the existing candidate contract, preserves imported signal IDs, and advances only `generated -> evaluated`. The evaluation record preserves the separated evidence and AI judgment plus credential-free generation metadata. It stores the validated editorial result, not the raw provider envelope.
 
@@ -166,14 +182,14 @@ Brief states are `draft`, `approved`, and `converted-to-guide-draft`. Editing do
 - I.0 Product Coverage Analysis remains the sole implementation of deterministic product-coverage signals. The Lab neither copies nor replaces that logic.
 - Product catalog, product-source provenance, and affiliate operations are unchanged.
 - The existing provider adapter is reused unchanged apart from the two Lab structured operations; there is no second adapter, SDK, retry, streaming, agent, embedding, or retrieval layer.
-- Deterministic comparison and I.0 product coverage remain local and authoritative; convergent AI interpretation adds no ranking, product-first mode, coverage-first mode, or sourcing loop.
+- Deterministic comparison and I.0 product coverage remain local and authoritative; I.1 only selects and carries their evidence into the existing AI stages and adds no ranking or sourcing loop.
 - Only the human 5.4 path creates an `EditorialBrief` or ordinary `GuideDraft`.
 - No canonical content, public route, automatic section edit, merge, deletion, preview, or publication behavior is added.
 - All GuideDraft work enters the existing Goal 2 workflow and publishes through its current validation and atomic publication boundary.
 
 ## Verification
 
-The Studio tests cover strict schemas, the full score bounds, all five decisions, early status transitions, decision/target consistency, stable-ID paths, canonical references, atomic replacement, normalization, all eight comparison signal kinds, low/medium/high thresholds, public-contract separation, approved-brief input, prior-decision evidence history, deterministic divergent and convergent prompts, regeneration traceability, rejected-idea suppression, imported-signal provenance, risk actions, target requirements, mock output, malformed provider output, provider failure, default/maximum limits, credential-free metadata, human override, brief persistence/editing/approval, GuideDraft conversion, unpublished integration behavior, and real Astro builds that exclude candidates, briefs, sessions, evaluations, and drafts.
+The Studio tests cover strict schemas, all three I.1 modes, exact source provenance, product-first editorial requirements, the shared generation/comparison/evaluation lifecycle, human rejection and section decisions, the full score bounds, all five decisions, early status transitions, decision/target consistency, stable-ID paths, canonical references, atomic replacement, normalization, all eight comparison signal kinds, low/medium/high thresholds, public-contract separation, approved-brief input, prior-decision evidence history, deterministic divergent and convergent prompts, regeneration traceability, rejected-idea suppression, imported-signal provenance, risk actions, target requirements, mock output, malformed provider output, provider failure, default/maximum limits, credential-free metadata, human override, brief persistence/editing/approval, GuideDraft conversion, unpublished integration behavior, and real Astro builds that exclude candidates, briefs, sessions, evaluations, and drafts.
 
 Run:
 

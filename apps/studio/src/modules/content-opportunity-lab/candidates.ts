@@ -28,6 +28,12 @@ export const CANDIDATE_DECISIONS = [
   "reject",
 ] as const;
 
+export const OPPORTUNITY_SESSION_MODES = [
+  "intent-first",
+  "product-first",
+  "coverage-first",
+] as const;
+
 const safeId = z
   .string()
   .trim()
@@ -114,6 +120,14 @@ export const articleCandidateSchema = z
       recommendation: z.enum(CANDIDATE_DECISIONS),
       reason: nonEmptyText,
     }),
+    sessionMode: z.enum(OPPORTUNITY_SESSION_MODES).optional(),
+    sourceProductIds: z.array(safeId.regex(/^product_/)).optional(),
+    sourceCategoryIds: z.array(safeId.regex(/^category_/)).optional(),
+    sourceCoverageSignalIds: z.array(safeId.regex(/^coverage_/)).optional(),
+    differentiation: nonEmptyText.optional(),
+    maintenanceImplications: nonEmptyText.optional(),
+    productRequirements: textList.optional(),
+    catalogGaps: textList.optional(),
     sourceSignalIds: z.array(safeId).optional(),
     generationSessionId: safeId.regex(/^generation_/).optional(),
     regeneratedFromCandidateId: candidateId.optional(),

@@ -11,8 +11,10 @@ import { z } from "zod";
 import type { GuideGenerationProvider } from "../../ai-provider.ts";
 import type { EditorialDraft } from "../../drafts.ts";
 import { atomicWriteJson } from "../../repository.ts";
+import type { ProductCoverageAnalysis } from "../product-intelligence/coverage.ts";
 import {
   ArticleCandidateStore,
+  OPPORTUNITY_SESSION_MODES,
   articleCandidateSchema,
   candidateSectionsSchema,
   candidateTaxonomiesSchema,
@@ -25,7 +27,7 @@ import {
   type OpportunityComparisonReport,
 } from "./comparison.ts";
 
-export const OPPORTUNITY_GENERATION_PROMPT_VERSION = "opportunity-divergent-v1";
+export const OPPORTUNITY_GENERATION_PROMPT_VERSION = "opportunity-divergent-v2";
 export const DEFAULT_OPPORTUNITY_CANDIDATE_COUNT = 20;
 export const MAX_OPPORTUNITY_CANDIDATE_COUNT = 50;
 export const OPPORTUNITY_GENERATION_SESSIONS_DIRECTORY =
@@ -43,6 +45,36 @@ export const OPPORTUNITY_SESSION_OBJECTIVES = [
 
 const nonEmptyText = z.string().trim().min(1);
 const safeId = nonEmptyText.regex(/^[a-z0-9]+(?:[-_][a-z0-9]+)*$/);
+const productId = safeId.regex(/^product_/);
+const categoryId = safeId.regex(/^category_/);
+const coverageSignalId = safeId.regex(/^coverage_/);
+
+const sourceCategorySchema = z.strictObject({ id: categoryId, label: nonEmptyText });
+const sourceProductSchema = z.strictObject({
+  id: productId,
+  name: nonEmptyText,
+  status: z.enum(["active", "inactive"]),
+  categories: z.array(sourceCategorySchema),
+});
+
+export const opportunityCoverageSignalSchema = z.strictObject({
+  id: coverageSignalId,
+  kind: z.enum([
+    "active-product-unused",
+    "product-reused",
+    "substantial-category",
+    "single-product-category",
+    "low-cluster-diversity",
+    "broad-product-metadata",
+    "draft-slot-gap",
+    "brief-requirement-gap",
+  ]),
+  summary: nonEmptyText,
+  sourceProductIds: z.array(productId),
+  sourceCategories: z.array(sourceCategorySchema),
+});
+
+export type OpportunityCoverageSignal = z.infer<typeof opportunityCoverageSignalSchema>;
 
 export const importedSignalSummarySchema = z.strictObject({
   id: safeId,
@@ -50,21 +82,71 @@ export const importedSignalSummarySchema = z.strictObject({
   summary: nonEmptyText,
 });
 
-export const opportunityGenerationRequestSchema = z.strictObject({
-  clusterId: safeId,
-  sessionObjective: z.enum(OPPORTUNITY_SESSION_OBJECTIVES),
-  candidateCount: z
-    .number()
-    .int()
-    .min(1)
-    .max(MAX_OPPORTUNITY_CANDIDATE_COUNT)
-    .default(DEFAULT_OPPORTUNITY_CANDIDATE_COUNT),
-  targetMarket: nonEmptyText.default("US"),
-  language: nonEmptyText.default("en-US"),
-  planningHorizon: nonEmptyText.optional(),
-  importedSignalSummaries: z.array(importedSignalSummarySchema).max(100).optional(),
-  regenerateFromCandidateId: safeId.regex(/^candidate_/).optional(),
-});
+export const opportunityGenerationRequestSchema = z
+  .strictObject({
+    clusterId: safeId,
+    sessionMode: z.enum(OPPORTUNITY_SESSION_MODES),
+    sessionObjective: z.enum(OPPORTUNITY_SESSION_OBJECTIVES),
+    editorialIntent: nonEmptyText.optional(),
+    sourceProductIds: z.array(productId).max(100).default([]),
+    sourceCategoryIds: z.array(categoryId).max(100).default([]),
+    sourceCoverageSignalIds: z.array(coverageSignalId).max(100).default([]),
+    candidateCount: z
+      .number()
+      .int()
+      .min(1)
+      .max(MAX_OPPORTUNITY_CANDIDATE_COUNT)
+      .default(DEFAULT_OPPORTUNITY_CANDIDATE_COUNT),
+    targetMarket: nonEmptyText.default("US"),
+    language: nonEmptyText.default("en-US"),
+    planningHorizon: nonEmptyText.optional(),
+    importedSignalSummaries: z.array(importedSignalSummarySchema).max(100).optional(),
+    regenerateFromCandidateId: safeId.regex(/^candidate_/).optional(),
+  })
+  .superRefine((request, context) => {
+    if (request.sessionMode === "intent-first" && !request.editorialIntent) {
+      context.addIssue({
+        code: "custom",
+        path: ["editorialIntent"],
+        message: "Intent-first sessions require an editorial intent.",
+      });
+    }
+    if (
+      request.sessionMode === "product-first" &&
+      !request.sourceProductIds.length &&
+      !request.sourceCategoryIds.length
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["sourceProductIds"],
+        message: "Product-first sessions require at least one product or category source ID.",
+      });
+    }
+    if (request.sessionMode === "coverage-first" && !request.sourceCoverageSignalIds.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["sourceCoverageSignalIds"],
+        message: "Coverage-first sessions require at least one I.0 coverage signal ID.",
+      });
+    }
+    if (
+      request.sessionMode !== "product-first" &&
+      (request.sourceProductIds.length || request.sourceCategoryIds.length)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["sourceProductIds"],
+        message: "Only product-first sessions accept direct product or category sources.",
+      });
+    }
+    if (request.sessionMode !== "coverage-first" && request.sourceCoverageSignalIds.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["sourceCoverageSignalIds"],
+        message: "Only coverage-first sessions accept I.0 coverage signal sources.",
+      });
+    }
+  });
 
 export type OpportunityGenerationRequest = z.input<typeof opportunityGenerationRequestSchema>;
 
@@ -90,7 +172,12 @@ const contextRecordSchema = z.strictObject({
 
 export const opportunityGenerationPromptInputSchema = z.strictObject({
   selectedCluster: z.strictObject({ id: safeId, title: nonEmptyText }),
+  sessionMode: z.enum(OPPORTUNITY_SESSION_MODES),
   sessionObjective: z.enum(OPPORTUNITY_SESSION_OBJECTIVES),
+  editorialIntent: nonEmptyText.optional(),
+  sourceProducts: z.array(sourceProductSchema),
+  sourceCategories: z.array(sourceCategorySchema),
+  sourceCoverageSignals: z.array(opportunityCoverageSignalSchema),
   candidateCount: z.number().int().min(1).max(MAX_OPPORTUNITY_CANDIDATE_COUNT),
   targetMarket: nonEmptyText,
   language: nonEmptyText,
@@ -123,6 +210,10 @@ export const generatedOpportunitySchema = z.strictObject({
   secondaryTaxonomies: candidateTaxonomiesSchema,
   proposedSections: candidateSectionsSchema,
   distinctiveProductCategories: z.array(nonEmptyText).min(1),
+  differentiation: nonEmptyText,
+  maintenanceImplications: nonEmptyText,
+  productRequirements: z.array(nonEmptyText).min(1),
+  catalogGaps: z.array(nonEmptyText),
   potentialOverlapHypothesis: nonEmptyText,
   evidenceBasis: z.literal("editorial-hypothesis-only"),
 });
@@ -169,7 +260,12 @@ export const opportunityGenerationSessionSchema = z.strictObject({
   recordType: z.literal("opportunity-generation-session"),
   id: safeId.regex(/^generation_/),
   clusterId: safeId,
+  sessionMode: z.enum(OPPORTUNITY_SESSION_MODES),
   sessionObjective: z.enum(OPPORTUNITY_SESSION_OBJECTIVES),
+  editorialIntent: nonEmptyText.optional(),
+  sourceProductIds: z.array(productId),
+  sourceCategoryIds: z.array(categoryId),
+  sourceCoverageSignalIds: z.array(coverageSignalId),
   requestedCandidateCount: z.number().int().min(1).max(MAX_OPPORTUNITY_CANDIDATE_COUNT),
   targetMarket: nonEmptyText,
   language: nonEmptyText,
@@ -196,6 +292,103 @@ export type OpportunityGenerationSession = z.infer<typeof opportunityGenerationS
 
 function unique(values: readonly string[]): string[] {
   return [...new Set(values.filter(Boolean))].sort();
+}
+
+export function opportunityCategoryId(label: string): string {
+  const slug = label
+    .normalize("NFKD")
+    .replace(/\p{M}+/gu, "")
+    .toLocaleLowerCase("en-US")
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  return categoryId.parse(`category_${slug}`);
+}
+
+export function opportunityCatalogCategories(
+  content: ValidatedPublicContent,
+): z.infer<typeof sourceCategorySchema>[] {
+  return unique(
+    content.products
+      .filter(({ status }) => status === "active")
+      .flatMap(({ categories }) => categories ?? [])
+      .map((label) => label.trim().toLocaleLowerCase("en-US")),
+  ).map((label) => ({ id: opportunityCategoryId(label), label }));
+}
+
+function sourceCategories(labels: readonly string[]): z.infer<typeof sourceCategorySchema>[] {
+  return unique(labels.map((label) => label.trim().toLocaleLowerCase("en-US"))).map((label) => ({
+    id: opportunityCategoryId(label),
+    label,
+  }));
+}
+
+export function opportunityCoverageSignals(
+  analysis: ProductCoverageAnalysis,
+): OpportunityCoverageSignal[] {
+  const { catalogHealth, editorialCoverage } = analysis;
+  return [
+    ...catalogHealth.activeProductsUnused.map((product) => ({
+      id: `coverage_active-unused_${product.productId}`,
+      kind: "active-product-unused" as const,
+      summary: `${product.productId} is active and appears in no published guide.`,
+      sourceProductIds: [product.productId],
+      sourceCategories: sourceCategories(product.categories),
+    })),
+    ...catalogHealth.productsReusedAcrossGuides.map(({ product, guides }) => ({
+      id: `coverage_product-reused_${product.productId}`,
+      kind: "product-reused" as const,
+      summary: `${product.productId} appears in ${guides.length} distinct published guides.`,
+      sourceProductIds: [product.productId],
+      sourceCategories: sourceCategories(product.categories),
+    })),
+    ...catalogHealth.substantialCategories.map(({ category, products }) => ({
+      id: `coverage_substantial-category_${opportunityCategoryId(category)}`,
+      kind: "substantial-category" as const,
+      summary: `${category} has ${products.length} distinct active products.`,
+      sourceProductIds: products.map(({ productId: id }) => id),
+      sourceCategories: sourceCategories([category]),
+    })),
+    ...catalogHealth.singleProductCategories.map(({ category, products }) => ({
+      id: `coverage_single-product-category_${opportunityCategoryId(category)}`,
+      kind: "single-product-category" as const,
+      summary: `${category} has exactly one active product.`,
+      sourceProductIds: products.map(({ productId: id }) => id),
+      sourceCategories: sourceCategories([category]),
+    })),
+    ...catalogHealth.clustersWithLowCategoryDiversity.map(
+      ({ clusterId, categories, products }) => ({
+        id: `coverage_low-cluster-diversity_${clusterId}`,
+        kind: "low-cluster-diversity" as const,
+        summary: `${clusterId} uses ${categories.length} active product categories.`,
+        sourceProductIds: products.map(({ productId: id }) => id),
+        sourceCategories: sourceCategories(categories),
+      }),
+    ),
+    ...catalogHealth.productsWithBroadMetadata.map((product) => ({
+      id: `coverage_broad-product-metadata_${product.productId}`,
+      kind: "broad-product-metadata" as const,
+      summary: `${product.productId} has broad recipient or occasion metadata under I.0 thresholds.`,
+      sourceProductIds: [product.productId],
+      sourceCategories: sourceCategories(product.categories),
+    })),
+    ...editorialCoverage.draftSlotsWithoutSuitableProducts.map((slot) => ({
+      id: `coverage_draft-slot-gap_${slot.guideId}_${slot.slotId}`,
+      kind: "draft-slot-gap" as const,
+      summary: `${slot.guideId}/${slot.slotId} has no suitable active catalog match under the I.0 threshold.`,
+      sourceProductIds: [],
+      sourceCategories: [],
+    })),
+    ...editorialCoverage.briefRequirementsWithoutCatalogCoverage.map((requirement) => ({
+      id: `coverage_brief-requirement-gap_${requirement.reportId}_${requirement.slotId}`,
+      kind: "brief-requirement-gap" as const,
+      summary: `${requirement.reportId}/${requirement.slotId} records an unassigned requirement: ${requirement.reason}`,
+      sourceProductIds: [],
+      sourceCategories: sourceCategories([requirement.requirement]),
+    })),
+  ]
+    .map((signal) => opportunityCoverageSignalSchema.parse(signal))
+    .sort((left, right) => left.id.localeCompare(right.id));
 }
 
 function flattenTaxonomies(
@@ -340,6 +533,7 @@ export function prepareOpportunityGenerationPrompt(
   drafts: readonly EditorialDraft[],
   candidates: readonly ArticleCandidate[],
   approvedBriefs: readonly ApprovedEditorialBriefComparisonRecord[] = [],
+  productCoverage?: ProductCoverageAnalysis,
 ) {
   const parsed = opportunityGenerationRequestSchema.parse(request);
   const cluster = content.clusters.find(({ id }) => id === parsed.clusterId);
@@ -349,6 +543,45 @@ export function prepareOpportunityGenerationPrompt(
   const draftRecords = draftContext(cluster.id, drafts, content);
   const briefRecords = briefContext(cluster.id, approvedBriefs);
   const historyRecords = historyContext(cluster.id, candidates);
+  const catalogCategories = opportunityCatalogCategories(content);
+  const catalogCategoryById = new Map(catalogCategories.map((category) => [category.id, category]));
+  const coverageSignals = productCoverage ? opportunityCoverageSignals(productCoverage) : [];
+  const coverageSignalById = new Map(coverageSignals.map((signal) => [signal.id, signal]));
+  const selectedCoverageSignals = parsed.sourceCoverageSignalIds.map((id) => {
+    const signal = coverageSignalById.get(id);
+    if (!signal) throw new TypeError(`No existe la señal determinista I.0 "${id}".`);
+    return signal;
+  });
+  const directCategories = parsed.sourceCategoryIds.map((id) => {
+    const category = catalogCategoryById.get(id);
+    if (!category) throw new TypeError(`No existe la categoría activa "${id}".`);
+    return category;
+  });
+  const productById = new Map(content.products.map((product) => [product.id, product]));
+  const selectedProductIds = unique([
+    ...parsed.sourceProductIds,
+    ...selectedCoverageSignals.flatMap(({ sourceProductIds }) => sourceProductIds),
+  ]);
+  const selectedProducts = selectedProductIds.map((id) => {
+    const product = productById.get(id);
+    if (!product) throw new TypeError(`No existe el producto canónico "${id}".`);
+    if (parsed.sessionMode === "product-first" && product.status !== "active") {
+      throw new TypeError(`El producto "${id}" debe estar activo para una sesión product-first.`);
+    }
+    return sourceProductSchema.parse({
+      id: product.id,
+      name: product.name,
+      status: product.status,
+      categories: sourceCategories(product.categories ?? []),
+    });
+  });
+  const selectedCategories = [
+    ...directCategories,
+    ...selectedProducts.flatMap(({ categories }) => categories),
+    ...selectedCoverageSignals.flatMap(({ sourceCategories: categories }) => categories),
+  ].filter(
+    (category, index, records) => records.findIndex(({ id }) => id === category.id) === index,
+  );
   const regenerationCandidate = parsed.regenerateFromCandidateId
     ? candidates.find(({ id }) => id === parsed.regenerateFromCandidateId)
     : undefined;
@@ -386,7 +619,12 @@ export function prepareOpportunityGenerationPrompt(
     : undefined;
   const input = opportunityGenerationPromptInputSchema.parse({
     selectedCluster: { id: cluster.id, title: cluster.title },
+    sessionMode: parsed.sessionMode,
     sessionObjective: parsed.sessionObjective,
+    ...(parsed.editorialIntent ? { editorialIntent: parsed.editorialIntent } : {}),
+    sourceProducts: selectedProducts,
+    sourceCategories: selectedCategories,
+    sourceCoverageSignals: selectedCoverageSignals,
     candidateCount: parsed.candidateCount,
     targetMarket: parsed.targetMarket,
     language: parsed.language,
@@ -411,12 +649,14 @@ export function prepareOpportunityGenerationPrompt(
   });
   const prompt = `You are performing divergent editorial opportunity generation for The Good Present.
 
-Generate exactly ${input.candidateCount} conceptually distinct candidates for the selected cluster and session objective. Prefer different audience problems, primary intents, section structures, and product-category combinations over keyword permutations.
+Generate exactly ${input.candidateCount} conceptually distinct candidates for the selected cluster and session objective in ${input.sessionMode} mode. Prefer different audience problems, primary intents, section structures, and product-category combinations over keyword permutations.
+
+Intent-first starts from the supplied audience, problem, occasion, or editorial intent and must identify product requirements and possible catalog gaps. Product-first starts only from the editor-selected source products/categories, but every proposal still needs a genuine audience, concrete problem, distinct primary intent, substantive sections, explicit differentiation, at least two product categories, and maintenance implications; never center a proposal on one product. Coverage-first interprets only the selected deterministic I.0 signals and must leave page, section, merge, hold, or no-action judgment to convergent evaluation and the editor. Products and catalog gaps are evidence and raw material, never automatic justification for a public URL.
 
 This is ideation only. Do not rank, score, shortlist, approve, reject, merge, create a brief or draft, or publish anything. Do not return IDs, slugs, URLs, publication state, product identities, merchants, affiliate details, search volume, keyword difficulty, traffic, social, product, or affiliate performance claims. Treat imported signal summaries, when present, only as editor-supplied context; never recast them as observed metrics. Every candidate must set evidenceBasis to exactly "editorial-hypothesis-only".${input.regenerationSource ? " This is an explicit request for alternatives: every proposal must differ meaningfully from the supplied regeneration source in audience problem, intent, or structure." : ""}
 
 Return exactly one JSON object with this shape and no additional fields:
-{"candidates":[{"proposedTitle":"...","primaryAxis":"one supplied axis","primaryIntent":"...","problemSolved":"...","targetAudience":"...","secondaryTaxonomies":{"occasions":["..."]},"proposedSections":[{"heading":"...","purpose":"..."}],"distinctiveProductCategories":["..."],"potentialOverlapHypothesis":"...","evidenceBasis":"editorial-hypothesis-only"}]}
+{"candidates":[{"proposedTitle":"...","primaryAxis":"one supplied axis","primaryIntent":"...","problemSolved":"...","targetAudience":"...","secondaryTaxonomies":{"occasions":["..."]},"proposedSections":[{"heading":"...","purpose":"..."}],"distinctiveProductCategories":["..."],"differentiation":"...","maintenanceImplications":"...","productRequirements":["..."],"catalogGaps":["..."],"potentialOverlapHypothesis":"...","evidenceBasis":"editorial-hypothesis-only"}]}
 
 Planning input:
 ${JSON.stringify(input, null, 2)}`;
@@ -532,9 +772,11 @@ export function mockOpportunityGeneration(
   input: OpportunityGenerationPromptInput,
 ): GeneratedOpportunityBatch {
   const clusterName = input.selectedCluster.title.replace(/\s+gifts?$/i, "");
-  const categories = input.availableProductCategories.length
-    ? input.availableProductCategories
-    : ["practical accessories"];
+  const categories = unique([
+    ...input.sourceCategories.map(({ label }) => label),
+    ...input.availableProductCategories,
+  ]);
+  const availableCategories = categories.length ? categories : ["practical accessories"];
   return generatedOpportunityBatchSchema.parse({
     candidates: Array.from({ length: input.candidateCount }, (_, index) => {
       const theme = MOCK_THEMES[(index + (input.regenerationSource ? 1 : 0)) % MOCK_THEMES.length]!;
@@ -551,9 +793,14 @@ export function mockOpportunityGeneration(
           purpose: `Develop ${heading.toLocaleLowerCase("en-US")} for ${audience}.`,
         })),
         distinctiveProductCategories: unique([
-          categories[index % categories.length]!,
-          categories[(index + 1) % categories.length]!,
+          availableCategories[index % availableCategories.length]!,
+          availableCategories[(index + 1) % availableCategories.length]!,
         ]),
+        differentiation: theme.overlap,
+        maintenanceImplications:
+          "Review catalog availability and section fit during ordinary editorial maintenance.",
+        productRequirements: theme.sections,
+        catalogGaps: [],
         potentialOverlapHypothesis: theme.overlap,
         evidenceBasis: "editorial-hypothesis-only" as const,
       };
@@ -593,7 +840,7 @@ function assertNoProtectedOutput(
 function assertNoUnchangedRejectedIdeas(
   generated: GeneratedOpportunityBatch,
   candidates: readonly ArticleCandidate[],
-  importedSignalIds: readonly string[],
+  sourceEvidenceIds: readonly string[],
 ): void {
   const rejected = candidates.filter(({ decision }) => decision?.action === "reject");
   for (const proposal of generated.candidates) {
@@ -607,9 +854,13 @@ function assertNoUnchangedRejectedIdeas(
           normalizeComparisonText(proposal.primaryIntent) &&
         normalizeComparisonText(candidate.problemSolved) ===
           normalizeComparisonText(proposal.problemSolved);
-      const changedInput = importedSignalIds.some(
-        (id) => !(candidate.sourceSignalIds ?? []).includes(id),
-      );
+      const priorEvidenceIds = [
+        ...(candidate.sourceSignalIds ?? []),
+        ...(candidate.sourceProductIds ?? []),
+        ...(candidate.sourceCategoryIds ?? []),
+        ...(candidate.sourceCoverageSignalIds ?? []),
+      ];
+      const changedInput = sourceEvidenceIds.some((id) => !priorEvidenceIds.includes(id));
       return (sameTitle || sameCore) && !changedInput;
     });
     if (repeated) {
@@ -675,7 +926,11 @@ function composeCandidate(
   candidates: readonly ArticleCandidate[],
   approvedBriefs: readonly ApprovedEditorialBriefComparisonRecord[],
   generationSessionId: string,
+  sessionMode: ArticleCandidate["sessionMode"],
   sourceSignalIds: readonly string[],
+  sourceProductIds: readonly string[],
+  sourceCategoryIds: readonly string[],
+  sourceCoverageSignalIds: readonly string[],
   regenerationSource: ArticleCandidate | undefined,
   now: Date,
 ): { candidate: ArticleCandidate; comparison: OpportunityComparisonReport } {
@@ -702,6 +957,14 @@ function composeCandidate(
       reason: `AI-generated editorial hypothesis only. Potential overlap hypothesis: ${proposal.potentialOverlapHypothesis} Scores are unassessed and no editorial decision was made.`,
     },
     generationSessionId,
+    sessionMode,
+    sourceProductIds,
+    sourceCategoryIds,
+    sourceCoverageSignalIds,
+    differentiation: proposal.differentiation,
+    maintenanceImplications: proposal.maintenanceImplications,
+    productRequirements: proposal.productRequirements,
+    catalogGaps: proposal.catalogGaps,
     ...(sourceSignalIds.length ? { sourceSignalIds } : {}),
     ...(regenerationSource
       ? {
@@ -732,6 +995,7 @@ export interface GenerateDivergentOpportunitiesContext {
   drafts: readonly EditorialDraft[];
   existingCandidates: readonly ArticleCandidate[];
   approvedBriefs?: readonly ApprovedEditorialBriefComparisonRecord[];
+  productCoverage?: ProductCoverageAnalysis;
   provider: GuideGenerationProvider;
   candidateStore: ArticleCandidateStore;
   repositoryRoot: string;
@@ -748,6 +1012,7 @@ export async function generateDivergentOpportunities(
     context.drafts,
     context.existingCandidates,
     context.approvedBriefs,
+    context.productCoverage,
   );
   const exactResponseSchema = generatedOpportunityBatchSchema.refine(
     ({ candidates }) => candidates.length === prepared.input.candidateCount,
@@ -762,16 +1027,42 @@ export async function generateDivergentOpportunities(
     }),
   );
   assertNoProtectedOutput(generated, context.content);
-  assertNoUnchangedRejectedIdeas(
-    generated,
-    context.existingCandidates,
-    prepared.input.importedSignalSummaries.map(({ id }) => id),
-  );
+  assertNoUnchangedRejectedIdeas(generated, context.existingCandidates, [
+    ...prepared.input.importedSignalSummaries.map(({ id }) => id),
+    ...prepared.input.sourceProducts.map(({ id }) => id),
+    ...prepared.input.sourceCategories.map(({ id }) => id),
+    ...prepared.input.sourceCoverageSignals.map(({ id }) => id),
+  ]);
+  if (prepared.input.sessionMode === "product-first") {
+    const activeCategories = new Set(
+      prepared.input.availableProductCategories.map(normalizeComparisonText),
+    );
+    const sourceCategories = new Set(
+      prepared.input.sourceCategories.map(({ label }) => normalizeComparisonText(label)),
+    );
+    const invalid = generated.candidates.find(
+      ({ distinctiveProductCategories }) =>
+        new Set(distinctiveProductCategories.map(normalizeComparisonText)).size < 2 ||
+        !distinctiveProductCategories.some((category) =>
+          sourceCategories.has(normalizeComparisonText(category)),
+        ) ||
+        distinctiveProductCategories.some(
+          (category) => !activeCategories.has(normalizeComparisonText(category)),
+        ),
+    );
+    if (invalid) {
+      throw new TypeError(
+        "Cada candidato product-first debe usar una categoría fuente y al menos dos categorías activas distintas.",
+      );
+    }
+  }
   if (prepared.input.sessionObjective === "reuse-existing-products") {
-    const available = new Set(prepared.input.availableProductCategories);
+    const available = new Set(
+      prepared.input.availableProductCategories.map(normalizeComparisonText),
+    );
     const unavailable = generated.candidates
       .flatMap(({ distinctiveProductCategories }) => distinctiveProductCategories)
-      .find((category) => !available.has(category));
+      .find((category) => !available.has(normalizeComparisonText(category)));
     if (unavailable) {
       throw new TypeError(
         `La categoría generada "${unavailable}" no existe en el catálogo activo para esta sesión.`,
@@ -794,7 +1085,11 @@ export async function generateDivergentOpportunities(
       context.existingCandidates,
       approvedBriefs,
       generationSessionId,
+      prepared.input.sessionMode,
       prepared.input.importedSignalSummaries.map(({ id }) => id),
+      prepared.input.sourceProducts.map(({ id }) => id),
+      prepared.input.sourceCategories.map(({ id }) => id),
+      prepared.input.sourceCoverageSignals.map(({ id }) => id),
       regenerationSource,
       now,
     ),
@@ -804,7 +1099,12 @@ export async function generateDivergentOpportunities(
     recordType: "opportunity-generation-session",
     id: generationSessionId,
     clusterId: prepared.input.selectedCluster.id,
+    sessionMode: prepared.input.sessionMode,
     sessionObjective: prepared.input.sessionObjective,
+    ...(prepared.input.editorialIntent ? { editorialIntent: prepared.input.editorialIntent } : {}),
+    sourceProductIds: prepared.input.sourceProducts.map(({ id }) => id),
+    sourceCategoryIds: prepared.input.sourceCategories.map(({ id }) => id),
+    sourceCoverageSignalIds: prepared.input.sourceCoverageSignals.map(({ id }) => id),
     requestedCandidateCount: prepared.input.candidateCount,
     targetMarket: prepared.input.targetMarket,
     language: prepared.input.language,

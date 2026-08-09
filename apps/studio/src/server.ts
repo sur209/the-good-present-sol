@@ -102,12 +102,14 @@ import {
 import {
   analyzeProductCoverage,
   type GuideEvidence,
+  type ProductCoverageAnalysis,
   type ProductEvidence,
 } from "./modules/product-intelligence/coverage.ts";
 import { readProductGapReports } from "./modules/product-intelligence/gaps.ts";
 import {
   CANDIDATE_DECISIONS,
   CANDIDATE_STATUSES,
+  OPPORTUNITY_SESSION_MODES,
   ArticleCandidateStore,
   applyCandidateDecision,
   candidateStatusTransitions,
@@ -130,6 +132,8 @@ import {
   OPPORTUNITY_GENERATION_PROMPT_VERSION,
   OPPORTUNITY_SESSION_OBJECTIVES,
   generateDivergentOpportunities,
+  opportunityCatalogCategories,
+  opportunityCoverageSignals,
 } from "./modules/content-opportunity-lab/generation.ts";
 import {
   OPPORTUNITY_EVALUATION_PROMPT_VERSION,
@@ -1018,10 +1022,15 @@ const opportunityObjectiveLabels: Record<(typeof OPPORTUNITY_SESSION_OBJECTIVES)
     "find-localization-candidates": "Buscar candidatos de localización",
   };
 
+const opportunityModeLabels: Record<(typeof OPPORTUNITY_SESSION_MODES)[number], string> = {
+  "intent-first": "Desde una intención editorial",
+  "product-first": "Desde productos o categorías",
+  "coverage-first": "Desde señales deterministas I.0",
+};
+
 function opportunityGenerationRequestFromForm(
   form: URLSearchParams,
-  clusterId = requiredValue(form, "clusterId", "El cluster"),
-  regenerateFromCandidateId?: string,
+  regenerationSource?: ArticleCandidate,
 ) {
   if (form.get("promptVersion") !== OPPORTUNITY_GENERATION_PROMPT_VERSION) {
     throw new TypeError("Revisá el prompt divergente vigente antes de generar.");
@@ -1040,16 +1049,27 @@ function opportunityGenerationRequestFromForm(
   if (!(OPPORTUNITY_SESSION_OBJECTIVES as readonly string[]).includes(sessionObjective)) {
     throw new TypeError("El objetivo de sesión no es válido.");
   }
+  const sessionMode = requiredValue(form, "sessionMode", "El modo de sesión");
+  if (!(OPPORTUNITY_SESSION_MODES as readonly string[]).includes(sessionMode)) {
+    throw new TypeError("El modo de sesión no es válido.");
+  }
   return {
-    clusterId,
+    clusterId: regenerationSource?.clusterId ?? requiredValue(form, "clusterId", "El cluster"),
+    sessionMode: sessionMode as (typeof OPPORTUNITY_SESSION_MODES)[number],
     sessionObjective: sessionObjective as (typeof OPPORTUNITY_SESSION_OBJECTIVES)[number],
+    ...(optionalValue(form, "editorialIntent")
+      ? { editorialIntent: optionalValue(form, "editorialIntent") }
+      : {}),
+    sourceProductIds: form.getAll("sourceProductId"),
+    sourceCategoryIds: form.getAll("sourceCategoryId"),
+    sourceCoverageSignalIds: form.getAll("sourceCoverageSignalId"),
     candidateCount,
     targetMarket: requiredValue(form, "targetMarket", "El mercado objetivo"),
     language: requiredValue(form, "language", "El idioma"),
     ...(optionalValue(form, "planningHorizon")
       ? { planningHorizon: optionalValue(form, "planningHorizon") }
       : {}),
-    ...(regenerateFromCandidateId ? { regenerateFromCandidateId } : {}),
+    ...(regenerationSource ? { regenerateFromCandidateId: regenerationSource.id } : {}),
   };
 }
 
@@ -1116,6 +1136,7 @@ function opportunityComparisonCards(
 function opportunityListPage(
   store: ArticleCandidateStore,
   content: ReturnType<typeof readPublicContent>,
+  productCoverage: ProductCoverageAnalysis,
   provider: GuideGenerationProvider,
   briefs: readonly EditorialBrief[],
 ): string {
@@ -1130,11 +1151,34 @@ function opportunityListPage(
     (objective) =>
       `<option value="${objective}">${escapeHtml(opportunityObjectiveLabels[objective])}</option>`,
   ).join("");
+  const modeOptions = OPPORTUNITY_SESSION_MODES.map(
+    (mode) => `<option value="${mode}">${escapeHtml(opportunityModeLabels[mode])}</option>`,
+  ).join("");
+  const productOptions = content.products
+    .filter(({ status }) => status === "active")
+    .map(
+      (product) =>
+        `<label><input type="checkbox" name="sourceProductId" value="${escapeHtml(product.id)}"> ${escapeHtml(product.name)} <code>${escapeHtml(product.id)}</code></label>`,
+    )
+    .join("");
+  const categoryOptions = opportunityCatalogCategories(content)
+    .map(
+      (category) =>
+        `<label><input type="checkbox" name="sourceCategoryId" value="${escapeHtml(category.id)}"> ${escapeHtml(category.label)} <code>${escapeHtml(category.id)}</code></label>`,
+    )
+    .join("");
+  const coverageOptions = opportunityCoverageSignals(productCoverage)
+    .map(
+      (signal) =>
+        `<label><input type="checkbox" name="sourceCoverageSignalId" value="${escapeHtml(signal.id)}"> ${escapeHtml(signal.summary)} <code>${escapeHtml(signal.id)}</code></label>`,
+    )
+    .join("");
   const list = candidates.length
     ? `<div class="grid">${candidates
         .map(
           (candidate) => `<article class="card">
             <p><span class="status">${escapeHtml(candidate.status)}</span> · <code>${escapeHtml(candidate.clusterId)}</code></p>
+            ${candidate.sessionMode ? `<p>${escapeHtml(opportunityModeLabels[candidate.sessionMode])}</p>` : ""}
             <h2><a href="/opportunities/${encodeURIComponent(candidate.id)}">${escapeHtml(candidate.proposedTitle)}</a></h2>
             <p>${escapeHtml(candidate.primaryIntent)}</p>
             <p class="muted"><code>${escapeHtml(candidate.id)}</code> · actualizado ${escapeHtml(formatDate(candidate.updatedAt))}</p>
@@ -1172,14 +1216,18 @@ function opportunityListPage(
        <form method="post" action="/opportunities/generate">
          <input type="hidden" name="promptVersion" value="${OPPORTUNITY_GENERATION_PROMPT_VERSION}">
          <label>Cluster<select name="clusterId" required>${clusterOptions}</select></label>
+         <label>Modo de sesión<select name="sessionMode" required>${modeOptions}</select></label>
          <label>Objetivo de sesión<select name="sessionObjective" required>${objectiveOptions}</select></label>
+         <label>Intención editorial (obligatoria para intent-first)<textarea name="editorialIntent" rows="3" placeholder="Audiencia, problema, ocasión o intención concreta"></textarea></label>
+         <details><summary>Fuentes product-first</summary><fieldset class="checks"><legend>Productos activos</legend>${productOptions}</fieldset><fieldset class="checks"><legend>Categorías activas</legend>${categoryOptions}</fieldset></details>
+         <details><summary>Fuentes coverage-first</summary><fieldset class="checks"><legend>Señales deterministas I.0</legend>${coverageOptions || '<p class="muted">I.0 no produjo señales seleccionables.</p>'}</fieldset></details>
          <label>Cantidad<input type="number" name="candidateCount" min="1" max="${MAX_OPPORTUNITY_CANDIDATE_COUNT}" value="${DEFAULT_OPPORTUNITY_CANDIDATE_COUNT}" required></label>
          <label>Mercado objetivo<input name="targetMarket" value="US" required></label>
          <label>Idioma<input name="language" value="en-US" required></label>
          <label>Horizonte de planificación (opcional)<input name="planningHorizon" placeholder="Próximos 6 meses"></label>
          <button type="submit">Generar candidatos</button>
        </form>
-       <p class="muted">Esta etapa no acepta métricas externas desde el formulario y no crea briefs, borradores ni publicaciones.</p>
+       <p class="muted">Los productos y las brechas son insumos, no justificación automática de una URL. Esta etapa no acepta métricas externas ni crea briefs, borradores o publicaciones.</p>
      </section>
      <section class="card wide">
        <h2>Evaluación convergente</h2>
@@ -1254,7 +1302,7 @@ function opportunityDetailPage(
     ? `<section class="card"><h2>Evidencia determinista</h2><p class="notice">Señales derivadas por el sistema; no son razonamiento de IA.</p><dl><dt>Comparaciones 5.1</dt><dd>${comparison.nearestEditorialState.length} estados editoriales · ${comparison.priorDecisionHistory.length} decisiones previas</dd><dt>Cobertura I.0</dt><dd>${evaluation.productCoverage.catalogHealth.substantialCategories.length} categorías sustanciales · ${evaluation.productCoverage.catalogHealth.singleProductCategories.length} categorías de un producto · ${evaluation.productCoverage.catalogHealth.activeProductsUnused.length} productos activos sin uso · ${evaluation.productCoverage.catalogHealth.productsReusedAcrossGuides.length} productos con reutilización alta</dd></dl></section>`
     : "";
   const evaluationAid = aiJudgment
-    ? `${deterministicEvidence}<section class="card"><h2>Juicio de IA</h2><p class="notice">Interpretación consultiva, no evidencia observada ni decisión.</p><dl>${scores}</dl><h3>Recomendación</h3><p><strong>${escapeHtml(opportunityDecisionLabels[aiJudgment.recommendation])}</strong>${aiJudgment.targetContentId ? ` · <code>${escapeHtml(aiJudgment.targetContentId)}</code>` : ""}</p><p>${escapeHtml(aiJudgment.explanation)}</p>${aiJudgment.thinContentRiskAction ? `<p><strong>Acción por contenido débil:</strong> ${escapeHtml(aiJudgment.thinContentRiskAction)}</p>` : ""}${aiJudgment.cannibalizationRiskAction ? `<p><strong>Acción por canibalización:</strong> ${escapeHtml(aiJudgment.cannibalizationRiskAction)}</p>` : ""}<h3>Evidencia faltante</h3>${missingEvidence}<h3>Síntesis del lote</h3><p>${escapeHtml(evaluation!.aiJudgment.batchSynthesis)}</p></section>
+    ? `${deterministicEvidence}<section class="card"><h2>Juicio de IA</h2><p class="notice">Interpretación consultiva, no evidencia observada ni decisión.</p><dl>${scores}</dl><h3>Riesgos de producto</h3><p><strong>Concentración:</strong> ${escapeHtml(aiJudgment.productConcentrationRisk)}</p><p><strong>Volatilidad del catálogo:</strong> ${escapeHtml(aiJudgment.catalogVolatility)}</p><h3>Recomendación</h3><p><strong>${escapeHtml(opportunityDecisionLabels[aiJudgment.recommendation])}</strong>${aiJudgment.targetContentId ? ` · <code>${escapeHtml(aiJudgment.targetContentId)}</code>` : ""}</p><p>${escapeHtml(aiJudgment.explanation)}</p>${aiJudgment.thinContentRiskAction ? `<p><strong>Acción por contenido débil:</strong> ${escapeHtml(aiJudgment.thinContentRiskAction)}</p>` : ""}${aiJudgment.cannibalizationRiskAction ? `<p><strong>Acción por canibalización:</strong> ${escapeHtml(aiJudgment.cannibalizationRiskAction)}</p>` : ""}<h3>Evidencia faltante</h3>${missingEvidence}<h3>Síntesis del lote</h3><p>${escapeHtml(evaluation!.aiJudgment.batchSynthesis)}</p></section>
        <section class="card"><h2>Señales importadas</h2><p class="notice">Evidencia factual importada con procedencia y rango de fechas.</p>${importedEvidence}</section>`
     : `<section class="card"><h2>Ayuda editorial guardada</h2><p class="notice">Sin una sesión convergente registrada. Los ceros de candidatos generados significan “sin evaluar”.</p><dl>${scores}</dl><h3>Recomendación consultiva</h3><p><strong>${escapeHtml(opportunityDecisionLabels[candidate.advisory.recommendation])}</strong></p><p>${escapeHtml(candidate.advisory.reason)}</p></section>`;
   const decision = candidate.decision
@@ -1284,6 +1332,18 @@ function opportunityDetailPage(
             <button type="submit">Guardar decisión</button>
           </form></section>`
       : "";
+  const regenerationSources = [
+    ...(candidate.sessionMode === "product-first" ? (candidate.sourceProductIds ?? []) : []).map(
+      (id) => `<input type="hidden" name="sourceProductId" value="${escapeHtml(id)}">`,
+    ),
+    ...(candidate.sessionMode === "product-first" ? (candidate.sourceCategoryIds ?? []) : []).map(
+      (id) => `<input type="hidden" name="sourceCategoryId" value="${escapeHtml(id)}">`,
+    ),
+    ...(candidate.sessionMode === "coverage-first"
+      ? (candidate.sourceCoverageSignalIds ?? [])
+      : []
+    ).map((id) => `<input type="hidden" name="sourceCoverageSignalId" value="${escapeHtml(id)}">`),
+  ].join("");
   const regenerationForm =
     candidate.status === "generated"
       ? ""
@@ -1291,6 +1351,9 @@ function opportunityDetailPage(
           <p class="muted">Crea una nueva sesión divergente enlazada a esta oportunidad y a su sesión de origen. No cambia la decisión humana.</p>
           <form method="post" action="/opportunities/${encodeURIComponent(candidate.id)}/regenerate">
             <input type="hidden" name="promptVersion" value="${OPPORTUNITY_GENERATION_PROMPT_VERSION}">
+            <input type="hidden" name="sessionMode" value="${escapeHtml(candidate.sessionMode ?? "intent-first")}">
+            <input type="hidden" name="editorialIntent" value="${escapeHtml(candidate.primaryIntent)}">
+            ${regenerationSources}
             <label>Objetivo<select name="sessionObjective">${OPPORTUNITY_SESSION_OBJECTIVES.map((objective) => `<option value="${objective}">${escapeHtml(opportunityObjectiveLabels[objective])}</option>`).join("")}</select></label>
             <label>Cantidad<input type="number" name="candidateCount" min="1" max="${MAX_OPPORTUNITY_CANDIDATE_COUNT}" value="5" required></label>
             <label>Mercado<input name="targetMarket" value="US" required></label>
@@ -1311,11 +1374,11 @@ function opportunityDetailPage(
      <div class="grid">
        <section class="card"><h2>Intención</h2><dl><dt>Eje</dt><dd>${escapeHtml(candidate.primaryAxis)}</dd><dt>Intención primaria</dt><dd>${escapeHtml(candidate.primaryIntent)}</dd><dt>Problema resuelto</dt><dd>${escapeHtml(candidate.problemSolved)}</dd><dt>Audiencia</dt><dd>${escapeHtml(candidate.targetAudience)}</dd></dl></section>
        <section class="card"><h2>Taxonomías secundarias</h2><dl>${taxonomies || "<dt>Valores</dt><dd>—</dd>"}</dl></section>
-       <section class="card wide"><h2>Secciones propuestas</h2><ol>${sections}</ol><h3>Categorías de producto distintivas</h3><p>${escapeHtml(candidate.distinctiveProductCategories.join(", ") || "—")}</p></section>
+       <section class="card wide"><h2>Secciones propuestas</h2><ol>${sections}</ol><h3>Categorías de producto distintivas</h3><p>${escapeHtml(candidate.distinctiveProductCategories.join(", ") || "—")}</p>${candidate.differentiation ? `<h3>Diferenciación</h3><p>${escapeHtml(candidate.differentiation)}</p>` : ""}${candidate.maintenanceImplications ? `<h3>Implicaciones de mantenimiento</h3><p>${escapeHtml(candidate.maintenanceImplications)}</p>` : ""}<h3>Requisitos de producto</h3><p>${escapeHtml(candidate.productRequirements?.join(", ") || "—")}</p><h3>Brechas de catálogo propuestas</h3><p>${escapeHtml(candidate.catalogGaps?.join(", ") || "Ninguna identificada")}</p></section>
        <section class="card"><h2>Contenido cercano</h2><p>${candidate.closestExistingContentIds.map((id) => `<code>${escapeHtml(id)}</code>`).join(", ") || "—"}</p><h3>Señales de solapamiento</h3>${overlaps}</section>
        ${evaluationAid}
        <section class="card"><h2>Decisión humana</h2>${decision}<p class="muted">Puede contradecir la recomendación de IA; no se ejecuta automáticamente.</p></section>
-       <section class="card"><h2>Trazabilidad</h2><dl><dt>Sesión de generación</dt><dd>${candidate.generationSessionId ? `<code>${escapeHtml(candidate.generationSessionId)}</code>` : "—"}</dd><dt>Regenerada desde</dt><dd>${candidate.regeneratedFromCandidateId ? `<code>${escapeHtml(candidate.regeneratedFromCandidateId)}</code>${candidate.regeneratedFromSessionId ? ` · <code>${escapeHtml(candidate.regeneratedFromSessionId)}</code>` : ""}` : "—"}</dd><dt>Señales importadas</dt><dd>${candidate.sourceSignalIds?.map((id) => `<code>${escapeHtml(id)}</code>`).join(", ") || "—"}</dd><dt>EditorialBrief</dt><dd>${candidate.editorialBriefId ? `<a href="/opportunities/briefs/${encodeURIComponent(candidate.editorialBriefId)}"><code>${escapeHtml(candidate.editorialBriefId)}</code></a>` : "—"}</dd><dt>GuideDraft</dt><dd>${candidate.guideDraftId ? `<a href="/drafts/${encodeURIComponent(candidate.guideDraftId)}"><code>${escapeHtml(candidate.guideDraftId)}</code></a>` : "—"}</dd></dl><p class="muted">Cada referencia conserva un ciclo de vida separado; sólo la decisión humana de crear artículo inicia un brief.</p></section>
+       <section class="card"><h2>Trazabilidad</h2><dl><dt>Modo</dt><dd>${candidate.sessionMode ? escapeHtml(opportunityModeLabels[candidate.sessionMode]) : "—"}</dd><dt>Sesión de generación</dt><dd>${candidate.generationSessionId ? `<code>${escapeHtml(candidate.generationSessionId)}</code>` : "—"}</dd><dt>Productos fuente</dt><dd>${candidate.sourceProductIds?.map((id) => `<code>${escapeHtml(id)}</code>`).join(", ") || "—"}</dd><dt>Categorías fuente</dt><dd>${candidate.sourceCategoryIds?.map((id) => `<code>${escapeHtml(id)}</code>`).join(", ") || "—"}</dd><dt>Señales I.0 fuente</dt><dd>${candidate.sourceCoverageSignalIds?.map((id) => `<code>${escapeHtml(id)}</code>`).join(", ") || "—"}</dd><dt>Regenerada desde</dt><dd>${candidate.regeneratedFromCandidateId ? `<code>${escapeHtml(candidate.regeneratedFromCandidateId)}</code>${candidate.regeneratedFromSessionId ? ` · <code>${escapeHtml(candidate.regeneratedFromSessionId)}</code>` : ""}` : "—"}</dd><dt>Señales importadas</dt><dd>${candidate.sourceSignalIds?.map((id) => `<code>${escapeHtml(id)}</code>`).join(", ") || "—"}</dd><dt>EditorialBrief</dt><dd>${candidate.editorialBriefId ? `<a href="/opportunities/briefs/${encodeURIComponent(candidate.editorialBriefId)}"><code>${escapeHtml(candidate.editorialBriefId)}</code></a>` : "—"}</dd><dt>GuideDraft</dt><dd>${candidate.guideDraftId ? `<a href="/drafts/${encodeURIComponent(candidate.guideDraftId)}"><code>${escapeHtml(candidate.guideDraftId)}</code></a>` : "—"}</dd></dl><p class="muted">Cada referencia conserva un ciclo de vida separado; sólo la decisión humana de crear artículo inicia un brief.</p></section>
      </div>
      <section><h2>Comparación determinista</h2><p class="notice">Las ocho señales se mantienen separadas y explican sus coincidencias. El orden usa solamente la cantidad visible de señales high y medium; no existe un puntaje total ni una decisión automática.</p></section>
      <section class="card"><h2>Violaciones del contrato público</h2>${contractViolations}<p class="muted">Estas violaciones son independientes del solapamiento consultivo.</p></section>
@@ -2601,12 +2664,18 @@ export function createStudioServer(
         return;
       }
       if (method === "GET" && url.pathname === "/opportunities") {
+        const content = readPublicContent(catalog.root);
+        const listed = await store.list();
+        const guideDrafts = listed.drafts.filter(
+          (draft): draft is GuideDraft => draft.draftType === "gift-guide",
+        );
         send(
           response,
           200,
           opportunityListPage(
             candidateStore,
-            readPublicContent(catalog.root),
+            content,
+            analyzeProductCoverage(content, guideDrafts, readProductGapReports(catalog.root)),
             provider,
             briefStore.list(),
           ),
@@ -2622,11 +2691,19 @@ export function createStudioServer(
           );
         }
         const content = readPublicContent(catalog.root);
+        const guideDrafts = listed.drafts.filter(
+          (draft): draft is GuideDraft => draft.draftType === "gift-guide",
+        );
         await generateDivergentOpportunities(opportunityGenerationRequestFromForm(form), {
           content,
           drafts: listed.drafts,
           existingCandidates: candidateStore.list(),
           approvedBriefs: currentApprovedBriefs(),
+          productCoverage: analyzeProductCoverage(
+            content,
+            guideDrafts,
+            readProductGapReports(catalog.root),
+          ),
           provider,
           candidateStore,
           repositoryRoot: catalog.root,
@@ -2647,13 +2724,22 @@ export function createStudioServer(
             `No se puede generar contra borradores inválidos: ${listed.errors.join("; ")}`,
           );
         }
+        const content = readPublicContent(catalog.root);
+        const guideDrafts = listed.drafts.filter(
+          (draft): draft is GuideDraft => draft.draftType === "gift-guide",
+        );
         await generateDivergentOpportunities(
-          opportunityGenerationRequestFromForm(form, sourceCandidate.clusterId, sourceCandidate.id),
+          opportunityGenerationRequestFromForm(form, sourceCandidate),
           {
-            content: readPublicContent(catalog.root),
+            content,
             drafts: listed.drafts,
             existingCandidates: candidateStore.list(),
             approvedBriefs: currentApprovedBriefs(),
+            productCoverage: analyzeProductCoverage(
+              content,
+              guideDrafts,
+              readProductGapReports(catalog.root),
+            ),
             provider,
             candidateStore,
             repositoryRoot: catalog.root,

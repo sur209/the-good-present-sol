@@ -57,12 +57,19 @@ Every signal exposes its contributing stable IDs:
 
 There is no aggregate opportunity score. Catalog-health observations answer what the current records contain and reuse; editorial-coverage observations identify explicit missing support. Whether any observation merits product research, a brief change, a guide, or no action remains an editor decision.
 
+## I.1 Opportunity Lab consumption
+
+Coverage-first Lab sessions may select deterministic I.0 observations from the existing `/opportunities` form. The Lab derives stable `coverage_...` selector IDs at read time and carries each selected observation's exact contributing canonical product IDs and deterministic `category_...` IDs into the ordinary generation session and candidates. The `category_...` IDs are derived from normalized catalog values or explicit gap requirements; they are selection/provenance identifiers, not a second catalog or public schema.
+
+This is a one-way read boundary: `analyzeProductCoverage()` remains the only coverage calculation, writes no snapshot, and makes no recommendation. The divergent stage frames hypotheses; the convergent stage must separately consider thin-content, cannibalization, product-concentration, catalog-volatility, and product-reuse concerns; the editor still chooses page, section, merge, hold, or rejection through the existing Lab decisions. No signal, product, underused group, or gap automatically creates a candidate, brief, draft, URL, sourcing task, or product intake.
+
 ## Boundaries
 
 - No AI provider or structured-generation call is used.
 - No embeddings, semantic index, network request, scraper, or product import is used.
 - No canonical product, guide, or cluster is written.
 - No draft, candidate, or guide is created automatically.
+- I.1 reads selected I.0 results but does not change thresholds, calculate a second coverage report, or turn a signal into an editorial decision.
 - Any later product work must use the existing intake and source-provenance flows.
 - Any later guide work must use the existing Goal 2 preview, validation, and atomic publication flow.
 

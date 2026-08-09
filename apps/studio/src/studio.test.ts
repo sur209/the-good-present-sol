@@ -113,6 +113,8 @@ import {
   OPPORTUNITY_GENERATION_PROMPT_VERSION,
   generateDivergentOpportunities,
   generatedOpportunityBatchSchema,
+  opportunityCoverageSignals,
+  opportunityGenerationRequestSchema,
   opportunityGenerationSessionPath,
   opportunityGenerationSessionSchema,
   prepareOpportunityGenerationPrompt,
@@ -1028,7 +1030,9 @@ test("construye un prompt divergente determinista y rechaza evidencia o campos p
   const content = readPublicContent();
   const request = {
     clusterId: "cluster_nurse-gifts",
+    sessionMode: "intent-first" as const,
     sessionObjective: "find-missing-intents" as const,
+    editorialIntent: "Find a distinct audience problem within the nurse gifts cluster.",
     candidateCount: 2,
     targetMarket: "US",
     language: "en-US",
@@ -1093,6 +1097,131 @@ test("construye un prompt divergente determinista y rechaza evidencia o campos p
   );
 });
 
+test("ejecuta los tres modos I.1 con procedencia y el ciclo de vida ordinario", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-opportunity-modes-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const content = readPublicContent(repository);
+  const productCoverage = analyzeProductCoverage(content);
+  const coverageSignal = opportunityCoverageSignals(productCoverage)[0]!;
+  const sourceProduct = content.products.find(({ status }) => status === "active")!;
+  const candidateStore = new ArticleCandidateStore(repository);
+  const provider = new MockGuideGenerationProvider();
+  const requests = [
+    {
+      clusterId: "cluster_nurse-gifts",
+      sessionMode: "intent-first" as const,
+      sessionObjective: "find-missing-intents" as const,
+      editorialIntent: "Help families choose for a nurse facing a specific work transition.",
+      candidateCount: 1,
+      targetMarket: "US",
+      language: "en-US",
+    },
+    {
+      clusterId: "cluster_nurse-gifts",
+      sessionMode: "product-first" as const,
+      sessionObjective: "reuse-existing-products" as const,
+      sourceProductIds: [sourceProduct.id],
+      candidateCount: 1,
+      targetMarket: "US",
+      language: "en-US",
+    },
+    {
+      clusterId: "cluster_nurse-gifts",
+      sessionMode: "coverage-first" as const,
+      sessionObjective: "find-section-opportunities" as const,
+      sourceCoverageSignalIds: [coverageSignal.id],
+      candidateCount: 1,
+      targetMarket: "US",
+      language: "en-US",
+    },
+  ];
+
+  assert.equal(
+    opportunityGenerationRequestSchema.safeParse({
+      ...requests[0],
+      editorialIntent: undefined,
+    }).success,
+    false,
+  );
+  assert.equal(
+    opportunityGenerationRequestSchema.safeParse({
+      ...requests[1],
+      sourceProductIds: [],
+    }).success,
+    false,
+  );
+  assert.equal(
+    opportunityGenerationRequestSchema.safeParse({
+      ...requests[2],
+      sourceCoverageSignalIds: [],
+    }).success,
+    false,
+  );
+
+  const generated: ArticleCandidate[] = [];
+  for (const request of requests) {
+    const result = await generateDivergentOpportunities(request, {
+      content,
+      drafts: [],
+      existingCandidates: candidateStore.list(),
+      productCoverage,
+      provider,
+      candidateStore,
+      repositoryRoot: repository,
+    });
+    assert.equal(result.candidates[0]?.sessionMode, request.sessionMode);
+    assert.equal(result.candidates[0]?.status, "generated");
+    assert.equal(result.comparisons.length, 1);
+    generated.push(result.candidates[0]!);
+  }
+
+  const productFirst = generated[1]!;
+  assert.deepEqual(productFirst.sourceProductIds, [sourceProduct.id]);
+  assert.ok(productFirst.sourceCategoryIds?.length);
+  assert.ok(
+    productFirst.primaryIntent && productFirst.problemSolved && productFirst.targetAudience,
+  );
+  assert.ok(productFirst.proposedSections.length);
+  assert.ok(productFirst.distinctiveProductCategories.length >= 2);
+  assert.ok(productFirst.differentiation && productFirst.maintenanceImplications);
+  assert.deepEqual(generated[2]?.sourceCoverageSignalIds, [coverageSignal.id]);
+  assert.deepEqual(generated[2]?.sourceProductIds, coverageSignal.sourceProductIds);
+  assert.deepEqual(
+    generated[2]?.sourceCategoryIds,
+    coverageSignal.sourceCategories.map(({ id }) => id),
+  );
+
+  const evaluationStore = new OpportunityEvaluationStore(repository);
+  const evaluated = await evaluateConvergentOpportunities(
+    { candidateIds: generated.map(({ id }) => id) },
+    {
+      content,
+      drafts: [],
+      existingCandidates: generated,
+      productCoverage,
+      provider,
+      candidateStore,
+      evaluationStore,
+    },
+  );
+  assert.ok(evaluated.candidates.every(({ status }) => status === "evaluated"));
+  const rejected = applyCandidateDecision(evaluated.candidates[0]!, {
+    action: "reject",
+    reason: "The editor found no justified public action.",
+  });
+  const section = applyCandidateDecision(
+    transitionArticleCandidate(evaluated.candidates[1]!, "shortlisted"),
+    {
+      action: "add-as-section",
+      reason: "The editor chose a substantive section instead of a new URL.",
+      targetContentId: "guide_nurse-practical",
+    },
+  );
+  assert.equal(rejected.status, "rejected");
+  assert.equal(section.status, "converted-to-section");
+});
+
 test("construye un prompt convergente determinista y valida puntajes, destinos y procedencia", () => {
   const content = readPublicContent();
   const candidate = articleCandidate();
@@ -1127,6 +1256,8 @@ test("construye un prompt convergente determinista y valida puntajes, destinos y
     recommendation: "hold" as const,
     explanation: "Keep the candidate pending a human comparison.",
     missingEvidence: [],
+    productConcentrationRisk: "The candidate spans more than one product category.",
+    catalogVolatility: "Catalog support must be rechecked before brief approval.",
   };
   assert.equal(opportunityAiJudgmentSchema.safeParse(judgment).success, true);
   assert.equal(
@@ -1287,7 +1418,9 @@ test("genera 20 candidatos mock, compara antes de persistir y guarda metadata si
   const result = await generateDivergentOpportunities(
     {
       clusterId: "cluster_nurse-gifts",
+      sessionMode: "intent-first",
       sessionObjective: "expand-cluster",
+      editorialIntent: "Expand the cluster from a concrete gift-giver problem.",
       targetMarket: "US",
       language: "en-US",
     },
@@ -1335,7 +1468,9 @@ test("genera 20 candidatos mock, compara antes de persistir y guarda metadata si
   const regenerated = await generateDivergentOpportunities(
     {
       clusterId: sourceCandidate.clusterId,
+      sessionMode: "intent-first",
       sessionObjective: "expand-cluster",
+      editorialIntent: sourceCandidate.primaryIntent,
       candidateCount: 1,
       targetMarket: "US",
       language: "en-US",
@@ -1388,7 +1523,9 @@ test("no persiste ante límites inválidos, salida inválida o fallas del provee
     generateDivergentOpportunities(
       {
         clusterId: "cluster_nurse-gifts",
+        sessionMode: "intent-first",
         sessionObjective: "expand-cluster",
+        editorialIntent: "Expand the cluster from a concrete gift-giver problem.",
         candidateCount: MAX_OPPORTUNITY_CANDIDATE_COUNT + 1,
         targetMarket: "US",
         language: "en-US",
@@ -1401,7 +1538,9 @@ test("no persiste ante límites inválidos, salida inválida o fallas del provee
     generateDivergentOpportunities(
       {
         clusterId: "cluster_nurse-gifts",
+        sessionMode: "intent-first",
         sessionObjective: "expand-cluster",
+        editorialIntent: "Expand the cluster from a concrete gift-giver problem.",
         candidateCount: 1,
         targetMarket: "US",
         language: "en-US",
@@ -1421,7 +1560,9 @@ test("no persiste ante límites inválidos, salida inválida o fallas del provee
     generateDivergentOpportunities(
       {
         clusterId: "cluster_nurse-gifts",
+        sessionMode: "intent-first",
         sessionObjective: "expand-cluster",
+        editorialIntent: "Expand the cluster from a concrete gift-giver problem.",
         candidateCount: 1,
         targetMarket: "US",
         language: "en-US",
@@ -1448,6 +1589,10 @@ test("no persiste ante límites inválidos, salida inválida o fallas del provee
             secondaryTaxonomies: rejected.secondaryTaxonomies,
             proposedSections: rejected.proposedSections,
             distinctiveProductCategories: rejected.distinctiveProductCategories,
+            differentiation: "This does not differ from the rejected premise.",
+            maintenanceImplications: "Recheck catalog support during ordinary maintenance.",
+            productRequirements: rejected.distinctiveProductCategories,
+            catalogGaps: [],
             potentialOverlapHypothesis: "This repeats the rejected editorial premise.",
             evidenceBasis: "editorial-hypothesis-only",
           },
@@ -1459,7 +1604,9 @@ test("no persiste ante límites inválidos, salida inválida o fallas del provee
     generateDivergentOpportunities(
       {
         clusterId: rejected.clusterId,
+        sessionMode: "intent-first",
         sessionObjective: "expand-cluster",
+        editorialIntent: rejected.primaryIntent,
         candidateCount: 1,
         targetMarket: "US",
         language: "en-US",
@@ -1569,7 +1716,9 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
     body: new URLSearchParams({
       promptVersion: OPPORTUNITY_GENERATION_PROMPT_VERSION,
       clusterId: "cluster_nurse-gifts",
+      sessionMode: "intent-first",
       sessionObjective: "find-section-opportunities",
+      editorialIntent: "Find a focused audience problem that may fit an existing guide section.",
       candidateCount: "2",
       targetMarket: "US",
       language: "en-US",

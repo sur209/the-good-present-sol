@@ -12,6 +12,7 @@ import { atomicWriteJson } from "../../repository.ts";
 import {
   ArticleCandidateStore,
   CANDIDATE_DECISIONS,
+  OPPORTUNITY_SESSION_MODES,
   candidateScoresSchema,
   candidateSectionsSchema,
   candidateTaxonomiesSchema,
@@ -24,7 +25,7 @@ import {
   type OpportunityComparisonReport,
 } from "./comparison.ts";
 
-export const OPPORTUNITY_EVALUATION_PROMPT_VERSION = "opportunity-convergent-v1";
+export const OPPORTUNITY_EVALUATION_PROMPT_VERSION = "opportunity-convergent-v2";
 export const OPPORTUNITY_EVALUATIONS_DIRECTORY = "editorial-data/opportunity-evaluations";
 
 const nonEmptyText = z.string().trim().min(1);
@@ -78,6 +79,14 @@ const candidateFactSchema = z.strictObject({
   secondaryTaxonomies: candidateTaxonomiesSchema,
   proposedSections: candidateSectionsSchema,
   distinctiveProductCategories: z.array(nonEmptyText).min(1),
+  sessionMode: z.enum(OPPORTUNITY_SESSION_MODES).optional(),
+  sourceProductIds: z.array(safeId.regex(/^product_/)),
+  sourceCategoryIds: z.array(safeId.regex(/^category_/)),
+  sourceCoverageSignalIds: z.array(safeId.regex(/^coverage_/)),
+  differentiation: nonEmptyText.optional(),
+  maintenanceImplications: nonEmptyText.optional(),
+  productRequirements: z.array(nonEmptyText),
+  catalogGaps: z.array(nonEmptyText),
 });
 
 export const opportunityEvaluationPromptInputSchema = z.strictObject({
@@ -101,6 +110,8 @@ export const opportunityAiJudgmentSchema = z
     explanation: nonEmptyText,
     targetContentId: safeId.optional(),
     missingEvidence: z.array(nonEmptyText),
+    productConcentrationRisk: nonEmptyText,
+    catalogVolatility: nonEmptyText,
     thinContentRiskAction: nonEmptyText.optional(),
     cannibalizationRiskAction: nonEmptyText.optional(),
   })
@@ -268,6 +279,16 @@ function candidateFact(candidate: ArticleCandidate): z.infer<typeof candidateFac
     secondaryTaxonomies: candidate.secondaryTaxonomies,
     proposedSections: candidate.proposedSections,
     distinctiveProductCategories: candidate.distinctiveProductCategories,
+    ...(candidate.sessionMode ? { sessionMode: candidate.sessionMode } : {}),
+    sourceProductIds: candidate.sourceProductIds ?? [],
+    sourceCategoryIds: candidate.sourceCategoryIds ?? [],
+    sourceCoverageSignalIds: candidate.sourceCoverageSignalIds ?? [],
+    ...(candidate.differentiation ? { differentiation: candidate.differentiation } : {}),
+    ...(candidate.maintenanceImplications
+      ? { maintenanceImplications: candidate.maintenanceImplications }
+      : {}),
+    productRequirements: candidate.productRequirements ?? [],
+    catalogGaps: candidate.catalogGaps ?? [],
   });
 }
 
@@ -304,12 +325,12 @@ export function prepareOpportunityEvaluationPrompt(
 
 Critically compare the selected candidate batch as a set. Candidate facts are proposals. deterministicEvidence and productCoverage are system-derived facts from the existing deterministic comparison and product-coverage implementations. importedSignals are editor-supplied observed evidence only when present, and their source and date range must remain explicit. Your scores, synthesis, explanations, overlap assessments, risks, and recommendation are AI judgment, never observed evidence.
 
-Return each of these separate integer judgment scores from 0 through 10: intentDifferentiation, editorialUsefulness, productDifferentiation, audienceClarity, seasonalValue, commercialPotential, visualDistributionPotential, productReusePotential, thinContentRisk, cannibalizationRisk, maintenanceCost. Do not calculate or return a composite score. Missing evidence belongs in missingEvidence and must never be treated as zero. Do not invent search volume, keyword difficulty, Search Console metrics, Pinterest performance, affiliate performance, product facts, prices, stock, availability, or any other unavailable external fact.
+Return each of these separate integer judgment scores from 0 through 10: intentDifferentiation, editorialUsefulness, productDifferentiation, audienceClarity, seasonalValue, commercialPotential, visualDistributionPotential, productReusePotential, thinContentRisk, cannibalizationRisk, maintenanceCost. Also explain product concentration risk and catalog volatility separately. Together these fields must explicitly consider thin-content risk, cannibalization risk, product concentration risk, catalog volatility, and product-reuse potential. Do not calculate or return a composite score. Missing evidence belongs in missingEvidence and must never be treated as zero. Do not invent search volume, keyword difficulty, Search Console metrics, Pinterest performance, affiliate performance, product facts, prices, stock, availability, or any other unavailable external fact.
 
 Return one advisory recommendation per candidate: create-article, add-as-section, merge, hold, or reject. Explain it actionably. add-as-section and merge require targetContentId naming a published-guide target from deterministicEvidence; every other recommendation must omit targetContentId. A thinContentRisk or cannibalizationRisk score of 7 or more requires the corresponding actionable risk field. Do not shortlist, decide, create, merge, delete, reject, hold, create a brief or draft, or publish anything.
 
 Return exactly one JSON object with this shape and no additional fields:
-{"batchSynthesis":"...","evaluations":[{"candidateId":"candidate_...","scores":{"intentDifferentiation":0,"editorialUsefulness":0,"productDifferentiation":0,"audienceClarity":0,"seasonalValue":0,"commercialPotential":0,"visualDistributionPotential":0,"productReusePotential":0,"thinContentRisk":0,"cannibalizationRisk":0,"maintenanceCost":0},"recommendation":"hold","explanation":"...","missingEvidence":["..."],"thinContentRiskAction":"required when score >= 7","cannibalizationRiskAction":"required when score >= 7"}]}
+{"batchSynthesis":"...","evaluations":[{"candidateId":"candidate_...","scores":{"intentDifferentiation":0,"editorialUsefulness":0,"productDifferentiation":0,"audienceClarity":0,"seasonalValue":0,"commercialPotential":0,"visualDistributionPotential":0,"productReusePotential":0,"thinContentRisk":0,"cannibalizationRisk":0,"maintenanceCost":0},"recommendation":"hold","explanation":"...","missingEvidence":["..."],"productConcentrationRisk":"...","catalogVolatility":"...","thinContentRiskAction":"required when score >= 7","cannibalizationRiskAction":"required when score >= 7"}]}
 
 Evaluation input:
 ${JSON.stringify(input, null, 2)}`;
@@ -340,6 +361,9 @@ export function mockOpportunityEvaluation(
       recommendation: "hold",
       explanation:
         "Keep this candidate in review until an editor compares its distinct intent and product scope with the deterministic evidence.",
+      productConcentrationRisk:
+        "Confirm that the idea does not depend on one product or one narrow category.",
+      catalogVolatility: "Recheck active catalog support before an editor approves a brief.",
       missingEvidence: input.importedSignals.length
         ? []
         : ["No imported source signals were supplied for this evaluation."],
