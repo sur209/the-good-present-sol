@@ -127,6 +127,15 @@ import {
   opportunityEvaluationSessionSchema,
   prepareOpportunityEvaluationPrompt,
 } from "./modules/content-opportunity-lab/evaluation.ts";
+import {
+  EditorialBriefStore,
+  approveCandidateForBrief,
+  approveEditorialBrief,
+  convertApprovedBriefToGuideDraft,
+  editorialBriefPath,
+  editorialBriefSchema,
+  updateEditorialBrief,
+} from "./modules/content-opportunity-lab/review.ts";
 import { Publisher, clusterDraftToPublic, guideDraftToPublic } from "./publication.ts";
 import { REPOSITORY_ROOT, atomicWriteJson, readPublicContent } from "./repository.ts";
 import { STUDIO_HOST, createStudioServer } from "./server.ts";
@@ -774,13 +783,11 @@ test("valida candidatos, puntajes separados, decisiones y transiciones acotadas"
     assert.equal(decided.status, expectedStatus);
     assert.equal(decided.decision?.action, action);
   }
-  assert.equal(
-    applyCandidateDecision(evaluated, {
-      action: "hold",
-      reason: "Keep the evaluated candidate without shortlisting it.",
-    }).status,
-    "evaluated",
-  );
+  const held = applyCandidateDecision(evaluated, {
+    action: "hold",
+    reason: "Keep the evaluated candidate without shortlisting it.",
+  });
+  assert.equal(held.status, "evaluated");
   assert.throws(
     () =>
       applyCandidateDecision(shortlisted, {
@@ -810,6 +817,88 @@ test("valida candidatos, puntajes separados, decisiones y transiciones acotadas"
   });
   assert.equal(tracedLaterState.editorialBriefId, "brief_nurse-shift-recovery");
   assert.equal(tracedLaterState.guideDraftId, "guide_nurse-shift-recovery");
+});
+
+test("persiste un brief editable, exige aprobación y crea un GuideDraft sin contenido público", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-editorial-brief-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const candidateStore = new ArticleCandidateStore(repository);
+  const briefStore = new EditorialBriefStore(repository, candidateStore);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const shortlisted = transitionArticleCandidate(
+    transitionArticleCandidate(articleCandidate(), "evaluated"),
+    "shortlisted",
+  );
+  await candidateStore.save(shortlisted);
+
+  const created = await approveCandidateForBrief(
+    shortlisted,
+    "The editor approved a distinct recovery article for planning.",
+    candidateStore,
+    briefStore,
+    new Date("2026-08-09T03:00:00.000Z"),
+  );
+  assert.equal(created.candidate.status, "approved-for-brief");
+  assert.equal(created.candidate.editorialBriefId, created.brief.id);
+  assert.equal(created.brief.status, "draft");
+  assert.equal(
+    editorialBriefSchema.parse(
+      JSON.parse(await readFile(editorialBriefPath(repository, created.brief.id), "utf8")),
+    ).id,
+    created.brief.id,
+  );
+
+  const edited = updateEditorialBrief(created.brief, {
+    workingTitle: "Recovery Gifts for Nurses After Long Shifts",
+    proposedSlug: "nurse-shift-recovery-gifts",
+    primaryAxis: created.brief.primaryAxis,
+    primaryIntent: created.brief.primaryIntent,
+    targetAudience: created.brief.targetAudience,
+    problemSolved: created.brief.problemSolved,
+    differentiation: "Own the off-shift recovery problem rather than broad practical utility.",
+    plannedSections: created.brief.plannedSections,
+    productRequirements: ["sleep support", "recovery tools"],
+    researchQuestions: ["Which product facts require source verification?"],
+    expectedInternalLinks: ["guide_nurse-practical"],
+    relatedContentIds: ["guide_nurse-practical"],
+    editorialEvidenceNotes: ["Confirm the section boundary during copy review."],
+    risks: ["Avoid unsupported health claims."],
+  });
+  await briefStore.save(edited);
+  assert.equal(briefStore.get(edited.id).workingTitle, edited.workingTitle);
+  await assert.rejects(
+    convertApprovedBriefToGuideDraft(
+      edited,
+      candidateStore,
+      briefStore,
+      draftStore,
+      readPublicContent(repository),
+    ),
+    /Approve the brief/,
+  );
+
+  const approved = approveEditorialBrief(edited, new Date("2026-08-09T04:00:00.000Z"));
+  await briefStore.save(approved);
+  assert.throws(() => updateEditorialBrief(approved, {} as never), /draft brief/);
+  const converted = await convertApprovedBriefToGuideDraft(
+    approved,
+    candidateStore,
+    briefStore,
+    draftStore,
+    readPublicContent(repository),
+    new Date("2026-08-09T05:00:00.000Z"),
+  );
+  assert.equal(converted.brief.status, "converted-to-guide-draft");
+  assert.equal(converted.candidate.status, "converted-to-draft");
+  assert.equal(converted.candidate.guideDraftId, converted.draft.id);
+  assert.equal(converted.draft.status, "questionnaire");
+  assert.equal(converted.draft.slug, edited.proposedSlug);
+  assert.equal(converted.draft.recommendations.length, 0);
+  assert.equal((await draftStore.read(converted.draft.id)).id, converted.draft.id);
+  await assert.rejects(
+    readFile(join(repository, "content", "guides", `${converted.draft.id}.json`), "utf8"),
+  );
 });
 
 test("normaliza y explica por separado cada señal determinista", () => {
@@ -1237,6 +1326,39 @@ test("genera 20 candidatos mock, compara antes de persistir y guarda metadata si
   assert.equal(storedSession.requestedCandidateCount, DEFAULT_OPPORTUNITY_CANDIDATE_COUNT);
   assert.equal(storedSession.providerId, "mock");
   assert.doesNotMatch(JSON.stringify(storedSession), /api[_-]?key|authorization|bearer/i);
+  assert.ok(
+    result.candidates.every(({ generationSessionId }) => generationSessionId === result.session.id),
+  );
+
+  const sourceCandidate = transitionArticleCandidate(result.candidates[0]!, "evaluated");
+  await candidateStore.save(sourceCandidate);
+  const regenerated = await generateDivergentOpportunities(
+    {
+      clusterId: sourceCandidate.clusterId,
+      sessionObjective: "expand-cluster",
+      candidateCount: 1,
+      targetMarket: "US",
+      language: "en-US",
+      regenerateFromCandidateId: sourceCandidate.id,
+    },
+    {
+      content,
+      drafts: [],
+      existingCandidates: candidateStore.list(),
+      provider,
+      candidateStore,
+      repositoryRoot: repository,
+      now: new Date("2026-08-09T13:00:00.000Z"),
+    },
+  );
+  assert.equal(regenerated.session.regenerationRequest?.sourceCandidateId, sourceCandidate.id);
+  assert.equal(
+    regenerated.session.regenerationRequest?.sourceGenerationSessionId,
+    result.session.id,
+  );
+  assert.equal(regenerated.candidates[0]?.generationSessionId, regenerated.session.id);
+  assert.equal(regenerated.candidates[0]?.regeneratedFromCandidateId, sourceCandidate.id);
+  assert.equal(regenerated.candidates[0]?.regeneratedFromSessionId, result.session.id);
 });
 
 test("no persiste ante límites inválidos, salida inválida o fallas del proveedor", async (context) => {
@@ -1307,6 +1429,48 @@ test("no persiste ante límites inválidos, salida inválida o fallas del provee
       { ...generationContext, provider: failedProvider },
     ),
     /Provider unavailable/,
+  );
+  const rejected = applyCandidateDecision(
+    transitionArticleCandidate(articleCandidate(), "evaluated"),
+    { action: "reject", reason: "The editor rejected this exact idea." },
+  );
+  const repeatedProvider: GuideGenerationProvider = {
+    providerId: "repeated-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      return request.schema.parse({
+        candidates: [
+          {
+            proposedTitle: rejected.proposedTitle,
+            primaryAxis: rejected.primaryAxis,
+            primaryIntent: rejected.primaryIntent,
+            problemSolved: rejected.problemSolved,
+            targetAudience: rejected.targetAudience,
+            secondaryTaxonomies: rejected.secondaryTaxonomies,
+            proposedSections: rejected.proposedSections,
+            distinctiveProductCategories: rejected.distinctiveProductCategories,
+            potentialOverlapHypothesis: "This repeats the rejected editorial premise.",
+            evidenceBasis: "editorial-hypothesis-only",
+          },
+        ],
+      });
+    },
+  };
+  await assert.rejects(
+    generateDivergentOpportunities(
+      {
+        clusterId: rejected.clusterId,
+        sessionObjective: "expand-cluster",
+        candidateCount: 1,
+        targetMarket: "US",
+        language: "en-US",
+      },
+      {
+        ...generationContext,
+        existingCandidates: [rejected],
+        provider: repeatedProvider,
+      },
+    ),
+    /repite la oportunidad rechazada/,
   );
   assert.deepEqual(candidateStore.list(), []);
 });
@@ -1447,7 +1611,8 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
   assert.match(detailHtml, /Violaciones del contrato público/);
   assert.match(detailHtml, /guía publicada/);
   assert.match(detailHtml, /EditorialBrief aprobado/);
-  assert.match(detailHtml, /no crea briefs ni GuideDrafts/);
+  assert.match(detailHtml, /sólo la decisión humana de crear artículo inicia un brief/);
+  assert.match(detailHtml, /Regenerar alternativas/);
   assert.match(detailHtml, /Juicio de IA/);
   assert.match(detailHtml, /Evidencia determinista/);
   assert.match(detailHtml, /Cobertura I\.0/);
@@ -1481,6 +1646,95 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
     readFile(join(repository, "content", "guides", `${candidate.id}.json`), "utf8"),
   );
 
+  const briefSentinel = "PRIVATE_BRIEF_SENTINEL_20260809";
+  const briefCandidate = transitionArticleCandidate(
+    transitionArticleCandidate(
+      articleCandidate({
+        id: "candidate_http-brief",
+        proposedTitle: briefSentinel,
+        proposedSlug: "http-brief-sentinel",
+      }),
+      "evaluated",
+    ),
+    "shortlisted",
+  );
+  await candidateStore.save(briefCandidate);
+  const approveForBriefResponse = await fetch(
+    `${origin}/opportunities/${briefCandidate.id}/decision`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        action: "create-article",
+        reason: "The editor approves a separate article brief.",
+      }),
+      redirect: "manual",
+    },
+  );
+  assert.equal(approveForBriefResponse.status, 303);
+  const briefLocation = approveForBriefResponse.headers.get("location");
+  assert.match(briefLocation ?? "", /^\/opportunities\/briefs\/brief_/);
+  const briefId = briefLocation!.split("/").at(-1)!;
+  const briefResponse = await fetch(`${origin}${briefLocation}`);
+  assert.equal(briefResponse.status, 200);
+  assert.match(await briefResponse.text(), /Brief editable/);
+
+  const saveBriefResponse = await fetch(`${origin}${briefLocation}`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      workingTitle: briefSentinel,
+      proposedSlug: "http-brief-sentinel",
+      primaryAxis: "work-context",
+      primaryIntent: briefCandidate.primaryIntent,
+      targetAudience: briefCandidate.targetAudience,
+      problemSolved: briefCandidate.problemSolved,
+      differentiation: "A human-edited distinction from the closest practical guide.",
+      plannedSections:
+        "Recovery context | Define the off-shift problem.\nResearch plan | List facts to verify.",
+      productRequirements: "sleep support\nrecovery tools",
+      researchQuestions: "Which facts require source verification?",
+      expectedInternalLinks: "guide_nurse-practical",
+      relatedContentIds: "guide_nurse-practical",
+      editorialEvidenceNotes: "Human note kept separate from AI interpretation.",
+      risks: "Avoid unsupported health claims.",
+    }),
+    redirect: "manual",
+  });
+  assert.equal(saveBriefResponse.status, 303);
+  const approveBriefResponse = await fetch(`${origin}${briefLocation}/approve`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams(),
+    redirect: "manual",
+  });
+  assert.equal(approveBriefResponse.status, 303);
+  const convertBriefResponse = await fetch(`${origin}${briefLocation}/convert`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams(),
+    redirect: "manual",
+  });
+  assert.equal(convertBriefResponse.status, 303);
+  const draftLocation = convertBriefResponse.headers.get("location");
+  assert.match(draftLocation ?? "", /^\/drafts\/guide_/);
+  const guideDraftId = draftLocation!.split("/").at(-1)!;
+  const convertedDraft = guideDraftSchema.parse(
+    JSON.parse(await readFile(join(repository, "drafts", `${guideDraftId}.json`), "utf8")),
+  );
+  assert.equal(convertedDraft.status, "questionnaire");
+  assert.equal(convertedDraft.title, briefSentinel);
+  assert.equal(convertedDraft.recommendations.length, 0);
+  const convertedBrief = editorialBriefSchema.parse(
+    JSON.parse(await readFile(editorialBriefPath(repository, briefId), "utf8")),
+  );
+  assert.equal(convertedBrief.status, "converted-to-guide-draft");
+  assert.equal(convertedBrief.guideDraftId, guideDraftId);
+  assert.equal(candidateStore.get(briefCandidate.id).guideDraftId, guideDraftId);
+  await assert.rejects(
+    readFile(join(repository, "content", "guides", `${guideDraftId}.json`), "utf8"),
+  );
+
   await execFileAsync(process.execPath, [join(REPOSITORY_ROOT, "scripts", "astro.mjs"), "build"], {
     cwd: join(REPOSITORY_ROOT, "apps", "site"),
     env: { ...process.env, CONTENT_REPOSITORY_ROOT: repository },
@@ -1502,6 +1756,7 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
     /opportunities|article-candidates|opportunity-generation-sessions|opportunity-evaluations/,
   );
   assert.doesNotMatch(outputHtml, new RegExp(sentinel));
+  assert.doesNotMatch(outputHtml, new RegExp(briefSentinel));
   assert.doesNotMatch(outputHtml, /article-candidate|candidate_nurse-shift-recovery/);
 });
 

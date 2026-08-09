@@ -63,6 +63,7 @@ export const opportunityGenerationRequestSchema = z.strictObject({
   language: nonEmptyText.default("en-US"),
   planningHorizon: nonEmptyText.optional(),
   importedSignalSummaries: z.array(importedSignalSummarySchema).max(100).optional(),
+  regenerateFromCandidateId: safeId.regex(/^candidate_/).optional(),
 });
 
 export type OpportunityGenerationRequest = z.input<typeof opportunityGenerationRequestSchema>;
@@ -102,6 +103,7 @@ export const opportunityGenerationPromptInputSchema = z.strictObject({
   taxonomyValues: z.array(nonEmptyText),
   availableProductCategories: z.array(nonEmptyText),
   importedSignalSummaries: z.array(importedSignalSummarySchema),
+  regenerationSource: contextRecordSchema.optional(),
 });
 
 export type OpportunityGenerationPromptInput = z.infer<
@@ -182,6 +184,12 @@ export const opportunityGenerationSessionSchema = z.strictObject({
     .array(safeId.regex(/^candidate_/))
     .min(1)
     .max(MAX_OPPORTUNITY_CANDIDATE_COUNT),
+  regenerationRequest: z
+    .strictObject({
+      sourceCandidateId: safeId.regex(/^candidate_/),
+      sourceGenerationSessionId: safeId.regex(/^generation_/).optional(),
+    })
+    .optional(),
 });
 
 export type OpportunityGenerationSession = z.infer<typeof opportunityGenerationSessionSchema>;
@@ -341,6 +349,41 @@ export function prepareOpportunityGenerationPrompt(
   const draftRecords = draftContext(cluster.id, drafts, content);
   const briefRecords = briefContext(cluster.id, approvedBriefs);
   const historyRecords = historyContext(cluster.id, candidates);
+  const regenerationCandidate = parsed.regenerateFromCandidateId
+    ? candidates.find(({ id }) => id === parsed.regenerateFromCandidateId)
+    : undefined;
+  if (parsed.regenerateFromCandidateId && !regenerationCandidate) {
+    throw new TypeError(`No existe la oportunidad fuente "${parsed.regenerateFromCandidateId}".`);
+  }
+  if (regenerationCandidate?.status === "generated") {
+    throw new TypeError("Evaluá la oportunidad antes de regenerar alternativas.");
+  }
+  if (
+    regenerationCandidate?.clusterId !== undefined &&
+    regenerationCandidate.clusterId !== cluster.id
+  ) {
+    throw new TypeError("La oportunidad fuente debe pertenecer al cluster seleccionado.");
+  }
+  const regenerationSource = regenerationCandidate
+    ? {
+        id: regenerationCandidate.id,
+        kind: "candidate-history" as const,
+        title: regenerationCandidate.proposedTitle,
+        status: regenerationCandidate.status,
+        primaryAxis: regenerationCandidate.primaryAxis,
+        primaryIntent: regenerationCandidate.primaryIntent,
+        taxonomies: flattenTaxonomies(regenerationCandidate.secondaryTaxonomies),
+        sections: regenerationCandidate.proposedSections.map(
+          ({ heading, purpose }) => `${heading} ${purpose}`,
+        ),
+        productCategories: unique(regenerationCandidate.distinctiveProductCategories),
+        ...(regenerationCandidate.decision
+          ? {
+              priorDecision: `${regenerationCandidate.decision.action}: ${regenerationCandidate.decision.reason}`,
+            }
+          : {}),
+      }
+    : undefined;
   const input = opportunityGenerationPromptInputSchema.parse({
     selectedCluster: { id: cluster.id, title: cluster.title },
     sessionObjective: parsed.sessionObjective,
@@ -364,12 +407,13 @@ export function prepareOpportunityGenerationPrompt(
         .flatMap(({ categories }) => categories ?? []),
     ),
     importedSignalSummaries: parsed.importedSignalSummaries ?? [],
+    ...(regenerationSource ? { regenerationSource } : {}),
   });
   const prompt = `You are performing divergent editorial opportunity generation for The Good Present.
 
 Generate exactly ${input.candidateCount} conceptually distinct candidates for the selected cluster and session objective. Prefer different audience problems, primary intents, section structures, and product-category combinations over keyword permutations.
 
-This is ideation only. Do not rank, score, shortlist, approve, reject, merge, create a brief or draft, or publish anything. Do not return IDs, slugs, URLs, publication state, product identities, merchants, affiliate details, search volume, keyword difficulty, traffic, social, product, or affiliate performance claims. Treat imported signal summaries, when present, only as editor-supplied context; never recast them as observed metrics. Every candidate must set evidenceBasis to exactly "editorial-hypothesis-only".
+This is ideation only. Do not rank, score, shortlist, approve, reject, merge, create a brief or draft, or publish anything. Do not return IDs, slugs, URLs, publication state, product identities, merchants, affiliate details, search volume, keyword difficulty, traffic, social, product, or affiliate performance claims. Treat imported signal summaries, when present, only as editor-supplied context; never recast them as observed metrics. Every candidate must set evidenceBasis to exactly "editorial-hypothesis-only".${input.regenerationSource ? " This is an explicit request for alternatives: every proposal must differ meaningfully from the supplied regeneration source in audience problem, intent, or structure." : ""}
 
 Return exactly one JSON object with this shape and no additional fields:
 {"candidates":[{"proposedTitle":"...","primaryAxis":"one supplied axis","primaryIntent":"...","problemSolved":"...","targetAudience":"...","secondaryTaxonomies":{"occasions":["..."]},"proposedSections":[{"heading":"...","purpose":"..."}],"distinctiveProductCategories":["..."],"potentialOverlapHypothesis":"...","evidenceBasis":"editorial-hypothesis-only"}]}
@@ -493,7 +537,7 @@ export function mockOpportunityGeneration(
     : ["practical accessories"];
   return generatedOpportunityBatchSchema.parse({
     candidates: Array.from({ length: input.candidateCount }, (_, index) => {
-      const theme = MOCK_THEMES[index % MOCK_THEMES.length]!;
+      const theme = MOCK_THEMES[(index + (input.regenerationSource ? 1 : 0)) % MOCK_THEMES.length]!;
       const audience = MOCK_AUDIENCES[Math.floor(index / MOCK_THEMES.length)]!;
       return {
         proposedTitle: `${theme.title} for ${clusterName}: ${audience}`,
@@ -543,6 +587,36 @@ function assertNoProtectedOutput(
   );
   if (found) {
     throw new TypeError("La respuesta generada intentó controlar una identidad protegida.");
+  }
+}
+
+function assertNoUnchangedRejectedIdeas(
+  generated: GeneratedOpportunityBatch,
+  candidates: readonly ArticleCandidate[],
+  importedSignalIds: readonly string[],
+): void {
+  const rejected = candidates.filter(({ decision }) => decision?.action === "reject");
+  for (const proposal of generated.candidates) {
+    const repeated = rejected.find((candidate) => {
+      const sameTitle =
+        normalizeComparisonText(candidate.proposedTitle) ===
+        normalizeComparisonText(proposal.proposedTitle);
+      const sameCore =
+        candidate.primaryAxis === proposal.primaryAxis &&
+        normalizeComparisonText(candidate.primaryIntent) ===
+          normalizeComparisonText(proposal.primaryIntent) &&
+        normalizeComparisonText(candidate.problemSolved) ===
+          normalizeComparisonText(proposal.problemSolved);
+      const changedInput = importedSignalIds.some(
+        (id) => !(candidate.sourceSignalIds ?? []).includes(id),
+      );
+      return (sameTitle || sameCore) && !changedInput;
+    });
+    if (repeated) {
+      throw new TypeError(
+        `La propuesta repite la oportunidad rechazada "${repeated.id}" sin evidencia nueva.`,
+      );
+    }
   }
 }
 
@@ -600,6 +674,9 @@ function composeCandidate(
   drafts: readonly EditorialDraft[],
   candidates: readonly ArticleCandidate[],
   approvedBriefs: readonly ApprovedEditorialBriefComparisonRecord[],
+  generationSessionId: string,
+  sourceSignalIds: readonly string[],
+  regenerationSource: ArticleCandidate | undefined,
   now: Date,
 ): { candidate: ArticleCandidate; comparison: OpportunityComparisonReport } {
   const timestamp = now.toISOString();
@@ -624,6 +701,16 @@ function composeCandidate(
       recommendation: "hold",
       reason: `AI-generated editorial hypothesis only. Potential overlap hypothesis: ${proposal.potentialOverlapHypothesis} Scores are unassessed and no editorial decision was made.`,
     },
+    generationSessionId,
+    ...(sourceSignalIds.length ? { sourceSignalIds } : {}),
+    ...(regenerationSource
+      ? {
+          regeneratedFromCandidateId: regenerationSource.id,
+          ...(regenerationSource.generationSessionId
+            ? { regeneratedFromSessionId: regenerationSource.generationSessionId }
+            : {}),
+        }
+      : {}),
     status: "generated",
     createdAt: timestamp,
     updatedAt: timestamp,
@@ -675,6 +762,11 @@ export async function generateDivergentOpportunities(
     }),
   );
   assertNoProtectedOutput(generated, context.content);
+  assertNoUnchangedRejectedIdeas(
+    generated,
+    context.existingCandidates,
+    prepared.input.importedSignalSummaries.map(({ id }) => id),
+  );
   if (prepared.input.sessionObjective === "reuse-existing-products") {
     const available = new Set(prepared.input.availableProductCategories);
     const unavailable = generated.candidates
@@ -689,6 +781,10 @@ export async function generateDivergentOpportunities(
 
   const now = context.now ?? new Date();
   const approvedBriefs = context.approvedBriefs ?? [];
+  const generationSessionId = `generation_${randomUUID()}`;
+  const regenerationSource = prepared.input.regenerationSource
+    ? context.existingCandidates.find(({ id }) => id === prepared.input.regenerationSource?.id)
+    : undefined;
   const composed = generated.candidates.map((proposal) =>
     composeCandidate(
       proposal,
@@ -697,13 +793,16 @@ export async function generateDivergentOpportunities(
       context.drafts,
       context.existingCandidates,
       approvedBriefs,
+      generationSessionId,
+      prepared.input.importedSignalSummaries.map(({ id }) => id),
+      regenerationSource,
       now,
     ),
   );
   const session = opportunityGenerationSessionSchema.parse({
     schemaVersion: 1,
     recordType: "opportunity-generation-session",
-    id: `generation_${randomUUID()}`,
+    id: generationSessionId,
     clusterId: prepared.input.selectedCluster.id,
     sessionObjective: prepared.input.sessionObjective,
     requestedCandidateCount: prepared.input.candidateCount,
@@ -717,6 +816,16 @@ export async function generateDivergentOpportunities(
     prompt: prepared.prompt,
     generatedAt: now.toISOString(),
     candidateIds: composed.map(({ candidate }) => candidate.id),
+    ...(regenerationSource
+      ? {
+          regenerationRequest: {
+            sourceCandidateId: regenerationSource.id,
+            ...(regenerationSource.generationSessionId
+              ? { sourceGenerationSessionId: regenerationSource.generationSessionId }
+              : {}),
+          },
+        }
+      : {}),
   });
 
   for (const { candidate } of composed) await context.candidateStore.save(candidate);

@@ -137,6 +137,16 @@ import {
   evaluateConvergentOpportunities,
   type OpportunityEvaluationSession,
 } from "./modules/content-opportunity-lab/evaluation.ts";
+import {
+  EditorialBriefStore,
+  approveCandidateForBrief,
+  approveEditorialBrief,
+  convertApprovedBriefToGuideDraft,
+  editorialBriefComparisonRecords,
+  updateEditorialBrief,
+  type EditorialBrief,
+  type EditorialBriefEdits,
+} from "./modules/content-opportunity-lab/review.ts";
 import { REPOSITORY_ROOT, readPublicContent } from "./repository.ts";
 
 export const STUDIO_HOST = "127.0.0.1";
@@ -990,9 +1000,9 @@ const opportunityScoreLabels: Record<keyof ArticleCandidate["scores"], string> =
 };
 
 const opportunityDecisionLabels: Record<(typeof CANDIDATE_DECISIONS)[number], string> = {
-  "create-article": "Crear artículo",
-  "add-as-section": "Agregar como sección",
-  merge: "Fusionar",
+  "create-article": "Aprobar para brief",
+  "add-as-section": "Convertir en sección",
+  merge: "Fusionar con contenido existente",
   hold: "Mantener en espera",
   reject: "Rechazar",
 };
@@ -1007,6 +1017,41 @@ const opportunityObjectiveLabels: Record<(typeof OPPORTUNITY_SESSION_OBJECTIVES)
     "review-cannibalization": "Revisar posible canibalización",
     "find-localization-candidates": "Buscar candidatos de localización",
   };
+
+function opportunityGenerationRequestFromForm(
+  form: URLSearchParams,
+  clusterId = requiredValue(form, "clusterId", "El cluster"),
+  regenerateFromCandidateId?: string,
+) {
+  if (form.get("promptVersion") !== OPPORTUNITY_GENERATION_PROMPT_VERSION) {
+    throw new TypeError("Revisá el prompt divergente vigente antes de generar.");
+  }
+  const candidateCount = Number(requiredValue(form, "candidateCount", "La cantidad"));
+  if (
+    !Number.isInteger(candidateCount) ||
+    candidateCount < 1 ||
+    candidateCount > MAX_OPPORTUNITY_CANDIDATE_COUNT
+  ) {
+    throw new TypeError(
+      `La cantidad debe ser un entero entre 1 y ${MAX_OPPORTUNITY_CANDIDATE_COUNT}.`,
+    );
+  }
+  const sessionObjective = requiredValue(form, "sessionObjective", "El objetivo de sesión");
+  if (!(OPPORTUNITY_SESSION_OBJECTIVES as readonly string[]).includes(sessionObjective)) {
+    throw new TypeError("El objetivo de sesión no es válido.");
+  }
+  return {
+    clusterId,
+    sessionObjective: sessionObjective as (typeof OPPORTUNITY_SESSION_OBJECTIVES)[number],
+    candidateCount,
+    targetMarket: requiredValue(form, "targetMarket", "El mercado objetivo"),
+    language: requiredValue(form, "language", "El idioma"),
+    ...(optionalValue(form, "planningHorizon")
+      ? { planningHorizon: optionalValue(form, "planningHorizon") }
+      : {}),
+    ...(regenerateFromCandidateId ? { regenerateFromCandidateId } : {}),
+  };
+}
 
 const opportunitySignalLabels: Record<OpportunitySignalKind, string> = {
   "normalized-title": "Título normalizado",
@@ -1072,6 +1117,7 @@ function opportunityListPage(
   store: ArticleCandidateStore,
   content: ReturnType<typeof readPublicContent>,
   provider: GuideGenerationProvider,
+  briefs: readonly EditorialBrief[],
 ): string {
   const candidates = store.list();
   const clusterOptions = content.clusters
@@ -1103,6 +1149,17 @@ function opportunityListPage(
         `<label><input type="checkbox" name="candidateId" value="${escapeHtml(candidate.id)}"> ${escapeHtml(candidate.proposedTitle)} <code>${escapeHtml(candidate.id)}</code></label>`,
     )
     .join("");
+  const briefList = briefs.length
+    ? `<div class="grid">${briefs
+        .map(
+          (brief) => `<article class="card">
+            <p><span class="status">${escapeHtml(brief.status)}</span> · <code>${escapeHtml(brief.clusterId)}</code></p>
+            <h3><a href="/opportunities/briefs/${encodeURIComponent(brief.id)}">${escapeHtml(brief.workingTitle)}</a></h3>
+            <p class="muted"><code>${escapeHtml(brief.id)}</code> · candidato <code>${escapeHtml(brief.sourceCandidateId)}</code></p>
+          </article>`,
+        )
+        .join("")}</div>`
+    : '<p class="muted">Todavía no hay briefs editoriales.</p>';
   return page(
     "Oportunidades de contenido",
     `<h1>Oportunidades de contenido</h1>
@@ -1142,7 +1199,9 @@ function opportunityListPage(
        <p class="muted">La fuente y el rango de fechas se conservan; ausencia de datos no equivale a cero. Shortlist y decisiones posteriores siguen siendo humanas.</p>
      </section>
      <h2>Candidatos guardados</h2>
-     ${list}`,
+     ${list}
+     <h2>Briefs editoriales</h2>
+     ${briefList}`,
   );
 }
 
@@ -1225,6 +1284,20 @@ function opportunityDetailPage(
             <button type="submit">Guardar decisión</button>
           </form></section>`
       : "";
+  const regenerationForm =
+    candidate.status === "generated"
+      ? ""
+      : `<section class="card"><h2>Regenerar alternativas</h2>
+          <p class="muted">Crea una nueva sesión divergente enlazada a esta oportunidad y a su sesión de origen. No cambia la decisión humana.</p>
+          <form method="post" action="/opportunities/${encodeURIComponent(candidate.id)}/regenerate">
+            <input type="hidden" name="promptVersion" value="${OPPORTUNITY_GENERATION_PROMPT_VERSION}">
+            <label>Objetivo<select name="sessionObjective">${OPPORTUNITY_SESSION_OBJECTIVES.map((objective) => `<option value="${objective}">${escapeHtml(opportunityObjectiveLabels[objective])}</option>`).join("")}</select></label>
+            <label>Cantidad<input type="number" name="candidateCount" min="1" max="${MAX_OPPORTUNITY_CANDIDATE_COUNT}" value="5" required></label>
+            <label>Mercado<input name="targetMarket" value="US" required></label>
+            <label>Idioma<input name="language" value="en-US" required></label>
+            <label>Horizonte (opcional)<input name="planningHorizon"></label>
+            <button type="submit">Regenerar alternativas</button>
+          </form></section>`;
   const contractViolations = comparison.publicContractViolations.length
     ? `<ul>${comparison.publicContractViolations.map((violation) => `<li>${escapeHtml(violation)}</li>`).join("")}</ul>`
     : '<p class="muted">No se detectaron violaciones del contrato público.</p>';
@@ -1242,13 +1315,112 @@ function opportunityDetailPage(
        <section class="card"><h2>Contenido cercano</h2><p>${candidate.closestExistingContentIds.map((id) => `<code>${escapeHtml(id)}</code>`).join(", ") || "—"}</p><h3>Señales de solapamiento</h3>${overlaps}</section>
        ${evaluationAid}
        <section class="card"><h2>Decisión humana</h2>${decision}<p class="muted">Puede contradecir la recomendación de IA; no se ejecuta automáticamente.</p></section>
-       <section class="card"><h2>Trazabilidad</h2><dl><dt>Señales importadas</dt><dd>${candidate.sourceSignalIds?.map((id) => `<code>${escapeHtml(id)}</code>`).join(", ") || "—"}</dd><dt>EditorialBrief</dt><dd>${candidate.editorialBriefId ? `<code>${escapeHtml(candidate.editorialBriefId)}</code>` : "—"}</dd><dt>GuideDraft</dt><dd>${candidate.guideDraftId ? `<code>${escapeHtml(candidate.guideDraftId)}</code>` : "—"}</dd></dl><p class="muted">Cada referencia conserva un ciclo de vida separado; esta pantalla no crea briefs ni GuideDrafts.</p></section>
+       <section class="card"><h2>Trazabilidad</h2><dl><dt>Sesión de generación</dt><dd>${candidate.generationSessionId ? `<code>${escapeHtml(candidate.generationSessionId)}</code>` : "—"}</dd><dt>Regenerada desde</dt><dd>${candidate.regeneratedFromCandidateId ? `<code>${escapeHtml(candidate.regeneratedFromCandidateId)}</code>${candidate.regeneratedFromSessionId ? ` · <code>${escapeHtml(candidate.regeneratedFromSessionId)}</code>` : ""}` : "—"}</dd><dt>Señales importadas</dt><dd>${candidate.sourceSignalIds?.map((id) => `<code>${escapeHtml(id)}</code>`).join(", ") || "—"}</dd><dt>EditorialBrief</dt><dd>${candidate.editorialBriefId ? `<a href="/opportunities/briefs/${encodeURIComponent(candidate.editorialBriefId)}"><code>${escapeHtml(candidate.editorialBriefId)}</code></a>` : "—"}</dd><dt>GuideDraft</dt><dd>${candidate.guideDraftId ? `<a href="/drafts/${encodeURIComponent(candidate.guideDraftId)}"><code>${escapeHtml(candidate.guideDraftId)}</code></a>` : "—"}</dd></dl><p class="muted">Cada referencia conserva un ciclo de vida separado; sólo la decisión humana de crear artículo inicia un brief.</p></section>
      </div>
      <section><h2>Comparación determinista</h2><p class="notice">Las ocho señales se mantienen separadas y explican sus coincidencias. El orden usa solamente la cantidad visible de señales high y medium; no existe un puntaje total ni una decisión automática.</p></section>
      <section class="card"><h2>Violaciones del contrato público</h2>${contractViolations}<p class="muted">Estas violaciones son independientes del solapamiento consultivo.</p></section>
      <section><h2>Estado editorial más cercano</h2><div class="grid">${opportunityComparisonCards(comparison.nearestEditorialState, "No hay páginas, borradores ni briefs aprobados para comparar.")}</div></section>
      <section><h2>Decisiones anteriores comparables</h2><div class="grid">${opportunityComparisonCards(comparison.priorDecisionHistory, "No hay candidatos rechazados, fusionados, mantenidos en espera ni convertidos en sección.")}</div></section>
-     ${decisionForm}`,
+     ${decisionForm}${regenerationForm}`,
+  );
+}
+
+function briefLineValues(form: URLSearchParams, name: string): string[] {
+  return listValue(form, name, "\n") ?? [];
+}
+
+function briefSectionsValue(form: URLSearchParams): EditorialBrief["plannedSections"] {
+  return briefLineValues(form, "plannedSections").map((line, index) => {
+    const separator = line.indexOf("|");
+    if (separator < 1 || separator === line.length - 1) {
+      throw new TypeError(`La sección ${index + 1} debe usar el formato "Título | propósito".`);
+    }
+    return { heading: line.slice(0, separator).trim(), purpose: line.slice(separator + 1).trim() };
+  });
+}
+
+function editorialBriefEditsFromForm(form: URLSearchParams): EditorialBriefEdits {
+  return {
+    workingTitle: requiredValue(form, "workingTitle", "El título de trabajo"),
+    proposedSlug: requiredValue(form, "proposedSlug", "El slug propuesto"),
+    primaryAxis: primaryAxisValue(form, "primaryAxis"),
+    primaryIntent: requiredValue(form, "primaryIntent", "La intención primaria"),
+    targetAudience: requiredValue(form, "targetAudience", "La audiencia"),
+    problemSolved: requiredValue(form, "problemSolved", "El problema resuelto"),
+    differentiation: requiredValue(form, "differentiation", "La diferenciación"),
+    plannedSections: briefSectionsValue(form),
+    productRequirements: briefLineValues(form, "productRequirements"),
+    researchQuestions: briefLineValues(form, "researchQuestions"),
+    expectedInternalLinks: listValue(form, "expectedInternalLinks") ?? [],
+    relatedContentIds: listValue(form, "relatedContentIds") ?? [],
+    editorialEvidenceNotes: briefLineValues(form, "editorialEvidenceNotes"),
+    risks: briefLineValues(form, "risks"),
+  };
+}
+
+function briefPage(brief: EditorialBrief): string {
+  const itemList = (items: readonly string[]) =>
+    items.length
+      ? `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
+      : '<p class="muted">—</p>';
+  const axisOptions = PRIMARY_AXES.map(
+    (axis) =>
+      `<option value="${axis}"${brief.primaryAxis === axis ? " selected" : ""}>${escapeHtml(axisLabels[axis])}</option>`,
+  ).join("");
+  const editForm =
+    brief.status === "draft"
+      ? `<section class="card wide"><h2>Brief editable</h2>
+          <form method="post" action="/opportunities/briefs/${encodeURIComponent(brief.id)}">
+            <label>Título de trabajo<input name="workingTitle" value="${escapeHtml(brief.workingTitle)}" required></label>
+            <label>Slug propuesto<input name="proposedSlug" value="${escapeHtml(brief.proposedSlug)}" required></label>
+            <label>Eje primario<select name="primaryAxis">${axisOptions}</select></label>
+            <label>Intención primaria<textarea name="primaryIntent" rows="2" required>${escapeHtml(brief.primaryIntent)}</textarea></label>
+            <label>Audiencia<textarea name="targetAudience" rows="2" required>${escapeHtml(brief.targetAudience)}</textarea></label>
+            <label>Problema<textarea name="problemSolved" rows="2" required>${escapeHtml(brief.problemSolved)}</textarea></label>
+            <label>Diferenciación<textarea name="differentiation" rows="3" required>${escapeHtml(brief.differentiation)}</textarea></label>
+            <label>Secciones · una por línea: Título | propósito<textarea name="plannedSections" rows="7" required>${escapeHtml(brief.plannedSections.map(({ heading, purpose }) => `${heading} | ${purpose}`).join("\n"))}</textarea></label>
+            <label>Requisitos de producto · uno por línea<textarea name="productRequirements" rows="5">${escapeHtml(brief.productRequirements.join("\n"))}</textarea></label>
+            <label>Preguntas de investigación · una por línea<textarea name="researchQuestions" rows="5">${escapeHtml(brief.researchQuestions.join("\n"))}</textarea></label>
+            <label>Links internos esperados · IDs separados por coma<input name="expectedInternalLinks" value="${escapeHtml(brief.expectedInternalLinks.join(", "))}"></label>
+            <label>Contenido relacionado · IDs separados por coma<input name="relatedContentIds" value="${escapeHtml(brief.relatedContentIds.join(", "))}"></label>
+            <label>Notas editoriales de evidencia · una por línea<textarea name="editorialEvidenceNotes" rows="4">${escapeHtml(brief.evidenceNotes.editorial.join("\n"))}</textarea></label>
+            <label>Riesgos · uno por línea<textarea name="risks" rows="4">${escapeHtml(brief.risks.join("\n"))}</textarea></label>
+            <button type="submit">Guardar brief</button>
+          </form>
+          <form method="post" action="/opportunities/briefs/${encodeURIComponent(brief.id)}/approve"><button type="submit">Aprobar brief</button></form>
+        </section>`
+      : "";
+  const nextAction =
+    brief.status === "approved"
+      ? `<form method="post" action="/opportunities/briefs/${encodeURIComponent(brief.id)}/convert"><button type="submit">Crear GuideDraft</button></form><p class="muted">La conversión crea un borrador común en estado questionnaire; no selecciona productos ni publica.</p>`
+      : brief.guideDraftId
+        ? `<p><a class="button" href="/drafts/${encodeURIComponent(brief.guideDraftId)}">Abrir GuideDraft</a></p>`
+        : "";
+  const evidence = (
+    [
+      ["Determinista", brief.evidenceNotes.deterministic],
+      ["Observada/importada", brief.evidenceNotes.observed],
+      ["Interpretación de IA", brief.evidenceNotes.aiInterpretation],
+      ["Notas editoriales", brief.evidenceNotes.editorial],
+    ] as const
+  )
+    .map(
+      ([label, notes]) =>
+        `<h3>${label}</h3>${notes.length ? `<ul>${notes.map((note) => `<li>${escapeHtml(note)}</li>`).join("")}</ul>` : '<p class="muted">—</p>'}`,
+    )
+    .join("");
+  return page(
+    brief.workingTitle,
+    `<p><a href="/opportunities/${encodeURIComponent(brief.sourceCandidateId)}">← Volver a la oportunidad</a></p>
+     <div class="actions"><h1>${escapeHtml(brief.workingTitle)}</h1><span class="status">${escapeHtml(brief.status)}</span></div>
+     <p><code>${escapeHtml(brief.id)}</code> · candidato <code>${escapeHtml(brief.sourceCandidateId)}</code> · cluster <code>${escapeHtml(brief.clusterId)}</code></p>
+     <div class="grid">
+       <section class="card"><h2>Decisión humana</h2><p>${escapeHtml(brief.evidenceNotes.humanDecision)}</p></section>
+       <section class="card"><h2>Trazabilidad</h2><dl><dt>Creado</dt><dd>${escapeHtml(formatDate(brief.createdAt))}</dd><dt>Aprobado</dt><dd>${brief.approvedAt ? escapeHtml(formatDate(brief.approvedAt)) : "—"}</dd><dt>Convertido</dt><dd>${brief.convertedAt ? escapeHtml(formatDate(brief.convertedAt)) : "—"}</dd><dt>GuideDraft</dt><dd>${brief.guideDraftId ? `<code>${escapeHtml(brief.guideDraftId)}</code>` : "—"}</dd></dl>${nextAction}</section>
+       <section class="card wide"><h2>Plan editorial</h2><dl><dt>Slug</dt><dd><code>${escapeHtml(brief.proposedSlug)}</code></dd><dt>Eje</dt><dd>${escapeHtml(brief.primaryAxis)}</dd><dt>Intención</dt><dd>${escapeHtml(brief.primaryIntent)}</dd><dt>Audiencia</dt><dd>${escapeHtml(brief.targetAudience)}</dd><dt>Problema</dt><dd>${escapeHtml(brief.problemSolved)}</dd><dt>Diferenciación</dt><dd>${escapeHtml(brief.differentiation)}</dd></dl><h3>Secciones</h3><ol>${brief.plannedSections.map(({ heading, purpose }) => `<li><strong>${escapeHtml(heading)}</strong>: ${escapeHtml(purpose)}</li>`).join("")}</ol><h3>Requisitos de producto</h3>${itemList(brief.productRequirements)}<h3>Preguntas de investigación</h3>${itemList(brief.researchQuestions)}<h3>Links internos esperados</h3>${itemList(brief.expectedInternalLinks)}<h3>Contenido relacionado</h3>${itemList(brief.relatedContentIds)}<h3>Riesgos</h3>${itemList(brief.risks)}</section>
+       <section class="card wide"><h2>Evidencia separada</h2>${evidence}</section>
+     </div>
+     ${editForm}`,
   );
 }
 
@@ -1995,7 +2167,16 @@ export function createStudioServer(
   candidateStore = new ArticleCandidateStore(catalog.root),
   approvedBriefs: readonly ApprovedEditorialBriefComparisonRecord[] = [],
   evaluationStore = new OpportunityEvaluationStore(catalog.root),
+  briefStore = new EditorialBriefStore(catalog.root, candidateStore),
 ) {
+  const currentApprovedBriefs = () => [
+    ...new Map(
+      [...approvedBriefs, ...editorialBriefComparisonRecords(briefStore.list())].map((brief) => [
+        brief.id,
+        brief,
+      ]),
+    ).values(),
+  ];
   return createServer(async (request, response) => {
     try {
       const method = request.method ?? "GET";
@@ -2423,25 +2604,17 @@ export function createStudioServer(
         send(
           response,
           200,
-          opportunityListPage(candidateStore, readPublicContent(catalog.root), provider),
+          opportunityListPage(
+            candidateStore,
+            readPublicContent(catalog.root),
+            provider,
+            briefStore.list(),
+          ),
         );
         return;
       }
       if (method === "POST" && url.pathname === "/opportunities/generate") {
         const form = await readForm(request);
-        if (form.get("promptVersion") !== OPPORTUNITY_GENERATION_PROMPT_VERSION) {
-          throw new TypeError("Revisá el prompt divergente vigente antes de generar.");
-        }
-        const candidateCount = Number(requiredValue(form, "candidateCount", "La cantidad"));
-        if (
-          !Number.isInteger(candidateCount) ||
-          candidateCount < 1 ||
-          candidateCount > MAX_OPPORTUNITY_CANDIDATE_COUNT
-        ) {
-          throw new TypeError(
-            `La cantidad debe ser un entero entre 1 y ${MAX_OPPORTUNITY_CANDIDATE_COUNT}.`,
-          );
-        }
         const listed = await store.list();
         if (listed.errors.length) {
           throw new TypeError(
@@ -2449,26 +2622,38 @@ export function createStudioServer(
           );
         }
         const content = readPublicContent(catalog.root);
-        const sessionObjective = requiredValue(form, "sessionObjective", "El objetivo de sesión");
-        if (!(OPPORTUNITY_SESSION_OBJECTIVES as readonly string[]).includes(sessionObjective)) {
-          throw new TypeError("El objetivo de sesión no es válido.");
+        await generateDivergentOpportunities(opportunityGenerationRequestFromForm(form), {
+          content,
+          drafts: listed.drafts,
+          existingCandidates: candidateStore.list(),
+          approvedBriefs: currentApprovedBriefs(),
+          provider,
+          candidateStore,
+          repositoryRoot: catalog.root,
+        });
+        redirect(response, "/opportunities");
+        return;
+      }
+      const opportunityRegenerationMatch =
+        method === "POST"
+          ? /^\/opportunities\/(candidate_[a-z0-9_-]+)\/regenerate$/.exec(url.pathname)
+          : null;
+      if (opportunityRegenerationMatch?.[1]) {
+        const form = await readForm(request);
+        const sourceCandidate = candidateStore.get(opportunityRegenerationMatch[1]);
+        const listed = await store.list();
+        if (listed.errors.length) {
+          throw new TypeError(
+            `No se puede generar contra borradores inválidos: ${listed.errors.join("; ")}`,
+          );
         }
         await generateDivergentOpportunities(
+          opportunityGenerationRequestFromForm(form, sourceCandidate.clusterId, sourceCandidate.id),
           {
-            clusterId: requiredValue(form, "clusterId", "El cluster"),
-            sessionObjective: sessionObjective as (typeof OPPORTUNITY_SESSION_OBJECTIVES)[number],
-            candidateCount,
-            targetMarket: requiredValue(form, "targetMarket", "El mercado objetivo"),
-            language: requiredValue(form, "language", "El idioma"),
-            ...(optionalValue(form, "planningHorizon")
-              ? { planningHorizon: optionalValue(form, "planningHorizon") }
-              : {}),
-          },
-          {
-            content,
+            content: readPublicContent(catalog.root),
             drafts: listed.drafts,
             existingCandidates: candidateStore.list(),
-            approvedBriefs,
+            approvedBriefs: currentApprovedBriefs(),
             provider,
             candidateStore,
             repositoryRoot: catalog.root,
@@ -2527,13 +2712,58 @@ export function createStudioServer(
               guideDrafts,
               readProductGapReports(catalog.root),
             ),
-            approvedBriefs,
+            approvedBriefs: currentApprovedBriefs(),
             provider,
             candidateStore,
             evaluationStore,
           },
         );
         redirect(response, `/opportunities/${encodeURIComponent(candidateIds[0]!)}`);
+        return;
+      }
+      const editorialBriefMatch =
+        method === "GET"
+          ? /^\/opportunities\/briefs\/(brief_[a-z0-9_-]+)$/.exec(url.pathname)
+          : null;
+      if (editorialBriefMatch?.[1]) {
+        send(response, 200, briefPage(briefStore.get(editorialBriefMatch[1])));
+        return;
+      }
+      const saveEditorialBriefMatch =
+        method === "POST"
+          ? /^\/opportunities\/briefs\/(brief_[a-z0-9_-]+)$/.exec(url.pathname)
+          : null;
+      if (saveEditorialBriefMatch?.[1]) {
+        const brief = briefStore.get(saveEditorialBriefMatch[1]);
+        await briefStore.save(
+          updateEditorialBrief(brief, editorialBriefEditsFromForm(await readForm(request))),
+        );
+        redirect(response, `/opportunities/briefs/${encodeURIComponent(brief.id)}`);
+        return;
+      }
+      const approveEditorialBriefMatch =
+        method === "POST"
+          ? /^\/opportunities\/briefs\/(brief_[a-z0-9_-]+)\/approve$/.exec(url.pathname)
+          : null;
+      if (approveEditorialBriefMatch?.[1]) {
+        const brief = briefStore.get(approveEditorialBriefMatch[1]);
+        await briefStore.save(approveEditorialBrief(brief));
+        redirect(response, `/opportunities/briefs/${encodeURIComponent(brief.id)}`);
+        return;
+      }
+      const convertEditorialBriefMatch =
+        method === "POST"
+          ? /^\/opportunities\/briefs\/(brief_[a-z0-9_-]+)\/convert$/.exec(url.pathname)
+          : null;
+      if (convertEditorialBriefMatch?.[1]) {
+        const converted = await convertApprovedBriefToGuideDraft(
+          briefStore.get(convertEditorialBriefMatch[1]),
+          candidateStore,
+          briefStore,
+          store,
+          readPublicContent(catalog.root),
+        );
+        redirect(response, `/drafts/${encodeURIComponent(converted.draft.id)}`);
         return;
       }
       const opportunityMatch =
@@ -2556,7 +2786,7 @@ export function createStudioServer(
               readPublicContent(catalog.root),
               listed.drafts,
               candidateStore.list(),
-              approvedBriefs,
+              currentApprovedBriefs(),
             ),
             evaluationStore.latestForCandidate(candidate.id),
           ),
@@ -2590,10 +2820,21 @@ export function createStudioServer(
         }
         const targetContentId = optionalValue(form, "targetContentId");
         const candidate = candidateStore.get(opportunityDecisionMatch[1]);
+        const reason = requiredValue(form, "reason", "La razón");
+        if (action === "create-article") {
+          const approved = await approveCandidateForBrief(
+            candidate,
+            reason,
+            candidateStore,
+            briefStore,
+          );
+          redirect(response, `/opportunities/briefs/${encodeURIComponent(approved.brief.id)}`);
+          return;
+        }
         await candidateStore.save(
           applyCandidateDecision(candidate, {
             action: action as (typeof CANDIDATE_DECISIONS)[number],
-            reason: requiredValue(form, "reason", "La razón"),
+            reason,
             ...(targetContentId ? { targetContentId } : {}),
           }),
         );

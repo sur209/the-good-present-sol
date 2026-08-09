@@ -44,6 +44,18 @@ Use `/products/intake` for a new product when the editor has a pasted Amazon pro
 
 ASINs, source facts, tracking IDs, original URLs, and provenance notes remain internal Studio data. They do not enter the Astro build or guide records.
 
+## Opportunity review and brief handoff
+
+Use `/opportunities` to review non-public article candidates. Divergent generation and convergent evaluation use the existing provider adapter, but their scores, comparisons, and recommendations are advisory. The editor controls shortlist and every outcome.
+
+1. Evaluate a generated candidate and shortlist it when it deserves a final human decision.
+2. Choose Approve for brief, Convert to section, Merge into existing content, Hold, or Reject. Section and merge require an existing canonical guide ID. Merge, hold, and rejection require a reason; the Studio retains the explicit human outcome.
+3. Approve for brief creates a draft `EditorialBrief` and opens `/opportunities/briefs/{brief-id}`. Edit its planning fields and evidence notes, then approve it explicitly. Candidate approval and brief approval are separate actions.
+4. Convert an approved brief to create one ordinary `GuideDraft`. The draft receives a system-owned Goal 2 `guide_...` ID and starts at the questionnaire stage with no product selections, recommendations, generated final copy, canonical file, route, or publication.
+5. Continue in the gift-guide workflow below. Preview, validation, and publication remain explicit later actions.
+
+Convert to section and merge record only the target and reason; they do not edit, delete, merge, publish, or unpublish the target guide. Hold and reject create no content. Regenerate alternatives creates a linked generation session rather than a new editorial decision, and unchanged rejected ideas are blocked unless the input evidence changes.
+
 ## Cluster-hub workflow
 
 1. Create a cluster draft or reopen a published hub by stable ID.
@@ -80,6 +92,6 @@ The Studio does not automate Git, unpublish records, delete public content, sche
 
 ## Current scope and later stages
 
-This stage deliberately excludes article brainstorming, opportunity generation, title/intent similarity scoring, content-overlap or cannibalization analysis, embeddings, automated merchant search/imports, price or stock synchronization, authentication, databases, rich-text editing, and multilingual publishing.
+The implemented Opportunity Lab covers candidate generation, comparison, advisory evaluation, human review, briefs, and the GuideDraft handoff. It deliberately excludes Lab modes, automated product or affiliate intake loops, Search Console, Pinterest, performance feedback, embeddings, automated merchant search/imports, price or stock synchronization, authentication, databases, rich-text editing, multilingual publishing, and automatic publication.
 
-Legacy migration is a separate future stage. An opportunity lab may later propose or compare content, but it must remain outside this deterministic publishing workflow and cannot silently create public routes. Unpublishing and deletion also require a separate recovery-aware design.
+Legacy migration is a separate future stage. Opportunity records and briefs remain outside canonical content, and their decisions cannot silently create public routes. Unpublishing and deletion also require a separate recovery-aware design.

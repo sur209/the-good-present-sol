@@ -115,6 +115,9 @@ export const articleCandidateSchema = z
       reason: nonEmptyText,
     }),
     sourceSignalIds: z.array(safeId).optional(),
+    generationSessionId: safeId.regex(/^generation_/).optional(),
+    regeneratedFromCandidateId: candidateId.optional(),
+    regeneratedFromSessionId: safeId.regex(/^generation_/).optional(),
     decision: candidateDecisionSchema.optional(),
     editorialBriefId: safeId.regex(/^brief_/).optional(),
     guideDraftId: safeId.regex(/^guide_/).optional(),
@@ -153,6 +156,20 @@ export const articleCandidateSchema = z
         code: "custom",
         path: ["guideDraftId"],
         message: "A GuideDraft reference requires converted-to-draft status.",
+      });
+    }
+    if (candidate.regeneratedFromSessionId && !candidate.regeneratedFromCandidateId) {
+      context.addIssue({
+        code: "custom",
+        path: ["regeneratedFromCandidateId"],
+        message: "A source generation session requires a source candidate.",
+      });
+    }
+    if (candidate.regeneratedFromCandidateId && !candidate.generationSessionId) {
+      context.addIssue({
+        code: "custom",
+        path: ["generationSessionId"],
+        message: "Regenerated alternatives must link to their generation session.",
       });
     }
     if (!candidate.decision) return;

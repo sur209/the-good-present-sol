@@ -1,6 +1,6 @@
 # Content Opportunity Lab
 
-Phase 5.0 establishes the smallest non-public domain for recording article opportunities before editorial planning. Phase 5.1 adds read-only, deterministic comparison against the editorial state. Phase 5.2 adds provider-neutral divergent candidate generation. Phase 5.3 adds advisory convergent AI evaluation of a selected candidate batch. No Lab phase makes an automatic editorial decision, creates briefs or drafts, or publishes content.
+Phase 5.0 establishes the smallest non-public domain for recording article opportunities before editorial planning. Phase 5.1 adds read-only, deterministic comparison against the editorial state. Phase 5.2 adds provider-neutral divergent candidate generation. Phase 5.3 adds advisory convergent AI evaluation of a selected candidate batch. Phase 5.4 adds the human-controlled decision, EditorialBrief, and existing Goal 2 GuideDraft handoff. No Lab phase makes an automatic editorial decision or publishes content.
 
 ## Ownership and storage
 
@@ -9,15 +9,16 @@ The Studio-owned implementation lives in:
 ```text
 apps/studio/src/modules/content-opportunity-lab/
 editorial-data/article-candidates/{candidate-id}.json
+editorial-data/editorial-briefs/{brief-id}.json
 editorial-data/opportunity-generation-sessions/{generation-id}.json
 editorial-data/opportunity-evaluations/{evaluation-id}.json
 ```
 
 Each filename stem must match its stable `candidate_...` ID. The module validates every record and its canonical cluster/content references, rejects unsafe paths, and writes JSON through the existing atomic same-directory file operation. These records are versioned editorial data outside `content/`; Astro continues to read only canonical products, clusters, and guides under `content/`.
 
-`packages/content-schema` remains unchanged. Candidates are internal opportunity analysis, not a fourth public content type.
+`packages/content-schema` remains unchanged. Candidates and briefs are internal editorial records, not public content types.
 
-Generation-session records contain the selected cluster/objective, market, language, optional planning horizon and imported summaries, provider/model IDs, prompt version, exact prompt, timestamp, and system-assigned candidate IDs. They never contain provider credentials or complete provider envelopes.
+Generation-session records contain the selected cluster/objective, market, language, optional planning horizon and imported summaries, provider/model IDs, prompt version, exact prompt, timestamp, and system-assigned candidate IDs. Generated candidates link back to that session. Regeneration sessions also retain the source candidate and, when present, its source generation session. They never contain provider credentials or complete provider envelopes.
 
 Evaluation records keep four distinct structures: candidate facts, system-derived 5.1 comparison and I.0 product-coverage evidence, optional imported signals with source and date range, and validated AI judgments. Human decisions remain only on their candidate records. Evaluation metadata includes provider/model IDs, prompt version, exact prompt, and timestamp, but no credentials or complete provider envelope.
 
@@ -38,7 +39,7 @@ An `ArticleCandidate` contains:
 - optional `EditorialBrief` and `GuideDraft` IDs for later traceability; and
 - a status plus creation/update timestamps.
 
-The optional trace IDs are references only. Phase 5.0 does not define an `EditorialBrief`, create a `GuideDraft`, or call the Goal 2 publication workflow.
+Phase 5.4 populates the trace IDs only through a human `create-article` decision and an approved-brief conversion. Other decisions never create a brief or draft.
 
 ## Scores
 
@@ -83,7 +84,7 @@ Phase 5.0 exposes only the early status advances `generated -> evaluated -> shor
 | `hold`           | status unchanged       | Evaluated or shortlisted                          |
 | `reject`         | `rejected`             | Evaluated or shortlisted                          |
 
-`converted-to-draft` is retained in the schema so a later workflow can preserve traceability, but there is deliberately no transition or conversion operation for it in this phase. Candidate statuses never duplicate `GuideDraft` editing, review, or `ready-to-publish` states.
+`converted-to-draft` is assigned only when an approved brief creates a normal Goal 2 GuideDraft. Candidate statuses never duplicate `GuideDraft` editing, review, or `ready-to-publish` states.
 
 ## Studio interface
 
@@ -92,8 +93,9 @@ The existing local Spanish Studio provides:
 - `/opportunities` for the candidate list; and
 - `/opportunities` batch selection for convergent evaluation, with one optional imported signal carrying source and date range; and
 - `/opportunities/{candidate-id}` for facts, deterministic evidence, imported evidence, AI judgment, early status advances, and human decisions.
+- `/opportunities/briefs/{brief-id}` for brief editing, explicit approval, and GuideDraft conversion.
 
-There is no candidate-generation or create form in Phase 5.0. Valid records may be imported or authored as structured JSON, then inspected and decided in the Studio. A decision updates only the candidate file.
+The `create-article` decision creates one editable brief and redirects to it. Section, merge, hold, and reject decisions update only the candidate record. Section and merge require a canonical guide target; merge, hold, and rejection retain the required human reason.
 
 ## Deterministic comparison
 
@@ -104,7 +106,7 @@ Phase 5.1 calculates comparisons at read time and saves no score, snapshot, reco
 - approved `EditorialBrief` comparison records supplied by their owning workflow; and
 - other candidates whose human decision is `reject`, `merge`, `hold`, or `add-as-section`.
 
-This checkout has no serialized `EditorialBrief` contract or records: the four approved Nurse Gifts briefs are explicitly documentation-only in `docs/nurse-cluster-roadmap.md`. Phase 5.1 therefore defines only the narrow read model needed by comparison and accepts those records through the existing Studio composition boundary. It does not invent a brief persistence format, backfill documentation into new records, or change the 5.0 candidate contract.
+Phase 5.4 supplies persisted approved briefs through the existing narrow comparison read model. The four earlier Nurse Gifts briefs remain documentation-only; Phase 5.4 does not backfill them or move the internal brief schema into the public content package.
 
 Each target produces eight separate signals:
 
@@ -139,6 +141,8 @@ The AI does not return candidate IDs, slugs, statuses, scores, decisions, URLs, 
 
 Before any write, the Studio validates the full batch as 5.0 `ArticleCandidate` records and runs the authoritative 5.1 comparison for every candidate. Only 5.1 medium/high primary-intent, proposed-section, and product-category signals become stored overlap records; their canonical IDs, levels, and reasons come from deterministic comparison, not the model. Public contract violations remain visible on candidate detail and do not become automatic decisions. After all candidates and the generation-session record validate, candidate files use the existing atomic store and the session metadata uses the existing atomic JSON writer.
 
+An editor may request regenerated alternatives from an existing candidate. The new candidates and session retain the source candidate/session references. Exact rejected titles or unchanged axis/intent/problem combinations are rejected unless the request supplies a new imported signal ID, so rejected ideas are not silently recycled with the same input.
+
 ## Convergent AI evaluation
 
 Phase 5.3 adds one `opportunity-evaluations` operation to the same structured-generation provider. The dedicated deterministic prompt evaluates one to 50 selected `generated` candidates together. It receives candidate facts, complete 5.1 comparison reports, existing public pages, drafts, supplied approved briefs, prior rejected/merged/held/section-converted history, and the existing I.0 product-coverage analysis. Candidate-set synthesis and likely candidate-to-candidate overlap remain explicitly AI interpretation; the evaluator does not create a second deterministic comparison implementation.
@@ -149,19 +153,27 @@ Provider output is untrusted JSON and must evaluate every selected candidate exa
 
 The Studio labels deterministic evidence, imported factual signals, AI judgment, and human decision separately. An editor may then shortlist and deliberately choose any valid human outcome, including one that contradicts the AI recommendation. Evaluation never shortlists, creates a brief or draft, changes canonical content, or publishes.
 
+## Human review, briefs, and draft conversion
+
+Phase 5.4 keeps the five authoritative candidate decisions: `create-article`, `add-as-section`, `merge`, `hold`, and `reject`. The Studio labels them Approve for brief, Convert to section, Merge into existing content, Hold, and Reject. Regenerate alternatives is a generation request, not a sixth editorial decision or status.
+
+A `create-article` decision on a shortlisted candidate creates one Studio-owned `EditorialBrief` with a stable `brief_...` ID and immutable source-candidate/cluster trace. The draft brief retains working title and proposed slug, primary axis and intent, audience, problem, differentiation, planned sections, product requirements, research questions, internal links, related content IDs, risks, and timestamps. Evidence remains separated into deterministic notes, observed/imported signal references, AI interpretation, the human decision reason, and later editorial notes.
+
+Brief states are `draft`, `approved`, and `converted-to-guide-draft`. Editing does not approve; candidate approval does not approve the brief; brief approval does not publish. Only an approved brief converts, once, to `createGuideDraft()` and `DraftStore`. The resulting canonical `guide_...` identity comes from Goal 2 and the draft starts in `questionnaire` with planning fields only. It contains no selected products, final generation, recommendations, canonical guide file, route, or publication state. Preview, validation, editing, and publication remain the existing Goal 2 workflow.
+
 ## Existing-system boundaries
 
 - I.0 Product Coverage Analysis remains the sole implementation of deterministic product-coverage signals. The Lab neither copies nor replaces that logic.
 - Product catalog, product-source provenance, and affiliate operations are unchanged.
 - The existing provider adapter is reused unchanged apart from the two Lab structured operations; there is no second adapter, SDK, retry, streaming, agent, embedding, or retrieval layer.
 - Deterministic comparison and I.0 product coverage remain local and authoritative; convergent AI interpretation adds no ranking, product-first mode, coverage-first mode, or sourcing loop.
-- No `EditorialBrief` or `GuideDraft` is created.
-- No canonical content, public route, preview, or publication behavior is added.
-- Any later GuideDraft work must enter the existing Goal 2 workflow and publish through its current validation and atomic publication boundary.
+- Only the human 5.4 path creates an `EditorialBrief` or ordinary `GuideDraft`.
+- No canonical content, public route, automatic section edit, merge, deletion, preview, or publication behavior is added.
+- All GuideDraft work enters the existing Goal 2 workflow and publishes through its current validation and atomic publication boundary.
 
 ## Verification
 
-The Studio tests cover strict schemas, the full score bounds, all five decisions, early status transitions, decision/target consistency, stable-ID paths, canonical references, atomic replacement, normalization, all eight comparison signal kinds, low/medium/high thresholds, public-contract separation, approved-brief input, prior-decision evidence history, deterministic divergent and convergent prompts, imported-signal provenance, risk actions, target requirements, mock output, malformed provider output, provider failure, default/maximum limits, credential-free metadata, human override, unpublished integration behavior, and real Astro builds that exclude candidates, generation sessions, and evaluation records.
+The Studio tests cover strict schemas, the full score bounds, all five decisions, early status transitions, decision/target consistency, stable-ID paths, canonical references, atomic replacement, normalization, all eight comparison signal kinds, low/medium/high thresholds, public-contract separation, approved-brief input, prior-decision evidence history, deterministic divergent and convergent prompts, regeneration traceability, rejected-idea suppression, imported-signal provenance, risk actions, target requirements, mock output, malformed provider output, provider failure, default/maximum limits, credential-free metadata, human override, brief persistence/editing/approval, GuideDraft conversion, unpublished integration behavior, and real Astro builds that exclude candidates, briefs, sessions, evaluations, and drafts.
 
 Run:
 
