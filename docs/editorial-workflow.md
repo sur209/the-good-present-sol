@@ -44,6 +44,19 @@ Use `/products/intake` for a new product when the editor has a pasted Amazon pro
 
 ASINs, source facts, tracking IDs, original URLs, and provenance notes remain internal Studio data. They do not enter the Astro build or guide records.
 
+## Product-gap sourcing and return
+
+Use `/product-sourcing`, a brief requirement, or a GuideDraft slot to create a traceable sourcing request. A slot-origin request stores both the GuideDraft ID and the exact stable recommendation-slot ID.
+
+1. Record the intended role, required category, audience, occasion, budget context, must-have verified facts, exclusions, and search terms. Keep the request `open`, or deliberately mark it `held` or `rejected`.
+2. Review active matches from the existing canonical catalog. A Product must contain every must-have fact in its canonical `verifiedFacts`; selecting it as partial or complete fulfillment is always an explicit editor action.
+3. If the catalog has no approved Product, open the existing assisted manual intake from the request. After confirmation, intake returns to the request with the new canonical Product highlighted; it does not select it automatically.
+4. Optionally add manual or Creators API source candidates for batch review. `approved-for-intake` is not fulfillment. Complete the ordinary intake/source-provenance review, link the resulting Product and `ProductSourceRecord`, and then select the Product explicitly.
+5. Return to an originating brief to continue planning, or use **Assign to originating slot** for a slot request. Assignment reuses the ordinary Goal 2 product-selection function and returns to that exact slot.
+6. Review or generate recommendation copy and run the unchanged preview/readiness checks. Sourcing never marks copy ready and never publishes.
+
+The request, source candidate, canonical Product, and GuideDraft recommendation slot remain four different records. A source candidate cannot be assigned to a draft, and neither candidate approval nor canonical-product linking fulfills a request.
+
 ## Opportunity review and brief handoff
 
 Use `/opportunities` to review non-public article candidates. Divergent generation and convergent evaluation use the existing provider adapter, but their scores, comparisons, and recommendations are advisory. The editor controls shortlist and every outcome.

@@ -107,6 +107,25 @@ import {
 } from "./modules/product-intelligence/coverage.ts";
 import { readProductGapReports } from "./modules/product-intelligence/gaps.ts";
 import {
+  PRODUCT_SOURCING_REQUEST_STATUSES,
+  ProductSourcingRequestStore,
+  addProductSourceCandidates,
+  assertProductSourcingOrigin,
+  assignSourcedProductToDraftSlot,
+  catalogMatchesForRequest,
+  createProductSourcingRequest,
+  linkProductSourceCandidate,
+  productRequirementOriginSchema,
+  productSourcingReturnPath,
+  reviewProductSourceCandidates,
+  selectCanonicalProductForRequest,
+  transitionProductSourcingRequest,
+  type ProductRequirementOrigin,
+  type ProductSourcingRequest,
+  type ProductSourcingRequestInput,
+  type ProductSourcingRequestStatus,
+} from "./modules/product-intelligence/sourcing.ts";
+import {
   CANDIDATE_DECISIONS,
   CANDIDATE_STATUSES,
   OPPORTUNITY_SESSION_MODES,
@@ -226,7 +245,7 @@ function page(title: string, body: string): string {
 <body>
   <header>
     <a href="/">The Good Present · Studio</a>
-    <nav aria-label="Principal"><a href="/">Borradores</a><a href="/drafts/new">Crear</a><a href="/products">Productos</a><a href="/product-intelligence">Cobertura</a><a href="/opportunities">Oportunidades</a><a href="/products/intake">Ingreso asistido</a><a href="/affiliate-programs">Programas afiliados</a><a href="/affiliate-operations">QA afiliados</a></nav>
+    <nav aria-label="Principal"><a href="/">Borradores</a><a href="/drafts/new">Crear</a><a href="/products">Productos</a><a href="/product-intelligence">Cobertura</a><a href="/product-sourcing">Sourcing</a><a href="/opportunities">Oportunidades</a><a href="/products/intake">Ingreso asistido</a><a href="/affiliate-programs">Programas afiliados</a><a href="/affiliate-operations">QA afiliados</a></nav>
   </header>
   <main>${body}</main>
 </body>
@@ -452,7 +471,51 @@ function listText(items: string[] | undefined, separator = ", "): string {
 }
 
 function safeReturnTo(value: string | null): string | undefined {
-  return value && /^\/drafts\/[a-z0-9_-]+$/.test(value) ? value : undefined;
+  return value &&
+    (/^\/drafts\/[a-z0-9_-]+$/.test(value) ||
+      /^\/product-sourcing\/request_[a-z0-9_-]+$/.test(value))
+    ? value
+    : undefined;
+}
+
+function productRequirementOriginFromForm(form: URLSearchParams): ProductRequirementOrigin {
+  const kind = requiredValue(form, "originKind", "El tipo de origen");
+  const origin =
+    kind === "candidate"
+      ? { kind, candidateId: requiredValue(form, "candidateId", "El candidato de origen") }
+      : kind === "brief"
+        ? { kind, briefId: requiredValue(form, "briefId", "El brief de origen") }
+        : kind === "guide-draft"
+          ? {
+              kind,
+              guideDraftId: requiredValue(form, "guideDraftId", "El GuideDraft de origen"),
+            }
+          : kind === "recommendation-slot"
+            ? {
+                kind,
+                guideDraftId: requiredValue(form, "guideDraftId", "El GuideDraft de origen"),
+                recommendationSlotId: requiredValue(
+                  form,
+                  "recommendationSlotId",
+                  "El slot de origen",
+                ),
+              }
+            : { kind };
+  return productRequirementOriginSchema.parse(origin);
+}
+
+function productSourcingRequestFromForm(form: URLSearchParams): ProductSourcingRequestInput {
+  return {
+    origin: productRequirementOriginFromForm(form),
+    intendedRole: requiredValue(form, "intendedRole", "El rol editorial"),
+    requiredCategory: requiredValue(form, "requiredCategory", "La categoría requerida"),
+    audience: requiredValue(form, "audience", "La audiencia"),
+    occasion: requiredValue(form, "occasion", "La ocasión"),
+    budgetContext: requiredValue(form, "budgetContext", "El presupuesto"),
+    mustHaveVerifiedFacts: listValue(form, "mustHaveVerifiedFacts", "\n") ?? [],
+    exclusions: listValue(form, "exclusions", "\n") ?? [],
+    searchTerms: listValue(form, "searchTerms") ?? [],
+  };
 }
 
 function productSourceSection(
@@ -989,6 +1052,156 @@ function productIntelligencePage(
   );
 }
 
+function sourcingOriginLabel(request: ProductSourcingRequest): string {
+  const { origin } = request;
+  if (origin.kind === "candidate") return `Candidate ${origin.candidateId}`;
+  if (origin.kind === "brief") return `EditorialBrief ${origin.briefId}`;
+  if (origin.kind === "guide-draft") return `GuideDraft ${origin.guideDraftId}`;
+  return `GuideDraft ${origin.guideDraftId} · slot ${origin.recommendationSlotId}`;
+}
+
+function productSourcingListPage(store: ProductSourcingRequestStore): string {
+  const requests = store.list();
+  const cards = requests
+    .map(
+      (request) => `<article class="card">
+        <div class="actions"><h2><a href="/product-sourcing/${encodeURIComponent(request.id)}">${escapeHtml(request.requiredCategory)}</a></h2><span class="status">${escapeHtml(request.status)}</span></div>
+        <p>${escapeHtml(request.intendedRole)}</p>
+        <p><code>${escapeHtml(request.id)}</code> · ${escapeHtml(sourcingOriginLabel(request))}</p>
+        <p>${request.approvedProductIds.length} Product canónico(s) seleccionado(s) · ${request.sourceCandidates.length} candidato(s) de fuente.</p>
+      </article>`,
+    )
+    .join("");
+  return page(
+    "Sourcing de productos",
+    `<div class="actions"><div><h1>Sourcing de productos</h1><p>Requisitos editoriales trazables conectados al catálogo y al intake existentes.</p></div></div>
+     <p class="notice">Un candidato de fuente nunca satisface un requisito. Sólo una selección editorial explícita de un Product canónico activo puede hacerlo.</p>
+     <div class="grid">${cards || '<p class="notice">Todavía no hay solicitudes.</p>'}</div>
+     <form method="post" action="/product-sourcing" class="card">
+       <h2>Crear solicitud</h2>
+       <div class="grid">
+         <label>Tipo de origen<select name="originKind"><option value="candidate">Candidate</option><option value="brief">EditorialBrief</option><option value="guide-draft">GuideDraft</option><option value="recommendation-slot">Slot de GuideDraft</option></select></label>
+         <label>Candidate ID<input name="candidateId"></label>
+         <label>EditorialBrief ID<input name="briefId"></label>
+         <label>GuideDraft ID<input name="guideDraftId"></label>
+         <label>Recommendation slot ID<input name="recommendationSlotId"></label>
+         <label>Rol editorial<input name="intendedRole" required></label>
+         <label>Categoría requerida<input name="requiredCategory" required></label>
+         <label>Audiencia<input name="audience" required></label>
+         <label>Ocasión<input name="occasion" required></label>
+         <label>Contexto de presupuesto<input name="budgetContext" required></label>
+         <label class="wide">Datos verificados obligatorios · uno por línea<textarea name="mustHaveVerifiedFacts" rows="3"></textarea></label>
+         <label class="wide">Exclusiones · una por línea<textarea name="exclusions" rows="3"></textarea></label>
+         <label class="wide">Términos de búsqueda · separados por coma<input name="searchTerms" required></label>
+       </div>
+       <button type="submit">Crear solicitud trazable</button>
+     </form>`,
+  );
+}
+
+function productSelectionForm(request: ProductSourcingRequest, product: Product): string {
+  return `<article class="card"><h3>${escapeHtml(product.name)}</h3><p>${escapeHtml(product.merchant)} · <code>${escapeHtml(product.id)}</code></p><p>${escapeHtml(product.shortDescription)}</p>
+    <div class="actions">
+      <form method="post" action="/product-sourcing/${encodeURIComponent(request.id)}/products"><input type="hidden" name="productId" value="${escapeHtml(product.id)}"><input type="hidden" name="fulfillmentStatus" value="partially-fulfilled"><button type="submit">Seleccionar como parcial</button></form>
+      <form method="post" action="/product-sourcing/${encodeURIComponent(request.id)}/products"><input type="hidden" name="productId" value="${escapeHtml(product.id)}"><input type="hidden" name="fulfillmentStatus" value="fulfilled"><button type="submit">Seleccionar y cumplir</button></form>
+    </div></article>`;
+}
+
+function productSourcingDetailPage(
+  request: ProductSourcingRequest,
+  url: URL,
+  catalog: ProductCatalog,
+  sourceStore: ProductSourceStore,
+): string {
+  const content = catalog.read();
+  const productsById = new Map(content.products.map((product) => [product.id, product]));
+  const sources = sourceStore.list(content.products);
+  const activeRequest = request.status === "open" || request.status === "partially-fulfilled";
+  const highlighted = url.searchParams.get("productId");
+  const linkedIds = request.sourceCandidates.flatMap(({ canonicalProductId }) =>
+    canonicalProductId ? [canonicalProductId] : [],
+  );
+  const matchIds = new Set([
+    ...catalogMatchesForRequest(request, content.products).map(({ id }) => id),
+    ...linkedIds,
+    ...(highlighted ? [highlighted] : []),
+  ]);
+  const matches = activeRequest
+    ? content.products
+        .filter(({ id, status }) => status === "active" && matchIds.has(id))
+        .map((product) => productSelectionForm(request, product))
+        .join("")
+    : "";
+  const selected = request.approvedProductIds
+    .map((id) => productsById.get(id))
+    .filter((product): product is Product => Boolean(product))
+    .map(
+      (
+        product,
+      ) => `<article class="card"><h3>${escapeHtml(product.name)}</h3><p><code>${escapeHtml(product.id)}</code></p>
+        <p><a href="/products/${encodeURIComponent(product.id)}/edit">Abrir Product canónico</a></p>
+        ${request.origin.kind === "recommendation-slot" ? `<form method="post" action="/product-sourcing/${encodeURIComponent(request.id)}/assign"><input type="hidden" name="productId" value="${escapeHtml(product.id)}"><label><input type="checkbox" name="allowDuplicate" value="yes"> Confirmar duplicado si este Product ya ocupa otro slot.</label><button type="submit">Asignar al slot de origen</button></form>` : ""}
+      </article>`,
+    )
+    .join("");
+  const candidateCards = request.sourceCandidates
+    .filter(({ status }) => status !== "needs-review")
+    .map((candidate) => {
+      const linkOptions = sources
+        .filter((source) => productsById.get(source.productId)?.status === "active")
+        .map(
+          (source) =>
+            `<option value="${escapeHtml(source.id)}">${escapeHtml(productsById.get(source.productId)!.name)} · ${escapeHtml(source.id)}</option>`,
+        )
+        .join("");
+      return `<article class="card"><div class="actions"><h3>${escapeHtml(candidate.name)}</h3><span class="status">${escapeHtml(candidate.status)}</span></div>
+        <p>${escapeHtml(candidate.provider)}${candidate.marketplace ? ` · ${escapeHtml(candidate.marketplace)}` : ""}${candidate.externalId ? ` · <code>${escapeHtml(candidate.externalId)}</code>` : ""}</p>
+        ${candidate.sourceFacts.length ? `<ul>${candidate.sourceFacts.map((fact) => `<li>${escapeHtml(fact)}</li>`).join("")}</ul>` : ""}
+        ${activeRequest && candidate.status === "approved-for-intake" ? `<form method="post" action="/product-sourcing/${encodeURIComponent(request.id)}/source-candidates/${encodeURIComponent(candidate.id)}/link"><label>ProductSourceRecord del intake<select name="productSourceId" required><option value="">Elegir</option>${linkOptions}</select></label><button type="submit">Vincular intake revisado</button></form>` : ""}
+        ${candidate.canonicalProductId ? `<p>Vinculado a <code>${escapeHtml(candidate.canonicalProductId)}</code> mediante <code>${escapeHtml(candidate.productSourceId)}</code>. Esto no cumple la solicitud.</p>` : ""}
+      </article>`;
+    })
+    .join("");
+  const pendingCandidateCards = request.sourceCandidates
+    .filter(({ status }) => status === "needs-review")
+    .map(
+      (candidate) =>
+        `<article class="card"><h3>${escapeHtml(candidate.name)}</h3><p>${escapeHtml(candidate.provider)}${candidate.externalId ? ` · <code>${escapeHtml(candidate.externalId)}</code>` : ""}</p><label>Decisión de lote<select name="${escapeHtml(candidate.id)}"><option value="">Sin cambio</option><option value="approved-for-intake">Aprobar para intake</option><option value="rejected">Rechazar</option></select></label></article>`,
+    )
+    .join("");
+  const reviewable =
+    activeRequest && request.sourceCandidates.some(({ status }) => status === "needs-review");
+  const transitions = (
+    request.status === "open"
+      ? ["held", "rejected"]
+      : request.status === "partially-fulfilled"
+        ? ["held", "rejected"]
+        : request.status === "held"
+          ? ["open", "rejected"]
+          : []
+  )
+    .map(
+      (status) =>
+        `<form method="post" action="/product-sourcing/${encodeURIComponent(request.id)}/status"><input type="hidden" name="status" value="${status}"><button type="submit">Marcar ${escapeHtml(status)}</button></form>`,
+    )
+    .join("");
+  return page(
+    request.requiredCategory,
+    `<p><a href="/product-sourcing">← Solicitudes</a></p>
+     <div class="actions"><div><h1>${escapeHtml(request.requiredCategory)}</h1><p><code>${escapeHtml(request.id)}</code></p></div><span class="status">${escapeHtml(request.status)}</span></div>
+     <p class="notice">Sourcing, candidate review, Product canónico y slot editorial conservan identidades distintas. Ninguna acción publica una guía.</p>
+     <div class="grid"><section class="card"><h2>Requisito</h2><dl><dt>Origen</dt><dd>${escapeHtml(sourcingOriginLabel(request))}</dd><dt>Rol</dt><dd>${escapeHtml(request.intendedRole)}</dd><dt>Audiencia</dt><dd>${escapeHtml(request.audience)}</dd><dt>Ocasión</dt><dd>${escapeHtml(request.occasion)}</dd><dt>Presupuesto</dt><dd>${escapeHtml(request.budgetContext)}</dd><dt>Búsqueda</dt><dd>${escapeHtml(request.searchTerms.join(", "))}</dd></dl><h3>Datos obligatorios</h3>${request.mustHaveVerifiedFacts.length ? `<ul>${request.mustHaveVerifiedFacts.map((fact) => `<li>${escapeHtml(fact)}</li>`).join("")}</ul>` : '<p class="muted">—</p>'}<h3>Exclusiones</h3>${request.exclusions.length ? `<ul>${request.exclusions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : '<p class="muted">—</p>'}</section>
+       <section class="card"><h2>Retorno editorial</h2><p><a class="button" href="${escapeHtml(productSourcingReturnPath(request))}">Volver al requisito de origen</a></p><p>Creado ${escapeHtml(formatDate(request.createdAt))}<br>Actualizado ${escapeHtml(formatDate(request.updatedAt))}</p><div class="actions">${transitions}</div></section></div>
+     <h2>Products canónicos seleccionados</h2><div class="grid">${selected || '<p class="notice">Todavía no se seleccionó ningún Product canónico.</p>'}</div>
+     <h2>Coincidencias manuales del catálogo</h2><div class="grid">${matches || '<p class="notice">No hay coincidencias deterministas activas.</p>'}</div>
+     ${activeRequest ? `<p><a href="/products/intake?returnTo=${encodeURIComponent(`/product-sourcing/${request.id}`)}">Abrir el intake manual y volver a esta solicitud</a></p>` : ""}
+     <h2>Candidatos de fuente para revisión</h2>
+     ${reviewable ? `<form method="post" action="/product-sourcing/${encodeURIComponent(request.id)}/source-candidates/review"><div class="grid">${pendingCandidateCards}</div><button type="submit">Guardar revisión del lote</button></form>` : ""}
+     <div class="grid">${candidateCards || (reviewable ? "" : '<p class="notice">No hay candidatos de fuente.</p>')}</div>
+     ${activeRequest ? `<form method="post" action="/product-sourcing/${encodeURIComponent(request.id)}/source-candidates" class="card"><h3>Agregar candidato de fuente</h3><div class="grid"><label>Origen<select name="sourceKind"><option value="manual">Manual</option><option value="amazon-creators-api">Amazon Creators API (si está disponible)</option></select></label><label>Proveedor<input name="provider" required></label><label>Marketplace<input name="marketplace"></label><label>ID externo<input name="externalId"></label><label>Nombre observado<input name="name" required></label><label>URL de fuente<input type="url" name="sourceUrl"></label><label class="wide">Hechos de fuente · uno por línea<textarea name="sourceFacts" rows="3"></textarea></label></div><button type="submit">Agregar para revisión</button></form>` : ""}`,
+  );
+}
+
 const opportunityScoreLabels: Record<keyof ArticleCandidate["scores"], string> = {
   intentDifferentiation: "Diferenciación de intención",
   editorialUsefulness: "Utilidad editorial",
@@ -1421,7 +1634,10 @@ function editorialBriefEditsFromForm(form: URLSearchParams): EditorialBriefEdits
   };
 }
 
-function briefPage(brief: EditorialBrief): string {
+function briefPage(
+  brief: EditorialBrief,
+  sourcingRequests: readonly ProductSourcingRequest[] = [],
+): string {
   const itemList = (items: readonly string[]) =>
     items.length
       ? `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
@@ -1472,6 +1688,19 @@ function briefPage(brief: EditorialBrief): string {
         `<h3>${label}</h3>${notes.length ? `<ul>${notes.map((note) => `<li>${escapeHtml(note)}</li>`).join("")}</ul>` : '<p class="muted">—</p>'}`,
     )
     .join("");
+  const briefRequests = sourcingRequests.filter(
+    ({ origin }) => origin.kind === "brief" && origin.briefId === brief.id,
+  );
+  const sourcing = `<section class="card wide"><h2>Sourcing de requisitos de producto</h2>
+    <p>La solicitud conserva el requisito editorial; un Product sólo vuelve después de una selección explícita en el flujo de sourcing.</p>
+    ${briefRequests.length ? `<ul>${briefRequests.map((request) => `<li><a href="/product-sourcing/${encodeURIComponent(request.id)}">${escapeHtml(request.requiredCategory)}</a> · <code>${escapeHtml(request.id)}</code> · ${escapeHtml(request.status)}</li>`).join("")}</ul>` : '<p class="muted">No hay solicitudes vinculadas.</p>'}
+    ${brief.productRequirements
+      .map(
+        (requirement) =>
+          `<form method="post" action="/product-sourcing" class="card"><h3>${escapeHtml(requirement)}</h3><input type="hidden" name="originKind" value="brief"><input type="hidden" name="briefId" value="${escapeHtml(brief.id)}"><input type="hidden" name="intendedRole" value="${escapeHtml(requirement)}"><input type="hidden" name="requiredCategory" value="${escapeHtml(requirement)}"><input type="hidden" name="audience" value="${escapeHtml(brief.targetAudience)}"><input type="hidden" name="searchTerms" value="${escapeHtml(requirement)}"><div class="grid"><label>Ocasión<input name="occasion" required></label><label>Contexto de presupuesto<input name="budgetContext" required></label><label class="wide">Datos verificados obligatorios · uno por línea<textarea name="mustHaveVerifiedFacts" rows="2"></textarea></label><label class="wide">Exclusiones · una por línea<textarea name="exclusions" rows="2"></textarea></label></div><button type="submit">Crear solicitud para este requisito</button></form>`,
+      )
+      .join("")}
+  </section>`;
   return page(
     brief.workingTitle,
     `<p><a href="/opportunities/${encodeURIComponent(brief.sourceCandidateId)}">← Volver a la oportunidad</a></p>
@@ -1481,6 +1710,7 @@ function briefPage(brief: EditorialBrief): string {
        <section class="card"><h2>Decisión humana</h2><p>${escapeHtml(brief.evidenceNotes.humanDecision)}</p></section>
        <section class="card"><h2>Trazabilidad</h2><dl><dt>Creado</dt><dd>${escapeHtml(formatDate(brief.createdAt))}</dd><dt>Aprobado</dt><dd>${brief.approvedAt ? escapeHtml(formatDate(brief.approvedAt)) : "—"}</dd><dt>Convertido</dt><dd>${brief.convertedAt ? escapeHtml(formatDate(brief.convertedAt)) : "—"}</dd><dt>GuideDraft</dt><dd>${brief.guideDraftId ? `<code>${escapeHtml(brief.guideDraftId)}</code>` : "—"}</dd></dl>${nextAction}</section>
        <section class="card wide"><h2>Plan editorial</h2><dl><dt>Slug</dt><dd><code>${escapeHtml(brief.proposedSlug)}</code></dd><dt>Eje</dt><dd>${escapeHtml(brief.primaryAxis)}</dd><dt>Intención</dt><dd>${escapeHtml(brief.primaryIntent)}</dd><dt>Audiencia</dt><dd>${escapeHtml(brief.targetAudience)}</dd><dt>Problema</dt><dd>${escapeHtml(brief.problemSolved)}</dd><dt>Diferenciación</dt><dd>${escapeHtml(brief.differentiation)}</dd></dl><h3>Secciones</h3><ol>${brief.plannedSections.map(({ heading, purpose }) => `<li><strong>${escapeHtml(heading)}</strong>: ${escapeHtml(purpose)}</li>`).join("")}</ol><h3>Requisitos de producto</h3>${itemList(brief.productRequirements)}<h3>Preguntas de investigación</h3>${itemList(brief.researchQuestions)}<h3>Links internos esperados</h3>${itemList(brief.expectedInternalLinks)}<h3>Contenido relacionado</h3>${itemList(brief.relatedContentIds)}<h3>Riesgos</h3>${itemList(brief.risks)}</section>
+       ${sourcing}
        <section class="card wide"><h2>Evidencia separada</h2>${evidence}</section>
      </div>
      ${editForm}`,
@@ -1874,8 +2104,13 @@ function productChoiceForm(
   </form>`;
 }
 
-function recommendationSelectionSection(draft: GuideDraft, url: URL): string {
+function recommendationSelectionSection(
+  draft: GuideDraft,
+  url: URL,
+  sourcingStore: ProductSourcingRequestStore,
+): string {
   const content = readPublicContent();
+  const sourcingRequests = sourcingStore.list();
   const productsById = new Map(content.products.map((product) => [product.id, product]));
   const searchSlot = url.searchParams.get("slot");
   const productQuery = url.searchParams.get("productQ") ?? "";
@@ -1924,6 +2159,16 @@ function recommendationSelectionSection(draft: GuideDraft, url: URL): string {
         recommendation.editorialStatus === "needs-review"
           ? '<p class="error"><strong>Revisión obligatoria:</strong> el texto existente puede describir el producto anterior. Podés conservarlo temporalmente, pero la publicación queda bloqueada hasta editarlo o regenerar sólo esta recomendación.</p>'
           : "";
+      const slotRequests = sourcingRequests.filter(
+        ({ origin }) =>
+          origin.kind === "recommendation-slot" &&
+          origin.guideDraftId === draft.id &&
+          origin.recommendationSlotId === recommendation.id,
+      );
+      const sourcing = `<section class="card"><h4>Sourcing del requisito</h4>
+        ${slotRequests.length ? `<ul>${slotRequests.map((request) => `<li><a href="/product-sourcing/${encodeURIComponent(request.id)}"><code>${escapeHtml(request.id)}</code></a> · ${escapeHtml(request.status)}</li>`).join("")}</ul>` : '<p class="muted">No hay solicitud para este slot.</p>'}
+        <form method="post" action="/product-sourcing"><input type="hidden" name="originKind" value="recommendation-slot"><input type="hidden" name="guideDraftId" value="${escapeHtml(draft.id)}"><input type="hidden" name="recommendationSlotId" value="${escapeHtml(recommendation.id)}"><input type="hidden" name="intendedRole" value="${escapeHtml(recommendation.slotIntent ?? recommendation.slotLabel)}"><input type="hidden" name="requiredCategory" value="${escapeHtml(recommendation.slotLabel)}"><div class="grid"><label>Audiencia<input name="audience" required value="${value(draft.questionnaire.recipient)}"></label><label>Ocasión<input name="occasion" required value="${value(draft.questionnaire.occasion)}"></label><label>Contexto de presupuesto<input name="budgetContext" required value="${value(recommendation.budgetHint ?? draft.questionnaire.budget)}"></label><label class="wide">Datos verificados obligatorios · uno por línea<textarea name="mustHaveVerifiedFacts" rows="2"></textarea></label><label class="wide">Exclusiones · una por línea<textarea name="exclusions" rows="2">${value(draft.questionnaire.avoid)}</textarea></label><label class="wide">Términos de búsqueda<input name="searchTerms" required value="${listText(recommendation.searchTerms ?? [recommendation.slotLabel])}"></label></div><button type="submit">Crear solicitud para este slot</button></form>
+      </section>`;
       return `<article class="card">
         <div class="actions"><h3>${recommendation.position}. ${escapeHtml(recommendation.slotLabel)}</h3><span class="status">${escapeHtml(recommendation.editorialStatus)}</span></div>
         ${recommendation.slotIntent ? `<p>${escapeHtml(recommendation.slotIntent)}</p>` : ""}
@@ -1964,6 +2209,7 @@ function recommendationSelectionSection(draft: GuideDraft, url: URL): string {
           <button type="submit">Buscar</button>
         </form>
         ${searchSlot === recommendation.id ? `<section><h4>Resultados del catálogo</h4><div class="grid">${results || '<p class="notice">No hay productos activos que coincidan.</p>'}</div></section>` : ""}
+        ${sourcing}
         <p><a href="/products/new?returnTo=${encodeURIComponent(`/drafts/${draft.id}`)}">Crear un producto nuevo y volver a este borrador</a> · <a href="/products/intake?returnTo=${encodeURIComponent(`/drafts/${draft.id}`)}">ingreso asistido</a></p>
       </article>`;
     })
@@ -1983,7 +2229,11 @@ function recommendationSelectionSection(draft: GuideDraft, url: URL): string {
   </section>`;
 }
 
-function guideEditorPage(draft: GuideDraft, url: URL): string {
+function guideEditorPage(
+  draft: GuideDraft,
+  url: URL,
+  sourcingStore: ProductSourcingRequestStore,
+): string {
   const content = readPublicContent();
   const clusters = content.clusters
     .map(
@@ -2069,7 +2319,7 @@ function guideEditorPage(draft: GuideDraft, url: URL): string {
        </div>
        <button type="submit">Guardar cuestionario</button>
      </form>
-     ${metadata}${outline}${recommendationSelectionSection(draft, url)}`,
+     ${metadata}${outline}${recommendationSelectionSection(draft, url, sourcingStore)}`,
   );
 }
 
@@ -2232,6 +2482,7 @@ export function createStudioServer(
   evaluationStore = new OpportunityEvaluationStore(catalog.root),
   briefStore = new EditorialBriefStore(catalog.root, candidateStore),
 ) {
+  const sourcingStore = new ProductSourcingRequestStore(catalog.root);
   const currentApprovedBriefs = () => [
     ...new Map(
       [...approvedBriefs, ...editorialBriefComparisonRecords(briefStore.list())].map((brief) => [
@@ -2663,6 +2914,193 @@ export function createStudioServer(
         );
         return;
       }
+      if (method === "GET" && url.pathname === "/product-sourcing") {
+        send(response, 200, productSourcingListPage(sourcingStore));
+        return;
+      }
+      if (method === "POST" && url.pathname === "/product-sourcing") {
+        const input = productSourcingRequestFromForm(await readForm(request));
+        const listed = await store.list();
+        if (listed.errors.length) {
+          throw new TypeError(
+            `No se puede vincular un borrador inválido: ${listed.errors.join("; ")}`,
+          );
+        }
+        const guideDrafts = listed.drafts.filter(
+          (draft): draft is GuideDraft => draft.draftType === "gift-guide",
+        );
+        assertProductSourcingOrigin(input.origin, {
+          candidates: candidateStore.list(),
+          briefs: briefStore.list(),
+          drafts: guideDrafts,
+        });
+        const created = await sourcingStore.save(createProductSourcingRequest(input));
+        redirect(response, `/product-sourcing/${encodeURIComponent(created.id)}`);
+        return;
+      }
+      const productSourcingMatch =
+        method === "GET" ? /^\/product-sourcing\/(request_[a-z0-9_-]+)$/.exec(url.pathname) : null;
+      if (productSourcingMatch?.[1]) {
+        send(
+          response,
+          200,
+          productSourcingDetailPage(
+            sourcingStore.get(productSourcingMatch[1]),
+            url,
+            catalog,
+            sourceStore,
+          ),
+        );
+        return;
+      }
+      const productSourcingStatusMatch =
+        method === "POST"
+          ? /^\/product-sourcing\/(request_[a-z0-9_-]+)\/status$/.exec(url.pathname)
+          : null;
+      if (productSourcingStatusMatch?.[1]) {
+        const form = await readForm(request);
+        const status = requiredValue(form, "status", "El estado");
+        if (!(PRODUCT_SOURCING_REQUEST_STATUSES as readonly string[]).includes(status)) {
+          throw new TypeError("El estado de sourcing no es válido.");
+        }
+        const saved = await sourcingStore.save(
+          transitionProductSourcingRequest(
+            sourcingStore.get(productSourcingStatusMatch[1]),
+            status as ProductSourcingRequestStatus,
+          ),
+        );
+        redirect(response, `/product-sourcing/${encodeURIComponent(saved.id)}`);
+        return;
+      }
+      const productSourcingSelectionMatch =
+        method === "POST"
+          ? /^\/product-sourcing\/(request_[a-z0-9_-]+)\/products$/.exec(url.pathname)
+          : null;
+      if (productSourcingSelectionMatch?.[1]) {
+        const form = await readForm(request);
+        const fulfillmentStatus = requiredValue(
+          form,
+          "fulfillmentStatus",
+          "El estado de cumplimiento",
+        );
+        if (fulfillmentStatus !== "partially-fulfilled" && fulfillmentStatus !== "fulfilled") {
+          throw new TypeError("El estado de cumplimiento no es válido.");
+        }
+        const saved = await sourcingStore.save(
+          selectCanonicalProductForRequest(
+            sourcingStore.get(productSourcingSelectionMatch[1]),
+            requiredValue(form, "productId", "El Product canónico"),
+            catalog.read().products,
+            fulfillmentStatus,
+          ),
+        );
+        redirect(response, `/product-sourcing/${encodeURIComponent(saved.id)}`);
+        return;
+      }
+      const sourceCandidateCreateMatch =
+        method === "POST"
+          ? /^\/product-sourcing\/(request_[a-z0-9_-]+)\/source-candidates$/.exec(url.pathname)
+          : null;
+      if (sourceCandidateCreateMatch?.[1]) {
+        const form = await readForm(request);
+        const sourceKind = requiredValue(form, "sourceKind", "El origen del candidato");
+        if (sourceKind !== "manual" && sourceKind !== "amazon-creators-api") {
+          throw new TypeError("El origen del candidato no es válido.");
+        }
+        const marketplace = optionalValue(form, "marketplace");
+        const externalId = optionalValue(form, "externalId");
+        const sourceUrl = optionalValue(form, "sourceUrl");
+        const saved = await sourcingStore.save(
+          addProductSourceCandidates(sourcingStore.get(sourceCandidateCreateMatch[1]), [
+            {
+              sourceKind,
+              provider: requiredValue(form, "provider", "El proveedor"),
+              ...(marketplace ? { marketplace } : {}),
+              ...(externalId ? { externalId } : {}),
+              ...(sourceUrl ? { sourceUrl } : {}),
+              name: requiredValue(form, "name", "El nombre observado"),
+              sourceFacts: listValue(form, "sourceFacts", "\n") ?? [],
+            },
+          ]),
+        );
+        redirect(response, `/product-sourcing/${encodeURIComponent(saved.id)}`);
+        return;
+      }
+      const sourceCandidateReviewMatch =
+        method === "POST"
+          ? /^\/product-sourcing\/(request_[a-z0-9_-]+)\/source-candidates\/review$/.exec(
+              url.pathname,
+            )
+          : null;
+      if (sourceCandidateReviewMatch?.[1]) {
+        const form = await readForm(request);
+        const sourcingRequest = sourcingStore.get(sourceCandidateReviewMatch[1]);
+        const decisions = sourcingRequest.sourceCandidates.flatMap((candidate) => {
+          const decision = form.get(candidate.id);
+          return decision === "approved-for-intake" || decision === "rejected"
+            ? [
+                {
+                  candidateId: candidate.id,
+                  decision: decision as "approved-for-intake" | "rejected",
+                },
+              ]
+            : [];
+        });
+        const saved = await sourcingStore.save(
+          reviewProductSourceCandidates(sourcingRequest, decisions),
+        );
+        redirect(response, `/product-sourcing/${encodeURIComponent(saved.id)}`);
+        return;
+      }
+      const sourceCandidateLinkMatch =
+        method === "POST"
+          ? /^\/product-sourcing\/(request_[a-z0-9_-]+)\/source-candidates\/(source_candidate_[a-z0-9_-]+)\/link$/.exec(
+              url.pathname,
+            )
+          : null;
+      if (sourceCandidateLinkMatch?.[1] && sourceCandidateLinkMatch[2]) {
+        const form = await readForm(request);
+        const products = catalog.read().products;
+        const source = sourceStore.get(
+          requiredValue(form, "productSourceId", "El ProductSourceRecord"),
+          products,
+        );
+        const saved = await sourcingStore.save(
+          linkProductSourceCandidate(
+            sourcingStore.get(sourceCandidateLinkMatch[1]),
+            sourceCandidateLinkMatch[2],
+            source.productId,
+            source.id,
+            products,
+            sourceStore.list(products),
+          ),
+        );
+        redirect(response, `/product-sourcing/${encodeURIComponent(saved.id)}`);
+        return;
+      }
+      const productSourcingAssignMatch =
+        method === "POST"
+          ? /^\/product-sourcing\/(request_[a-z0-9_-]+)\/assign$/.exec(url.pathname)
+          : null;
+      if (productSourcingAssignMatch?.[1]) {
+        const form = await readForm(request);
+        const sourcingRequest = sourcingStore.get(productSourcingAssignMatch[1]);
+        if (sourcingRequest.origin.kind !== "recommendation-slot") {
+          throw new TypeError("La solicitud no pertenece a un slot de GuideDraft.");
+        }
+        const draft = await readGuideDraft(store, sourcingRequest.origin.guideDraftId);
+        await store.save(
+          assignSourcedProductToDraftSlot(
+            sourcingRequest,
+            requiredValue(form, "productId", "El Product canónico"),
+            draft,
+            catalog.read(),
+            form.get("allowDuplicate") === "yes",
+          ),
+        );
+        redirect(response, productSourcingReturnPath(sourcingRequest));
+        return;
+      }
       if (method === "GET" && url.pathname === "/opportunities") {
         const content = readPublicContent(catalog.root);
         const listed = await store.list();
@@ -2812,7 +3250,11 @@ export function createStudioServer(
           ? /^\/opportunities\/briefs\/(brief_[a-z0-9_-]+)$/.exec(url.pathname)
           : null;
       if (editorialBriefMatch?.[1]) {
-        send(response, 200, briefPage(briefStore.get(editorialBriefMatch[1])));
+        send(
+          response,
+          200,
+          briefPage(briefStore.get(editorialBriefMatch[1]), sourcingStore.list()),
+        );
         return;
       }
       const saveEditorialBriefMatch =
@@ -3032,8 +3474,14 @@ export function createStudioServer(
           );
           return;
         }
-        await commitManualProductIntake(preview, catalog.root);
-        redirect(response, safeReturnTo(form.get("returnTo")) ?? "/products?saved=intake");
+        const committed = await commitManualProductIntake(preview, catalog.root);
+        const returnTo = safeReturnTo(form.get("returnTo"));
+        redirect(
+          response,
+          returnTo?.startsWith("/product-sourcing/")
+            ? `${returnTo}?productId=${encodeURIComponent(committed.product.id)}`
+            : (returnTo ?? "/products?saved=intake"),
+        );
         return;
       }
       if (method === "POST" && url.pathname === "/products") {
@@ -3079,7 +3527,7 @@ export function createStudioServer(
           200,
           draft.draftType === "cluster-hub"
             ? clusterEditorPage(draft)
-            : guideEditorPage(draft, url),
+            : guideEditorPage(draft, url, sourcingStore),
         );
         return;
       }

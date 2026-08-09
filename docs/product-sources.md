@@ -75,6 +75,14 @@ The intake performs local HTTPS/host/ASIN checks, detects duplicate ASINs and li
 
 ASINs, source facts, and provenance notes are internal Studio data. The canonical product may contain only the editor-approved public fields from the shared schema, and guide changes still require the existing Goal 2 draft, preview, validation, and publication workflow.
 
+## I.2 sourcing integration
+
+A product-source candidate inside a `ProductSourcingRequest` is not a `ProductSourceRecord` and is not a canonical Product. It contains only reviewable source identity, observed name/facts, provenance kind, and review state. Candidate states are `needs-review`, `approved-for-intake`, `rejected`, and `linked-to-product`.
+
+Batch approval authorizes later intake only. The existing manual intake, or a future controlled Creators API intake, must create the canonical Product and its normal source-provenance record. Linking the reviewed candidate then requires that exact `ProductSourceRecord` to belong to the active canonical Product and that supplied marketplace/external identity match. Linking still does not fulfill the editorial requirement; the editor separately selects the Product on the request.
+
+The current repository has no Creators API client. I.2 accepts optional `amazon-creators-api` candidate fixtures or records from a future existing integration without depending on it, making network requests, scraping, creating Products automatically, or bypassing the source ledger.
+
 ## Verification
 
 From the repository root:

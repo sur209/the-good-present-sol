@@ -1,6 +1,6 @@
 # Product intelligence
 
-Product intelligence is a read-only, non-public Studio analysis of how the canonical product catalog supports published content, current GuideDrafts, and structured product-gap reports. Open `/product-intelligence` in the local Editorial Studio to inspect it.
+The deterministic product-coverage analysis is a read-only, non-public Studio view of how the canonical product catalog supports published content, current GuideDrafts, and structured product-gap reports. Open `/product-intelligence` in the local Editorial Studio to inspect it. I.2 adds a separate non-public sourcing-request ledger at `/product-sourcing`; it does not change the coverage calculation.
 
 It reports catalog-health and editorial-coverage observations. It does not rank opportunities, propose a guide, create a candidate, select a product, or write canonical content.
 
@@ -63,13 +63,24 @@ Coverage-first Lab sessions may select deterministic I.0 observations from the e
 
 This is a one-way read boundary: `analyzeProductCoverage()` remains the only coverage calculation, writes no snapshot, and makes no recommendation. The divergent stage frames hypotheses; the convergent stage must separately consider thin-content, cannibalization, product-concentration, catalog-volatility, and product-reuse concerns; the editor still chooses page, section, merge, hold, or rejection through the existing Lab decisions. No signal, product, underused group, or gap automatically creates a candidate, brief, draft, URL, sourcing task, or product intake.
 
+## I.2 product-sourcing requests
+
+I.2 adds a controlled write path at `/product-sourcing`. Studio-owned records live at `editorial-data/product-intelligence/request_{stable-id}.json` and keep the exact originating candidate, EditorialBrief, GuideDraft, or GuideDraft recommendation-slot identity together with the intended role, category, audience, occasion, budget, required verified facts, exclusions, search terms, lifecycle status, source-candidate review, selected canonical Product IDs, and timestamps.
+
+The statuses are `open`, `partially-fulfilled`, `fulfilled`, `held`, and `rejected`. Holding or rejecting is explicit. Partial or complete fulfillment can happen only by explicitly selecting an active canonical Product from the existing catalog whose `verifiedFacts` contain every must-have fact on the request. The same Product can fulfill another request only through another explicit selection.
+
+The request detail uses the existing deterministic catalog matcher and links to the existing assisted manual intake. Intake returns the new Product to the request screen but does not select it. Manual and optional `amazon-creators-api` candidate records may be reviewed in a batch; approval means only “approved for intake.” A reviewed candidate must still become a canonical Product with a matching `ProductSourceRecord`, be linked back to that record, and then be selected separately. No Creators API client is added or required; an existing or future integration may provide the same validated candidate input.
+
+For a recommendation-slot origin, the final Assign action calls the ordinary Goal 2 `selectRecommendationProduct()` path and returns to the exact stable slot. The assignment moves the slot to its existing `needs-generation` state. It does not mark editorial copy ready, change guide readiness, or publish.
+
 ## Boundaries
 
 - No AI provider or structured-generation call is used.
 - No embeddings, semantic index, network request, scraper, or product import is used.
-- No canonical product, guide, or cluster is written.
+- I.0 analysis and I.2 request transitions write no canonical product, guide, or cluster; only the separately confirmed existing intake and Goal 2 paths may do so.
 - No draft, candidate, or guide is created automatically.
 - I.1 reads selected I.0 results but does not change thresholds, calculate a second coverage report, or turn a signal into an editorial decision.
+- I.2 coordinates explicit requirements and reviewed selections but does not recalculate I.0, create Products, or choose products automatically.
 - Any later product work must use the existing intake and source-provenance flows.
 - Any later guide work must use the existing Goal 2 preview, validation, and atomic publication flow.
 

@@ -94,6 +94,20 @@ import {
 import { analyzeProductCoverage } from "./modules/product-intelligence/coverage.ts";
 import { productGapReportSchema } from "./modules/product-intelligence/gaps.ts";
 import {
+  ProductSourcingRequestStore,
+  addProductSourceCandidates,
+  assertProductSourcingOrigin,
+  assignSourcedProductToDraftSlot,
+  catalogMatchesForRequest,
+  createProductSourcingRequest,
+  linkProductSourceCandidate,
+  productSourcingRequestPath,
+  productSourcingReturnPath,
+  reviewProductSourceCandidates,
+  selectCanonicalProductForRequest,
+  transitionProductSourcingRequest,
+} from "./modules/product-intelligence/sourcing.ts";
+import {
   ArticleCandidateStore,
   applyCandidateDecision,
   articleCandidatePath,
@@ -693,6 +707,24 @@ test("shows traceability in Studio and excludes product intelligence from the pu
       ],
     })}\n`,
   );
+  const sourcingRequest = createProductSourcingRequest(
+    {
+      origin: {
+        kind: "recommendation-slot",
+        guideDraftId: draft.id,
+        recommendationSlotId: draft.recommendations[0]!.id,
+      },
+      intendedRole: sentinel,
+      requiredCategory: sentinel,
+      audience: "Studio-only audience",
+      occasion: "Studio-only occasion",
+      budgetContext: "Studio-only budget",
+      searchTerms: [sentinel],
+    },
+    new Date("2026-08-09T00:00:00.000Z"),
+    "request_intelligence-sentinel",
+  );
+  await new ProductSourcingRequestStore(repository).save(sourcingRequest);
   const catalog = new ProductCatalog(repository);
   const server = createStudioServer(
     draftStore,
@@ -716,6 +748,11 @@ test("shows traceability in Studio and excludes product intelligence from the pu
   assert.match(html, new RegExp(sentinel));
   assert.match(html, /gap_coverage-brief/);
   assert.match(html, /no proponen guías/);
+  const sourcingResponse = await fetch(
+    `http://${STUDIO_HOST}:${address.port}/product-sourcing/${sourcingRequest.id}`,
+  );
+  assert.equal(sourcingResponse.status, 200);
+  assert.match(await sourcingResponse.text(), new RegExp(sentinel));
 
   await execFileAsync(process.execPath, [join(REPOSITORY_ROOT, "scripts", "astro.mjs"), "build"], {
     cwd: join(REPOSITORY_ROOT, "apps", "site"),
@@ -733,7 +770,10 @@ test("shows traceability in Studio and excludes product intelligence from the pu
         .map((file) => readFile(join(REPOSITORY_ROOT, "apps", "site", "dist", file), "utf8")),
     )
   ).join("\n");
-  assert.doesNotMatch(outputFiles.join("\n"), /product-intelligence|gap_coverage-brief/);
+  assert.doesNotMatch(
+    outputFiles.join("\n"),
+    /product-intelligence|gap_coverage-brief|request_intelligence-sentinel/,
+  );
   assert.doesNotMatch(outputHtml, new RegExp(sentinel));
   assert.doesNotMatch(outputHtml, /product-gap-report|editorial-data/);
 });
@@ -2749,6 +2789,383 @@ test("crea un producto desde el Studio, lo selecciona en un GuideDraft y excluye
   assert.doesNotMatch(outputFiles.join("\n"), new RegExp(source.id));
   assert.doesNotMatch(outputHtml, /INTERNAL_SOURCE_FACT_20260808|rights status/);
   assert.doesNotMatch(outputHtml, /editorial-data|manual-amazon|amazon-us/);
+});
+
+test("mantiene el ciclo de vida y los IDs exactos de una solicitud de sourcing", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-product-sourcing-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  const now = new Date("2026-08-09T10:00:00.000Z");
+  const draft = addManualRecommendation(
+    createGuideDraft("guide_sourcing-lifecycle", now),
+    "Insulated drinkware",
+    "Keep a nurse hydrated during a long shift.",
+    ["insulated", "tumbler"],
+    "slot_sourcing-lifecycle",
+  );
+  const request = createProductSourcingRequest(
+    {
+      origin: {
+        kind: "recommendation-slot",
+        guideDraftId: draft.id,
+        recommendationSlotId: "slot_sourcing-lifecycle",
+      },
+      intendedRole: "Practical hydration support",
+      requiredCategory: "Insulated drinkware",
+      audience: "Working nurses",
+      occasion: "Graduation",
+      budgetContext: "Under $50",
+      mustHaveVerifiedFacts: ["Leak-resistant lid"],
+      exclusions: ["Disposable drinkware"],
+      searchTerms: ["insulated", "tumbler"],
+    },
+    now,
+    "request_sourcing-lifecycle",
+  );
+
+  assertProductSourcingOrigin(request.origin, { drafts: [draft] });
+  assertProductSourcingOrigin(
+    { kind: "candidate", candidateId: "candidate_exact" },
+    { candidates: [{ id: "candidate_exact" }] },
+  );
+  assertProductSourcingOrigin(
+    { kind: "brief", briefId: "brief_exact" },
+    { briefs: [{ id: "brief_exact" }] },
+  );
+  assertProductSourcingOrigin({ kind: "guide-draft", guideDraftId: draft.id }, { drafts: [draft] });
+  assert.throws(
+    () =>
+      assertProductSourcingOrigin(
+        {
+          kind: "recommendation-slot",
+          guideDraftId: draft.id,
+          recommendationSlotId: "slot_missing",
+        },
+        { drafts: [draft] },
+      ),
+    /does not exist/,
+  );
+  assert.equal(
+    productSourcingReturnPath(request),
+    `/drafts/${draft.id}?slot=slot_sourcing-lifecycle`,
+  );
+  assert.throws(
+    () => transitionProductSourcingRequest(request, "fulfilled", now),
+    /Invalid sourcing transition/,
+  );
+  const held = transitionProductSourcingRequest(
+    request,
+    "held",
+    new Date("2026-08-09T11:00:00.000Z"),
+  );
+  const reopened = transitionProductSourcingRequest(
+    held,
+    "open",
+    new Date("2026-08-09T12:00:00.000Z"),
+  );
+  assert.equal(reopened.status, "open");
+  assert.equal(reopened.createdAt, request.createdAt);
+
+  const store = new ProductSourcingRequestStore(repository);
+  await store.save(reopened);
+  assert.equal(store.get(request.id).origin.kind, "recommendation-slot");
+  assert.equal(
+    JSON.parse(await readFile(productSourcingRequestPath(repository, request.id), "utf8")).id,
+    request.id,
+  );
+  assert.throws(() => productSourcingRequestPath(repository, "../unsafe"), /not safe/);
+});
+
+test("cumple desde catálogo o intake manual y vuelve al slot sin abrir la publicación", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-sourcing-fulfillment-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const content = catalog.read();
+  const draft = guideDraftSchema.parse({
+    ...addManualRecommendation(
+      createGuideDraft("guide_sourcing-fulfillment"),
+      "Insulated tumbler",
+      "Keep drinks secure during long shifts.",
+      ["insulated", "tumbler"],
+      "slot_sourcing-fulfillment",
+    ),
+    clusterId: content.clusters[0]!.id,
+    slug: "sourcing-fulfillment",
+    primaryAxis: "recipient",
+    primaryIntent: "Choose a practical gift for a nurse.",
+    title: "Sourcing fulfillment fixture",
+  });
+  const requestInput = {
+    origin: {
+      kind: "recommendation-slot" as const,
+      guideDraftId: draft.id,
+      recommendationSlotId: "slot_sourcing-fulfillment",
+    },
+    intendedRole: "Shift hydration",
+    requiredCategory: "Insulated tumbler",
+    audience: "Working nurses",
+    occasion: "Graduation",
+    budgetContext: "Under $50",
+    mustHaveVerifiedFacts: [],
+    exclusions: ["Disposable cups"],
+    searchTerms: ["insulated", "tumbler"],
+  };
+  const request = createProductSourcingRequest(
+    requestInput,
+    new Date("2026-08-09T10:00:00.000Z"),
+    "request_existing-catalog",
+  );
+  const existing = catalogMatchesForRequest(request, content.products)[0]!;
+  assert.equal(existing.id, "product_insulated-tumbler");
+  assert.throws(
+    () =>
+      selectCanonicalProductForRequest(
+        createProductSourcingRequest({
+          ...requestInput,
+          mustHaveVerifiedFacts: ["Verified leak-resistant lid"],
+        }),
+        existing.id,
+        content.products,
+        "fulfilled",
+      ),
+    /missing required verified facts/,
+  );
+  const fulfilled = selectCanonicalProductForRequest(
+    request,
+    existing.id,
+    content.products,
+    "fulfilled",
+  );
+  const assigned = assignSourcedProductToDraftSlot(fulfilled, existing.id, draft, content);
+  assert.equal(assigned.recommendations[0]!.productId, existing.id);
+  assert.equal(assigned.recommendations[0]!.editorialStatus, "needs-generation");
+  assert.ok(validateGuideDraft(assigned, content).errors.length > 0);
+  assert.throws(() => guideDraftToPublic(assigned, content), /slot|obligatorio|lista/i);
+
+  const preview = prepareManualProductIntake(
+    manualProductIntakeInput({
+      productUrl: "https://www.amazon.com/dp/M123456789",
+      asin: "M123456789",
+      name: "Manually sourced recovery wrap",
+      categories: ["recovery tools"],
+      interests: ["recovery"],
+      sourceFacts: ["Reusable wrap"],
+      verifiedFacts: ["Reusable wrap"],
+    }),
+    repository,
+  );
+  assert.deepEqual(preview.errors, []);
+  const intake = await commitManualProductIntake(preview, repository);
+  const manualRequest = createProductSourcingRequest(
+    {
+      ...requestInput,
+      origin: { kind: "guide-draft", guideDraftId: draft.id },
+      intendedRole: "Off-shift recovery",
+      requiredCategory: "Recovery tools",
+      mustHaveVerifiedFacts: ["Reusable wrap"],
+      searchTerms: ["recovery", "wrap"],
+    },
+    new Date("2026-08-09T11:00:00.000Z"),
+    "request_manual-intake",
+  );
+  const manuallyFulfilled = selectCanonicalProductForRequest(
+    manualRequest,
+    intake.product.id,
+    catalog.read().products,
+    "fulfilled",
+  );
+  assert.deepEqual(manuallyFulfilled.approvedProductIds, [intake.product.id]);
+
+  const secondExplicitSelection = selectCanonicalProductForRequest(
+    createProductSourcingRequest(
+      { ...requestInput, origin: { kind: "guide-draft", guideDraftId: draft.id } },
+      new Date("2026-08-09T12:00:00.000Z"),
+      "request_same-product-second-time",
+    ),
+    existing.id,
+    content.products,
+    "fulfilled",
+  );
+  assert.deepEqual(secondExplicitSelection.approvedProductIds, [existing.id]);
+});
+
+test("revisa candidatos API por lote sin permitirles saltar el Product canónico", () => {
+  const content = readPublicContent();
+  const product = content.products.find(({ id }) => id === "product_insulated-tumbler")!;
+  const request = createProductSourcingRequest(
+    {
+      origin: { kind: "guide-draft", guideDraftId: "guide_api-fixture" },
+      intendedRole: "Hydration during shifts",
+      requiredCategory: "Insulated drinkware",
+      audience: "Working nurses",
+      occasion: "Graduation",
+      budgetContext: "Under $50",
+      mustHaveVerifiedFacts: [],
+      exclusions: [],
+      searchTerms: ["insulated", "tumbler"],
+    },
+    new Date("2026-08-09T10:00:00.000Z"),
+    "request_api-fixture",
+  );
+  const withCandidates = addProductSourceCandidates(
+    request,
+    [
+      {
+        id: "source_candidate_api-tumbler",
+        sourceKind: "amazon-creators-api",
+        provider: "Amazon Creators API",
+        marketplace: "amazon.com",
+        externalId: "B123456789",
+        sourceUrl: "https://www.amazon.com/dp/B123456789",
+        name: "API tumbler fixture",
+        sourceFacts: ["Fixture fact for review"],
+      },
+      {
+        id: "source_candidate_manual-reject",
+        sourceKind: "manual",
+        provider: "Manual fixture",
+        name: "Rejected fixture",
+      },
+    ],
+    new Date("2026-08-09T11:00:00.000Z"),
+  );
+  assert.throws(
+    () =>
+      linkProductSourceCandidate(
+        withCandidates,
+        "source_candidate_api-tumbler",
+        product.id,
+        "source_api-tumbler",
+        content.products,
+        [],
+      ),
+    /Review and approve/,
+  );
+  assert.throws(
+    () =>
+      selectCanonicalProductForRequest(
+        withCandidates,
+        "source_candidate_api-tumbler",
+        content.products,
+        "fulfilled",
+      ),
+    /canonical Product/,
+  );
+  const reviewed = reviewProductSourceCandidates(
+    withCandidates,
+    [
+      { candidateId: "source_candidate_api-tumbler", decision: "approved-for-intake" },
+      { candidateId: "source_candidate_manual-reject", decision: "rejected" },
+    ],
+    new Date("2026-08-09T12:00:00.000Z"),
+  );
+  const source = sourceRecord(product.id, {
+    id: "source_api-tumbler",
+    sourceKind: "amazon-creators-api",
+    provider: "Amazon Creators API",
+    marketplace: "amazon.com",
+    externalId: "B123456789",
+    importMethod: "api",
+  });
+  const linked = linkProductSourceCandidate(
+    reviewed,
+    "source_candidate_api-tumbler",
+    product.id,
+    source.id,
+    content.products,
+    [source],
+    new Date("2026-08-09T13:00:00.000Z"),
+  );
+  assert.equal(linked.sourceCandidates[0]!.status, "linked-to-product");
+  assert.equal(linked.status, "open");
+  assert.deepEqual(linked.approvedProductIds, []);
+  const fulfilled = selectCanonicalProductForRequest(
+    linked,
+    product.id,
+    content.products,
+    "fulfilled",
+  );
+  assert.deepEqual(fulfilled.approvedProductIds, [product.id]);
+});
+
+test("crea, cumple y asigna una solicitud al slot exacto por HTTP", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-product-sourcing-http-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourceStore = new ProductSourceStore(repository);
+  const draft = await draftStore.save(
+    addManualRecommendation(
+      createGuideDraft("guide_sourcing-http"),
+      "Insulated tumbler",
+      "Keep a nurse hydrated during a long shift.",
+      ["insulated", "tumbler"],
+      "slot_sourcing-http",
+    ),
+  );
+  const server = createStudioServer(
+    draftStore,
+    catalog,
+    new MockGuideGenerationProvider(),
+    new Publisher(repository),
+    sourceStore,
+  );
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(() => server.close());
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+
+  const createResponse = await fetch(`${origin}/product-sourcing`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      originKind: "recommendation-slot",
+      guideDraftId: draft.id,
+      recommendationSlotId: "slot_sourcing-http",
+      intendedRole: "Shift hydration",
+      requiredCategory: "Insulated tumbler",
+      audience: "Working nurses",
+      occasion: "Graduation",
+      budgetContext: "Under $50",
+      exclusions: "Disposable cups",
+      searchTerms: "insulated,tumbler",
+    }),
+    redirect: "manual",
+  });
+  assert.equal(createResponse.status, 303);
+  const location = createResponse.headers.get("location")!;
+  assert.match(location, /^\/product-sourcing\/request_/);
+  const detail = await (await fetch(`${origin}${location}`)).text();
+  assert.match(detail, /Abrir el intake manual/);
+  assert.match(detail, /product_insulated-tumbler/);
+
+  const fulfillResponse = await fetch(`${origin}${location}/products`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      productId: "product_insulated-tumbler",
+      fulfillmentStatus: "fulfilled",
+    }),
+    redirect: "manual",
+  });
+  assert.equal(fulfillResponse.status, 303);
+  const assignResponse = await fetch(`${origin}${location}/assign`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ productId: "product_insulated-tumbler" }),
+    redirect: "manual",
+  });
+  assert.equal(assignResponse.status, 303);
+  assert.equal(
+    assignResponse.headers.get("location"),
+    `/drafts/${draft.id}?slot=slot_sourcing-http`,
+  );
+  const assigned = guideDraftSchema.parse(await draftStore.read(draft.id));
+  assert.equal(assigned.recommendations[0]!.productId, "product_insulated-tumbler");
+  assert.ok(validateGuideDraft(assigned, catalog.read()).errors.length > 0);
 });
 
 test("renderiza sólo destinos del catálogo y distingue enlaces afiliados", async (context) => {
