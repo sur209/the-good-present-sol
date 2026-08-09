@@ -20,6 +20,7 @@ export const affiliateProgramSchema = z.strictObject({
   marketplace: optionalText,
   storeOrAssociateId: optionalText,
   allowedTrackingIds: z.array(nonEmptyText).default([]),
+  approvedHosts: z.array(nonEmptyText).default([]),
   disclosureText: optionalText,
   disclosureVersion: optionalText,
   enabled: z.boolean().default(false),
@@ -75,6 +76,9 @@ export function missingAffiliateProgramConfiguration(program: AffiliateProgram):
   if (!program.marketplace) missing.push("marketplace");
   if (!program.storeOrAssociateId) missing.push("store or associate identifier");
   if (program.allowedTrackingIds.length === 0) missing.push("allowed tracking ID");
+  if (program.id === "amazon-us" && program.approvedHosts.length === 0) {
+    missing.push("approved Amazon host");
+  }
   if (!program.disclosureText) missing.push("disclosure text");
   if (!program.disclosureVersion) missing.push("disclosure version");
   return missing;

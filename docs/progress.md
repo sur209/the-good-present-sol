@@ -15,6 +15,7 @@
 | 8 — Provider compatibility  | Complete | Added one server-side Chat Completions adapter, explicit OpenAI and DeepSeek profiles, mock-by-default env validation, defensive exact-JSON/Zod parsing, sanitized typed failures, credential boundaries, operator docs, and clean-lockfile verification     |
 | 9 — Ponytail audit          | Complete | Centralized canonical candidate replacement and validation, deduplicated generation metadata, removed redundant mock validation and unused API surface, added form-boundary URL checks, corrected stale docs, and confirmed no removable dependency or route |
 | 10 — Affiliate operations   | Complete | Centralized validated merchant destinations, separated affiliate and ordinary link semantics, added strict AI URL-boundary coverage, and added non-public program records plus a read-only Studio status page                                                |
+| 12 — Manual Amazon intake   | Complete | Added the Amazon US profile and local-only SiteStripe/Associates Central link intake with host, HTTPS, visible-tag, ASIN, normalized-URL, duplicate, short-link, confirmation, source-ledger, and public-build boundary checks                               |
 
 ## Phase status
 
@@ -32,6 +33,10 @@
 
 Complete. Added Studio-owned source records with strict kinds, stable file IDs, provider/marketplace/external-ID uniqueness and lookup, missing-product checks, atomic persistence, product-editor integration, and public-build exclusion.
 
+## Phase 12 - Manual Amazon affiliate intake
+
+Complete. Added an Amazon US profile host allowlist, approved tracking-ID selection, string-only Amazon URL inspection, probable ASIN extraction, visible-tag validation, duplicate ASIN and normalized affiliate URL blocking, short-link warnings, explicit save confirmation, original/normalized audit fields, canonical product linking, and no-network tests. Amazon page fetching, redirect expansion, HTML parsing, browser automation, metadata extraction, tracking-tag insertion, Creators API calls, and credential storage remain out of scope.
+
 ## Current contract
 
 - Source of truth: stable-ID-named JSON files under `content/`.
@@ -40,6 +45,7 @@ Complete. Added Studio-owned source records with strict kinds, stable file IDs, 
 - Merchant destinations: validated affiliate-first resolution from the central product catalog; no internal outbound redirect exists.
 - Affiliate operations: non-public records under `editorial-data/affiliate-programs/` and a read-only Studio status page; no secrets or automatic link generation.
 - Product provenance: non-public records under `editorial-data/product-sources/`; canonical products remain independent editorial entities, and source identifiers never enter Astro output.
+- Amazon intake: manually generated SiteStripe/Associates Central links only; local validation is string-based and writes the public affiliate URL only after confirmation, with original URL and ASIN provenance kept in the non-public source ledger.
 - URL policy: only differentiated, substantial editorial intents receive routes; taxonomies never create pages.
 - MVP scope: Nurse Gifts hub plus graduation, practical, and under-$25 guides.
 
@@ -58,6 +64,7 @@ Complete. Added Studio-owned source records with strict kinds, stable file IDs, 
 
 - Editorial Studio Phase 10: added the affiliate operating contract, central destination tests, safe affiliate/ordinary link rendering checks, strict AI URL-field rejection, non-public program configuration, and the local status page. `npm run verify` passed formatting, all workspace type checks, 53 workspace tests (46 Studio tests), validation of 11 products/1 cluster/3 guides, 0 Astro diagnostics, and the 9-page static build; the artifact assertions found no affiliate-program identifiers in Astro output.
 - Editorial Studio Phase 11: added strict non-public product-source records for manual, manual-Amazon, CSV, and future Amazon Creators API provenance; provider/marketplace/external-ID lookup and duplicate blocking; stable-ID atomic updates; missing-product and safe-path checks; product-editor integration; and a public-build exclusion scan. The focused Studio suite passed with no source identifiers in Astro output.
+- Editorial Studio Phase 12: added the Amazon US profile and manual SiteStripe/Associates Central intake. The focused Studio suite passed 54 tests covering URL shapes, ASIN extraction, approved/unexpected hosts, HTTPS, correct/missing/unexpected visible tags, short-link warnings, duplicate ASINs and normalized affiliate URLs, no Amazon network calls, explicit confirmation before persistence, source-to-product linking, and non-public source fields.
 - Phase 0: `git diff --check` passed; required architecture, URL-policy, replacement, redirect-boundary, and public-status terms confirmed. Ponytail review kept the phase to the four required documentation files with no speculative code or placeholder subsystems.
 - Phase 1: `npm run verify` passed with 0 Astro diagnostics, 0 TypeScript errors, and 2 route tests; `apps/site/dist/` contained one HTML page and no server artifacts. Ponytail review retained only the build, type, format, and test dependencies in active use; a two-line Node launcher avoided a cross-platform environment dependency.
 - Phase 2: strict checks, 6 tests, standalone validation, and the static build passed. A negative integration check confirmed that an unsafe temporary affiliate URL stops the Astro build with file, record, and field context. Ponytail review kept Zod as the only new runtime dependency and one shared filesystem reader outside the pure package.

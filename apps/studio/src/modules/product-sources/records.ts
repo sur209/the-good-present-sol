@@ -29,6 +29,7 @@ const safeId = z
   .regex(/^[a-z0-9]+(?:[-_][a-z0-9]+)*$/, "Must use a safe lowercase ID.");
 const nonEmptyText = z.string().trim().min(1);
 const timestamp = z.iso.datetime({ offset: true });
+const amazonAsin = z.string().regex(/^[A-Z0-9]{10}$/, "Must be a probable Amazon ASIN.");
 
 export const productSourceRecordSchema = z
   .strictObject({
@@ -45,11 +46,31 @@ export const productSourceRecordSchema = z
     lastSynchronizedAt: timestamp.optional(),
     sourceStatus: z.enum(PRODUCT_SOURCE_STATUSES),
     notes: nonEmptyText.optional(),
+    originalProductUrl: safeHttpUrlSchema.optional(),
+    originalAffiliateUrl: safeHttpUrlSchema.optional(),
+    normalizedAffiliateUrl: safeHttpUrlSchema.optional(),
+    trackingId: nonEmptyText.optional(),
   })
   .refine((record) => !record.externalId || record.marketplace, {
     path: ["marketplace"],
     message: "Marketplace is required when an external ID is present.",
-  });
+  })
+  .refine(
+    (record) =>
+      record.sourceKind !== "manual-amazon" ||
+      (record.provider.toLocaleLowerCase("en-US") === "amazon associates" &&
+        record.marketplace === "amazon.com" &&
+        record.importMethod === "manual" &&
+        record.originalProductUrl !== undefined &&
+        record.originalAffiliateUrl !== undefined &&
+        record.normalizedAffiliateUrl !== undefined &&
+        record.trackingId !== undefined &&
+        (record.externalId === undefined || amazonAsin.safeParse(record.externalId).success)),
+    {
+      path: ["sourceKind"],
+      message: "Manual Amazon sources must come from the validated Amazon intake.",
+    },
+  );
 
 export type ProductSourceRecord = z.infer<typeof productSourceRecordSchema>;
 
@@ -149,6 +170,30 @@ export function findDuplicateProductSource(
   );
 }
 
+export function findDuplicateAmazonAsin(
+  records: ProductSourceRecord[],
+  asin: string,
+  excludeId?: string,
+): ProductSourceRecord | undefined {
+  const normalized = asin.trim().toUpperCase();
+  return records.find(
+    (record) =>
+      record.id !== excludeId &&
+      record.sourceKind === "manual-amazon" &&
+      record.externalId?.toUpperCase() === normalized,
+  );
+}
+
+export function findDuplicateNormalizedAffiliateUrl(
+  records: ProductSourceRecord[],
+  normalizedAffiliateUrl: string,
+  excludeId?: string,
+): ProductSourceRecord | undefined {
+  return records.find(
+    (record) => record.id !== excludeId && record.normalizedAffiliateUrl === normalizedAffiliateUrl,
+  );
+}
+
 function validSourceRecords(repositoryRoot: string, products: Product[]): ProductSourceRecord[] {
   const files = readProductSourceRecords(repositoryRoot);
   const errors = files
@@ -171,6 +216,18 @@ function validSourceRecords(repositoryRoot: string, products: Product[]): Produc
       throw new TypeError(
         `El ID externo ${record.externalId} ya existe para ${record.provider} en ${record.marketplace} (${duplicate.id}).`,
       );
+    }
+    const duplicateAsin = record.externalId
+      ? findDuplicateAmazonAsin(records, record.externalId, record.id)
+      : undefined;
+    if (record.sourceKind === "manual-amazon" && duplicateAsin) {
+      throw new TypeError(`El ASIN ${record.externalId} ya existe (${duplicateAsin.id}).`);
+    }
+    const duplicateUrl = record.normalizedAffiliateUrl
+      ? findDuplicateNormalizedAffiliateUrl(records, record.normalizedAffiliateUrl, record.id)
+      : undefined;
+    if (duplicateUrl) {
+      throw new TypeError(`La URL afiliada normalizada ya existe en la fuente ${duplicateUrl.id}.`);
     }
   }
   return records;
@@ -222,6 +279,18 @@ export class ProductSourceStore {
       throw new TypeError(
         `El ID externo ${source.externalId} ya existe para ${source.provider} en ${source.marketplace} (${duplicate.id}).`,
       );
+    }
+    const duplicateAsin = source.externalId
+      ? findDuplicateAmazonAsin(records, source.externalId, source.id)
+      : undefined;
+    if (source.sourceKind === "manual-amazon" && duplicateAsin) {
+      throw new TypeError(`El ASIN ${source.externalId} ya existe (${duplicateAsin.id}).`);
+    }
+    const duplicateUrl = source.normalizedAffiliateUrl
+      ? findDuplicateNormalizedAffiliateUrl(records, source.normalizedAffiliateUrl, source.id)
+      : undefined;
+    if (duplicateUrl) {
+      throw new TypeError(`La URL afiliada normalizada ya existe en la fuente ${duplicateUrl.id}.`);
     }
     await atomicWriteJson(productSourcePath(this.repositoryRoot, source.id), source);
     return source;

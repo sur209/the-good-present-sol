@@ -76,6 +76,13 @@ import {
   readAffiliateProgramRecords,
 } from "./modules/affiliate-operations/programs.ts";
 import {
+  createAmazonProductSourceRecord,
+  isApprovedAmazonUsHost,
+  readAmazonUsAffiliateProgram,
+  validateAmazonAffiliateIntake,
+  type AmazonAffiliateIntakeValidation,
+} from "./modules/affiliate-operations/amazon.ts";
+import {
   PRODUCT_SOURCE_IMPORT_METHODS,
   PRODUCT_SOURCE_KINDS,
   PRODUCT_SOURCE_STATUSES,
@@ -84,7 +91,7 @@ import {
   productSourceRecordSchema,
   type ProductSourceRecord,
 } from "./modules/product-sources/records.ts";
-import { readPublicContent } from "./repository.ts";
+import { REPOSITORY_ROOT, readPublicContent } from "./repository.ts";
 
 export const STUDIO_HOST = "127.0.0.1";
 const DEFAULT_PORT = 4322;
@@ -238,6 +245,9 @@ function productFromForm(form: URLSearchParams, id = createProductId()): Product
   if (!validateProductUrl(affiliateUrl)) {
     throw new TypeError("La URL afiliada debe ser HTTP(S) y absoluta.");
   }
+  if (affiliateUrl && isApprovedAmazonUsHost(affiliateUrl)) {
+    throw new TypeError("Los enlaces Amazon deben guardarse desde el intake Amazon US.");
+  }
   const verifiedFacts = listValue(form, "verifiedFacts", "\n");
   const priceLabel = optionalValue(form, "priceLabel");
   const image = optionalValue(form, "image");
@@ -303,6 +313,9 @@ function productSourceFromForm(form: URLSearchParams, productId: string): Produc
   if (!(PRODUCT_SOURCE_KINDS as readonly string[]).includes(sourceKind)) {
     throw new TypeError("El tipo de fuente no es válido.");
   }
+  if (sourceKind === "manual-amazon") {
+    throw new TypeError("Las fuentes Amazon deben guardarse desde el intake Amazon US.");
+  }
   const importMethod = optionalValue(form, "importMethod") ?? "manual";
   if (!(PRODUCT_SOURCE_IMPORT_METHODS as readonly string[]).includes(importMethod)) {
     throw new TypeError("El método de importación no es válido.");
@@ -365,14 +378,16 @@ function productSourceSection(
           <div class="actions"><h3>${escapeHtml(source.provider)}${source.marketplace ? ` · ${escapeHtml(source.marketplace)}` : ""}</h3><span class="status">${escapeHtml(sourceStatusLabels[source.sourceStatus])}</span></div>
           <dl><dt>Tipo</dt><dd>${escapeHtml(sourceKindLabels[source.sourceKind])}</dd><dt>ID externo</dt><dd>${escapeHtml(source.externalId ?? "No informado")}</dd><dt>Importado</dt><dd>${escapeHtml(source.importedAt)}</dd><dt>Origen</dt><dd>${source.sourceUrl ? escapeHtml(source.sourceUrl) : "No informado"}</dd></dl>
           ${source.notes ? `<p>${escapeHtml(source.notes)}</p>` : ""}
-          <a href="/products/${encodeURIComponent(product.id)}/edit?sourceId=${encodeURIComponent(source.id)}">Editar esta fuente</a>
+          ${source.sourceKind === "manual-amazon" ? "" : `<a href="/products/${encodeURIComponent(product.id)}/edit?sourceId=${encodeURIComponent(source.id)}">Editar esta fuente</a>`}
         </article>`,
     )
     .join("");
-  const options = PRODUCT_SOURCE_KINDS.map(
-    (kind) =>
-      `<option value="${kind}"${selected?.sourceKind === kind ? " selected" : ""}>${sourceKindLabels[kind]}</option>`,
-  ).join("");
+  const options = PRODUCT_SOURCE_KINDS.filter((kind) => kind !== "manual-amazon")
+    .map(
+      (kind) =>
+        `<option value="${kind}"${selected?.sourceKind === kind ? " selected" : ""}>${sourceKindLabels[kind]}</option>`,
+    )
+    .join("");
   const statusOptions = PRODUCT_SOURCE_STATUSES.map(
     (status) =>
       `<option value="${status}"${(selected?.sourceStatus ?? "active") === status ? " selected" : ""}>${sourceStatusLabels[status]}</option>`,
@@ -406,11 +421,80 @@ function productSourceSection(
   </section>`;
 }
 
+function amazonAffiliateSection(
+  product: Product,
+  sources: ProductSourceRecord[],
+  repositoryRoot: string,
+  validation?: AmazonAffiliateIntakeValidation,
+): string {
+  let program;
+  let programError: string | undefined;
+  try {
+    program = readAmazonUsAffiliateProgram(repositoryRoot);
+  } catch (error) {
+    programError = error instanceof Error ? error.message : String(error);
+  }
+
+  const amazonSources = sources.filter((source) => source.sourceKind === "manual-amazon");
+  const sourceList = amazonSources.length
+    ? `<ul>${amazonSources
+        .map(
+          (source) =>
+            `<li><strong>${escapeHtml(source.externalId ?? "ASIN no visible")}</strong> · ${escapeHtml(source.normalizedAffiliateUrl ?? source.originalAffiliateUrl ?? "Special Link")}</li>`,
+        )
+        .join("")}</ul>`
+    : '<p class="muted">Todavia no hay un origen Amazon vinculado.</p>';
+  const selectedTrackingId = validation?.trackingId ?? program?.allowedTrackingIds[0] ?? "";
+  const trackingOptions =
+    program?.allowedTrackingIds
+      .map(
+        (trackingId) =>
+          `<option value="${escapeHtml(trackingId)}"${trackingId === selectedTrackingId ? " selected" : ""}>${escapeHtml(trackingId)}</option>`,
+      )
+      .join("") ?? "";
+  const validationHtml = validation
+    ? `<div class="${validation.errors.length ? "error" : "notice"}">
+         <strong>${validation.errors.length ? "La validacion necesita cambios." : "Validacion local completada."}</strong>
+         ${validation.errors.length ? `<ul>${validation.errors.map((error) => `<li>${escapeHtml(error)}</li>`).join("")}</ul>` : ""}
+         ${validation.warnings.length ? `<p>Advertencias:</p><ul>${validation.warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul>` : ""}
+         ${!validation.errors.length ? "<p>Revisa las advertencias y confirma explicitamente para guardar la URL afiliada.</p>" : ""}
+       </div>`
+    : "";
+  const productUrl = validation?.product.submittedUrl ?? product.productUrl ?? "";
+  const affiliateUrl = validation?.affiliate.submittedUrl ?? product.affiliateUrl ?? "";
+  const programWarning = programError
+    ? `<p class="error">${escapeHtml(programError)}</p>`
+    : program && !program.enabled
+      ? '<p class="error">El perfil Amazon US esta desactivado. Configuralo antes de guardar.</p>'
+      : program && !program.allowedTrackingIds.length
+        ? '<p class="error">El perfil Amazon US no tiene tracking IDs aprobados configurados.</p>'
+        : "";
+  return `<section class="card">
+    <h2>Intake manual Amazon US</h2>
+    <p class="notice">SiteStripe o Associates Central genera el Special Link. Este Studio solo inspecciona las cadenas pegadas: no visita Amazon, no expande redirecciones y no agrega tags.</p>
+    ${programWarning}
+    <p>Fuentes Amazon ya vinculadas:</p>${sourceList}
+    ${validationHtml}
+    <form method="post" action="/products/${encodeURIComponent(product.id)}/amazon-affiliate">
+      <div class="grid">
+        <label>URL de producto Amazon<input type="url" name="productUrl" required value="${value(productUrl)}" placeholder="https://www.amazon.com/dp/..."></label>
+        <label>URL afiliada / Special Link<input type="url" name="affiliateUrl" required value="${value(affiliateUrl)}" placeholder="https://www.amazon.com/dp/...?...tag=..."></label>
+        <label>Tracking ID aprobado<select name="trackingId" required>${trackingOptions || '<option value="">Configura un ID aprobado</option>'}</select></label>
+      </div>
+      <label><input type="checkbox" name="confirm" value="yes"> Confirmo que pegue el enlace generado por SiteStripe o Associates Central y quiero guardar la URL afiliada validada.</label>
+      <button type="submit">Validar y guardar enlace Amazon</button>
+    </form>
+    <p class="muted">Hosts aprobados localmente: ${escapeHtml(program?.approvedHosts.join(", ") ?? "no configurados")}.</p>
+  </section>`;
+}
+
 function productFormPage(
   product?: Product,
   returnTo?: string,
   sources: ProductSourceRecord[] = [],
   selectedSource?: ProductSourceRecord,
+  repositoryRoot = REPOSITORY_ROOT,
+  amazonValidation?: AmazonAffiliateIntakeValidation,
 ): string {
   const editing = Boolean(product);
   const action = editing ? `/products/${encodeURIComponent(product!.id)}` : "/products";
@@ -442,7 +526,8 @@ function productFormPage(
        </div>
        <button type="submit">${submitLabel}</button>
      </form>
-     ${product ? productSourceSection(product, sources, selectedSource) : ""}`,
+     ${product ? productSourceSection(product, sources, selectedSource) : ""}
+     ${product ? amazonAffiliateSection(product, sources, repositoryRoot, amazonValidation) : ""}`,
   );
 }
 
@@ -498,8 +583,8 @@ function productListPage(catalog: ProductCatalog, url: URL): string {
   );
 }
 
-function affiliateProgramStatusPage(): string {
-  const records = readAffiliateProgramRecords();
+function affiliateProgramStatusPage(repositoryRoot = REPOSITORY_ROOT): string {
+  const records = readAffiliateProgramRecords(repositoryRoot);
   const cards = records
     .map((record) => {
       if (record.error) {
@@ -520,6 +605,7 @@ function affiliateProgramStatusPage(): string {
           <dt>Marketplace</dt><dd>${escapeHtml(program.marketplace ?? "No configurado")}</dd>
           <dt>Store o associate ID</dt><dd>${escapeHtml(program.storeOrAssociateId ?? "No configurado")}</dd>
           <dt>Tracking IDs permitidos</dt><dd>${escapeHtml(program.allowedTrackingIds.join(", ") || "Ninguno")}</dd>
+          <dt>Hosts aprobados</dt><dd>${escapeHtml(program.approvedHosts.join(", ") || "Ninguno")}</dd>
           <dt>Disclosure</dt><dd>${escapeHtml(program.disclosureText ?? "No configurado")}</dd>
           <dt>Versión disclosure</dt><dd>${escapeHtml(program.disclosureVersion ?? "No configurada")}</dd>
         </dl>
@@ -1688,7 +1774,7 @@ export function createStudioServer(
         return;
       }
       if (method === "GET" && url.pathname === "/affiliate-programs") {
-        send(response, 200, affiliateProgramStatusPage());
+        send(response, 200, affiliateProgramStatusPage(catalog.root));
         return;
       }
       if (method === "GET" && url.pathname === "/products/new") {
@@ -1710,7 +1796,14 @@ export function createStudioServer(
         if (selectedSource && selectedSource.productId !== product.id) {
           throw new TypeError("La fuente no pertenece a este producto.");
         }
-        send(response, 200, productFormPage(product, undefined, sources, selectedSource));
+        if (selectedSource?.sourceKind === "manual-amazon") {
+          throw new TypeError("Las fuentes Amazon se actualizan desde el intake Amazon US.");
+        }
+        send(
+          response,
+          200,
+          productFormPage(product, undefined, sources, selectedSource, catalog.root),
+        );
         return;
       }
       const saveProductSourceMatch =
@@ -1722,6 +1815,43 @@ export function createStudioServer(
           catalog.read().products,
         );
         redirect(response, `/products/${encodeURIComponent(product.id)}/edit?saved=source`);
+        return;
+      }
+      const saveAmazonAffiliateMatch =
+        method === "POST"
+          ? /^\/products\/([a-z0-9_-]+)\/amazon-affiliate$/.exec(url.pathname)
+          : null;
+      if (saveAmazonAffiliateMatch?.[1]) {
+        const product = catalog.get(saveAmazonAffiliateMatch[1]);
+        const form = await readForm(request);
+        const input = {
+          productUrl: requiredValue(form, "productUrl", "La URL de producto Amazon"),
+          affiliateUrl: requiredValue(form, "affiliateUrl", "La URL afiliada Amazon"),
+          trackingId: requiredValue(form, "trackingId", "El tracking ID"),
+        };
+        const products = catalog.read().products;
+        const sources = sourceStore.forProduct(product.id, products);
+        const validation = validateAmazonAffiliateIntake(
+          input,
+          readAmazonUsAffiliateProgram(catalog.root),
+          sources,
+        );
+        if (validation.errors.length || form.get("confirm") !== "yes") {
+          send(
+            response,
+            validation.errors.length ? 400 : 200,
+            productFormPage(product, undefined, sources, undefined, catalog.root, validation),
+          );
+          return;
+        }
+        const source = createAmazonProductSourceRecord(product.id, input, validation);
+        await catalog.save({
+          ...product,
+          productUrl: validation.normalizedProductUrl!,
+          affiliateUrl: validation.normalizedAffiliateUrl!,
+        });
+        await sourceStore.save(source, catalog.read().products);
+        redirect(response, `/products/${encodeURIComponent(product.id)}/edit?saved=amazon`);
         return;
       }
       if (method === "POST" && url.pathname === "/products") {

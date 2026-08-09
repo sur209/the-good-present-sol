@@ -63,9 +63,17 @@ import {
 } from "./product-catalog.ts";
 import { prepareRecommendationPrompt } from "./recommendation-prompt.ts";
 import {
+  affiliateProgramSchema,
   missingAffiliateProgramConfiguration,
   readAffiliateProgramRecords,
 } from "./modules/affiliate-operations/programs.ts";
+import {
+  createAmazonProductSourceRecord,
+  extractAmazonAsin,
+  isApprovedAmazonUsHost,
+  normalizeAmazonUrl,
+  validateAmazonAffiliateIntake,
+} from "./modules/affiliate-operations/amazon.ts";
 import {
   ProductSourceStore,
   findDuplicateProductSource,
@@ -128,6 +136,31 @@ function sourceRecord(
     sourceStatus: "active",
     ...overrides,
   });
+}
+
+function configuredAmazonProgram() {
+  return affiliateProgramSchema.parse({
+    id: "amazon-us",
+    programId: "amazon-associates",
+    marketplace: "amazon.com",
+    storeOrAssociateId: "thegoodpresent-20",
+    allowedTrackingIds: ["thegoodpresent-20", "seasonal-20"],
+    approvedHosts: ["amazon.com", "www.amazon.com", "smile.amazon.com", "amzn.to", "a.co"],
+    disclosureText: "The Good Present may earn from qualifying purchases.",
+    disclosureVersion: "2026-08-08",
+    enabled: true,
+  });
+}
+
+function amazonIntakeInput(
+  overrides: Partial<Parameters<typeof validateAmazonAffiliateIntake>[0]> = {},
+) {
+  return {
+    productUrl: "https://www.amazon.com/dp/B012345678",
+    affiliateUrl: "https://www.amazon.com/dp/B012345678?tag=thegoodpresent-20",
+    trackingId: "thegoodpresent-20",
+    ...overrides,
+  };
 }
 
 test("discrimina borradores estrictos de hub y guía", () => {
@@ -261,6 +294,93 @@ test("acepta sólo URLs HTTP(S) absolutas", () => {
   assert.equal(validateProductUrl("/relative"), false);
 });
 
+test("reconoce formas Amazon y extrae el ASIN solo del texto de la URL", () => {
+  for (const url of [
+    "https://www.amazon.com/dp/B012345678",
+    "https://amazon.com/gp/product/B012345678?psc=1",
+    "https://www.amazon.com/gp/aw/d/B012345678/ref=dp_iou_view_item",
+  ]) {
+    assert.equal(extractAmazonAsin(url), "B012345678");
+  }
+  assert.equal(extractAmazonAsin("https://www.amazon.com/dp/not-an-asin"), undefined);
+  assert.equal(extractAmazonAsin("https://amzn.to/short-code"), undefined);
+  assert.equal(
+    normalizeAmazonUrl("HTTPS://WWW.AMAZON.COM/dp/B012345678?z=2&tag=thegoodpresent-20#fragment"),
+    "https://www.amazon.com/dp/B012345678?tag=thegoodpresent-20&z=2",
+  );
+});
+
+test("valida hosts Amazon US, https y tracking tags sin red", () => {
+  for (const host of [
+    "https://amazon.com",
+    "https://www.amazon.com",
+    "https://smile.amazon.com",
+    "https://amzn.to",
+    "https://a.co",
+  ]) {
+    assert.equal(isApprovedAmazonUsHost(host), true);
+  }
+  assert.equal(isApprovedAmazonUsHost("https://not-amazon.example"), false);
+
+  const program = configuredAmazonProgram();
+  const correct = validateAmazonAffiliateIntake(amazonIntakeInput(), program);
+  assert.deepEqual(correct.errors, []);
+  assert.deepEqual(correct.warnings, []);
+
+  const missingTag = validateAmazonAffiliateIntake(
+    amazonIntakeInput({ affiliateUrl: "https://www.amazon.com/dp/B012345678" }),
+    program,
+  );
+  assert.deepEqual(missingTag.errors, []);
+  assert.ok(missingTag.warnings.some((warning) => warning.includes("tracking tag")));
+
+  const unexpectedTag = validateAmazonAffiliateIntake(
+    amazonIntakeInput({ affiliateUrl: "https://www.amazon.com/dp/B012345678?tag=other-20" }),
+    program,
+  );
+  assert.ok(unexpectedTag.errors.some((error) => error.includes("tracking tag visible")));
+
+  const unexpectedHost = validateAmazonAffiliateIntake(
+    amazonIntakeInput({ productUrl: "https://not-amazon.example/dp/B012345678" }),
+    program,
+  );
+  assert.ok(unexpectedHost.errors.some((error) => error.includes("host no")));
+
+  const shortLink = validateAmazonAffiliateIntake(
+    amazonIntakeInput({ affiliateUrl: "https://amzn.to/short-code" }),
+    program,
+  );
+  assert.deepEqual(shortLink.errors, []);
+  assert.ok(shortLink.warnings.some((warning) => warning.includes("enlace corto")));
+
+  const originalFetch = globalThis.fetch;
+  let fetchCalls = 0;
+  globalThis.fetch = (async () => {
+    fetchCalls += 1;
+    throw new Error("Amazon network access should not happen");
+  }) as typeof fetch;
+  try {
+    validateAmazonAffiliateIntake(amazonIntakeInput(), program);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+  assert.equal(fetchCalls, 0);
+});
+
+test("bloquea ASIN y URL afiliada normalizada duplicados", () => {
+  const program = configuredAmazonProgram();
+  const input = amazonIntakeInput();
+  const firstValidation = validateAmazonAffiliateIntake(input, program);
+  const first = createAmazonProductSourceRecord(
+    "product_badge-reel",
+    { ...input, sourceId: "source_amazon_first" },
+    firstValidation,
+  );
+  const duplicate = validateAmazonAffiliateIntake(input, program, [first]);
+  assert.ok(duplicate.errors.some((error) => error.includes("ASIN ya")));
+  assert.ok(duplicate.errors.some((error) => error.includes("URL afiliada normalizada")));
+});
+
 test("lee configuración de afiliados sin secretos y detecta faltantes", () => {
   const records = readAffiliateProgramRecords();
   assert.equal(records.length, 1);
@@ -298,7 +418,21 @@ test("muestra el estado de afiliados sólo dentro del Studio", async (context) =
 test("valida fuentes, conserva campos no pÃºblicos y acepta los cuatro tipos", () => {
   const source = sourceRecord("product_badge-reel");
   assert.equal(source.sourceKind, "manual");
-  for (const sourceKind of ["manual-amazon", "csv-import", "amazon-creators-api"] as const) {
+  const amazonSource = productSourceRecordSchema.parse({
+    ...source,
+    id: "source_manual-amazon",
+    sourceKind: "manual-amazon",
+    provider: "Amazon Associates",
+    marketplace: "amazon.com",
+    externalId: "B012345678",
+    sourceUrl: "https://www.amazon.com/dp/B012345678",
+    originalProductUrl: "https://www.amazon.com/dp/B012345678",
+    originalAffiliateUrl: "https://www.amazon.com/dp/B012345678?tag=approved-20",
+    normalizedAffiliateUrl: "https://www.amazon.com/dp/B012345678?tag=approved-20",
+    trackingId: "approved-20",
+  });
+  assert.equal(amazonSource.sourceKind, "manual-amazon");
+  for (const sourceKind of ["csv-import", "amazon-creators-api"] as const) {
     assert.equal(
       productSourceRecordSchema.safeParse({ ...source, id: `source_${sourceKind}`, sourceKind })
         .success,
@@ -445,7 +579,7 @@ test("muestra y guarda provenance desde el editor de producto sin tocar el produ
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      sourceKind: "manual-amazon",
+      sourceKind: "manual",
       provider: "Amazon",
       marketplace: "amazon.com",
       externalId: "ASIN-HTTP",
@@ -467,6 +601,71 @@ test("muestra y guarda provenance desde el editor de producto sin tocar el produ
   );
   assert.match(await sourceEditor.text(), /name="importedAt" value="2026-08-08T00:00:30\.123"/);
   assert.equal(catalog.get(productId).id, productId);
+});
+
+test("guarda el intake Amazon solo despues de confirmacion explicita", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-amazon-intake-http-"));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  await mkdir(join(repository, "editorial-data", "affiliate-programs"), { recursive: true });
+  await atomicWriteJson(
+    join(repository, "editorial-data", "affiliate-programs", "amazon-us.json"),
+    configuredAmazonProgram(),
+  );
+  const catalog = new ProductCatalog(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const server = createStudioServer(
+    new DraftStore(join(repository, "drafts")),
+    catalog,
+    new MockGuideGenerationProvider(),
+    new Publisher(repository),
+    sourceStore,
+  );
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(async () => {
+    server.close();
+    await rm(repository, { recursive: true, force: true });
+  });
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+  const productId = "product_badge-reel";
+  const form = amazonIntakeInput();
+
+  const editor = await fetch(`${origin}/products/${productId}/edit`);
+  const editorHtml = await editor.text();
+  assert.match(editorHtml, /Intake manual Amazon US/);
+  assert.match(editorHtml, /amazon-affiliate/);
+
+  const previewResponse = await fetch(`${origin}/products/${productId}/amazon-affiliate`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams(form),
+  });
+  assert.equal(previewResponse.status, 200);
+  assert.match(await previewResponse.text(), /Validacion local completada/);
+  assert.equal(sourceStore.forProduct(productId, catalog.read().products).length, 0);
+  assert.match(catalog.get(productId).affiliateUrl ?? "", /example\.com/);
+
+  const saveResponse = await fetch(`${origin}/products/${productId}/amazon-affiliate`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ ...form, confirm: "yes" }),
+    redirect: "manual",
+  });
+  assert.equal(saveResponse.status, 303);
+  assert.equal(saveResponse.headers.get("location"), `/products/${productId}/edit?saved=amazon`);
+
+  const product = catalog.get(productId);
+  assert.equal(product.productUrl, "https://www.amazon.com/dp/B012345678");
+  assert.equal(product.affiliateUrl, "https://www.amazon.com/dp/B012345678?tag=thegoodpresent-20");
+  const source = sourceStore.forProduct(productId, catalog.read().products)[0]!;
+  assert.equal(source.sourceKind, "manual-amazon");
+  assert.equal(source.productId, productId);
+  assert.equal(source.externalId, "B012345678");
+  assert.equal(source.originalAffiliateUrl, form.affiliateUrl);
+  assert.equal(source.normalizedAffiliateUrl, product.affiliateUrl);
+  assert.equal(source.trackingId, form.trackingId);
 });
 
 test("escribe productos por ID y bloquea desactivar uno publicado", async (context) => {

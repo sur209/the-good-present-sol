@@ -20,6 +20,17 @@ The draft ID is assigned once and is also the canonical public record ID and fil
 
 A public URL exists only after publishing a cluster or guide record. Primary axes define the main editorial lens: `general`, `occasion`, `recipient`, `career-stage`, `work-context`, `gift-style`, or `budget`. Secondary taxonomies classify a guide but never create combinatorial routes, filters, or pages. Related guides are editorial links, not hierarchy. A child guide belongs to exactly one cluster.
 
+## Product catalog and Amazon links
+
+Products are edited at `/products/{product-id}/edit`. Ordinary product destinations remain manual catalog fields. Amazon affiliate URLs use the dedicated **Intake manual Amazon US** section:
+
+1. Configure the non-public Amazon profile with the verified account identifier and approved tracking IDs. The seed profile is disabled and intentionally contains no real account identifier or tracking ID.
+2. Paste the Amazon product URL and the Special Link created by SiteStripe or Associates Central. Select the approved tracking ID shown by the profile.
+3. Review the local validation. It checks `https`, the exact Amazon US host allowlist, probable ASINs found only in the pasted URL, visible tracking tags, duplicate ASINs, and duplicate normalized affiliate URLs. Short links receive a warning because the Studio cannot inspect their destination without a network request.
+4. Confirm explicitly before saving. The product stores the normalized public URLs; the non-public source ledger stores the original submitted strings, normalized affiliate URL, ASIN when visible, tracking ID, and canonical product ID.
+
+The Studio does not generate or repair Amazon links, fetch Amazon pages, expand redirects, parse HTML, use browser automation, call Creators API, or accept Amazon credentials. Tracking mismatches are shown before a write. Product and source changes do not publish guides; any guide change still follows the Goal 2 preview, validation, and publication workflow below.
+
 ## Cluster-hub workflow
 
 1. Create a cluster draft or reopen a published hub by stable ID.

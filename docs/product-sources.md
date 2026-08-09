@@ -31,6 +31,10 @@ type ProductSourceRecord = {
   lastSynchronizedAt?: string;
   sourceStatus: "active" | "inactive" | "needs-review";
   notes?: string;
+  originalProductUrl?: string;
+  originalAffiliateUrl?: string;
+  normalizedAffiliateUrl?: string;
+  trackingId?: string;
 };
 ```
 
@@ -45,17 +49,17 @@ The same tuple is used for deterministic lookup. A source may point to only an e
 ## Supported source kinds
 
 - `manual`: editor-entered provenance.
-- `manual-amazon`: editor-entered Amazon provenance, including an optional ASIN in `externalId`.
+- `manual-amazon`: editor-entered Amazon provenance created only by the validated Amazon US intake. It keeps the probable ASIN in `externalId`, the original pasted URLs, the normalized affiliate URL, and the selected tracking ID.
 - `csv-import`: provenance from a future controlled CSV import.
 - `amazon-creators-api`: provenance from a future Amazon Creators API import.
 
-The last two kinds record provenance only at this stage. There is no CSV importer, Amazon API, scraper, or automatic synchronization. `lastSynchronizedAt` is retained for future controlled workflows and is never populated automatically now.
+The last two kinds record provenance only at this stage. There is no CSV importer, Amazon API integration, scraper, or automatic synchronization. `lastSynchronizedAt` is retained for future controlled workflows and is never populated automatically now.
 
 ## Studio workflow
 
 Open a product in `/products/{product-id}/edit`. The non-public provenance section lists existing sources and provides a form to create or update one. The form changes only `editorial-data/product-sources/`; merchant-source facts never overwrite the canonical product automatically.
 
-For a product that has no external ID, use `manual` and record the provider, source URL, import timestamp, status, and notes as available. Add `marketplace` and `externalId` only when the source system supplies them.
+For a product that has no external ID, use `manual` and record the provider, source URL, import timestamp, status, and notes as available. Add `marketplace` and `externalId` only when the source system supplies them. Use the Amazon intake for `manual-amazon`; the generic provenance form cannot create that kind.
 
 ## Verification
 
