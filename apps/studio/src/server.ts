@@ -105,6 +105,16 @@ import {
   type ProductEvidence,
 } from "./modules/product-intelligence/coverage.ts";
 import { readProductGapReports } from "./modules/product-intelligence/gaps.ts";
+import {
+  CANDIDATE_DECISIONS,
+  CANDIDATE_STATUSES,
+  ArticleCandidateStore,
+  applyCandidateDecision,
+  candidateStatusTransitions,
+  transitionArticleCandidate,
+  type ArticleCandidate,
+  type CandidateStatus,
+} from "./modules/content-opportunity-lab/candidates.ts";
 import { REPOSITORY_ROOT, readPublicContent } from "./repository.ts";
 
 export const STUDIO_HOST = "127.0.0.1";
@@ -180,7 +190,7 @@ function page(title: string, body: string): string {
 <body>
   <header>
     <a href="/">The Good Present · Studio</a>
-    <nav aria-label="Principal"><a href="/">Borradores</a><a href="/drafts/new">Crear</a><a href="/products">Productos</a><a href="/product-intelligence">Cobertura</a><a href="/products/intake">Ingreso asistido</a><a href="/affiliate-programs">Programas afiliados</a><a href="/affiliate-operations">QA afiliados</a></nav>
+    <nav aria-label="Principal"><a href="/">Borradores</a><a href="/drafts/new">Crear</a><a href="/products">Productos</a><a href="/product-intelligence">Cobertura</a><a href="/opportunities">Oportunidades</a><a href="/products/intake">Ingreso asistido</a><a href="/affiliate-programs">Programas afiliados</a><a href="/affiliate-operations">QA afiliados</a></nav>
   </header>
   <main>${body}</main>
 </body>
@@ -943,6 +953,126 @@ function productIntelligencePage(
   );
 }
 
+const opportunityScoreLabels: Record<keyof ArticleCandidate["scores"], string> = {
+  intentDifferentiation: "Diferenciación de intención",
+  editorialUsefulness: "Utilidad editorial",
+  productDifferentiation: "Diferenciación de productos",
+  audienceClarity: "Claridad de audiencia",
+  seasonalValue: "Valor estacional",
+  commercialPotential: "Potencial comercial",
+  visualDistributionPotential: "Potencial de distribución visual",
+  productReusePotential: "Potencial de reutilización de productos",
+  thinContentRisk: "Riesgo de contenido débil",
+  cannibalizationRisk: "Riesgo de canibalización",
+  maintenanceCost: "Costo de mantenimiento",
+};
+
+const opportunityDecisionLabels: Record<(typeof CANDIDATE_DECISIONS)[number], string> = {
+  "create-article": "Crear artículo",
+  "add-as-section": "Agregar como sección",
+  merge: "Fusionar",
+  hold: "Mantener en espera",
+  reject: "Rechazar",
+};
+
+function opportunityListPage(store: ArticleCandidateStore): string {
+  const candidates = store.list();
+  const list = candidates.length
+    ? `<div class="grid">${candidates
+        .map(
+          (candidate) => `<article class="card">
+            <p><span class="status">${escapeHtml(candidate.status)}</span> · <code>${escapeHtml(candidate.clusterId)}</code></p>
+            <h2><a href="/opportunities/${encodeURIComponent(candidate.id)}">${escapeHtml(candidate.proposedTitle)}</a></h2>
+            <p>${escapeHtml(candidate.primaryIntent)}</p>
+            <p class="muted"><code>${escapeHtml(candidate.id)}</code> · actualizado ${escapeHtml(formatDate(candidate.updatedAt))}</p>
+          </article>`,
+        )
+        .join("")}</div>`
+    : '<p class="notice">Todavía no hay oportunidades guardadas.</p>';
+  return page(
+    "Oportunidades de contenido",
+    `<h1>Oportunidades de contenido</h1>
+     <p>Los candidatos registran análisis editorial previo. No son briefs, GuideDrafts ni contenido público.</p>
+     <p class="notice">Los puntajes son ayudas editoriales independientes de 0 a 5; no son métricas SEO objetivas ni se suman en un ranking.</p>
+     ${list}`,
+  );
+}
+
+function opportunityDetailPage(candidate: ArticleCandidate): string {
+  const taxonomies = Object.entries(candidate.secondaryTaxonomies)
+    .map(
+      ([name, values]) =>
+        `<dt>${escapeHtml(name)}</dt><dd>${escapeHtml(values?.join(", ") ?? "—")}</dd>`,
+    )
+    .join("");
+  const sections = candidate.proposedSections
+    .map(
+      (section) =>
+        `<li><strong>${escapeHtml(section.heading)}</strong>: ${escapeHtml(section.purpose)}</li>`,
+    )
+    .join("");
+  const overlaps = candidate.overlapSignals.length
+    ? `<ul>${candidate.overlapSignals
+        .map(
+          (signal) =>
+            `<li><code>${escapeHtml(signal.contentId)}</code> · ${escapeHtml(signal.kind)} · ${escapeHtml(signal.level)}: ${escapeHtml(signal.reason)}</li>`,
+        )
+        .join("")}</ul>`
+    : '<p class="muted">No se registraron señales de solapamiento.</p>';
+  const scores = (Object.entries(candidate.scores) as [keyof ArticleCandidate["scores"], number][])
+    .map(
+      ([name, score]) =>
+        `<dt>${escapeHtml(opportunityScoreLabels[name])}</dt><dd>${score} / 5</dd>`,
+    )
+    .join("");
+  const decision = candidate.decision
+    ? `<dl><dt>Decisión</dt><dd>${escapeHtml(opportunityDecisionLabels[candidate.decision.action])}</dd><dt>Razón</dt><dd>${escapeHtml(candidate.decision.reason)}</dd><dt>Fecha</dt><dd>${escapeHtml(formatDate(candidate.decision.decidedAt))}</dd>${candidate.decision.targetContentId ? `<dt>Contenido destino</dt><dd><code>${escapeHtml(candidate.decision.targetContentId)}</code></dd>` : ""}</dl>`
+    : '<p class="muted">Todavía no hay una decisión humana.</p>';
+  const transitions = candidateStatusTransitions(candidate.status)
+    .map(
+      (status) =>
+        `<button type="submit" name="status" value="${escapeHtml(status)}">Marcar ${escapeHtml(status)}</button>`,
+    )
+    .join("");
+  const availableDecisions: readonly (typeof CANDIDATE_DECISIONS)[number][] =
+    candidate.status === "evaluated" ? ["hold", "reject"] : CANDIDATE_DECISIONS;
+  const decisionOptions = availableDecisions
+    .map(
+      (action) =>
+        `<option value="${action}">${escapeHtml(opportunityDecisionLabels[action])}</option>`,
+    )
+    .join("");
+  const decisionForm =
+    candidate.status === "evaluated" || candidate.status === "shortlisted"
+      ? `<section class="card"><h2>Decisión humana</h2>
+          <form method="post" action="/opportunities/${encodeURIComponent(candidate.id)}/decision">
+            <label>Decisión<select name="action" required>${decisionOptions}</select></label>
+            <label>Razón<textarea name="reason" rows="4" required></textarea></label>
+            <label>ID de guía destino (sólo sección o fusión)<input name="targetContentId" placeholder="guide_..."></label>
+            <button type="submit">Guardar decisión</button>
+          </form></section>`
+      : "";
+
+  return page(
+    candidate.proposedTitle,
+    `<p><a href="/opportunities">← Volver a oportunidades</a></p>
+     <div class="actions"><h1>${escapeHtml(candidate.proposedTitle)}</h1><span class="status">${escapeHtml(candidate.status)}</span></div>
+     <p><code>${escapeHtml(candidate.id)}</code> · cluster <code>${escapeHtml(candidate.clusterId)}</code> · slug propuesto <code>${escapeHtml(candidate.proposedSlug)}</code></p>
+     ${transitions ? `<form class="actions" method="post" action="/opportunities/${encodeURIComponent(candidate.id)}/status">${transitions}</form>` : ""}
+     <div class="grid">
+       <section class="card"><h2>Intención</h2><dl><dt>Eje</dt><dd>${escapeHtml(candidate.primaryAxis)}</dd><dt>Intención primaria</dt><dd>${escapeHtml(candidate.primaryIntent)}</dd><dt>Problema resuelto</dt><dd>${escapeHtml(candidate.problemSolved)}</dd><dt>Audiencia</dt><dd>${escapeHtml(candidate.targetAudience)}</dd></dl></section>
+       <section class="card"><h2>Taxonomías secundarias</h2><dl>${taxonomies || "<dt>Valores</dt><dd>—</dd>"}</dl></section>
+       <section class="card wide"><h2>Secciones propuestas</h2><ol>${sections}</ol><h3>Categorías de producto distintivas</h3><p>${escapeHtml(candidate.distinctiveProductCategories.join(", ") || "—")}</p></section>
+       <section class="card"><h2>Contenido cercano</h2><p>${candidate.closestExistingContentIds.map((id) => `<code>${escapeHtml(id)}</code>`).join(", ") || "—"}</p><h3>Señales de solapamiento</h3>${overlaps}</section>
+       <section class="card"><h2>Puntajes separados</h2><p class="notice">Ayudas editoriales de 0 a 5; no son métricas SEO objetivas ni un puntaje agregado.</p><dl>${scores}</dl></section>
+       <section class="card"><h2>Recomendación consultiva</h2><p><strong>${escapeHtml(opportunityDecisionLabels[candidate.advisory.recommendation])}</strong></p><p>${escapeHtml(candidate.advisory.reason)}</p></section>
+       <section class="card"><h2>Decisión registrada</h2>${decision}</section>
+       <section class="card"><h2>Trazabilidad</h2><dl><dt>Señales importadas</dt><dd>${candidate.sourceSignalIds?.map((id) => `<code>${escapeHtml(id)}</code>`).join(", ") || "—"}</dd><dt>EditorialBrief</dt><dd>${candidate.editorialBriefId ? `<code>${escapeHtml(candidate.editorialBriefId)}</code>` : "—"}</dd><dt>GuideDraft</dt><dd>${candidate.guideDraftId ? `<code>${escapeHtml(candidate.guideDraftId)}</code>` : "—"}</dd></dl><p class="muted">Cada referencia conserva un ciclo de vida separado; esta pantalla no crea briefs ni GuideDrafts.</p></section>
+     </div>
+     ${decisionForm}`,
+  );
+}
+
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("es-AR", { dateStyle: "medium", timeStyle: "short" }).format(
     new Date(value),
@@ -1683,6 +1813,7 @@ export function createStudioServer(
   provider: GuideGenerationProvider = new MockGuideGenerationProvider(),
   publisher = new Publisher(),
   sourceStore = new ProductSourceStore(catalog.root),
+  candidateStore = new ArticleCandidateStore(catalog.root),
 ) {
   return createServer(async (request, response) => {
     try {
@@ -2105,6 +2236,53 @@ export function createStudioServer(
             listed.errors,
           ),
         );
+        return;
+      }
+      if (method === "GET" && url.pathname === "/opportunities") {
+        send(response, 200, opportunityListPage(candidateStore));
+        return;
+      }
+      const opportunityMatch =
+        method === "GET" ? /^\/opportunities\/(candidate_[a-z0-9_-]+)$/.exec(url.pathname) : null;
+      if (opportunityMatch?.[1]) {
+        send(response, 200, opportunityDetailPage(candidateStore.get(opportunityMatch[1])));
+        return;
+      }
+      const opportunityStatusMatch =
+        method === "POST"
+          ? /^\/opportunities\/(candidate_[a-z0-9_-]+)\/status$/.exec(url.pathname)
+          : null;
+      if (opportunityStatusMatch?.[1]) {
+        const form = await readForm(request);
+        const status = requiredValue(form, "status", "El estado");
+        if (!(CANDIDATE_STATUSES as readonly string[]).includes(status)) {
+          throw new TypeError("El estado de la oportunidad no es válido.");
+        }
+        const candidate = candidateStore.get(opportunityStatusMatch[1]);
+        await candidateStore.save(transitionArticleCandidate(candidate, status as CandidateStatus));
+        redirect(response, `/opportunities/${encodeURIComponent(candidate.id)}`);
+        return;
+      }
+      const opportunityDecisionMatch =
+        method === "POST"
+          ? /^\/opportunities\/(candidate_[a-z0-9_-]+)\/decision$/.exec(url.pathname)
+          : null;
+      if (opportunityDecisionMatch?.[1]) {
+        const form = await readForm(request);
+        const action = requiredValue(form, "action", "La decisión");
+        if (!(CANDIDATE_DECISIONS as readonly string[]).includes(action)) {
+          throw new TypeError("La decisión no es válida.");
+        }
+        const targetContentId = optionalValue(form, "targetContentId");
+        const candidate = candidateStore.get(opportunityDecisionMatch[1]);
+        await candidateStore.save(
+          applyCandidateDecision(candidate, {
+            action: action as (typeof CANDIDATE_DECISIONS)[number],
+            reason: requiredValue(form, "reason", "La razón"),
+            ...(targetContentId ? { targetContentId } : {}),
+          }),
+        );
+        redirect(response, `/opportunities/${encodeURIComponent(candidate.id)}`);
         return;
       }
       if (method === "GET" && url.pathname === "/affiliate-programs") {

@@ -93,6 +93,14 @@ import {
 } from "./modules/product-intelligence/intake.ts";
 import { analyzeProductCoverage } from "./modules/product-intelligence/coverage.ts";
 import { productGapReportSchema } from "./modules/product-intelligence/gaps.ts";
+import {
+  ArticleCandidateStore,
+  applyCandidateDecision,
+  articleCandidatePath,
+  articleCandidateSchema,
+  transitionArticleCandidate,
+  type ArticleCandidate,
+} from "./modules/content-opportunity-lab/candidates.ts";
 import { Publisher, clusterDraftToPublic, guideDraftToPublic } from "./publication.ts";
 import { REPOSITORY_ROOT, atomicWriteJson, readPublicContent } from "./repository.ts";
 import { STUDIO_HOST, createStudioServer } from "./server.ts";
@@ -144,6 +152,68 @@ function sourceRecord(
     importMethod: "manual",
     importedAt: "2026-08-08T00:00:00.000Z",
     sourceStatus: "active",
+    ...overrides,
+  });
+}
+
+function articleCandidate(overrides: Partial<ArticleCandidate> = {}): ArticleCandidate {
+  return articleCandidateSchema.parse({
+    schemaVersion: 1,
+    recordType: "article-candidate",
+    id: "candidate_nurse-shift-recovery",
+    clusterId: "cluster_nurse-gifts",
+    proposedTitle: "Recovery Gifts for Nurses After a Long Shift",
+    proposedSlug: "shift-recovery",
+    primaryAxis: "work-context",
+    primaryIntent: "Help gift-givers support a nurse's recovery after demanding shifts.",
+    problemSolved: "Separates off-shift recovery needs from broad practical gift advice.",
+    targetAudience: "Friends and family buying for working nurses.",
+    secondaryTaxonomies: {
+      recipients: ["nurses"],
+      workContexts: ["post-shift recovery"],
+      giftStyles: ["restorative"],
+    },
+    proposedSections: [
+      {
+        heading: "Decompression after work",
+        purpose: "Cover products that help create a deliberate transition out of work mode.",
+      },
+      {
+        heading: "Daytime rest",
+        purpose: "Address sleep and comfort needs after overnight schedules.",
+      },
+    ],
+    distinctiveProductCategories: ["recovery tools", "sleep support"],
+    closestExistingContentIds: ["guide_nurse-practical"],
+    overlapSignals: [
+      {
+        contentId: "guide_nurse-practical",
+        kind: "section-scope",
+        level: "medium",
+        reason: "The practical guide contains one sleep item but does not own recovery intent.",
+      },
+    ],
+    scores: {
+      intentDifferentiation: 4,
+      editorialUsefulness: 5,
+      productDifferentiation: 3,
+      audienceClarity: 4,
+      seasonalValue: 1,
+      commercialPotential: 3,
+      visualDistributionPotential: 3,
+      productReusePotential: 2,
+      thinContentRisk: 2,
+      cannibalizationRisk: 2,
+      maintenanceCost: 1,
+    },
+    advisory: {
+      recommendation: "hold",
+      reason: "Confirm enough distinct product categories before approving a brief.",
+    },
+    sourceSignalIds: ["gap_nurse-night-shift"],
+    status: "generated",
+    createdAt: "2026-08-09T00:00:00.000Z",
+    updatedAt: "2026-08-09T00:00:00.000Z",
     ...overrides,
   });
 }
@@ -629,6 +699,203 @@ test("shows traceability in Studio and excludes product intelligence from the pu
   assert.doesNotMatch(outputFiles.join("\n"), /product-intelligence|gap_coverage-brief/);
   assert.doesNotMatch(outputHtml, new RegExp(sentinel));
   assert.doesNotMatch(outputHtml, /product-gap-report|editorial-data/);
+});
+
+test("valida candidatos, puntajes separados, decisiones y transiciones acotadas", () => {
+  const generated = articleCandidate();
+  assert.equal(generated.scores.intentDifferentiation, 4);
+  assert.equal(generated.scores.cannibalizationRisk, 2);
+  assert.equal(
+    articleCandidateSchema.safeParse({ ...generated, aggregateScore: 42 }).success,
+    false,
+  );
+  assert.equal(
+    articleCandidateSchema.safeParse({
+      ...generated,
+      scores: { ...generated.scores, editorialUsefulness: 6 },
+    }).success,
+    false,
+  );
+  assert.equal(
+    articleCandidateSchema.safeParse({ ...generated, status: "rejected" }).success,
+    false,
+  );
+
+  const evaluated = transitionArticleCandidate(
+    generated,
+    "evaluated",
+    new Date("2026-08-09T01:00:00.000Z"),
+  );
+  const shortlisted = transitionArticleCandidate(
+    evaluated,
+    "shortlisted",
+    new Date("2026-08-09T02:00:00.000Z"),
+  );
+  assert.throws(() => transitionArticleCandidate(generated, "shortlisted"), /Cannot transition/);
+
+  for (const [action, expectedStatus, targetContentId] of [
+    ["create-article", "approved-for-brief", undefined],
+    ["add-as-section", "converted-to-section", "guide_nurse-practical"],
+    ["merge", "merged", "guide_nurse-practical"],
+    ["hold", "shortlisted", undefined],
+    ["reject", "rejected", undefined],
+  ] as const) {
+    const decided = applyCandidateDecision(shortlisted, {
+      action,
+      reason: `Human decision: ${action}.`,
+      ...(targetContentId ? { targetContentId } : {}),
+    });
+    assert.equal(decided.status, expectedStatus);
+    assert.equal(decided.decision?.action, action);
+  }
+  assert.equal(
+    applyCandidateDecision(evaluated, {
+      action: "hold",
+      reason: "Keep the evaluated candidate without shortlisting it.",
+    }).status,
+    "evaluated",
+  );
+  assert.throws(
+    () =>
+      applyCandidateDecision(shortlisted, {
+        action: "add-as-section",
+        reason: "A target is required.",
+      }),
+    /target content ID/,
+  );
+  assert.throws(
+    () =>
+      applyCandidateDecision(evaluated, {
+        action: "create-article",
+        reason: "Shortlisting is required first.",
+      }),
+    /Shortlist/,
+  );
+
+  const approved = applyCandidateDecision(shortlisted, {
+    action: "create-article",
+    reason: "Approve planning without creating a brief or draft here.",
+  });
+  const tracedLaterState = articleCandidateSchema.parse({
+    ...approved,
+    status: "converted-to-draft",
+    editorialBriefId: "brief_nurse-shift-recovery",
+    guideDraftId: "guide_nurse-shift-recovery",
+  });
+  assert.equal(tracedLaterState.editorialBriefId, "brief_nurse-shift-recovery");
+  assert.equal(tracedLaterState.guideDraftId, "guide_nurse-shift-recovery");
+});
+
+test("persiste candidatos atómicamente por ID seguro y valida referencias canónicas", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-opportunities-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const store = new ArticleCandidateStore(repository);
+  const candidate = articleCandidate();
+  await store.save(candidate);
+  assert.equal(store.get(candidate.id).proposedSlug, "shift-recovery");
+  assert.equal(store.list().length, 1);
+  assert.equal(
+    JSON.parse(await readFile(articleCandidatePath(repository, candidate.id), "utf8")).id,
+    candidate.id,
+  );
+
+  const evaluated = transitionArticleCandidate(candidate, "evaluated");
+  await store.save(evaluated);
+  assert.equal(store.get(candidate.id).status, "evaluated");
+  assert.throws(() => articleCandidatePath(repository, "candidate_../outside"), /ID.*seguro/);
+  await assert.rejects(
+    store.save(articleCandidate({ id: "candidate_missing-cluster", clusterId: "cluster_missing" })),
+    /cluster canónico/,
+  );
+  await assert.rejects(
+    store.save(
+      articleCandidate({
+        id: "candidate_missing-content",
+        closestExistingContentIds: ["guide_missing"],
+      }),
+    ),
+    /contenido canónico/,
+  );
+  assert.deepEqual(
+    (await readdir(join(repository, "editorial-data", "article-candidates"))).filter((name) =>
+      name.endsWith(".tmp"),
+    ),
+    [],
+  );
+});
+
+test("expone lista y detalle internos, guarda la decisión y excluye candidatos del build", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-opportunity-http-"));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const sentinel = "INTERNAL_OPPORTUNITY_SENTINEL_20260809";
+  const candidateStore = new ArticleCandidateStore(repository);
+  const candidate = articleCandidate({ proposedTitle: sentinel, status: "shortlisted" });
+  await candidateStore.save(candidate);
+  const catalog = new ProductCatalog(repository);
+  const server = createStudioServer(
+    new DraftStore(join(repository, "drafts")),
+    catalog,
+    new MockGuideGenerationProvider(),
+    new Publisher(repository),
+    new ProductSourceStore(repository),
+    candidateStore,
+  );
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(async () => {
+    server.close();
+    await rm(repository, { recursive: true, force: true });
+  });
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+
+  const listResponse = await fetch(`${origin}/opportunities`);
+  const listHtml = await listResponse.text();
+  assert.equal(listResponse.status, 200);
+  assert.match(listHtml, new RegExp(sentinel));
+  assert.match(listHtml, /no son métricas SEO objetivas/);
+  const detailResponse = await fetch(`${origin}/opportunities/${candidate.id}`);
+  const detailHtml = await detailResponse.text();
+  assert.equal(detailResponse.status, 200);
+  assert.match(detailHtml, /Señales de solapamiento/);
+  assert.match(detailHtml, /Diferenciación de intención/);
+  assert.match(detailHtml, /no crea briefs ni GuideDrafts/);
+
+  const decisionResponse = await fetch(`${origin}/opportunities/${candidate.id}/decision`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      action: "add-as-section",
+      reason: "The closest guide already owns enough of this intent.",
+      targetContentId: "guide_nurse-practical",
+    }),
+    redirect: "manual",
+  });
+  assert.equal(decisionResponse.status, 303);
+  assert.equal(candidateStore.get(candidate.id).status, "converted-to-section");
+  assert.equal(candidateStore.get(candidate.id).decision?.targetContentId, "guide_nurse-practical");
+
+  await execFileAsync(process.execPath, [join(REPOSITORY_ROOT, "scripts", "astro.mjs"), "build"], {
+    cwd: join(REPOSITORY_ROOT, "apps", "site"),
+    env: { ...process.env, CONTENT_REPOSITORY_ROOT: repository },
+    maxBuffer: 10 * 1024 * 1024,
+    windowsHide: true,
+  });
+  const outputFiles = await readdir(join(REPOSITORY_ROOT, "apps", "site", "dist"), {
+    recursive: true,
+  });
+  const outputHtml = (
+    await Promise.all(
+      outputFiles
+        .filter((file) => file.endsWith(".html"))
+        .map((file) => readFile(join(REPOSITORY_ROOT, "apps", "site", "dist", file), "utf8")),
+    )
+  ).join("\n");
+  assert.doesNotMatch(outputFiles.join("\n"), /opportunities|article-candidates/);
+  assert.doesNotMatch(outputHtml, new RegExp(sentinel));
+  assert.doesNotMatch(outputHtml, /article-candidate|candidate_nurse-shift-recovery/);
 });
 
 test("acepta sólo URLs HTTP(S) absolutas", () => {
