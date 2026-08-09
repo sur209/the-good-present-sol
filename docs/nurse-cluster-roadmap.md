@@ -1,6 +1,6 @@
 # Nurse Gifts cluster roadmap
 
-Phase 3.0 was a documentation-only audit and implementation backlog. It approved four editorial briefs, not four public records. Phase 3.1 below records the nursing-students GuideDraft and its product-data publication gate. Phase 3.2 below records the personalized GuideDraft and its product-data publication gate. Later implementation must use the existing product intake, source-provenance, affiliate QA, GuideDraft, preview, and atomic publication workflows.
+Phase 3.0 was a documentation-only audit and implementation backlog. It approved four editorial briefs, not four public records. Phase 3.1 below records the nursing-students GuideDraft and its product-data publication gate. Phase 3.2 below records the personalized GuideDraft and its product-data publication gate. Phase 3.3 below records the night-shift GuideDraft and its product-data publication gate. Later implementation must use the existing product intake, source-provenance, affiliate QA, GuideDraft, preview, and atomic publication workflows.
 
 The proposed sections below are editorial beats for later drafting and recommendation selection. They do not require a new public schema field.
 
@@ -14,10 +14,10 @@ The proposed sections below are editorial beats for later drafting and recommend
 | Nurse gifts under $25         | `guide_nurse-under-25`         | `under-25` - `/nurse-gifts/under-25/`                 | `budget`                                              | Published; audited                                       |
 | Gifts for nursing students    | `guide_nurse-nursing-students` | `nursing-students` - `/nurse-gifts/nursing-students/` | `career-stage`                                        | Draft complete; publication blocked by product-data gaps |
 | Personalized gifts for nurses | `guide_nurse-personalized`     | `personalized` - `/nurse-gifts/personalized/`         | `gift-style`                                          | Draft complete; publication blocked by product-data gaps |
-| Gifts for night-shift nurses  | Not assigned                   | `night-shift` - `/nurse-gifts/night-shift/`           | `work-context`                                        | Brief approved; no draft or public record                |
+| Gifts for night-shift nurses  | `guide_nurse-night-shift`      | `night-shift` - `/nurse-gifts/night-shift/`           | `work-context`                                        | Draft complete; publication blocked by product-data gaps |
 | Christmas gifts for nurses    | Not assigned                   | `christmas` - `/nurse-gifts/christmas/`               | `occasion`                                            | Brief approved; no draft or public record                |
 
-The two remaining briefs stay deliberately unassigned until an editor creates each GuideDraft. A working slug is not record identity, and the blocked nursing-students and personalized drafts do not reserve public URLs.
+The remaining Christmas brief stays deliberately unassigned until an editor creates its GuideDraft. A working slug is not record identity, and the blocked nursing-students, personalized, and night-shift drafts do not reserve public URLs.
 
 ## Existing implementation audit
 
@@ -123,6 +123,21 @@ The draft keeps `guide_nurse-practical` as the usefulness comparison and `guide_
 - **Expected internal links:** The hub; `guide_nurse-practical` for schedule-neutral utility; `guide_nurse-under-25` for budget alternatives. Later hub placement should use a work-context group created through the normal hub draft workflow.
 - **Similarity risk:** The current practical guide already names night shift in taxonomy and recommends the sleep mask. If new coverage cannot produce at least two materially distinct night-shift categories, this intent belongs as a practical-guide section rather than a new page.
 
+## Phase 3.3 implementation record: Night-shift nurse gifts
+
+The approved night-shift brief was taken through the existing Studio GuideDraft workflow on 2026-08-09. The new stable guide ID is `guide_nurse-night-shift`; the working slug remains `night-shift`, so the intended route remains `/nurse-gifts/night-shift/` without making the slug the record identity.
+
+- **GuideDraft:** `drafts/guide_nurse-night-shift.json` (git-ignored working data).
+- **Product-gap report:** `editorial-data/product-gaps/gap_nurse-night-shift.json`.
+- **Primary axis:** `work-context`.
+- **Primary intent:** Help a buyer choose gifts suited to meals, hydration, daytime sleep, commuting, and recovery around night shifts.
+- **Draft coverage:** Four active catalog candidates have original night-shift-specific copy and remain `needs-review`: the sleep mask, lunch container, tumbler, and shift tote. The daytime-noise and off-shift-decompression slots are `unassigned` because the catalog has no distinct verified candidates for them.
+- **Generation boundary:** The first-stage outline is complete with six stable slots. The existing final-generation stage was not run because two required slots are unassigned and the four selected candidates still need product review.
+- **Publication decision:** Blocked. The four candidates have no stored `verifiedFacts`, `lastCheckedAt`, or product-source records; all destinations are demo URLs; and two required categories remain unassigned.
+- **Public-content decision:** No `content/guides/` file, hub navigation group, public route output, or reciprocal public link was written. The existing hub continues to link only to published guides.
+
+The draft keeps `guide_nurse-practical` as the schedule-neutral comparison and `guide_nurse-under-25` as the budget comparison. Those links remain draft-only until the missing categories and product review gates are cleared. Reused products keep their stable catalog IDs and are not treated as new night-shift-specific products.
+
 ## Approved brief 4: Christmas gifts for nurses
 
 - **Working title and slug:** "Thoughtful Christmas Gifts for Nurses"; `christmas`.
@@ -162,10 +177,12 @@ The shared `guidePath()` helper produced all four proposed paths. Each slug matc
 
 The personalized path was also checked with the shared route helper and remains collision-free. Because its GuideDraft is blocked before publication, `apps/site/dist/nurse-gifts/personalized/index.html` was not generated and the hub contains no link to it.
 
+The night-shift path was also checked with the shared route helper and remains collision-free. Because its GuideDraft is blocked before publication, `apps/site/dist/nurse-gifts/night-shift/index.html` was not generated and the hub contains no link to it.
+
 Baseline checks passed before documentation changes:
 
 - `npm run content:validate`: 11 products, 1 cluster, and 3 guides.
 - `npm run build`: 9 static pages, including only the hub and the three existing Nurse Gifts child routes.
 - Baseline `apps/site/dist/`: 14 files with composite SHA-256 `36E4729DAC7F47228DBB46D8B07E073C65C2884D176D8129DFDEE55A873492B5`.
 
-The Phase 3.0 final `npm run verify` reproduced that 14-file public artifact and composite hash. At that point, only this roadmap and `docs/progress.md` changed; Phase 3.2 adds the blocked personalized product-gap report while keeping the ignored draft and public content out of the artifact.
+The Phase 3.0 final `npm run verify` reproduced that 14-file public artifact and composite hash. At that point, only this roadmap and `docs/progress.md` changed; Phases 3.2 and 3.3 add blocked product-gap reports while keeping their ignored drafts and public content out of the artifact.

@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "id": "gap_nurse-night-shift",
+  "recordType": "product-gap-report",
+  "guideId": "guide_nurse-night-shift",
+  "clusterId": "cluster_nurse-gifts",
+  "route": "/nurse-gifts/night-shift/",
+  "checkedAt": "2026-08-09",
+  "status": "blocked",
+  "candidateProductIds": [
+    "product_sleep-mask",
+    "product_lunch-container",
+    "product_insulated-tumbler",
+    "product_shift-tote"
+  ],
+  "catalogSnapshot": {
+    "activeCandidateProductIds": [
+      "product_sleep-mask",
+      "product_lunch-container",
+      "product_insulated-tumbler",
+      "product_shift-tote"
+    ],
+    "verifiedCandidateProductIds": [],
+    "productSourceRecordCount": 0
+  },
+  "slots": [
+    {
+      "id": "night-shift-daylight-light",
+      "label": "Daytime light control",
+      "category": "Daytime light control",
+      "status": "needs-review",
+      "productId": "product_sleep-mask",
+      "reason": "The active sleep-mask record is a compatible daylight-rest form factor, but its exact fit, light-control details, source facts, review date, and destination are unverified."
+    },
+    {
+      "id": "night-shift-daytime-noise",
+      "label": "Daytime noise control",
+      "category": "Daytime noise control",
+      "status": "unassigned",
+      "reason": "No active canonical product provides a verified daytime noise-control option that is distinct from the existing sleep-mask recommendation."
+    },
+    {
+      "id": "night-shift-overnight-meal",
+      "label": "Overnight meal support",
+      "category": "Overnight meal support",
+      "status": "needs-review",
+      "productId": "product_lunch-container",
+      "reason": "The active lunch-container record is a compatible meal-support form factor, but its exact cleaning, heating, capacity, source facts, review date, and destination are unverified."
+    },
+    {
+      "id": "night-shift-stop-start-drink",
+      "label": "Stop-and-start drinkware",
+      "category": "Stop-and-start drinkware",
+      "status": "needs-review",
+      "productId": "product_insulated-tumbler",
+      "reason": "The active tumbler record is a compatible drinkware form factor, but its exact size, lid, cleaning, workplace suitability, source facts, review date, and destination are unverified."
+    },
+    {
+      "id": "night-shift-commute-organization",
+      "label": "Commute and shift organization",
+      "category": "Commute and shift organization",
+      "status": "needs-review",
+      "productId": "product_shift-tote",
+      "reason": "The active shift-tote record is a compatible commute and organization form factor, but capacity, carrying preferences, cleaning, source facts, review date, and destination are unverified."
+    },
+    {
+      "id": "night-shift-off-shift-decompression",
+      "label": "Off-shift decompression",
+      "category": "Off-shift decompression",
+      "status": "unassigned",
+      "reason": "No verified off-shift transition or decompression option is available that adds distinct coverage beyond the existing sleep-mask recommendation and avoids clinical or performance claims."
+    }
+  ],
+  "gaps": [
+    "A verified daytime noise-control option.",
+    "A distinct off-shift transition or decompression option beyond a wearable sleep mask.",
+    "Stored facts for fit, cleaning, capacity, workplace suitability, and other exact product details needed for the four reused candidates.",
+    "Launch-ready source records, review dates, and destinations for every selected product."
+  ],
+  "blockers": [
+    "The four assigned candidates have no verifiedFacts or lastCheckedAt fields.",
+    "The product-source ledger contains zero records for the candidate products.",
+    "All candidate destinations use the demo merchant and example.com URLs.",
+    "The daytime-noise and off-shift-decompression slots are unassigned, while the four selected slots remain needs-review; the existing Studio readiness gate blocks publication."
+  ],
+  "nextActions": [
+    "Verify each reused candidate through the existing product-intake and source-provenance workflows, keeping the night-shift rationale tied to a specific overnight moment.",
+    "Add and verify a distinct daytime noise-control option and an off-shift transition or decompression option that do not duplicate the practical guide.",
+    "Replace demo destinations, run affiliate QA, edit or regenerate every affected recommendation, and return all six slots to ready.",
+    "Preview, validate, publish the guide, then add it to a work-context hub group through the existing atomic publication workflow only after all gates pass."
+  ]
+}
