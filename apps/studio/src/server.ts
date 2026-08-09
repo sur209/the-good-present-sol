@@ -99,6 +99,12 @@ import {
   type ManualProductIntakeInput,
   type ManualProductIntakePreview,
 } from "./modules/product-intelligence/intake.ts";
+import {
+  analyzeProductCoverage,
+  type GuideEvidence,
+  type ProductEvidence,
+} from "./modules/product-intelligence/coverage.ts";
+import { readProductGapReports } from "./modules/product-intelligence/gaps.ts";
 import { REPOSITORY_ROOT, readPublicContent } from "./repository.ts";
 
 export const STUDIO_HOST = "127.0.0.1";
@@ -174,7 +180,7 @@ function page(title: string, body: string): string {
 <body>
   <header>
     <a href="/">The Good Present · Studio</a>
-    <nav aria-label="Principal"><a href="/">Borradores</a><a href="/drafts/new">Crear</a><a href="/products">Productos</a><a href="/products/intake">Ingreso asistido</a><a href="/affiliate-programs">Programas afiliados</a><a href="/affiliate-operations">QA afiliados</a></nav>
+    <nav aria-label="Principal"><a href="/">Borradores</a><a href="/drafts/new">Crear</a><a href="/products">Productos</a><a href="/product-intelligence">Cobertura</a><a href="/products/intake">Ingreso asistido</a><a href="/affiliate-programs">Programas afiliados</a><a href="/affiliate-operations">QA afiliados</a></nav>
   </header>
   <main>${body}</main>
 </body>
@@ -799,6 +805,141 @@ function affiliateValidationPage(repositoryRoot = REPOSITORY_ROOT): string {
      <div class="grid">${coverage || '<p class="notice">No hay recomendaciones publicadas.</p>'}</div>
      <h2>Hallazgos</h2>
      <div class="grid">${findings || '<p class="notice">No hay hallazgos.</p>'}</div>`,
+  );
+}
+
+function productEvidenceList(products: ProductEvidence[]): string {
+  return `<ul>${products
+    .map(
+      (product) =>
+        `<li><a href="/products/${encodeURIComponent(product.productId)}/edit">${escapeHtml(product.name)}</a> <code>${escapeHtml(product.productId)}</code></li>`,
+    )
+    .join("")}</ul>`;
+}
+
+function guideEvidenceList(guides: GuideEvidence[]): string {
+  return `<ul>${guides
+    .map(
+      (guide) =>
+        `<li>${escapeHtml(guide.title)} <code>${escapeHtml(guide.guideId)}</code>${guide.route ? ` <code>${escapeHtml(guide.route)}</code>` : ""}</li>`,
+    )
+    .join("")}</ul>`;
+}
+
+function coverageCards(cards: string[], empty: string): string {
+  return cards.length
+    ? `<div class="grid">${cards.join("")}</div>`
+    : `<p class="notice">${empty}</p>`;
+}
+
+function productIntelligencePage(
+  repositoryRoot: string,
+  drafts: GuideDraft[],
+  draftErrors: string[],
+): string {
+  const analysis = analyzeProductCoverage(
+    readPublicContent(repositoryRoot),
+    drafts,
+    readProductGapReports(repositoryRoot),
+  );
+  const { catalogHealth, editorialCoverage, thresholds } = analysis;
+  const draftErrorHtml = draftErrors.length
+    ? `<div class="error"><strong>Borradores omitidos por errores de lectura</strong><ul>${draftErrors.map((error) => `<li>${escapeHtml(error)}</li>`).join("")}</ul></div>`
+    : "";
+  const activeUnused = catalogHealth.activeProductsUnused.map(
+    (product) => `<article class="card"><h3>${escapeHtml(product.name)}</h3>
+      <p><code>${escapeHtml(product.productId)}</code></p>
+      <p>No aparece en ninguna guía publicada. Esto describe uso actual; no recomienda crear contenido.</p>
+      <p><a href="/products/${encodeURIComponent(product.productId)}/edit">Inspeccionar producto</a></p></article>`,
+  );
+  const reused = catalogHealth.productsReusedAcrossGuides.map(
+    ({ product, guides }) => `<article class="card"><h3>${escapeHtml(product.name)}</h3>
+      <p><code>${escapeHtml(product.productId)}</code> aparece en ${guides.length} guías publicadas distintas. Repeticiones dentro de una guía cuentan una sola vez.</p>
+      ${guideEvidenceList(guides)}
+      <p><a href="/products/${encodeURIComponent(product.productId)}/edit">Inspeccionar producto</a></p></article>`,
+  );
+  const substantialCategories = catalogHealth.substantialCategories.map(
+    ({ category, products }) => `<article class="card"><h3>${escapeHtml(category)}</h3>
+      <p>${products.length} productos activos distintos.</p>${productEvidenceList(products)}</article>`,
+  );
+  const singleCategories = catalogHealth.singleProductCategories.map(
+    ({ category, products }) => `<article class="card"><h3>${escapeHtml(category)}</h3>
+      <p>Un solo producto activo aporta esta categoría.</p>${productEvidenceList(products)}</article>`,
+  );
+  const lowDiversity = catalogHealth.clustersWithLowCategoryDiversity.map(
+    ({
+      clusterId,
+      title,
+      categories,
+      products,
+      guides,
+    }) => `<article class="card"><h3>${escapeHtml(title)}</h3>
+      <p><code>${escapeHtml(clusterId)}</code> usa ${products.length} productos activos distintos y ${categories.length} categorías distintas: ${escapeHtml(categories.join(", ") || "ninguna")}.</p>
+      <details><summary>Productos contribuyentes (${products.length})</summary>${productEvidenceList(products)}</details>
+      <details><summary>Guías contribuyentes (${guides.length})</summary>${guideEvidenceList(guides)}</details></article>`,
+  );
+  const broadMetadata = catalogHealth.productsWithBroadMetadata.map(
+    (product) => `<article class="card"><h3>${escapeHtml(product.name)}</h3>
+      <p><code>${escapeHtml(product.productId)}</code></p>
+      <dl><dt>Destinatarios (${product.recipients.length})</dt><dd>${escapeHtml(product.recipients.join(", ") || "ninguno")}</dd><dt>Ocasiones (${product.occasions.length})</dt><dd>${escapeHtml(product.occasions.join(", ") || "ninguna")}</dd></dl>
+      <p>La amplitud de metadata es una observación para revisión, no una oportunidad editorial.</p>
+      <p><a href="/products/${encodeURIComponent(product.productId)}/edit">Inspeccionar producto</a></p></article>`,
+  );
+  const inactive = catalogHealth.inactiveProducts.map(
+    ({ product, guides }) => `<article class="card"><h3>${escapeHtml(product.name)}</h3>
+      <p><code>${escapeHtml(product.productId)}</code> está inactivo y se excluye de cobertura, diversidad y coincidencias de slots.</p>
+      ${guides.length ? `<details><summary>Referencias publicadas (${guides.length})</summary>${guideEvidenceList(guides)}</details>` : "<p>No tiene referencias publicadas.</p>"}
+      <p><a href="/products/${encodeURIComponent(product.productId)}/edit">Inspeccionar producto</a></p></article>`,
+  );
+  const draftSlots = editorialCoverage.draftSlotsWithoutSuitableProducts.map(
+    (slot) => `<article class="card"><h3>${escapeHtml(slot.slotLabel)}</h3>
+      <p><a href="/drafts/${encodeURIComponent(slot.guideId)}">${escapeHtml(slot.guideTitle ?? slot.guideId)}</a> <code>${escapeHtml(slot.guideId)}</code> · slot <code>${escapeHtml(slot.slotId)}</code></p>
+      <p>Ningún producto activo comparte al menos ${thresholds.minimumSlotMatchTokenCount} términos distintos con el label, la intención o los términos de búsqueda del slot.</p>
+      <p class="muted">Términos: ${escapeHtml(slot.searchTerms.join(", ") || "sin términos adicionales")}.</p></article>`,
+  );
+  const briefRequirements = editorialCoverage.briefRequirementsWithoutCatalogCoverage.map(
+    (requirement) => `<article class="card"><h3>${escapeHtml(requirement.requirement)}</h3>
+      <p>Reporte <code>${escapeHtml(requirement.reportId)}</code> · guía <a href="/drafts/${encodeURIComponent(requirement.guideId)}"><code>${escapeHtml(requirement.guideId)}</code></a> · cluster <code>${escapeHtml(requirement.clusterId)}</code> · requisito <code>${escapeHtml(requirement.slotId)}</code></p>
+      <p>${escapeHtml(requirement.reason)}</p></article>`,
+  );
+
+  const signalCount =
+    catalogHealth.activeProductsUnused.length +
+    catalogHealth.productsReusedAcrossGuides.length +
+    catalogHealth.substantialCategories.length +
+    catalogHealth.singleProductCategories.length +
+    catalogHealth.clustersWithLowCategoryDiversity.length +
+    catalogHealth.productsWithBroadMetadata.length +
+    editorialCoverage.draftSlotsWithoutSuitableProducts.length +
+    editorialCoverage.briefRequirementsWithoutCatalogCoverage.length;
+
+  return page(
+    "Cobertura de productos",
+    `<h1>Cobertura de productos</h1>
+     <p>Señales deterministas sobre cómo el catálogo activo sostiene el contenido publicado, los GuideDrafts y los requisitos de briefs estructurados.</p>
+     <p class="notice"><strong>Límite editorial:</strong> estas ${signalCount} observaciones no son un ranking, no proponen guías y no convierten el uso o la falta de uso en una decisión editorial.</p>
+     ${draftErrorHtml}
+     <details class="card"><summary>Umbrales explícitos</summary><dl><dt>Reuso entre guías</dt><dd>${thresholds.reusedGuideCount} guías publicadas distintas o más</dd><dt>Cobertura sustancial</dt><dd>${thresholds.substantialCategoryProductCount} productos activos distintos o más</dd><dt>Diversidad baja de cluster</dt><dd>menos de ${thresholds.minimumClusterCategoryCount} categorías activas distintas</dd><dt>Metadata amplia</dt><dd>${thresholds.broadMetadataValueCount} destinatarios o ${thresholds.broadMetadataValueCount} ocasiones distintas o más</dd><dt>Coincidencia de slot</dt><dd>${thresholds.minimumSlotMatchTokenCount} términos distintos compartidos o más</dd></dl></details>
+     <h2>Salud del catálogo</h2>
+     <h3>Productos activos sin uso publicado (${catalogHealth.activeProductsUnused.length})</h3>
+     ${coverageCards(activeUnused, "Todos los productos activos aparecen en al menos una guía publicada.")}
+     <h3>Productos reutilizados entre muchas guías (${catalogHealth.productsReusedAcrossGuides.length})</h3>
+     ${coverageCards(reused, "Ningún producto alcanza el umbral de reuso.")}
+     <h3>Categorías con cobertura sustancial (${catalogHealth.substantialCategories.length})</h3>
+     ${coverageCards(substantialCategories, "Ninguna categoría alcanza el umbral de cobertura sustancial.")}
+     <h3>Categorías con un solo producto (${catalogHealth.singleProductCategories.length})</h3>
+     ${coverageCards(singleCategories, "No hay categorías representadas por un solo producto activo.")}
+     <h3>Clusters con diversidad baja (${catalogHealth.clustersWithLowCategoryDiversity.length})</h3>
+     ${coverageCards(lowDiversity, "Ningún cluster está por debajo del umbral de diversidad.")}
+     <h3>Productos con metadata amplia (${catalogHealth.productsWithBroadMetadata.length})</h3>
+     ${coverageCards(broadMetadata, "Ningún producto activo alcanza el umbral de destinatarios u ocasiones.")}
+     <h3>Productos inactivos (${catalogHealth.inactiveProducts.length})</h3>
+     ${coverageCards(inactive, "No hay productos inactivos.")}
+     <h2>Cobertura editorial</h2>
+     <h3>Slots de GuideDraft sin coincidencias activas (${editorialCoverage.draftSlotsWithoutSuitableProducts.length})</h3>
+     ${coverageCards(draftSlots, "Todos los slots no asignados tienen al menos una coincidencia textual activa, o no hay slots para analizar.")}
+     <h3>Requisitos de briefs sin cobertura declarada (${editorialCoverage.briefRequirementsWithoutCatalogCoverage.length})</h3>
+     ${coverageCards(briefRequirements, "Ningún requisito estructurado está marcado como no asignado.")}`,
   );
 }
 
@@ -1951,6 +2092,19 @@ export function createStudioServer(
       }
       if (method === "GET" && url.pathname === "/products") {
         send(response, 200, productListPage(catalog, url));
+        return;
+      }
+      if (method === "GET" && url.pathname === "/product-intelligence") {
+        const listed = await store.list();
+        send(
+          response,
+          200,
+          productIntelligencePage(
+            catalog.root,
+            listed.drafts.filter((draft): draft is GuideDraft => draft.draftType === "gift-guide"),
+            listed.errors,
+          ),
+        );
         return;
       }
       if (method === "GET" && url.pathname === "/affiliate-programs") {

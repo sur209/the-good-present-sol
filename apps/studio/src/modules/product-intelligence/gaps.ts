@@ -1,4 +1,11 @@
+import { readFileSync, readdirSync } from "node:fs";
+import { relative, resolve } from "node:path";
+
 import { z } from "zod";
+
+import { REPOSITORY_ROOT } from "../../repository.ts";
+
+export const PRODUCT_GAPS_DIRECTORY = "editorial-data/product-gaps";
 
 const safeId = z
   .string()
@@ -37,3 +44,39 @@ export const productGapReportSchema = z.strictObject({
 });
 
 export type ProductGapReport = z.infer<typeof productGapReportSchema>;
+
+function validationMessage(error: z.ZodError): string {
+  return error.issues
+    .map(({ path, message }) => `${path.length ? path.join(".") : "$record"}: ${message}`)
+    .join("; ");
+}
+
+export function readProductGapReports(repositoryRoot = REPOSITORY_ROOT): ProductGapReport[] {
+  const directory = resolve(repositoryRoot, PRODUCT_GAPS_DIRECTORY);
+  let entries;
+  try {
+    entries = readdirSync(directory, { withFileTypes: true });
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "ENOENT") return [];
+    throw error;
+  }
+
+  return entries
+    .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".json"))
+    .sort((left, right) => left.name.localeCompare(right.name))
+    .map((entry) => {
+      const file = relative(repositoryRoot, resolve(directory, entry.name)).replaceAll("\\", "/");
+      const id = entry.name.slice(0, -5);
+      try {
+        const parsed = productGapReportSchema.safeParse(
+          JSON.parse(readFileSync(resolve(directory, entry.name), "utf8")),
+        );
+        if (!parsed.success) throw new TypeError(validationMessage(parsed.error));
+        if (parsed.data.id !== id) throw new TypeError(`id must match filename stem "${id}".`);
+        return parsed.data;
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        throw new TypeError(`Invalid product gap report "${file}": ${reason}`, { cause: error });
+      }
+    });
+}

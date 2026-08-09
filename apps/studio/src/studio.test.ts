@@ -9,7 +9,7 @@ import { promisify } from "node:util";
 
 import { z } from "zod";
 
-import type { Product } from "@the-good-present/content-schema";
+import type { Product, ValidatedPublicContent } from "@the-good-present/content-schema";
 
 import {
   MockGuideGenerationProvider,
@@ -91,6 +91,8 @@ import {
   prepareManualProductIntake,
   type ManualProductIntakeInput,
 } from "./modules/product-intelligence/intake.ts";
+import { analyzeProductCoverage } from "./modules/product-intelligence/coverage.ts";
+import { productGapReportSchema } from "./modules/product-intelligence/gaps.ts";
 import { Publisher, clusterDraftToPublic, guideDraftToPublic } from "./publication.ts";
 import { REPOSITORY_ROOT, atomicWriteJson, readPublicContent } from "./repository.ts";
 import { STUDIO_HOST, createStudioServer } from "./server.ts";
@@ -234,6 +236,114 @@ function manualProductIntakeForm(
   return new URLSearchParams({ ...values, ...overrides });
 }
 
+function productCoverageFixture() {
+  const base = readPublicContent();
+  const template = base.products[0]!;
+  const product = (id: string, overrides: Partial<Product> = {}): Product => ({
+    ...template,
+    id,
+    name: id,
+    merchant: "Coverage fixture",
+    shortDescription: "Coverage fixture product.",
+    categories: [],
+    recipients: [],
+    occasions: [],
+    status: "active",
+    ...overrides,
+  });
+  const products = [
+    product("product_reused", {
+      categories: ["common"],
+      recipients: ["nurses", "students", "caregivers"],
+    }),
+    product("product_common-two", { categories: ["common"] }),
+    product("product_common-three", { categories: ["common"] }),
+    product("product_single", { categories: ["single"] }),
+    product("product_unused"),
+    product("product_inactive", {
+      categories: ["common", "inactive-only"],
+      recipients: ["one", "two", "three", "four"],
+      status: "inactive",
+    }),
+  ];
+  const recommendation = base.guides[0]!.recommendations[0]!;
+  const guide = (id: string, index: number, duplicate = false) => ({
+    ...base.guides[0]!,
+    id,
+    clusterId: "cluster_low-diversity",
+    slug: `coverage-${index}`,
+    title: `Coverage guide ${index}`,
+    recommendations: [
+      { ...recommendation, id: `${id}_one`, position: 1, productId: "product_reused" },
+      ...(duplicate
+        ? [{ ...recommendation, id: `${id}_two`, position: 2, productId: "product_reused" }]
+        : []),
+    ],
+  });
+  const guides = [
+    guide("guide_coverage-one", 1, true),
+    guide("guide_coverage-two", 2),
+    guide("guide_coverage-three", 3),
+  ];
+  const content: ValidatedPublicContent = {
+    products,
+    guides,
+    clusters: [
+      {
+        ...base.clusters[0]!,
+        id: "cluster_low-diversity",
+        slug: "coverage-low-diversity",
+        title: "Low-diversity cluster",
+        navigationGroups: [],
+      },
+    ],
+  };
+  const draft = guideDraftSchema.parse({
+    ...createGuideDraft("guide_coverage-draft"),
+    title: "Coverage draft",
+    status: "selecting-products",
+    recommendations: [
+      {
+        id: "slot_orbital-telescope",
+        position: 1,
+        slotLabel: "Orbital telescope",
+        slotIntent: "A telescope for deep-space observation",
+        searchTerms: ["astronomy", "telescope"],
+        editorialStatus: "unassigned",
+      },
+    ],
+  });
+  const report = productGapReportSchema.parse({
+    schemaVersion: 1,
+    id: "gap_coverage-brief",
+    recordType: "product-gap-report",
+    guideId: draft.id,
+    clusterId: "cluster_low-diversity",
+    route: "/coverage-low-diversity/draft/",
+    checkedAt: "2026-08-09",
+    status: "blocked",
+    candidateProductIds: [],
+    catalogSnapshot: {
+      activeCandidateProductIds: [],
+      verifiedCandidateProductIds: [],
+      productSourceRecordCount: 0,
+    },
+    slots: [
+      {
+        id: "requirement_dark-sky",
+        label: "Dark-sky field guide",
+        category: "Dark-sky field guide",
+        status: "unassigned",
+        reason: "No canonical product covers this structured brief requirement.",
+      },
+    ],
+    gaps: ["The brief requirement has no catalog coverage."],
+    blockers: ["No product is assigned."],
+    nextActions: ["Review the catalog manually."],
+  });
+  return { content, draft, report };
+}
+
 test("discrimina borradores estrictos de hub y guía", () => {
   const cluster = createClusterDraft("cluster_test", new Date("2026-08-08T00:00:00.000Z"));
   const guide = createGuideDraft("guide_test", new Date("2026-08-08T00:00:00.000Z"));
@@ -355,6 +465,170 @@ test("busca productos por texto y etiquetas, filtra estado y muestra uso", () =>
     ),
   );
   assert.equal(matchProducts(content.products, "", "inactive").length, 0);
+});
+
+test("explains every coverage signal with canonical IDs without rewarding artificial reuse", () => {
+  const { content, draft, report } = productCoverageFixture();
+  const analysis = analyzeProductCoverage(content, [draft], [report]);
+  const health = analysis.catalogHealth;
+
+  assert.ok(health.activeProductsUnused.some((product) => product.productId === "product_unused"));
+  assert.deepEqual(
+    health.inactiveProducts.map(({ product }) => product.productId),
+    ["product_inactive"],
+  );
+  assert.equal(
+    health.activeProductsUnused.some((product) => product.productId === "product_inactive"),
+    false,
+  );
+  const reused = health.productsReusedAcrossGuides.find(
+    ({ product }) => product.productId === "product_reused",
+  )!;
+  assert.deepEqual(
+    reused.guides.map(({ guideId }) => guideId),
+    ["guide_coverage-one", "guide_coverage-three", "guide_coverage-two"],
+  );
+  assert.equal(reused.guides.length, 3, "duplicate recommendations count once per guide");
+  assert.deepEqual(
+    health.substantialCategories
+      .find(({ category }) => category === "common")
+      ?.products.map(({ productId }) => productId),
+    ["product_common-three", "product_common-two", "product_reused"],
+  );
+  assert.equal(
+    health.substantialCategories
+      .find(({ category }) => category === "common")
+      ?.products.some(({ productId }) => productId === "product_inactive"),
+    false,
+  );
+  assert.deepEqual(
+    health.singleProductCategories
+      .find(({ category }) => category === "single")
+      ?.products.map(({ productId }) => productId),
+    ["product_single"],
+  );
+  assert.deepEqual(health.clustersWithLowCategoryDiversity[0]?.categories, ["common"]);
+  assert.equal(health.clustersWithLowCategoryDiversity[0]?.guides.length, 3);
+  assert.equal(health.clustersWithLowCategoryDiversity[0]?.products.length, 1);
+  assert.deepEqual(
+    health.productsWithBroadMetadata.map(({ productId }) => productId),
+    ["product_reused"],
+  );
+  assert.deepEqual(
+    analysis.editorialCoverage.draftSlotsWithoutSuitableProducts.map(({ slotId }) => slotId),
+    ["slot_orbital-telescope"],
+  );
+  assert.deepEqual(
+    analysis.editorialCoverage.briefRequirementsWithoutCatalogCoverage.map(({ slotId }) => slotId),
+    ["requirement_dark-sky"],
+  );
+});
+
+test("applies explicit thresholds and preserves editorial signals with an empty catalog", () => {
+  const { content, draft, report } = productCoverageFixture();
+  const stricter = analyzeProductCoverage(content, [draft], [report], {
+    reusedGuideCount: 4,
+    substantialCategoryProductCount: 4,
+    minimumClusterCategoryCount: 1,
+    broadMetadataValueCount: 4,
+    minimumSlotMatchTokenCount: 4,
+  });
+  assert.equal(stricter.catalogHealth.productsReusedAcrossGuides.length, 0);
+  assert.equal(stricter.catalogHealth.substantialCategories.length, 0);
+  assert.equal(stricter.catalogHealth.clustersWithLowCategoryDiversity.length, 0);
+  assert.equal(stricter.catalogHealth.productsWithBroadMetadata.length, 0);
+  assert.throws(
+    () => analyzeProductCoverage(content, [], [], { reusedGuideCount: 0 }),
+    /positive integer/,
+  );
+
+  const empty = analyzeProductCoverage(
+    { products: [], guides: [], clusters: [] },
+    [draft],
+    [report],
+  );
+  assert.deepEqual(empty.catalogHealth.activeProductsUnused, []);
+  assert.deepEqual(empty.catalogHealth.inactiveProducts, []);
+  assert.deepEqual(empty.catalogHealth.substantialCategories, []);
+  assert.deepEqual(empty.catalogHealth.singleProductCategories, []);
+  assert.equal(empty.editorialCoverage.draftSlotsWithoutSuitableProducts.length, 1);
+  assert.equal(empty.editorialCoverage.briefRequirementsWithoutCatalogCoverage.length, 1);
+});
+
+test("shows traceability in Studio and excludes product intelligence from the public build", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-product-intelligence-"));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const { draft, report } = productCoverageFixture();
+  const sentinel = "INTERNAL_COVERAGE_SENTINEL_20260809";
+  await draftStore.save({
+    ...draft,
+    title: sentinel,
+    recommendations: [
+      {
+        ...draft.recommendations[0]!,
+        slotLabel: sentinel,
+        searchTerms: [sentinel],
+      },
+    ],
+  });
+  await mkdir(join(repository, "editorial-data", "product-gaps"), { recursive: true });
+  await writeFile(
+    join(repository, "editorial-data", "product-gaps", `${report.id}.json`),
+    `${JSON.stringify({
+      ...report,
+      slots: [
+        {
+          ...report.slots[0]!,
+          category: sentinel,
+          reason: `${sentinel} remains Studio-only.`,
+        },
+      ],
+    })}\n`,
+  );
+  const catalog = new ProductCatalog(repository);
+  const server = createStudioServer(
+    draftStore,
+    catalog,
+    new MockGuideGenerationProvider(),
+    new Publisher(repository),
+    new ProductSourceStore(repository),
+  );
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(async () => {
+    server.close();
+    await rm(repository, { recursive: true, force: true });
+  });
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const response = await fetch(`http://${STUDIO_HOST}:${address.port}/product-intelligence`);
+  const html = await response.text();
+  assert.equal(response.status, 200);
+  assert.match(html, /Cobertura de productos/);
+  assert.match(html, new RegExp(sentinel));
+  assert.match(html, /gap_coverage-brief/);
+  assert.match(html, /no proponen guías/);
+
+  await execFileAsync(process.execPath, [join(REPOSITORY_ROOT, "scripts", "astro.mjs"), "build"], {
+    cwd: join(REPOSITORY_ROOT, "apps", "site"),
+    env: { ...process.env, CONTENT_REPOSITORY_ROOT: repository },
+    maxBuffer: 10 * 1024 * 1024,
+    windowsHide: true,
+  });
+  const outputFiles = await readdir(join(REPOSITORY_ROOT, "apps", "site", "dist"), {
+    recursive: true,
+  });
+  const outputHtml = (
+    await Promise.all(
+      outputFiles
+        .filter((file) => file.endsWith(".html"))
+        .map((file) => readFile(join(REPOSITORY_ROOT, "apps", "site", "dist", file), "utf8")),
+    )
+  ).join("\n");
+  assert.doesNotMatch(outputFiles.join("\n"), /product-intelligence|gap_coverage-brief/);
+  assert.doesNotMatch(outputHtml, new RegExp(sentinel));
+  assert.doesNotMatch(outputHtml, /product-gap-report|editorial-data/);
 });
 
 test("acepta sólo URLs HTTP(S) absolutas", () => {

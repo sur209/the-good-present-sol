@@ -64,35 +64,36 @@ function tokens(value: string): Set<string> {
   return new Set(value.toLocaleLowerCase("en-US").match(/[\p{L}\p{N}]+/gu) ?? []);
 }
 
+export function productSlotMatchScore(product: Product, slot: ProductSlotQuery): number {
+  const queryTokens = tokens(
+    [slot.slotLabel, slot.slotIntent, ...(slot.searchTerms ?? [])].filter(Boolean).join(" "),
+  );
+  const productTokens = tokens(
+    [
+      product.name,
+      product.brand,
+      product.merchant,
+      product.shortDescription,
+      ...(product.categories ?? []),
+      ...(product.interests ?? []),
+      ...(product.recipients ?? []),
+      ...(product.occasions ?? []),
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
+  return [...queryTokens].filter((token) => productTokens.has(token)).length;
+}
+
 export function suggestProductsForSlot(
   products: Product[],
   slot: ProductSlotQuery,
   limit = 5,
 ): Product[] {
-  const queryTokens = tokens(
-    [slot.slotLabel, slot.slotIntent, ...(slot.searchTerms ?? [])].filter(Boolean).join(" "),
-  );
   // ponytail: a linear scan is the right ceiling for a local catalog; add an index only after it grows.
   return products
     .filter((product) => product.status === "active")
-    .map((product) => {
-      const productTokens = tokens(
-        [
-          product.name,
-          product.brand,
-          product.merchant,
-          product.shortDescription,
-          ...(product.categories ?? []),
-          ...(product.interests ?? []),
-          ...(product.recipients ?? []),
-          ...(product.occasions ?? []),
-        ]
-          .filter(Boolean)
-          .join(" "),
-      );
-      const score = [...queryTokens].filter((token) => productTokens.has(token)).length;
-      return { product, score };
-    })
+    .map((product) => ({ product, score: productSlotMatchScore(product, slot) }))
     .filter(({ score }) => score > 0)
     .sort(
       (left, right) =>
