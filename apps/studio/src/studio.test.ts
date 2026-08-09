@@ -101,6 +101,12 @@ import {
   transitionArticleCandidate,
   type ArticleCandidate,
 } from "./modules/content-opportunity-lab/candidates.ts";
+import {
+  OPPORTUNITY_SIGNAL_KINDS,
+  compareArticleCandidate,
+  normalizeComparisonText,
+  type ApprovedEditorialBriefComparisonRecord,
+} from "./modules/content-opportunity-lab/comparison.ts";
 import { Publisher, clusterDraftToPublic, guideDraftToPublic } from "./publication.ts";
 import { REPOSITORY_ROOT, atomicWriteJson, readPublicContent } from "./repository.ts";
 import { STUDIO_HOST, createStudioServer } from "./server.ts";
@@ -786,6 +792,129 @@ test("valida candidatos, puntajes separados, decisiones y transiciones acotadas"
   assert.equal(tracedLaterState.guideDraftId, "guide_nurse-shift-recovery");
 });
 
+test("normaliza y explica por separado cada señal determinista", () => {
+  assert.equal(
+    normalizeComparisonText("  Récupération—NURSE'S Gifts!  "),
+    "recuperation nurses gifts",
+  );
+  const candidate = articleCandidate({ proposedSlug: "shift-recovery" });
+  const exactBrief: ApprovedEditorialBriefComparisonRecord = {
+    id: "brief_exact-recovery",
+    clusterId: candidate.clusterId,
+    status: "approved",
+    proposedTitle: candidate.proposedTitle,
+    proposedSlug: candidate.proposedSlug,
+    primaryAxis: candidate.primaryAxis,
+    primaryIntent: candidate.primaryIntent,
+    taxonomies: candidate.secondaryTaxonomies,
+    problemSolved: candidate.problemSolved,
+    proposedSections: candidate.proposedSections,
+    productCategories: candidate.distinctiveProductCategories,
+  };
+  const partialBrief: ApprovedEditorialBriefComparisonRecord = {
+    ...exactBrief,
+    id: "brief_partial-recovery",
+    proposedSlug: "shift-comfort",
+    primaryAxis: "occasion",
+  };
+  const report = compareArticleCandidate(
+    candidate,
+    readPublicContent(),
+    [createGuideDraft("guide_comparison-draft")],
+    [],
+    [exactBrief, partialBrief],
+  );
+  const exact = report.nearestEditorialState.find(({ targetId }) => targetId === exactBrief.id);
+  const partial = report.nearestEditorialState.find(({ targetId }) => targetId === partialBrief.id);
+  assert.ok(exact && partial);
+  assert.deepEqual(
+    exact.signals.map(({ kind }) => kind),
+    OPPORTUNITY_SIGNAL_KINDS,
+  );
+  assert.ok(exact.signals.every(({ level, reason }) => level === "high" && reason.length > 0));
+  assert.equal(partial.signals.find(({ kind }) => kind === "slug-tokens")?.level, "medium");
+  assert.equal(partial.signals.find(({ kind }) => kind === "primary-axis")?.level, "low");
+  assert.ok(
+    report.nearestEditorialState.some(({ targetKind }) => targetKind === "published-cluster"),
+  );
+  assert.ok(report.nearestEditorialState.some(({ targetKind }) => targetKind === "guide-draft"));
+});
+
+test("separa colisiones públicas, conserva decisiones previas y permite el override humano", () => {
+  const content = readPublicContent();
+  const current = articleCandidate({ proposedSlug: "practical" });
+  const shortlisted = transitionArticleCandidate(
+    transitionArticleCandidate(current, "evaluated"),
+    "shortlisted",
+  );
+  const priorBase = transitionArticleCandidate(
+    transitionArticleCandidate(articleCandidate({ id: "candidate_prior" }), "evaluated"),
+    "shortlisted",
+  );
+  const histories = [
+    applyCandidateDecision(articleCandidate({ id: "candidate_rejected", status: "evaluated" }), {
+      action: "reject",
+      reason: "Rejected after review.",
+    }),
+    applyCandidateDecision(priorBase, {
+      action: "merge",
+      reason: "Merged into the practical guide.",
+      targetContentId: "guide_nurse-practical",
+    }),
+    applyCandidateDecision(
+      transitionArticleCandidate(
+        transitionArticleCandidate(articleCandidate({ id: "candidate_held" }), "evaluated"),
+        "shortlisted",
+      ),
+      { action: "hold", reason: "Held for changed evidence." },
+    ),
+    applyCandidateDecision(
+      transitionArticleCandidate(
+        transitionArticleCandidate(
+          articleCandidate({
+            id: "candidate_section",
+            sourceSignalIds: ["gap_prior-evidence"],
+          }),
+          "evaluated",
+        ),
+        "shortlisted",
+      ),
+      {
+        action: "add-as-section",
+        reason: "Converted to a section.",
+        targetContentId: "guide_nurse-practical",
+      },
+    ),
+    articleCandidate({ id: "candidate_undecided" }),
+  ];
+  const report = compareArticleCandidate(current, content, [], histories);
+  assert.match(report.publicContractViolations.join("\n"), /guide_nurse-practical/);
+  assert.deepEqual(report.priorDecisionHistory.map(({ decision }) => decision?.action).sort(), [
+    "add-as-section",
+    "hold",
+    "merge",
+    "reject",
+  ]);
+  assert.equal(report.priorDecisionHistory.length, 4);
+  assert.equal(
+    report.priorDecisionHistory.find(({ targetId }) => targetId === "candidate_rejected")
+      ?.evidenceChange?.changed,
+    false,
+  );
+  assert.deepEqual(
+    report.priorDecisionHistory.find(({ targetId }) => targetId === "candidate_section")
+      ?.evidenceChange?.addedSourceSignalIds,
+    ["gap_nurse-night-shift"],
+  );
+
+  const deliberate = applyCandidateDecision(shortlisted, {
+    action: "create-article",
+    reason: "The editor accepts the visible overlap and deliberately approves planning.",
+  });
+  assert.equal(deliberate.status, "approved-for-brief");
+  assert.equal(current.advisory.recommendation, "hold");
+});
+
 test("persiste candidatos atómicamente por ID seguro y valida referencias canónicas", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-opportunities-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
@@ -832,6 +961,19 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
   const candidateStore = new ArticleCandidateStore(repository);
   const candidate = articleCandidate({ proposedTitle: sentinel, status: "shortlisted" });
   await candidateStore.save(candidate);
+  const approvedBrief: ApprovedEditorialBriefComparisonRecord = {
+    id: "brief_http-comparison",
+    clusterId: candidate.clusterId,
+    status: "approved",
+    proposedTitle: candidate.proposedTitle,
+    proposedSlug: candidate.proposedSlug,
+    primaryAxis: candidate.primaryAxis,
+    primaryIntent: candidate.primaryIntent,
+    taxonomies: candidate.secondaryTaxonomies,
+    problemSolved: candidate.problemSolved,
+    proposedSections: candidate.proposedSections,
+    productCategories: candidate.distinctiveProductCategories,
+  };
   const catalog = new ProductCatalog(repository);
   const server = createStudioServer(
     new DraftStore(join(repository, "drafts")),
@@ -840,6 +982,7 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
     new Publisher(repository),
     new ProductSourceStore(repository),
     candidateStore,
+    [approvedBrief],
   );
   server.listen(0, STUDIO_HOST);
   await once(server, "listening");
@@ -861,6 +1004,10 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
   assert.equal(detailResponse.status, 200);
   assert.match(detailHtml, /Señales de solapamiento/);
   assert.match(detailHtml, /Diferenciación de intención/);
+  assert.match(detailHtml, /Comparación determinista/);
+  assert.match(detailHtml, /Violaciones del contrato público/);
+  assert.match(detailHtml, /guía publicada/);
+  assert.match(detailHtml, /EditorialBrief aprobado/);
   assert.match(detailHtml, /no crea briefs ni GuideDrafts/);
 
   const decisionResponse = await fetch(`${origin}/opportunities/${candidate.id}/decision`, {

@@ -115,6 +115,15 @@ import {
   type ArticleCandidate,
   type CandidateStatus,
 } from "./modules/content-opportunity-lab/candidates.ts";
+import {
+  OPPORTUNITY_SIGNAL_KINDS,
+  compareArticleCandidate,
+  type ApprovedEditorialBriefComparisonRecord,
+  type OpportunityComparison,
+  type OpportunityComparisonReport,
+  type OpportunityComparisonTargetKind,
+  type OpportunitySignalKind,
+} from "./modules/content-opportunity-lab/comparison.ts";
 import { REPOSITORY_ROOT, readPublicContent } from "./repository.ts";
 
 export const STUDIO_HOST = "127.0.0.1";
@@ -975,6 +984,66 @@ const opportunityDecisionLabels: Record<(typeof CANDIDATE_DECISIONS)[number], st
   reject: "Rechazar",
 };
 
+const opportunitySignalLabels: Record<OpportunitySignalKind, string> = {
+  "normalized-title": "Título normalizado",
+  "slug-tokens": "Tokens del slug",
+  "primary-axis": "Eje primario",
+  "primary-intent": "Intención primaria",
+  taxonomies: "Taxonomías",
+  "problem-solved": "Problema resuelto",
+  "proposed-sections": "Secciones propuestas",
+  "product-categories": "Categorías de producto",
+};
+
+const opportunityTargetLabels: Record<OpportunityComparisonTargetKind, string> = {
+  "published-cluster": "hub publicado",
+  "published-guide": "guía publicada",
+  "cluster-draft": "ClusterDraft",
+  "guide-draft": "GuideDraft",
+  "editorial-brief": "EditorialBrief aprobado",
+  "candidate-history": "candidato con decisión previa",
+};
+
+function opportunityComparisonCards(
+  comparisons: readonly OpportunityComparison[],
+  emptyMessage: string,
+): string {
+  if (!comparisons.length) return `<p class="muted">${escapeHtml(emptyMessage)}</p>`;
+  return comparisons
+    .map((comparison) => {
+      const counts = Object.fromEntries(
+        (["low", "medium", "high"] as const).map((level) => [
+          level,
+          comparison.signals.filter((signal) => signal.level === level).length,
+        ]),
+      );
+      const signals = OPPORTUNITY_SIGNAL_KINDS.map((kind) =>
+        comparison.signals.find((signal) => signal.kind === kind),
+      )
+        .filter((signal) => signal !== undefined)
+        .map(
+          (signal) =>
+            `<li><strong>${escapeHtml(opportunitySignalLabels[signal.kind])} · ${escapeHtml(signal.level)}</strong><br>${escapeHtml(signal.reason)}</li>`,
+        )
+        .join("");
+      const history = comparison.decision
+        ? `<p><strong>Decisión previa:</strong> ${escapeHtml(opportunityDecisionLabels[comparison.decision.action])}. ${escapeHtml(comparison.decision.reason)} · ${escapeHtml(formatDate(comparison.decision.decidedAt))}${comparison.decision.targetContentId ? ` · destino <code>${escapeHtml(comparison.decision.targetContentId)}</code>` : ""}</p>`
+        : "";
+      const evidence = comparison.evidenceChange
+        ? comparison.evidenceChange.changed
+          ? `<p><strong>Evidencia fuente cambiada:</strong> nuevas ${comparison.evidenceChange.addedSourceSignalIds.map((id) => `<code>${escapeHtml(id)}</code>`).join(", ") || "—"}; retiradas ${comparison.evidenceChange.removedSourceSignalIds.map((id) => `<code>${escapeHtml(id)}</code>`).join(", ") || "—"}.</p>`
+          : `<p><strong>Sin evidencia fuente cambiada.</strong> IDs compartidos: ${comparison.evidenceChange.sharedSourceSignalIds.map((id) => `<code>${escapeHtml(id)}</code>`).join(", ") || "ninguno"}.</p>`
+        : "";
+      return `<article class="card wide">
+        <p><span class="status">${escapeHtml(opportunityTargetLabels[comparison.targetKind])}</span>${comparison.status ? ` · ${escapeHtml(comparison.status)}` : ""}</p>
+        <h3>${escapeHtml(comparison.title)}</h3>
+        <p><code>${escapeHtml(comparison.targetId)}</code> · ${counts.high} high · ${counts.medium} medium · ${counts.low} low</p>
+        ${history}${evidence}<ul>${signals}</ul>
+      </article>`;
+    })
+    .join("");
+}
+
 function opportunityListPage(store: ArticleCandidateStore): string {
   const candidates = store.list();
   const list = candidates.length
@@ -998,7 +1067,10 @@ function opportunityListPage(store: ArticleCandidateStore): string {
   );
 }
 
-function opportunityDetailPage(candidate: ArticleCandidate): string {
+function opportunityDetailPage(
+  candidate: ArticleCandidate,
+  comparison: OpportunityComparisonReport,
+): string {
   const taxonomies = Object.entries(candidate.secondaryTaxonomies)
     .map(
       ([name, values]) =>
@@ -1052,6 +1124,9 @@ function opportunityDetailPage(candidate: ArticleCandidate): string {
             <button type="submit">Guardar decisión</button>
           </form></section>`
       : "";
+  const contractViolations = comparison.publicContractViolations.length
+    ? `<ul>${comparison.publicContractViolations.map((violation) => `<li>${escapeHtml(violation)}</li>`).join("")}</ul>`
+    : '<p class="muted">No se detectaron violaciones del contrato público.</p>';
 
   return page(
     candidate.proposedTitle,
@@ -1065,10 +1140,14 @@ function opportunityDetailPage(candidate: ArticleCandidate): string {
        <section class="card wide"><h2>Secciones propuestas</h2><ol>${sections}</ol><h3>Categorías de producto distintivas</h3><p>${escapeHtml(candidate.distinctiveProductCategories.join(", ") || "—")}</p></section>
        <section class="card"><h2>Contenido cercano</h2><p>${candidate.closestExistingContentIds.map((id) => `<code>${escapeHtml(id)}</code>`).join(", ") || "—"}</p><h3>Señales de solapamiento</h3>${overlaps}</section>
        <section class="card"><h2>Puntajes separados</h2><p class="notice">Ayudas editoriales de 0 a 5; no son métricas SEO objetivas ni un puntaje agregado.</p><dl>${scores}</dl></section>
-       <section class="card"><h2>Recomendación consultiva</h2><p><strong>${escapeHtml(opportunityDecisionLabels[candidate.advisory.recommendation])}</strong></p><p>${escapeHtml(candidate.advisory.reason)}</p></section>
+       <section class="card"><h2>Recomendación consultiva</h2><p><strong>${escapeHtml(opportunityDecisionLabels[candidate.advisory.recommendation])}</strong></p><p>${escapeHtml(candidate.advisory.reason)}</p><p class="muted">Es orientativa: no bloquea una decisión humana válida y deliberada.</p></section>
        <section class="card"><h2>Decisión registrada</h2>${decision}</section>
        <section class="card"><h2>Trazabilidad</h2><dl><dt>Señales importadas</dt><dd>${candidate.sourceSignalIds?.map((id) => `<code>${escapeHtml(id)}</code>`).join(", ") || "—"}</dd><dt>EditorialBrief</dt><dd>${candidate.editorialBriefId ? `<code>${escapeHtml(candidate.editorialBriefId)}</code>` : "—"}</dd><dt>GuideDraft</dt><dd>${candidate.guideDraftId ? `<code>${escapeHtml(candidate.guideDraftId)}</code>` : "—"}</dd></dl><p class="muted">Cada referencia conserva un ciclo de vida separado; esta pantalla no crea briefs ni GuideDrafts.</p></section>
      </div>
+     <section><h2>Comparación determinista</h2><p class="notice">Las ocho señales se mantienen separadas y explican sus coincidencias. El orden usa solamente la cantidad visible de señales high y medium; no existe un puntaje total ni una decisión automática.</p></section>
+     <section class="card"><h2>Violaciones del contrato público</h2>${contractViolations}<p class="muted">Estas violaciones son independientes del solapamiento consultivo.</p></section>
+     <section><h2>Estado editorial más cercano</h2><div class="grid">${opportunityComparisonCards(comparison.nearestEditorialState, "No hay páginas, borradores ni briefs aprobados para comparar.")}</div></section>
+     <section><h2>Decisiones anteriores comparables</h2><div class="grid">${opportunityComparisonCards(comparison.priorDecisionHistory, "No hay candidatos rechazados, fusionados, mantenidos en espera ni convertidos en sección.")}</div></section>
      ${decisionForm}`,
   );
 }
@@ -1814,6 +1893,7 @@ export function createStudioServer(
   publisher = new Publisher(),
   sourceStore = new ProductSourceStore(catalog.root),
   candidateStore = new ArticleCandidateStore(catalog.root),
+  approvedBriefs: readonly ApprovedEditorialBriefComparisonRecord[] = [],
 ) {
   return createServer(async (request, response) => {
     try {
@@ -2245,7 +2325,27 @@ export function createStudioServer(
       const opportunityMatch =
         method === "GET" ? /^\/opportunities\/(candidate_[a-z0-9_-]+)$/.exec(url.pathname) : null;
       if (opportunityMatch?.[1]) {
-        send(response, 200, opportunityDetailPage(candidateStore.get(opportunityMatch[1])));
+        const listed = await store.list();
+        if (listed.errors.length) {
+          throw new TypeError(
+            `No se puede comparar contra borradores inválidos: ${listed.errors.join("; ")}`,
+          );
+        }
+        const candidate = candidateStore.get(opportunityMatch[1]);
+        send(
+          response,
+          200,
+          opportunityDetailPage(
+            candidate,
+            compareArticleCandidate(
+              candidate,
+              readPublicContent(catalog.root),
+              listed.drafts,
+              candidateStore.list(),
+              approvedBriefs,
+            ),
+          ),
+        );
         return;
       }
       const opportunityStatusMatch =

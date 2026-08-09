@@ -1,6 +1,6 @@
 # Content Opportunity Lab
 
-Phase 5.0 establishes the smallest non-public domain for recording article opportunities before editorial planning. It does not generate, compare, evaluate, brief, draft, or publish content.
+Phase 5.0 establishes the smallest non-public domain for recording article opportunities before editorial planning. Phase 5.1 adds read-only, deterministic comparison against the editorial state. Neither phase generates candidates, makes decisions, creates briefs or drafts, or publishes content.
 
 ## Ownership and storage
 
@@ -84,23 +84,55 @@ Phase 5.0 exposes only the early status advances `generated -> evaluated -> shor
 The existing local Spanish Studio provides:
 
 - `/opportunities` for the candidate list; and
-- `/opportunities/{candidate-id}` for details, early status advances, and human decisions.
+- `/opportunities/{candidate-id}` for details, deterministic comparisons, early status advances, and human decisions.
 
 There is no candidate-generation or create form in Phase 5.0. Valid records may be imported or authored as structured JSON, then inspected and decided in the Studio. A decision updates only the candidate file.
+
+## Deterministic comparison
+
+Phase 5.1 calculates comparisons at read time and saves no score, snapshot, recommendation, or decision. It compares every candidate with:
+
+- published cluster hubs and gift guides from canonical content;
+- every valid `ClusterDraft` and `GuideDraft`;
+- approved `EditorialBrief` comparison records supplied by their owning workflow; and
+- other candidates whose human decision is `reject`, `merge`, `hold`, or `add-as-section`.
+
+This checkout has no serialized `EditorialBrief` contract or records: the four approved Nurse Gifts briefs are explicitly documentation-only in `docs/nurse-cluster-roadmap.md`. Phase 5.1 therefore defines only the narrow read model needed by comparison and accepts those records through the existing Studio composition boundary. It does not invent a brief persistence format, backfill documentation into new records, or change the 5.0 candidate contract.
+
+Each target produces eight separate signals:
+
+| Signal               | Comparable values                                                                 |
+| -------------------- | --------------------------------------------------------------------------------- |
+| Normalized title     | Unicode-normalized, lowercased title                                              |
+| Proposed slug tokens | Hyphen-separated slug terms                                                       |
+| Primary axis         | Exact guide/draft/brief axis; a hub-navigation axis is reported as medium overlap |
+| Primary intent       | Meaningful normalized terms                                                       |
+| Taxonomies           | Exact normalized values and meaningful terms across all taxonomy lists            |
+| Problem solved       | Explicit problem text when the target contract provides it                        |
+| Proposed sections    | Candidate headings/purposes and available target groups, slots, or headings       |
+| Product categories   | Candidate categories or categories resolved from canonical product IDs            |
+
+Text and list signals use explicit containment thresholds: at least two thirds is `high`, at least one third is `medium`, and less is `low`. Exact normalized text is `high`. Missing target data is an explained `low`, never an inferred semantic match. Common English connective and gift words are ignored; there are no embeddings, stemming, external services, or AI calls.
+
+The Studio shows every signal and its shared values. Records are ordered by visible counts of `high` signals and then `medium` signals; those counts are presentation order, not an aggregate opportunity score or truth score. Published route collisions are listed separately as hard public-contract violations.
+
+Prior decisions retain the 5.0 action, reason, date, and optional target ID. The comparison also shows added, removed, and shared `sourceSignalIds`, making a repeated idea with unchanged evidence explicit. A changed evidence ID is evidence of a changed input, not automatic permission to recreate the idea.
+
+The existing advisory recommendation remains advisory. A valid deliberate human decision may disagree with it; comparison never rejects, merges, holds, shortlists, or creates anything automatically.
 
 ## Existing-system boundaries
 
 - I.0 Product Coverage Analysis remains the sole implementation of deterministic product-coverage signals. The Lab neither copies nor replaces that logic.
 - Product catalog, product-source provenance, and affiliate operations are unchanged.
 - No provider adapter or AI operation is called.
-- No deterministic candidate comparison, AI generation/evaluation, product-first mode, coverage-first mode, or sourcing loop exists.
+- Deterministic comparison is read-only and local; no AI generation/evaluation, product-first mode, coverage-first mode, or sourcing loop exists.
 - No `EditorialBrief` or `GuideDraft` is created.
 - No canonical content, public route, preview, or publication behavior is added.
 - Any later GuideDraft work must enter the existing Goal 2 workflow and publish through its current validation and atomic publication boundary.
 
 ## Verification
 
-The Studio tests cover strict schemas, the full score bounds, all five decisions, early status transitions, decision/target consistency, stable-ID paths, canonical references, atomic replacement, list/detail rendering, persisted decisions, and a real Astro build that excludes a sentinel candidate.
+The Studio tests cover strict schemas, the full score bounds, all five decisions, early status transitions, decision/target consistency, stable-ID paths, canonical references, atomic replacement, normalization, all eight comparison signal kinds, low/medium/high thresholds, public-contract separation, approved-brief input, prior-decision evidence history, human override, list/detail rendering, persisted decisions, and a real Astro build that excludes a sentinel candidate.
 
 Run:
 
