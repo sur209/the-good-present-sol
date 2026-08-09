@@ -289,13 +289,13 @@ function sourceTimestampValue(
 ): string | undefined {
   const raw = optionalValue(form, name);
   if (!raw) return fallback;
-  const date = new Date(raw);
+  const date = new Date(/(?:Z|[+-]\d{2}:\d{2})$/i.test(raw) ? raw : `${raw}Z`);
   if (Number.isNaN(date.valueOf())) throw new TypeError(`La fecha ${name} no es válida.`);
   return date.toISOString();
 }
 
 function sourceTimestampInput(value: string | undefined): string {
-  return value ? value.replace(/\.\d{3}Z$/, "").slice(0, 16) : "";
+  return value ? new Date(value).toISOString().slice(0, -1) : "";
 }
 
 function productSourceFromForm(form: URLSearchParams, productId: string): ProductSourceRecord {
@@ -395,9 +395,9 @@ function productSourceSection(
         <label>ID externo (opcional)<input name="externalId" value="${value(selected?.externalId)}"></label>
         <label>URL de origen (opcional)<input type="url" name="sourceUrl" value="${value(selected?.sourceUrl)}" placeholder="https://…"></label>
         <label>Método<select name="importMethod">${methodOptions}</select></label>
-        <label>Importado en<input type="datetime-local" name="importedAt" value="${sourceTimestampInput(selected?.importedAt)}"></label>
-        <label>Revisado en (opcional)<input type="datetime-local" name="lastReviewedAt" value="${sourceTimestampInput(selected?.lastReviewedAt)}"></label>
-        <label>Sincronizado en (opcional)<input type="datetime-local" name="lastSynchronizedAt" value="${sourceTimestampInput(selected?.lastSynchronizedAt)}"></label>
+        <label>Importado en (UTC)<input type="datetime-local" step="0.001" name="importedAt" value="${sourceTimestampInput(selected?.importedAt)}"></label>
+        <label>Revisado en UTC (opcional)<input type="datetime-local" step="0.001" name="lastReviewedAt" value="${sourceTimestampInput(selected?.lastReviewedAt)}"></label>
+        <label>Sincronizado en UTC (opcional)<input type="datetime-local" step="0.001" name="lastSynchronizedAt" value="${sourceTimestampInput(selected?.lastSynchronizedAt)}"></label>
         <label>Estado<select name="sourceStatus">${statusOptions}</select></label>
         <label class="wide">Notas<textarea name="notes" rows="3">${value(selected?.notes)}</textarea></label>
       </div>

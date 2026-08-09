@@ -445,14 +445,13 @@ test("muestra y guarda provenance desde el editor de producto sin tocar el produ
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      sourceId: "source_http",
       sourceKind: "manual-amazon",
       provider: "Amazon",
       marketplace: "amazon.com",
       externalId: "ASIN-HTTP",
       sourceUrl: "https://amazon.com/dp/ASIN-HTTP",
       importMethod: "manual",
-      importedAt: "2026-08-08T00:00:00.000Z",
+      importedAt: "2026-08-08T00:00:30.123",
       sourceStatus: "needs-review",
       notes: "Captured by an editor.",
     }),
@@ -460,7 +459,13 @@ test("muestra y guarda provenance desde el editor de producto sin tocar el produ
   });
   assert.equal(response.status, 303);
   assert.equal(response.headers.get("location"), `/products/${productId}/edit?saved=source`);
-  assert.equal(sourceStore.get("source_http", catalog.read().products).productId, productId);
+  const savedSource = sourceStore.forProduct(productId, catalog.read().products)[0]!;
+  assert.match(savedSource.id, /^source_/);
+  assert.equal(savedSource.importedAt, "2026-08-08T00:00:30.123Z");
+  const sourceEditor = await fetch(
+    `${origin}/products/${productId}/edit?sourceId=${encodeURIComponent(savedSource.id)}`,
+  );
+  assert.match(await sourceEditor.text(), /name="importedAt" value="2026-08-08T00:00:30\.123"/);
   assert.equal(catalog.get(productId).id, productId);
 });
 
