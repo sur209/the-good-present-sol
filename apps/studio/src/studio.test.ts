@@ -928,6 +928,15 @@ test("persiste un brief editable, exige aprobación y crea un GuideDraft sin con
   assert.equal(converted.draft.status, "questionnaire");
   assert.equal(converted.draft.slug, edited.proposedSlug);
   assert.equal(converted.draft.recommendations.length, 0);
+  assert.equal(converted.draft.questionnaire.recipient, edited.targetAudience);
+  assert.equal(converted.draft.questionnaire.interests, "sleep support; recovery tools");
+  assert.equal(converted.draft.questionnaire.avoid, "Avoid unsupported health claims.");
+  assert.match(converted.draft.questionnaire.additional ?? "", /Own the off-shift recovery/);
+  assert.match(converted.draft.questionnaire.additional ?? "", /Which product facts require/);
+  assert.deepEqual(
+    prepareOutlinePrompt(converted.draft, readPublicContent(repository)).input.questionnaire,
+    converted.draft.questionnaire,
+  );
   assert.equal((await draftStore.read(converted.draft.id)).id, converted.draft.id);
   await assert.rejects(
     readFile(join(repository, "content", "guides", `${converted.draft.id}.json`), "utf8"),
@@ -1972,6 +1981,48 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
   assert.equal(convertedBrief.status, "converted-to-guide-draft");
   assert.equal(convertedBrief.guideDraftId, guideDraftId);
   assert.equal(candidateStore.get(briefCandidate.id).guideDraftId, guideDraftId);
+  const draftResponse = await fetch(`${origin}${draftLocation}`);
+  const draftHtml = await draftResponse.text();
+  assert.equal(draftResponse.status, 200);
+  assert.match(draftHtml, /Siguiente paso: generar el esquema/);
+  assert.match(
+    draftHtml,
+    new RegExp(`/drafts/${guideDraftId}/outline-prompt">Revisar y generar esquema`),
+  );
+  assert.match(draftHtml, /Revisá y generá el esquema/);
+
+  const outlinePromptResponse = await fetch(`${origin}${draftLocation}/outline-prompt`);
+  const outlinePromptHtml = await outlinePromptResponse.text();
+  assert.equal(outlinePromptResponse.status, 200);
+  assert.match(outlinePromptHtml, /A human-edited distinction/);
+  assert.match(outlinePromptHtml, /sleep support/);
+  assert.match(outlinePromptHtml, /Which facts require source verification/);
+
+  const generateOutlineResponse = await fetch(`${origin}${draftLocation}/outline/generate`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ promptVersion: "outline-v1" }),
+    redirect: "manual",
+  });
+  assert.equal(generateOutlineResponse.status, 303);
+  const outlinedDraft = guideDraftSchema.parse(
+    JSON.parse(await readFile(join(repository, "drafts", `${guideDraftId}.json`), "utf8")),
+  );
+  const expectedSlotIds = Array.from(
+    { length: outlinedDraft.questionnaire.giftCount },
+    (_, index) => `${guideDraftId}_slot-${index + 1}`,
+  );
+  assert.equal(outlinedDraft.status, "outline-ready");
+  assert.equal(outlinedDraft.generationMetadata?.providerId, "mock");
+  assert.deepEqual(
+    outlinedDraft.outline?.slots.map(({ id }) => id),
+    expectedSlotIds,
+  );
+  assert.deepEqual(
+    outlinedDraft.recommendations.map(({ id }) => id),
+    expectedSlotIds,
+  );
+  assert.ok(outlinedDraft.recommendations.every(({ productId }) => productId === undefined));
   await assert.rejects(
     readFile(join(repository, "content", "guides", `${guideDraftId}.json`), "utf8"),
   );

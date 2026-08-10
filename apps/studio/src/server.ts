@@ -2214,7 +2214,7 @@ function recommendationSelectionSection(
     <h2>Selección de productos</h2>
     <p>Actualizar un producto cambia el catálogo compartido y todas sus guías. Reemplazarlo aquí cambia sólo este slot y conserva su ID, posición y propósito.</p>
     ${duplicateWarning}
-    <div class="grid">${recommendations || '<p class="notice">No hay slots. Generá un esquema o agregá uno manualmente.</p>'}</div>
+    <div class="grid">${recommendations || `<p class="notice">No hay slots. <a href="/drafts/${draft.id}/outline-prompt">Revisá y generá el esquema</a> para crearlos con el flujo editorial, o agregá uno manualmente.</p>`}</div>
     <form method="post" action="/drafts/${draft.id}/recommendations" class="card">
       <h3>Agregar slot manual</h3>
       <label>Nombre del slot<input name="slotLabel" required></label>
@@ -2257,14 +2257,14 @@ function guideEditorPage(
         <p><strong>Ángulo:</strong> ${escapeHtml(draft.outline.editorialAngle)}</p>
         <ol>${draft.outline.slots.map((slot) => `<li><strong>${escapeHtml(slot.label)}</strong><br>${escapeHtml(slot.intent)}<br><span class="muted">Búsqueda: ${escapeHtml(slot.searchTerms.join(", "))}${slot.budgetHint ? ` · ${escapeHtml(slot.budgetHint)}` : ""}</span></li>`).join("")}</ol>
       </section>`
-    : '<p class="notice">Todavía no hay un esquema. Guardá la arquitectura y el cuestionario antes de generar.</p>';
+    : `<section class="notice"><h2>Siguiente paso: generar el esquema</h2><p>Revisá el prompt y generá el esquema editorial. Los slots aparecerán después, sin seleccionar productos.</p><p><a class="button" href="/drafts/${draft.id}/outline-prompt">Revisar y generar esquema</a></p></section>`;
   const metadata = draft.generationMetadata
     ? `<p class="muted">Última generación: ${escapeHtml(draft.generationMetadata.providerId ?? "proveedor desconocido")} · ${escapeHtml(draft.generationMetadata.modelId ?? "modelo no informado")} · ${escapeHtml(draft.generationMetadata.promptVersion)} · ${escapeHtml(formatDate(draft.generationMetadata.generatedAt))}</p>`
     : "";
   return page(
     draftName(draft),
     `<p><a href="/">← Borradores</a></p>
-     <div class="actions"><div><h1>${escapeHtml(draftName(draft))}</h1><p><code>${escapeHtml(draft.id)}</code> · ${escapeHtml(draft.status)}</p></div><a class="button" href="/drafts/${draft.id}/outline-prompt">Esquema</a><a class="button" href="/drafts/${draft.id}/final-prompt">Generación final</a><a class="button" href="/drafts/${draft.id}/preview">Vista previa</a><a class="button" href="/drafts/${draft.id}/validate">Validar</a></div>
+     <div class="actions"><div><h1>${escapeHtml(draftName(draft))}</h1><p><code>${escapeHtml(draft.id)}</code> · ${escapeHtml(draft.status)}</p></div><a class="button" href="/drafts/${draft.id}/outline-prompt">${draft.outline ? "Revisar o regenerar esquema" : "Revisar y generar esquema"}</a><a class="button" href="/drafts/${draft.id}/final-prompt">Generación final</a><a class="button" href="/drafts/${draft.id}/preview">Vista previa</a><a class="button" href="/drafts/${draft.id}/validate">Validar</a></div>
      <aside class="notice"><strong>Cómo funciona la arquitectura editorial</strong><p>Las taxonomías clasifican contenido; no crean URLs. Una ruta pública existe sólo al publicar un hub o una guía. Cada guía hija pertenece a un cluster válido. Las guías relacionadas son enlaces editoriales, no jerarquía. “Nurse Gifts Under $25” es una guía con eje <code>budget</code>, no un filtro generado.</p></aside>
      <form method="post" action="/drafts/${draft.id}/guide/architecture" class="card">
        <h2>Arquitectura de la guía</h2>
