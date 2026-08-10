@@ -139,6 +139,7 @@ import {
   evaluateConvergentOpportunities,
   importedEvaluationSignalSchema,
   opportunityAiJudgmentSchema,
+  opportunityEvaluationBatchSchema,
   opportunityEvaluationSessionPath,
   opportunityEvaluationSessionSchema,
   prepareOpportunityEvaluationPrompt,
@@ -1280,6 +1281,12 @@ test("construye un prompt convergente determinista y valida puntajes, destinos y
   assert.match(first.prompt, /system-derived facts/);
   assert.match(first.prompt, /Missing evidence.*never be treated as zero/);
   assert.match(first.prompt, /Do not calculate or return a composite score/);
+  assert.match(first.prompt, /omit its corresponding risk-action field entirely/);
+  assert.match(first.prompt, /Never use null or an empty string for any conditional field/);
+  assert.doesNotMatch(
+    first.prompt.match(/Return exactly one JSON object[^\n]*:\n([^\n]+)/)?.[1] ?? "",
+    /RiskAction|targetContentId/,
+  );
   assert.doesNotMatch(first.prompt, /AI_API_KEY|authorization/i);
 
   assert.equal(importedEvaluationSignalSchema.safeParse(importedSignal).success, true);
@@ -4358,6 +4365,64 @@ test("rechaza fences, prosa, vacíos, JSON roto y objetos fuera de esquema", () 
   assert.throws(
     () => parseExactStructuredContent('{"different":"shape"}', schema),
     (error) => error instanceof ProviderError && error.code === "invalid-schema",
+  );
+});
+
+test("resume rutas Zod sin exponer la respuesta inválida del proveedor", () => {
+  const providerSecret = "sk-provider-output-secret";
+  const malformed = JSON.stringify({
+    batchSynthesis: "Batch fixture.",
+    evaluations: [
+      {
+        candidateId: "candidate_schema-fixture",
+        scores: {
+          intentDifferentiation: 6,
+          editorialUsefulness: 7,
+          productDifferentiation: 5,
+          audienceClarity: 7,
+          seasonalValue: 4,
+          commercialPotential: 5,
+          visualDistributionPotential: 5,
+          productReusePotential: 6,
+          thinContentRisk: 4,
+          cannibalizationRisk: 5,
+          maintenanceCost: 4,
+        },
+        recommendation: "hold",
+        explanation: "Keep this candidate under review.",
+        missingEvidence: [],
+        productConcentrationRisk: "Review category breadth.",
+        catalogVolatility: "Recheck active catalog support.",
+        thinContentRiskAction: "",
+        cannibalizationRiskAction: "",
+      },
+    ],
+    [providerSecret]: `Bearer ${providerSecret}`,
+  });
+
+  assert.throws(
+    () => parseExactStructuredContent(malformed, opportunityEvaluationBatchSchema),
+    (error) => {
+      assert.ok(error instanceof ProviderError);
+      assert.equal(error.code, "invalid-schema");
+      assert.equal(
+        error.message,
+        "La respuesta del proveedor no cumple el esquema editorial esperado.",
+      );
+      const summary = error.debugSummary();
+      assert.match(
+        summary,
+        /evaluations\.0\.thinContentRiskAction: Too small: expected string to have >=1 characters/,
+      );
+      assert.match(
+        summary,
+        /evaluations\.0\.cannibalizationRiskAction: Too small: expected string to have >=1 characters/,
+      );
+      assert.match(summary, /\$: Unrecognized field\(s\)/);
+      assert.doesNotMatch(summary, /sk-provider|Bearer|output-secret/);
+      assert.doesNotMatch(error.message, /evaluations|RiskAction|sk-provider/);
+      return true;
+    },
   );
 });
 

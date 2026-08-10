@@ -70,7 +70,21 @@ export class ProviderError extends Error {
     const details = [`code=${this.code}`];
     if (this.status !== undefined) details.push(`status=${this.status}`);
     if (this.requestId) details.push(`requestId=${this.requestId}`);
-    if (this.cause instanceof Error) details.push(`cause=${this.cause.name}`);
+    if (this.cause instanceof Error) {
+      details.push(`cause=${this.cause.name}`);
+      if (this.cause instanceof z.ZodError) {
+        const issues = this.cause.issues.slice(0, 8).map((issue) => {
+          const path = issue.path.length ? issue.path.join(".") : "$";
+          const message =
+            issue.code === "unrecognized_keys" ? "Unrecognized field(s)" : issue.message;
+          return `${path}: ${message.slice(0, 160)}`;
+        });
+        if (this.cause.issues.length > issues.length) {
+          issues.push(`+${this.cause.issues.length - issues.length} more`);
+        }
+        details.push(`issues=${issues.join("; ")}`);
+      }
+    }
     return details.join(" ");
   }
 }

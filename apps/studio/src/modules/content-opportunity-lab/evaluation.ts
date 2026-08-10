@@ -25,7 +25,7 @@ import {
   type OpportunityComparisonReport,
 } from "./comparison.ts";
 
-export const OPPORTUNITY_EVALUATION_PROMPT_VERSION = "opportunity-convergent-v2";
+export const OPPORTUNITY_EVALUATION_PROMPT_VERSION = "opportunity-convergent-v3";
 export const OPPORTUNITY_EVALUATIONS_DIRECTORY = "editorial-data/opportunity-evaluations";
 
 const nonEmptyText = z.string().trim().min(1);
@@ -327,10 +327,10 @@ Critically compare the selected candidate batch as a set. Candidate facts are pr
 
 Return each of these separate integer judgment scores from 0 through 10: intentDifferentiation, editorialUsefulness, productDifferentiation, audienceClarity, seasonalValue, commercialPotential, visualDistributionPotential, productReusePotential, thinContentRisk, cannibalizationRisk, maintenanceCost. Also explain product concentration risk and catalog volatility separately. Together these fields must explicitly consider thin-content risk, cannibalization risk, product concentration risk, catalog volatility, and product-reuse potential. Do not calculate or return a composite score. Missing evidence belongs in missingEvidence and must never be treated as zero. Do not invent search volume, keyword difficulty, Search Console metrics, Pinterest performance, affiliate performance, product facts, prices, stock, availability, or any other unavailable external fact.
 
-Return one advisory recommendation per candidate: create-article, add-as-section, merge, hold, or reject. Explain it actionably. add-as-section and merge require targetContentId naming a published-guide target from deterministicEvidence; every other recommendation must omit targetContentId. A thinContentRisk or cannibalizationRisk score of 7 or more requires the corresponding actionable risk field. Do not shortlist, decide, create, merge, delete, reject, hold, create a brief or draft, or publish anything.
+Return one advisory recommendation per candidate: create-article, add-as-section, merge, hold, or reject. Explain it actionably. add-as-section and merge require a non-empty targetContentId naming a published-guide target from deterministicEvidence; every other recommendation must omit targetContentId entirely. A thinContentRisk or cannibalizationRisk score of 7 or more requires the corresponding non-empty actionable risk field. When either score is below 7, omit its corresponding risk-action field entirely. Never use null or an empty string for any conditional field. Do not shortlist, decide, create, merge, delete, reject, hold, create a brief or draft, or publish anything.
 
 Return exactly one JSON object with this shape and no additional fields:
-{"batchSynthesis":"...","evaluations":[{"candidateId":"candidate_...","scores":{"intentDifferentiation":0,"editorialUsefulness":0,"productDifferentiation":0,"audienceClarity":0,"seasonalValue":0,"commercialPotential":0,"visualDistributionPotential":0,"productReusePotential":0,"thinContentRisk":0,"cannibalizationRisk":0,"maintenanceCost":0},"recommendation":"hold","explanation":"...","missingEvidence":["..."],"productConcentrationRisk":"...","catalogVolatility":"...","thinContentRiskAction":"required when score >= 7","cannibalizationRiskAction":"required when score >= 7"}]}
+{"batchSynthesis":"...","evaluations":[{"candidateId":"candidate_...","scores":{"intentDifferentiation":6,"editorialUsefulness":7,"productDifferentiation":5,"audienceClarity":7,"seasonalValue":4,"commercialPotential":5,"visualDistributionPotential":5,"productReusePotential":6,"thinContentRisk":4,"cannibalizationRisk":5,"maintenanceCost":4},"recommendation":"hold","explanation":"...","missingEvidence":["..."],"productConcentrationRisk":"...","catalogVolatility":"..."}]}
 
 Evaluation input:
 ${JSON.stringify(input, null, 2)}`;
