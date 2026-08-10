@@ -101,6 +101,7 @@ import {
   catalogMatchesForRequest,
   createProductSourcingRequest,
   linkProductSourceCandidate,
+  productSourcingPrefillForDraftSlot,
   productSourcingRequestPath,
   productSourcingReturnPath,
   reviewProductSourceCandidates,
@@ -159,11 +160,17 @@ import { STUDIO_HOST, createStudioServer } from "./server.ts";
 
 const execFileAsync = promisify(execFile);
 
+function nurseCluster(content: ValidatedPublicContent) {
+  const cluster = content.clusters.find(({ id }) => id === "cluster_nurse-gifts");
+  assert.ok(cluster);
+  return cluster;
+}
+
 async function generatedGuideDraft(id: string, giftCount = 3) {
   const content = new ProductCatalog().read();
   const draft = guideDraftSchema.parse({
     ...createGuideDraft(id),
-    clusterId: content.clusters[0]!.id,
+    clusterId: nurseCluster(content).id,
     primaryAxis: "recipient",
     primaryIntent: "Help a friend choose a useful gift for a nurse.",
     questionnaire: normalizeQuestionnaire({ giftCount: String(giftCount) }),
@@ -2897,6 +2904,159 @@ test("crea un producto desde el Studio, lo selecciona en un GuideDraft y excluye
   assert.doesNotMatch(outputHtml, /editorial-data|manual-amazon|amazon-us/);
 });
 
+test("prefill de sourcing reutiliza contexto conocido sin inventar datos faltantes", () => {
+  const draft = guideDraftSchema.parse({
+    ...addManualRecommendation(
+      createGuideDraft("guide_sourcing-prefill"),
+      "Structural firefighting gloves",
+      "Protect hands during academy drills.",
+      ["NFPA firefighter gloves", "academy turnout gear"],
+      "slot_sourcing-prefill",
+    ),
+    primaryIntent: "Equip a firefighter rookie for academy training.",
+    taxonomies: { occasions: ["Fire academy graduation"] },
+    budgetContext: { currency: "USD", label: "Under $150" },
+    recommendations: [
+      {
+        id: "slot_sourcing-prefill",
+        position: 1,
+        slotLabel: "Structural firefighting gloves",
+        slotIntent: "Protect hands during academy drills.",
+        searchTerms: ["NFPA firefighter gloves", "academy turnout gear"],
+        budgetHint: "$80–$120",
+        editorialStatus: "unassigned",
+      },
+    ],
+  });
+  const slot = draft.recommendations[0]!;
+  const inherited = productSourcingPrefillForDraftSlot(draft, slot, {
+    targetAudience: "Firefighter rookies entering academy training.",
+    risks: ["Exclude costume-grade protective equipment."],
+  });
+
+  assert.deepEqual(inherited, {
+    intendedRole: "Protect hands during academy drills.",
+    requiredCategory: "Structural firefighting gloves",
+    audience: "Firefighter rookies entering academy training.",
+    occasion: "Fire academy graduation",
+    budgetContext: "$80–$120",
+    mustHaveVerifiedFacts: [],
+    exclusions: ["Exclude costume-grade protective equipment."],
+    searchTerms: ["NFPA firefighter gloves", "academy turnout gear"],
+  });
+
+  const minimal = addManualRecommendation(
+    createGuideDraft("guide_sourcing-missing"),
+    "Known slot label",
+    undefined,
+    undefined,
+    "slot_sourcing-missing",
+  );
+  const missing = productSourcingPrefillForDraftSlot(minimal, minimal.recommendations[0]!);
+  assert.equal(missing.audience, undefined);
+  assert.equal(missing.occasion, undefined);
+  assert.equal(missing.budgetContext, undefined);
+  assert.deepEqual(missing.mustHaveVerifiedFacts, []);
+  assert.deepEqual(missing.exclusions, []);
+  assert.deepEqual(missing.searchTerms, ["Known slot label"]);
+});
+
+test("resume ocho slots con matching I.0 y sourcing sin tomar decisiones editoriales", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-slot-triage-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const content = catalog.read();
+  const activeProducts = content.products.filter(({ status }) => status === "active");
+  assert.ok(activeProducts.length >= 2);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const recommendations = [
+    {
+      id: "slot_triage-assigned",
+      position: 1,
+      slotLabel: "Assigned product",
+      productId: activeProducts[0]!.id,
+      editorialStatus: "ready" as const,
+    },
+    {
+      id: "slot_triage-generate",
+      position: 2,
+      slotLabel: "Ready for copy",
+      productId: activeProducts[1]!.id,
+      editorialStatus: "needs-generation" as const,
+    },
+    {
+      id: "slot_triage-match",
+      position: 3,
+      slotLabel: "Insulated tumbler",
+      searchTerms: ["insulated", "tumbler"],
+      editorialStatus: "unassigned" as const,
+    },
+    ...Array.from({ length: 5 }, (_, index) => ({
+      id: `slot_triage-missing-${index + 1}`,
+      position: index + 4,
+      slotLabel: `Xylophonic quasar ${index + 1}`,
+      searchTerms: [`xylophonic-${index + 1}`, `quasar-${index + 1}`],
+      editorialStatus: "unassigned" as const,
+    })),
+  ];
+  const draft = await draftStore.save(
+    guideDraftSchema.parse({
+      ...createGuideDraft("guide_slot-triage"),
+      status: "selecting-products",
+      recommendations,
+    }),
+  );
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  const request = await sourcingStore.save(
+    createProductSourcingRequest(
+      {
+        origin: {
+          kind: "recommendation-slot",
+          guideDraftId: draft.id,
+          recommendationSlotId: "slot_triage-missing-1",
+        },
+        intendedRole: "Find a deliberately unmatched fixture",
+        requiredCategory: "Xylophonic quasar 1",
+        audience: "Test editors",
+        occasion: "Regression testing",
+        budgetContext: "No known budget",
+        searchTerms: ["xylophonic-1", "quasar-1"],
+      },
+      new Date("2026-08-10T12:00:00.000Z"),
+      "request_slot-triage",
+    ),
+  );
+  const server = createStudioServer(draftStore, catalog);
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(() => server.close());
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+
+  const html = await (await fetch(`${origin}/drafts/${draft.id}`)).text();
+  assert.match(html, /Resumen de slots/);
+  assert.match(html, /Asignado/);
+  assert.match(html, /Listo para generar recomendación/);
+  assert.match(html, /Coincidencia creíble en catálogo/);
+  assert.match(html, /Sin coincidencia creíble · sourcing probable/);
+  assert.match(html, /Sourcing activo/);
+  assert.match(html, /I\.0 de 2 tokens compartidos/);
+  for (const recommendation of recommendations) {
+    assert.match(html, new RegExp(`href="#slot-${recommendation.id}"`));
+    assert.match(html, new RegExp(`id="slot-${recommendation.id}"`));
+  }
+  assert.match(html, new RegExp(`/product-sourcing/${request.id}`));
+
+  const unchangedDraft = guideDraftSchema.parse(await draftStore.read(draft.id));
+  assert.deepEqual(unchangedDraft.recommendations, recommendations);
+  assert.ok(unchangedDraft.recommendations.slice(2).every(({ productId }) => !productId));
+  assert.equal(sourcingStore.get(request.id).status, "open");
+  assert.deepEqual(sourcingStore.get(request.id).approvedProductIds, []);
+  assert.ok(validateGuideDraft(unchangedDraft, content).errors.length > 0);
+});
+
 test("mantiene el ciclo de vida y los IDs exactos de una solicitud de sourcing", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-product-sourcing-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
@@ -2952,7 +3112,7 @@ test("mantiene el ciclo de vida y los IDs exactos de una solicitud de sourcing",
   );
   assert.equal(
     productSourcingReturnPath(request),
-    `/drafts/${draft.id}?slot=slot_sourcing-lifecycle`,
+    `/drafts/${draft.id}#slot-slot_sourcing-lifecycle`,
   );
   assert.throws(
     () => transitionProductSourcingRequest(request, "fulfilled", now),
@@ -3202,13 +3362,33 @@ test("crea, cumple y asigna una solicitud al slot exacto por HTTP", async (conte
   const draftStore = new DraftStore(join(repository, "drafts"));
   const sourceStore = new ProductSourceStore(repository);
   const draft = await draftStore.save(
-    addManualRecommendation(
-      createGuideDraft("guide_sourcing-http"),
-      "Insulated tumbler",
-      "Keep a nurse hydrated during a long shift.",
-      ["insulated", "tumbler"],
-      "slot_sourcing-http",
-    ),
+    guideDraftSchema.parse({
+      ...addManualRecommendation(
+        createGuideDraft("guide_sourcing-http"),
+        "Insulated tumbler",
+        "Keep a nurse hydrated during a long shift.",
+        ["insulated", "tumbler"],
+        "slot_sourcing-http",
+      ),
+      questionnaire: {
+        giftCount: 8,
+        recipient: "Inherited draft audience",
+        occasion: "Inherited draft occasion",
+        budget: "Inherited draft budget",
+        avoid: "Inherited draft exclusion",
+      },
+      recommendations: [
+        {
+          id: "slot_sourcing-http",
+          position: 1,
+          slotLabel: "Insulated tumbler",
+          slotIntent: "Keep a nurse hydrated during a long shift.",
+          searchTerms: ["insulated", "tumbler"],
+          budgetHint: "Inherited slot budget",
+          editorialStatus: "unassigned",
+        },
+      ],
+    }),
   );
   const server = createStudioServer(
     draftStore,
@@ -3223,6 +3403,13 @@ test("crea, cumple y asigna una solicitud al slot exacto por HTTP", async (conte
   const address = server.address();
   assert.ok(address && typeof address !== "string");
   const origin = `http://${STUDIO_HOST}:${address.port}`;
+
+  const editorHtml = await (await fetch(`${origin}/drafts/${draft.id}`)).text();
+  assert.match(editorHtml, /value="Inherited draft audience"/);
+  assert.match(editorHtml, /value="Inherited draft occasion"/);
+  assert.match(editorHtml, /value="Inherited slot budget"/);
+  assert.match(editorHtml, />Inherited draft exclusion<\/textarea>/);
+  assert.match(editorHtml, /value="insulated, tumbler"/);
 
   const createResponse = await fetch(`${origin}/product-sourcing`, {
     method: "POST",
@@ -3244,6 +3431,15 @@ test("crea, cumple y asigna una solicitud al slot exacto por HTTP", async (conte
   assert.equal(createResponse.status, 303);
   const location = createResponse.headers.get("location")!;
   assert.match(location, /^\/product-sourcing\/request_/);
+  const createdRequest = new ProductSourcingRequestStore(repository).list()[0]!;
+  assert.equal(createdRequest.audience, "Working nurses");
+  assert.equal(createdRequest.occasion, "Graduation");
+  assert.equal(createdRequest.budgetContext, "Under $50");
+  assert.deepEqual(createdRequest.exclusions, ["Disposable cups"]);
+  assert.deepEqual(createdRequest.searchTerms, ["insulated", "tumbler"]);
+  assert.equal(createdRequest.origin.kind, "recommendation-slot");
+  assert.equal(createdRequest.origin.guideDraftId, draft.id);
+  assert.equal(createdRequest.origin.recommendationSlotId, "slot_sourcing-http");
   const detail = await (await fetch(`${origin}${location}`)).text();
   assert.match(detail, /Abrir el intake manual/);
   assert.match(detail, /product_insulated-tumbler/);
@@ -3267,7 +3463,7 @@ test("crea, cumple y asigna una solicitud al slot exacto por HTTP", async (conte
   assert.equal(assignResponse.status, 303);
   assert.equal(
     assignResponse.headers.get("location"),
-    `/drafts/${draft.id}?slot=slot_sourcing-http`,
+    `/drafts/${draft.id}#slot-slot_sourcing-http`,
   );
   const assigned = guideDraftSchema.parse(await draftStore.read(draft.id));
   assert.equal(assigned.recommendations[0]!.productId, "product_insulated-tumbler");
@@ -3384,7 +3580,7 @@ test("renderiza disclosure en guías con afiliados y lo omite sin enlaces afilia
 
 test("reabre un hub publicado conservando identidad y ruta", () => {
   const content = new ProductCatalog().read();
-  const published = content.clusters[0]!;
+  const published = nurseCluster(content);
   const draft = reopenClusterDraft(published, new Date("2026-08-08T12:00:00.000Z"));
   const validation = validateClusterDraft(draft, content);
 
@@ -3397,7 +3593,7 @@ test("reabre un hub publicado conservando identidad y ruta", () => {
 
 test("valida slugs reservados y grupos de navegación canónicos", () => {
   const content = new ProductCatalog().read();
-  const draft = reopenClusterDraft(content.clusters[0]!);
+  const draft = reopenClusterDraft(nurseCluster(content));
   const firstGroup = draft.navigationGroups[0]!;
   const broken = {
     ...draft,
@@ -3416,14 +3612,15 @@ test("valida slugs reservados y grupos de navegación canónicos", () => {
 
 test("agrega, ordena y quita sólo hijos publicados del cluster", () => {
   const content = new ProductCatalog().read();
-  const source = reopenClusterDraft(content.clusters[0]!);
+  const source = reopenClusterDraft(nurseCluster(content));
   const groupId = source.navigationGroups[0]!.id;
   const empty = {
     ...source,
     navigationGroups: [{ ...source.navigationGroups[0]!, guideIds: [] }],
   };
-  const firstId = content.guides[0]!.id;
-  const secondId = content.guides[1]!.id;
+  const nurseGuides = content.guides.filter(({ clusterId }) => clusterId === source.id);
+  const firstId = nurseGuides[0]!.id;
+  const secondId = nurseGuides[1]!.id;
   const withFirst = addGuideToGroup(empty, groupId, firstId, content);
   const withSecond = addGuideToGroup(withFirst, groupId, secondId, content);
   const moved = moveGuideInGroup(withSecond, groupId, secondId, -1);

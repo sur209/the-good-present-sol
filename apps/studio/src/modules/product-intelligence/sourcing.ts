@@ -172,6 +172,58 @@ export interface ProductSourcingOriginContext {
   drafts?: readonly GuideDraft[];
 }
 
+export interface ProductSourcingBriefContext {
+  targetAudience: string;
+  risks: readonly string[];
+}
+
+export interface ProductSourcingRequestPrefill {
+  intendedRole: string;
+  requiredCategory: string;
+  audience: string | undefined;
+  occasion: string | undefined;
+  budgetContext: string | undefined;
+  mustHaveVerifiedFacts: string[];
+  exclusions: string[];
+  searchTerms: string[];
+}
+
+function firstKnownValue(...values: (string | undefined)[]): string | undefined {
+  return values.find((value) => value?.trim());
+}
+
+export function productSourcingPrefillForDraftSlot(
+  draft: GuideDraft,
+  slot: GuideDraft["recommendations"][number],
+  brief?: ProductSourcingBriefContext,
+): ProductSourcingRequestPrefill {
+  if (!draft.recommendations.some(({ id }) => id === slot.id)) {
+    throw new TypeError(`The recommendation slot "${slot.id}" does not belong to this GuideDraft.`);
+  }
+  return {
+    intendedRole: slot.slotIntent ?? slot.slotLabel,
+    requiredCategory: slot.slotLabel,
+    audience: firstKnownValue(
+      draft.questionnaire.recipient,
+      brief?.targetAudience,
+      draft.taxonomies?.recipients?.join(", "),
+    ),
+    occasion: firstKnownValue(
+      draft.questionnaire.occasion,
+      draft.taxonomies?.occasions?.join(", "),
+      draft.primaryIntent,
+    ),
+    budgetContext: firstKnownValue(
+      slot.budgetHint,
+      draft.questionnaire.budget,
+      draft.budgetContext?.label,
+    ),
+    mustHaveVerifiedFacts: [],
+    exclusions: draft.questionnaire.avoid ? [draft.questionnaire.avoid] : [...(brief?.risks ?? [])],
+    searchTerms: slot.searchTerms?.length ? [...slot.searchTerms] : [slot.slotLabel],
+  };
+}
+
 export function createProductSourcingRequest(
   input: ProductSourcingRequestInput,
   now = new Date(),
@@ -411,7 +463,7 @@ export function productSourcingReturnPath(request: ProductSourcingRequest): stri
     return `/opportunities/${encodeURIComponent(origin.candidateId)}`;
   if (origin.kind === "brief") return `/opportunities/briefs/${encodeURIComponent(origin.briefId)}`;
   if (origin.kind === "guide-draft") return `/drafts/${encodeURIComponent(origin.guideDraftId)}`;
-  return `/drafts/${encodeURIComponent(origin.guideDraftId)}?slot=${encodeURIComponent(origin.recommendationSlotId)}`;
+  return `/drafts/${encodeURIComponent(origin.guideDraftId)}#slot-${encodeURIComponent(origin.recommendationSlotId)}`;
 }
 
 export function assignSourcedProductToDraftSlot(

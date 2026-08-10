@@ -116,6 +116,7 @@ import {
   createProductSourcingRequest,
   linkProductSourceCandidate,
   productRequirementOriginSchema,
+  productSourcingPrefillForDraftSlot,
   productSourcingReturnPath,
   reviewProductSourceCandidates,
   selectCanonicalProductForRequest,
@@ -240,6 +241,10 @@ function page(title: string, body: string): string {
     .checks { display: grid; gap: .5rem; }
     .checks label { display: flex; align-items: start; gap: .5rem; font-weight: 500; }
     button:disabled { cursor: not-allowed; opacity: .45; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: .65rem; border-bottom: 1px solid #d8d0c4; text-align: left; vertical-align: top; }
+    [id^="slot-"] { scroll-margin-top: 1rem; }
+    [id^="slot-"]:target { outline: .2rem solid #866939; }
   </style>
 </head>
 <body>
@@ -472,10 +477,14 @@ function listText(items: string[] | undefined, separator = ", "): string {
 
 function safeReturnTo(value: string | null): string | undefined {
   return value &&
-    (/^\/drafts\/[a-z0-9_-]+$/.test(value) ||
+    (/^\/drafts\/[a-z0-9_-]+(?:#slot-[a-z0-9_-]+)?$/.test(value) ||
       /^\/product-sourcing\/request_[a-z0-9_-]+$/.test(value))
     ? value
     : undefined;
+}
+
+function guideDraftSlotPath(draftId: string, slotId: string): string {
+  return `/drafts/${encodeURIComponent(draftId)}#slot-${encodeURIComponent(slotId)}`;
 }
 
 function productRequirementOriginFromForm(form: URLSearchParams): ProductRequirementOrigin {
@@ -2104,6 +2113,7 @@ function recommendationSelectionSection(
   draft: GuideDraft,
   url: URL,
   sourcingStore: ProductSourcingRequestStore,
+  brief?: EditorialBrief,
 ): string {
   const content = readPublicContent();
   const sourcingRequests = sourcingStore.list();
@@ -2114,8 +2124,54 @@ function recommendationSelectionSection(
   const duplicateWarning = duplicates.length
     ? `<div class="error"><strong>Productos repetidos confirmados:</strong> ${duplicates.map((id) => escapeHtml(productsById.get(id)?.name ?? id)).join(", ")}</div>`
     : "";
-  const recommendations = [...draft.recommendations]
-    .sort((left, right) => left.position - right.position)
+  const orderedRecommendations = [...draft.recommendations].sort(
+    (left, right) => left.position - right.position,
+  );
+  const coverage = analyzeProductCoverage(content, [draft]);
+  const slotsWithoutCredibleMatch = new Set(
+    coverage.editorialCoverage.draftSlotsWithoutSuitableProducts.map(({ slotId }) => slotId),
+  );
+  const activeSourcingStatuses: ProductSourcingRequestStatus[] = ["open", "partially-fulfilled"];
+  const triage = orderedRecommendations
+    .map((recommendation) => {
+      const selected = recommendation.productId
+        ? productsById.get(recommendation.productId)
+        : undefined;
+      const credibleMatch =
+        !recommendation.productId && !slotsWithoutCredibleMatch.has(recommendation.id)
+          ? suggestProductsForSlot(content.products, recommendation, 1)[0]
+          : undefined;
+      const activeRequests = sourcingRequests.filter(
+        ({ origin, status }) =>
+          activeSourcingStatuses.includes(status) &&
+          origin.kind === "recommendation-slot" &&
+          origin.guideDraftId === draft.id &&
+          origin.recommendationSlotId === recommendation.id,
+      );
+      const state = recommendation.productId
+        ? recommendation.editorialStatus === "needs-generation"
+          ? "Listo para generar recomendación"
+          : "Asignado"
+        : credibleMatch
+          ? "Coincidencia creíble en catálogo"
+          : "Sin coincidencia creíble · sourcing probable";
+      const evidence = selected
+        ? escapeHtml(selected.name)
+        : credibleMatch
+          ? escapeHtml(credibleMatch.name)
+          : `I.0: menos de ${coverage.thresholds.minimumSlotMatchTokenCount} tokens compartidos`;
+      const sourcing = activeRequests.length
+        ? activeRequests
+            .map(
+              (request) =>
+                `<a href="/product-sourcing/${encodeURIComponent(request.id)}">Sourcing activo · <code>${escapeHtml(request.id)}</code></a>`,
+            )
+            .join("<br>")
+        : "—";
+      return `<tr><td>${recommendation.position}. ${escapeHtml(recommendation.slotLabel)}</td><td><span class="status">${escapeHtml(state)}</span><br><span class="muted">${evidence}</span></td><td>${sourcing}</td><td><a href="#slot-${encodeURIComponent(recommendation.id)}">Abrir slot</a>${recommendation.productId && recommendation.editorialStatus === "needs-generation" ? `<br><a href="/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(recommendation.id)}/prompt">Generar recomendación</a>` : ""}</td></tr>`;
+    })
+    .join("");
+  const recommendations = orderedRecommendations
     .map((recommendation, index) => {
       const selected = recommendation.productId
         ? productsById.get(recommendation.productId)
@@ -2161,11 +2217,13 @@ function recommendationSelectionSection(
           origin.guideDraftId === draft.id &&
           origin.recommendationSlotId === recommendation.id,
       );
+      const prefill = productSourcingPrefillForDraftSlot(draft, recommendation, brief);
       const sourcing = `<section class="card"><h4>Sourcing del requisito</h4>
         ${slotRequests.length ? `<ul>${slotRequests.map((request) => `<li><a href="/product-sourcing/${encodeURIComponent(request.id)}"><code>${escapeHtml(request.id)}</code></a> · ${escapeHtml(request.status)}</li>`).join("")}</ul>` : '<p class="muted">No hay solicitud para este slot.</p>'}
-        <form method="post" action="/product-sourcing"><input type="hidden" name="originKind" value="recommendation-slot"><input type="hidden" name="guideDraftId" value="${escapeHtml(draft.id)}"><input type="hidden" name="recommendationSlotId" value="${escapeHtml(recommendation.id)}"><input type="hidden" name="intendedRole" value="${escapeHtml(recommendation.slotIntent ?? recommendation.slotLabel)}"><input type="hidden" name="requiredCategory" value="${escapeHtml(recommendation.slotLabel)}"><div class="grid"><label>Audiencia<input name="audience" required value="${value(draft.questionnaire.recipient)}"></label><label>Ocasión<input name="occasion" required value="${value(draft.questionnaire.occasion)}"></label><label>Contexto de presupuesto<input name="budgetContext" required value="${value(recommendation.budgetHint ?? draft.questionnaire.budget)}"></label><label class="wide">Datos verificados obligatorios · uno por línea<textarea name="mustHaveVerifiedFacts" rows="2"></textarea></label><label class="wide">Exclusiones · una por línea<textarea name="exclusions" rows="2">${value(draft.questionnaire.avoid)}</textarea></label><label class="wide">Términos de búsqueda<input name="searchTerms" required value="${listText(recommendation.searchTerms ?? [recommendation.slotLabel])}"></label></div><button type="submit">Crear solicitud para este slot</button></form>
+        <form method="post" action="/product-sourcing"><input type="hidden" name="originKind" value="recommendation-slot"><input type="hidden" name="guideDraftId" value="${escapeHtml(draft.id)}"><input type="hidden" name="recommendationSlotId" value="${escapeHtml(recommendation.id)}"><input type="hidden" name="intendedRole" value="${escapeHtml(prefill.intendedRole)}"><input type="hidden" name="requiredCategory" value="${escapeHtml(prefill.requiredCategory)}"><div class="grid"><label>Audiencia<input name="audience" required value="${value(prefill.audience)}"></label><label>Ocasión o contexto editorial<input name="occasion" required value="${value(prefill.occasion)}"></label><label>Contexto de presupuesto<input name="budgetContext" required value="${value(prefill.budgetContext)}"></label><label class="wide">Datos verificados obligatorios · uno por línea<textarea name="mustHaveVerifiedFacts" rows="2">${listText(prefill.mustHaveVerifiedFacts, "\n")}</textarea></label><label class="wide">Exclusiones · una por línea<textarea name="exclusions" rows="2">${listText(prefill.exclusions, "\n")}</textarea></label><label class="wide">Términos de búsqueda<input name="searchTerms" required value="${listText(prefill.searchTerms)}"></label></div><button type="submit">Crear solicitud para este slot</button></form>
       </section>`;
-      return `<article class="card">
+      const slotPath = guideDraftSlotPath(draft.id, recommendation.id);
+      return `<article class="card" id="slot-${escapeHtml(recommendation.id)}">
         <div class="actions"><h3>${recommendation.position}. ${escapeHtml(recommendation.slotLabel)}</h3><span class="status">${escapeHtml(recommendation.editorialStatus)}</span></div>
         ${recommendation.slotIntent ? `<p>${escapeHtml(recommendation.slotIntent)}</p>` : ""}
         ${recommendation.searchTerms?.length ? `<p class="muted">Búsqueda sugerida: ${escapeHtml(recommendation.searchTerms.join(", "))}</p>` : ""}
@@ -2199,20 +2257,21 @@ function recommendationSelectionSection(
           <summary>${selected ? "Reemplazar producto" : "Sugerencias del catálogo"}</summary>
           <div class="grid">${suggestions || '<p class="muted">No hay coincidencias sugeridas.</p>'}</div>
         </details>
-        <form method="get" action="/drafts/${draft.id}" class="card">
+        <form method="get" action="${slotPath}" class="card">
           <input type="hidden" name="slot" value="${recommendation.id}">
           <label>Buscar en todo el catálogo<input type="search" name="productQ" value="${searchSlot === recommendation.id ? escapeHtml(productQuery) : ""}"></label>
           <button type="submit">Buscar</button>
         </form>
         ${searchSlot === recommendation.id ? `<section><h4>Resultados del catálogo</h4><div class="grid">${results || '<p class="notice">No hay productos activos que coincidan.</p>'}</div></section>` : ""}
         ${sourcing}
-        <p><a href="/products/new?returnTo=${encodeURIComponent(`/drafts/${draft.id}`)}">Crear un producto nuevo y volver a este borrador</a> · <a href="/products/intake?returnTo=${encodeURIComponent(`/drafts/${draft.id}`)}">ingreso asistido</a></p>
+        <p><a href="/products/new?returnTo=${encodeURIComponent(slotPath)}">Crear un producto nuevo y volver a este slot</a> · <a href="/products/intake?returnTo=${encodeURIComponent(slotPath)}">ingreso asistido</a></p>
       </article>`;
     })
     .join("");
   return `<section>
     <h2>Selección de productos</h2>
     <p>Actualizar un producto cambia el catálogo compartido y todas sus guías. Reemplazarlo aquí cambia sólo este slot y conserva su ID, posición y propósito.</p>
+    ${triage ? `<section class="card"><h3>Resumen de slots</h3><p class="muted">“Coincidencia creíble” reutiliza el umbral determinista I.0 de ${coverage.thresholds.minimumSlotMatchTokenCount} tokens compartidos; sigue siendo una ayuda de inspección, no una selección.</p><table><thead><tr><th>Slot</th><th>Estado</th><th>Sourcing</th><th>Ir a</th></tr></thead><tbody>${triage}</tbody></table></section>` : ""}
     ${duplicateWarning}
     <div class="grid">${recommendations || `<p class="notice">No hay slots. <a href="/drafts/${draft.id}/outline-prompt">Revisá y generá el esquema</a> para crearlos con el flujo editorial, o agregá uno manualmente.</p>`}</div>
     <form method="post" action="/drafts/${draft.id}/recommendations" class="card">
@@ -2229,6 +2288,7 @@ function guideEditorPage(
   draft: GuideDraft,
   url: URL,
   sourcingStore: ProductSourcingRequestStore,
+  briefStore: EditorialBriefStore,
 ): string {
   const content = readPublicContent();
   const clusters = content.clusters
@@ -2315,7 +2375,12 @@ function guideEditorPage(
        </div>
        <button type="submit">Guardar cuestionario</button>
      </form>
-     ${metadata}${outline}${recommendationSelectionSection(draft, url, sourcingStore)}`,
+     ${metadata}${outline}${recommendationSelectionSection(
+       draft,
+       url,
+       sourcingStore,
+       briefStore.list().find(({ guideDraftId }) => guideDraftId === draft.id),
+     )}`,
   );
 }
 
@@ -2364,7 +2429,7 @@ function recommendationPromptPage(
   const prepared = prepareRecommendationPrompt(draft, recommendationId, readPublicContent());
   return page(
     `Prompt de recomendación · ${draftName(draft)}`,
-    `<p><a href="/drafts/${draft.id}">← Editar guía</a></p>
+    `<p><a href="${guideDraftSlotPath(draft.id, recommendationId)}">← Volver al slot</a></p>
      <h1>Regenerar una recomendación</h1>
      <p class="notice">Sólo cambiará la copia del slot <code>${escapeHtml(recommendationId)}</code>. Su ID, posición, propósito y producto seleccionado se conservan.</p>
      <p>Versión <code>${escapeHtml(prepared.version)}</code> · proveedor <code>${escapeHtml(provider.providerId)}</code>${provider.modelId ? ` · modelo <code>${escapeHtml(provider.modelId)}</code>` : ""}</p>
@@ -2803,7 +2868,7 @@ export function createStudioServer(
             provider,
           ),
         );
-        redirect(response, `/drafts/${draft.id}`);
+        redirect(response, guideDraftSlotPath(draft.id, regenerateRecommendationMatch[2]));
         return;
       }
       const saveRecommendationCopyMatch =
@@ -2819,7 +2884,7 @@ export function createStudioServer(
             await readForm(request),
           ),
         );
-        redirect(response, `/drafts/${draft.id}`);
+        redirect(response, guideDraftSlotPath(draft.id, saveRecommendationCopyMatch[2]));
         return;
       }
       const addRecommendationMatch =
@@ -2854,7 +2919,7 @@ export function createStudioServer(
             form.get("allowDuplicate") === "yes",
           ),
         );
-        redirect(response, `/drafts/${draft.id}`);
+        redirect(response, guideDraftSlotPath(draft.id, selectProductMatch[2]));
         return;
       }
       const clearProductMatch =
@@ -2866,7 +2931,7 @@ export function createStudioServer(
       if (clearProductMatch?.[1] && clearProductMatch[2]) {
         const draft = await readGuideDraft(store, clearProductMatch[1]);
         await store.save(clearRecommendationProduct(draft, clearProductMatch[2]));
-        redirect(response, `/drafts/${draft.id}`);
+        redirect(response, guideDraftSlotPath(draft.id, clearProductMatch[2]));
         return;
       }
       const recommendationActionMatch =
@@ -3523,7 +3588,7 @@ export function createStudioServer(
           200,
           draft.draftType === "cluster-hub"
             ? clusterEditorPage(draft)
-            : guideEditorPage(draft, url, sourcingStore),
+            : guideEditorPage(draft, url, sourcingStore, briefStore),
         );
         return;
       }
