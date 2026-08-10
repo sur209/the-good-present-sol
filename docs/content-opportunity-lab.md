@@ -78,13 +78,13 @@ rejected
 
 Phase 5.0 exposes only the early status advances `generated -> evaluated -> shortlisted`. Phase 5.3 uses only the first transition after a validated evaluation; shortlisting and all later outcomes remain human actions. The five human decisions produce these candidate outcomes:
 
-| Decision         | Candidate outcome      | Requirement                                       |
-| ---------------- | ---------------------- | ------------------------------------------------- |
-| `create-article` | `approved-for-brief`   | Candidate must already be shortlisted             |
-| `add-as-section` | `converted-to-section` | Shortlisted; requires an existing target guide ID |
-| `merge`          | `merged`               | Shortlisted; requires an existing target guide ID |
-| `hold`           | status unchanged       | Evaluated or shortlisted                          |
-| `reject`         | `rejected`             | Evaluated or shortlisted                          |
+| Decision         | Candidate outcome      | Requirement                                     |
+| ---------------- | ---------------------- | ----------------------------------------------- |
+| `create-article` | `approved-for-brief`   | Candidate must be evaluated or shortlisted      |
+| `add-as-section` | `converted-to-section` | Evaluated/shortlisted; existing target guide ID |
+| `merge`          | `merged`               | Evaluated/shortlisted; existing target guide ID |
+| `hold`           | status unchanged       | Evaluated or shortlisted                        |
+| `reject`         | `rejected`             | Evaluated or shortlisted                        |
 
 `converted-to-draft` is assigned only when an approved brief creates a normal Goal 2 GuideDraft. Candidate statuses never duplicate `GuideDraft` editing, review, or `ready-to-publish` states.
 
@@ -167,13 +167,13 @@ Optional imported signals require a stable ID, source label, inclusive ISO date 
 
 Provider output is untrusted JSON and must evaluate every selected candidate exactly once. A successful evaluation copies the validated scores and advisory explanation into the existing candidate contract, preserves imported signal IDs, and advances only `generated -> evaluated`. The evaluation record preserves the separated evidence and AI judgment plus credential-free generation metadata. It stores the validated editorial result, not the raw provider envelope.
 
-The Studio labels deterministic evidence, imported factual signals, AI judgment, and human decision separately. An editor may then shortlist and deliberately choose any valid human outcome, including one that contradicts the AI recommendation. Evaluation never shortlists, creates a brief or draft, changes canonical content, or publishes.
+The Studio labels deterministic evidence, imported factual signals, AI judgment, and human decision separately. An editor may then shortlist or deliberately choose any valid human outcome, including one that contradicts the AI recommendation. Evaluation never shortlists, creates a brief or draft, changes canonical content, or publishes.
 
 ## Human review, briefs, and draft conversion
 
 Phase 5.4 keeps the five authoritative candidate decisions: `create-article`, `add-as-section`, `merge`, `hold`, and `reject`. The Studio labels them Approve for brief, Convert to section, Merge into existing content, Hold, and Reject. Regenerate alternatives is a generation request, not a sixth editorial decision or status.
 
-A `create-article` decision on a shortlisted candidate creates one Studio-owned `EditorialBrief` with a stable `brief_...` ID and immutable source-candidate/cluster trace. The draft brief retains working title and proposed slug, primary axis and intent, audience, problem, differentiation, planned sections, product requirements, research questions, internal links, related content IDs, risks, and timestamps. Evidence remains separated into deterministic notes, observed/imported signal references, AI interpretation, the human decision reason, and later editorial notes.
+A `create-article` decision on an evaluated or shortlisted candidate creates one Studio-owned `EditorialBrief` with a stable `brief_...` ID and immutable source-candidate/cluster trace. The draft brief retains working title and proposed slug, primary axis and intent, audience, problem, differentiation, planned sections, product requirements, research questions, internal links, related content IDs, risks, and timestamps. Evidence remains separated into deterministic notes, observed/imported signal references, AI interpretation, the human decision reason, and later editorial notes.
 
 Brief states are `draft`, `approved`, and `converted-to-guide-draft`. Editing does not approve; candidate approval does not approve the brief; brief approval does not publish. Only an approved brief converts, once, to `createGuideDraft()` and `DraftStore`. The resulting canonical `guide_...` identity comes from Goal 2 and the draft starts in `questionnaire` with planning fields only. It contains no selected products, final generation, recommendations, canonical guide file, route, or publication state. Preview, validation, editing, and publication remain the existing Goal 2 workflow.
 

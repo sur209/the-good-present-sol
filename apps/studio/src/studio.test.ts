@@ -809,16 +809,17 @@ test("valida candidatos, puntajes separados, decisiones y transiciones acotadas"
     "shortlisted",
     new Date("2026-08-09T02:00:00.000Z"),
   );
+  assert.equal(shortlisted.status, "shortlisted");
   assert.throws(() => transitionArticleCandidate(generated, "shortlisted"), /Cannot transition/);
 
   for (const [action, expectedStatus, targetContentId] of [
     ["create-article", "approved-for-brief", undefined],
     ["add-as-section", "converted-to-section", "guide_nurse-practical"],
     ["merge", "merged", "guide_nurse-practical"],
-    ["hold", "shortlisted", undefined],
+    ["hold", "evaluated", undefined],
     ["reject", "rejected", undefined],
   ] as const) {
-    const decided = applyCandidateDecision(shortlisted, {
+    const decided = applyCandidateDecision(evaluated, {
       action,
       reason: `Human decision: ${action}.`,
       ...(targetContentId ? { targetContentId } : {}),
@@ -833,22 +834,14 @@ test("valida candidatos, puntajes separados, decisiones y transiciones acotadas"
   assert.equal(held.status, "evaluated");
   assert.throws(
     () =>
-      applyCandidateDecision(shortlisted, {
+      applyCandidateDecision(evaluated, {
         action: "add-as-section",
         reason: "A target is required.",
       }),
     /target content ID/,
   );
-  assert.throws(
-    () =>
-      applyCandidateDecision(evaluated, {
-        action: "create-article",
-        reason: "Shortlisting is required first.",
-      }),
-    /Shortlist/,
-  );
 
-  const approved = applyCandidateDecision(shortlisted, {
+  const approved = applyCandidateDecision(evaluated, {
     action: "create-article",
     reason: "Approve planning without creating a brief or draft here.",
   });
@@ -869,14 +862,11 @@ test("persiste un brief editable, exige aprobación y crea un GuideDraft sin con
   const candidateStore = new ArticleCandidateStore(repository);
   const briefStore = new EditorialBriefStore(repository, candidateStore);
   const draftStore = new DraftStore(join(repository, "drafts"));
-  const shortlisted = transitionArticleCandidate(
-    transitionArticleCandidate(articleCandidate(), "evaluated"),
-    "shortlisted",
-  );
-  await candidateStore.save(shortlisted);
+  const evaluated = transitionArticleCandidate(articleCandidate(), "evaluated");
+  await candidateStore.save(evaluated);
 
   const created = await approveCandidateForBrief(
-    shortlisted,
+    evaluated,
     "The editor approved a distinct recovery article for planning.",
     candidateStore,
     briefStore,
@@ -1813,14 +1803,11 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
   assert.match(detailHtml, /Evidencia determinista/);
   assert.match(detailHtml, /Cobertura I\.0/);
   assert.match(detailHtml, /Manual HTTP fixture/);
-
-  const shortlistResponse = await fetch(`${origin}/opportunities/${candidate.id}/status`, {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ status: "shortlisted" }),
-    redirect: "manual",
-  });
-  assert.equal(shortlistResponse.status, 303);
+  for (const action of ["create-article", "add-as-section", "merge", "hold", "reject"]) {
+    assert.match(detailHtml, new RegExp(`<option value="${action}">`));
+  }
+  const targetGuidePath = join(repository, "content", "guides", "guide_nurse-practical.json");
+  const targetGuideBeforeDecisions = await readFile(targetGuidePath, "utf8");
 
   const decisionResponse = await fetch(`${origin}/opportunities/${candidate.id}/decision`, {
     method: "POST",
@@ -1842,17 +1829,71 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
     readFile(join(repository, "content", "guides", `${candidate.id}.json`), "utf8"),
   );
 
-  const briefSentinel = "PRIVATE_BRIEF_SENTINEL_20260809";
-  const briefCandidate = transitionArticleCandidate(
-    transitionArticleCandidate(
+  for (const [action, expectedStatus, targetContentId] of [
+    ["merge", "merged", "guide_nurse-practical"],
+    ["hold", "evaluated", undefined],
+    ["reject", "rejected", undefined],
+  ] as const) {
+    const routeCandidate = transitionArticleCandidate(
       articleCandidate({
-        id: "candidate_http-brief",
-        proposedTitle: briefSentinel,
-        proposedSlug: "http-brief-sentinel",
+        id: `candidate_http-${action}`,
+        proposedSlug: `http-${action}`,
       }),
       "evaluated",
-    ),
-    "shortlisted",
+    );
+    await candidateStore.save(routeCandidate);
+    const response = await fetch(`${origin}/opportunities/${routeCandidate.id}/decision`, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        action,
+        reason: `The editor chose ${action} independently of the AI recommendation.`,
+        ...(targetContentId ? { targetContentId } : {}),
+      }),
+      redirect: "manual",
+    });
+    assert.equal(response.status, 303);
+    const persisted = candidateStore.get(routeCandidate.id);
+    assert.equal(persisted.id, routeCandidate.id);
+    assert.equal(persisted.status, expectedStatus);
+    assert.equal(persisted.decision?.action, action);
+    assert.equal(persisted.decision?.targetContentId, targetContentId);
+  }
+
+  for (const [id, action, targetContentId, expectedError] of [
+    ["candidate_http-section-no-target", "add-as-section", undefined, /target content ID/],
+    ["candidate_http-merge-missing-target", "merge", "guide_missing", /guide_missing/],
+  ] as const) {
+    const invalidCandidate = transitionArticleCandidate(
+      articleCandidate({ id, proposedSlug: id.replaceAll("_", "-") }),
+      "evaluated",
+    );
+    await candidateStore.save(invalidCandidate);
+    const response = await fetch(`${origin}/opportunities/${invalidCandidate.id}/decision`, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        action,
+        reason: "This invalid target decision must be rejected.",
+        ...(targetContentId ? { targetContentId } : {}),
+      }),
+      redirect: "manual",
+    });
+    assert.equal(response.status, 400);
+    assert.match(await response.text(), expectedError);
+    assert.equal(candidateStore.get(invalidCandidate.id).status, "evaluated");
+    assert.equal(candidateStore.get(invalidCandidate.id).decision, undefined);
+  }
+  assert.equal(await readFile(targetGuidePath, "utf8"), targetGuideBeforeDecisions);
+
+  const briefSentinel = "PRIVATE_BRIEF_SENTINEL_20260809";
+  const briefCandidate = transitionArticleCandidate(
+    articleCandidate({
+      id: "candidate_http-brief",
+      proposedTitle: briefSentinel,
+      proposedSlug: "http-brief-sentinel",
+    }),
+    "evaluated",
   );
   await candidateStore.save(briefCandidate);
   const approveForBriefResponse = await fetch(
@@ -1871,6 +1912,10 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
   const briefLocation = approveForBriefResponse.headers.get("location");
   assert.match(briefLocation ?? "", /^\/opportunities\/briefs\/brief_/);
   const briefId = briefLocation!.split("/").at(-1)!;
+  const persistedBriefCandidate = candidateStore.get(briefCandidate.id);
+  assert.equal(persistedBriefCandidate.id, briefCandidate.id);
+  assert.equal(persistedBriefCandidate.decision?.action, "create-article");
+  assert.equal(persistedBriefCandidate.editorialBriefId, briefId);
   const briefResponse = await fetch(`${origin}${briefLocation}`);
   assert.equal(briefResponse.status, 200);
   assert.match(await briefResponse.text(), /Brief editable/);

@@ -1527,14 +1527,10 @@ function opportunityDetailPage(
         `<button type="submit" name="status" value="${escapeHtml(status)}">Marcar ${escapeHtml(status)}</button>`,
     )
     .join("");
-  const availableDecisions: readonly (typeof CANDIDATE_DECISIONS)[number][] =
-    candidate.status === "evaluated" ? ["hold", "reject"] : CANDIDATE_DECISIONS;
-  const decisionOptions = availableDecisions
-    .map(
-      (action) =>
-        `<option value="${action}">${escapeHtml(opportunityDecisionLabels[action])}</option>`,
-    )
-    .join("");
+  const decisionOptions = CANDIDATE_DECISIONS.map(
+    (action) =>
+      `<option value="${action}">${escapeHtml(opportunityDecisionLabels[action])}</option>`,
+  ).join("");
   const decisionForm =
     candidate.status === "evaluated" || candidate.status === "shortlisted"
       ? `<section class="card"><h2>Decisión humana</h2>

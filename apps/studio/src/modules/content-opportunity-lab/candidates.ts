@@ -235,9 +235,6 @@ export function applyCandidateDecision(
   if (candidate.status !== "evaluated" && candidate.status !== "shortlisted") {
     throw new TypeError(`Candidate status "${candidate.status}" does not accept a decision.`);
   }
-  if (candidate.status === "evaluated" && !["hold", "reject"].includes(input.action)) {
-    throw new TypeError("Shortlist the candidate before choosing that decision.");
-  }
   const status: CandidateStatus = {
     "create-article": "approved-for-brief",
     "add-as-section": "converted-to-section",
@@ -246,10 +243,12 @@ export function applyCandidateDecision(
     reject: "rejected",
   }[input.action] as CandidateStatus;
   const timestampValue = now.toISOString();
+  const decision = candidateDecisionSchema.safeParse({ ...input, decidedAt: timestampValue });
+  if (!decision.success) throw new TypeError(validationMessage(decision.error));
   return articleCandidateSchema.parse({
     ...candidate,
     status,
-    decision: { ...input, decidedAt: timestampValue },
+    decision: decision.data,
     updatedAt: timestampValue,
   });
 }
