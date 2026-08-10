@@ -4045,11 +4045,11 @@ test("reabre una guía publicada con identidad y copia listas", () => {
   assert.deepEqual(validateGuideDraft(draft, content).errors, []);
 });
 
-test("genera, previsualiza, reemplaza y regenera una recomendación por HTTP", async (context) => {
+test("regenera por HTTP el slot 4 aunque los demás no tengan producto", async (context) => {
   const directory = await mkdtemp(join(tmpdir(), "good-present-final-http-"));
   const store = new DraftStore(directory);
   const content = new ProductCatalog().read();
-  const draft = await selectedGuideDraft("guide_http-final");
+  const draft = await selectedGuideDraft("guide_http-final", 4);
   await store.save(draft);
   const server = createStudioServer(store);
   server.listen(0, STUDIO_HOST);
@@ -4089,8 +4089,8 @@ test("genera, previsualiza, reemplaza y regenera una recomendación por HTTP", a
 
   saved = await store.read(draft.id);
   assert.equal(saved.draftType, "gift-guide");
-  const target = saved.recommendations[0]!;
-  const replacement = content.products[3]!;
+  const target = saved.recommendations[3]!;
+  const replacement = content.products[4]!;
   await fetch(`${origin}/drafts/${draft.id}/recommendations/${target.id}/product`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
@@ -4098,9 +4098,41 @@ test("genera, previsualiza, reemplaza y regenera una recomendación por HTTP", a
     redirect: "manual",
   });
   assert.equal((await store.read(draft.id)).status, "selecting-products");
+
+  let focusedDraft = guideDraftSchema.parse(await store.read(draft.id));
+  for (const recommendation of focusedDraft.recommendations) {
+    if (recommendation.id !== target.id) {
+      focusedDraft = clearRecommendationProduct(focusedDraft, recommendation.id);
+    }
+  }
+  await store.save(focusedDraft);
+  const identities = focusedDraft.recommendations.map(({ id, productId, position }) => ({
+    id,
+    productId,
+    position,
+  }));
+  assert.throws(() => prepareFinalPrompt(focusedDraft, content), /no tiene producto/);
+  await assert.rejects(
+    regenerateRecommendation(
+      focusedDraft,
+      focusedDraft.recommendations[0]!.id,
+      content,
+      new MockGuideGenerationProvider(),
+    ),
+    /no tiene producto/,
+  );
+  const prepared = prepareRecommendationPrompt(focusedDraft, target.id, content);
+  assert.equal(prepared.input.recommendation.recommendationId, target.id);
+  assert.equal(prepared.input.recommendation.product.id, replacement.id);
+  assert.deepEqual(
+    prepared.input.guide.approvedOutline.slots.map((slot) => slot.id),
+    [target.id],
+  );
+
   const singlePrompt = await fetch(
     `${origin}/drafts/${draft.id}/recommendations/${target.id}/prompt`,
   );
+  assert.equal(singlePrompt.status, 200);
   assert.match(await singlePrompt.text(), /Regenerar una recomendación/);
   const regenerated = await fetch(
     `${origin}/drafts/${draft.id}/recommendations/${target.id}/regenerate`,
@@ -4114,8 +4146,12 @@ test("genera, previsualiza, reemplaza y regenera una recomendación por HTTP", a
   assert.equal(regenerated.status, 303);
   const finalDraft = await store.read(draft.id);
   assert.equal(finalDraft.draftType, "gift-guide");
-  assert.equal(finalDraft.recommendations[0]!.productId, replacement.id);
-  assert.equal(finalDraft.recommendations[0]!.editorialStatus, "ready");
+  assert.deepEqual(
+    finalDraft.recommendations.map(({ id, productId, position }) => ({ id, productId, position })),
+    identities,
+  );
+  assert.equal(finalDraft.recommendations[3]!.productId, replacement.id);
+  assert.equal(finalDraft.recommendations[3]!.editorialStatus, "ready");
 });
 
 test("transforma borradores completos al esquema público sin campos editoriales", async () => {

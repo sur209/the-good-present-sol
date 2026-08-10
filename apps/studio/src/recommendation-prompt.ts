@@ -6,7 +6,6 @@ import {
   createFinalPromptInput,
   finalPromptInputSchema,
   finalRecommendationInputSchema,
-  type FinalPromptInput,
 } from "./final-prompt.ts";
 
 export const RECOMMENDATION_PROMPT_VERSION = "single-recommendation-v1";
@@ -59,13 +58,16 @@ export function prepareRecommendationPrompt(
   recommendationId: string,
   content: ValidatedPublicContent,
 ): PreparedRecommendationPrompt {
-  const full: FinalPromptInput = createFinalPromptInput(draft, content);
-  const recommendation = full.recommendations.find(
-    (item) => item.recommendationId === recommendationId,
+  const slot = draft.recommendations.find(
+    (recommendation) => recommendation.id === recommendationId,
   );
-  if (!recommendation) throw new TypeError(`No existe la recomendación "${recommendationId}".`);
+  if (!slot) throw new TypeError(`No existe la recomendación "${recommendationId}".`);
+  const full = createFinalPromptInput({ ...draft, recommendations: [slot] }, content);
   const { recommendations: _recommendations, ...context } = full;
-  const input = recommendationPromptInputSchema.parse({ ...context, recommendation });
+  const input = recommendationPromptInputSchema.parse({
+    ...context,
+    recommendation: full.recommendations[0],
+  });
   return {
     version: RECOMMENDATION_PROMPT_VERSION,
     input,
