@@ -1144,7 +1144,10 @@ test("ejecuta los tres modos I.1 con procedencia y el ciclo de vida ordinario", 
   const content = readPublicContent(repository);
   const productCoverage = analyzeProductCoverage(content);
   const coverageSignal = opportunityCoverageSignals(productCoverage)[0]!;
-  const sourceProduct = content.products.find(({ status }) => status === "active")!;
+  const sourceProduct = content.products.find(
+    ({ categories, status }) => status === "active" && Boolean(categories?.length),
+  );
+  assert.ok(sourceProduct);
   const candidateStore = new ArticleCandidateStore(repository);
   const provider = new MockGuideGenerationProvider();
   const requests = [
@@ -3692,8 +3695,18 @@ test("seleccionar y reemplazar conserva la identidad editorial del slot", async 
   const content = new ProductCatalog().read();
   const draft = await generatedGuideDraft("guide_replace-product");
   const slot = draft.recommendations[0]!;
-  const firstProduct = content.products[0]!;
-  const secondProduct = content.products[1]!;
+  const firstProduct = content.products.find(
+    ({ id, status }) =>
+      status === "active" &&
+      content.guides.some((guide) =>
+        guide.recommendations.some(({ productId }) => productId === id),
+      ),
+  );
+  assert.ok(firstProduct);
+  const secondProduct = content.products.find(
+    ({ id, status }) => status === "active" && id !== firstProduct.id,
+  );
+  assert.ok(secondProduct);
   const selected = selectRecommendationProduct(draft, slot.id, firstProduct.id, content);
   const withCopy = guideDraftSchema.parse({
     ...selected,
@@ -4298,8 +4311,22 @@ test("publicar una guía y enlazarla desde su hub produce ambas páginas reales"
   await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
   const publisher = new Publisher(repository);
   const initial = publisher.read();
+  const selected = await selectedGuideDraft("guide_editorial-integration");
+  const otherSelectedProductIds = new Set(
+    selected.recommendations.slice(1).flatMap(({ productId }) => (productId ? [productId] : [])),
+  );
+  const sharedProductId = initial.guides
+    .flatMap(({ recommendations }) => recommendations)
+    .map(({ productId }) => productId)
+    .find((productId) => !otherSelectedProductIds.has(productId));
+  assert.ok(sharedProductId);
   const draft = await generateFinalGuide(
-    await selectedGuideDraft("guide_editorial-integration"),
+    selectRecommendationProduct(
+      selected,
+      selected.recommendations[0]!.id,
+      sharedProductId,
+      initial,
+    ),
     initial,
     new MockGuideGenerationProvider(),
     new Date("2026-08-09T13:00:00.000Z"),
