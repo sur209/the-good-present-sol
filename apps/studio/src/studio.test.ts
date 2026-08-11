@@ -10,6 +10,7 @@ import { promisify } from "node:util";
 import { z } from "zod";
 
 import {
+  productSchema,
   productDestination,
   type Product,
   type ValidatedPublicContent,
@@ -82,6 +83,17 @@ import {
 } from "./modules/affiliate-operations/amazon.ts";
 import { validateAffiliateOperations } from "./modules/affiliate-operations/validation.ts";
 import {
+  DataForSeoProductDiscoverySource,
+  ProductDiscoveryError,
+  SerpApiProductDiscoverySource,
+  createProductDiscoverySource,
+  generateProductSearchPlans,
+  prepareProductSearchPlanningPrompt,
+  resolveProductDiscoveryConfiguration,
+  runProductDiscovery,
+  type ProductDiscoverySource,
+} from "./modules/product-sources/discovery.ts";
+import {
   ProductSourceStore,
   findDuplicateProductSource,
   findProductSource,
@@ -107,6 +119,8 @@ import {
   createProductSourcingRequest,
   linkProductSourceCandidate,
   productSourcingPrefillForDraftSlot,
+  productSourceCandidateSchema,
+  productSourcingRequestSchema,
   productSourcingRequestPath,
   productSourcingReturnPath,
   reviewProductSourceCandidates,
@@ -164,6 +178,15 @@ import { REPOSITORY_ROOT, atomicWriteJson, readPublicContent } from "./repositor
 import { STUDIO_HOST, createStudioServer } from "./server.ts";
 
 const execFileAsync = promisify(execFile);
+
+async function productDiscoveryFixture(name: string): Promise<unknown> {
+  return JSON.parse(
+    await readFile(
+      new URL(`./modules/product-sources/fixtures/${name}.json`, import.meta.url),
+      "utf8",
+    ),
+  );
+}
 
 function nurseCluster(content: ValidatedPublicContent) {
   const cluster = content.clusters.find(({ id }) => id === "cluster_nurse-gifts");
@@ -3561,6 +3584,547 @@ test("revisa candidatos API por lote sin permitirles saltar el Product canónico
     "fulfilled",
   );
   assert.deepEqual(fulfilled.approvedProductIds, [product.id]);
+});
+
+test("genera SearchPlans para varios slots con una sola llamada editorial y todo el contexto conocido", async () => {
+  const now = new Date("2026-08-11T12:00:00.000Z");
+  const draft = guideDraftSchema.parse({
+    ...createGuideDraft("guide_discovery-planning", now),
+    title: "Night-shift recovery gifts",
+    primaryAxis: "work-context",
+    primaryIntent: "Help nurses recover around overnight shifts.",
+    taxonomies: {
+      recipients: ["nurses"],
+      workContexts: ["night shift"],
+      giftStyles: ["practical"],
+    },
+    budgetContext: { currency: "USD", label: "Under $50", maximum: 50 },
+    questionnaire: {
+      giftCount: 3,
+      recipient: "Night-shift nurses",
+      occasion: "Graduation",
+      budget: "Under $50",
+      interests: "daytime sleep and recovery",
+      avoid: "decorative-only gifts",
+      additional: "Needs to work in a shared home.",
+    },
+    recommendations: [
+      {
+        id: "slot_sleep-support",
+        position: 1,
+        slotLabel: "Sleep support",
+        slotIntent: "Reduce light during daytime sleep after a shift.",
+        searchTerms: ["blackout", "sleep mask"],
+        budgetHint: "Under $35",
+        editorialStatus: "needs-generation",
+      },
+      {
+        id: "slot_meal-support",
+        position: 2,
+        slotLabel: "Meal support",
+        slotIntent: "Carry a secure meal through an overnight shift.",
+        searchTerms: ["leak resistant", "lunch container"],
+        editorialStatus: "needs-generation",
+      },
+    ],
+  });
+  const requests = draft.recommendations.map((slot, index) =>
+    createProductSourcingRequest(
+      {
+        origin: {
+          kind: "recommendation-slot",
+          guideDraftId: draft.id,
+          recommendationSlotId: slot.id,
+        },
+        intendedRole: slot.slotIntent!,
+        requiredCategory: slot.slotLabel,
+        audience: "Night-shift nurses",
+        occasion: "Graduation",
+        budgetContext: slot.budgetHint ?? "Under $50",
+        mustHaveVerifiedFacts: index === 0 ? ["Adjustable fit"] : ["Leak-resistant lid"],
+        exclusions: ["decorative-only gifts"],
+        searchTerms: slot.searchTerms!,
+      },
+      now,
+      `request_discovery-plan-${index + 1}`,
+    ),
+  );
+  const brief = editorialBriefSchema.parse({
+    schemaVersion: 1,
+    recordType: "editorial-brief",
+    id: "brief_discovery-planning",
+    sourceCandidateId: "candidate_discovery-planning",
+    clusterId: "cluster_nurse-gifts",
+    workingTitle: "Night-shift recovery gifts",
+    proposedSlug: "night-shift-recovery-gifts",
+    primaryAxis: "work-context",
+    primaryIntent: "Support recovery around overnight shifts.",
+    targetAudience: "Night-shift nurses",
+    problemSolved: "Daytime sleep and overnight routines need context-specific support.",
+    differentiation: "Organized around the overnight work cycle.",
+    plannedSections: [{ heading: "Daytime sleep", purpose: "Support recovery after work." }],
+    productRequirements: ["daytime sleep support", "secure meal storage"],
+    researchQuestions: [],
+    expectedInternalLinks: [],
+    relatedContentIds: [],
+    evidenceNotes: {
+      deterministic: [],
+      observed: [],
+      aiInterpretation: [],
+      humanDecision: "Approved for fixture.",
+      editorial: [],
+    },
+    risks: ["Avoid unsupported health claims"],
+    status: "converted-to-guide-draft",
+    guideDraftId: draft.id,
+    createdAt: now.toISOString(),
+    updatedAt: now.toISOString(),
+    approvedAt: now.toISOString(),
+    convertedAt: now.toISOString(),
+  });
+  const prepared = prepareProductSearchPlanningPrompt(requests, [draft], [brief]);
+  assert.equal(prepared.input.slots[0]!.editorialProblem, brief.problemSolved);
+  assert.equal(prepared.input.slots[0]!.recommendationSlot?.id, "slot_sleep-support");
+  assert.equal(
+    prepared.input.slots[0]!.guide?.questionnaire.interests,
+    draft.questionnaire.interests,
+  );
+  assert.deepEqual(prepared.input.slots[0]!.guide?.taxonomies, [
+    "nurses",
+    "night shift",
+    "practical",
+  ]);
+  assert.match(prepared.input.slots[0]!.guide?.budgetContext ?? "", /maximum 50 USD/);
+  assert.match(prepared.prompt, /editorial problem -> use case -> Product class -> concrete query/);
+
+  const mock = new MockGuideGenerationProvider();
+  let calls = 0;
+  const trackingProvider: GuideGenerationProvider = {
+    providerId: mock.providerId,
+    modelId: mock.modelId,
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      calls += 1;
+      assert.equal(request.operation, "product-search-plans");
+      return mock.generateStructured(request);
+    },
+  };
+  const planned = await generateProductSearchPlans(
+    requests,
+    trackingProvider,
+    [draft],
+    [brief],
+    now,
+  );
+  assert.equal(calls, 1);
+  assert.equal(planned.length, 2);
+  assert.ok(planned.every(({ searchPlan }) => searchPlan && searchPlan.queries.length <= 3));
+  assert.deepEqual(planned[0]!.searchPlan?.mustHaveAttributes, ["Adjustable fit"]);
+});
+
+test("mapea fixtures SerpAPI al candidato I.2 observado y sanea vacíos, forma, cuota y timeout", async () => {
+  const observedAt = "2026-08-11T12:00:00.000Z";
+  let requestedUrl = "";
+  const success = new SerpApiProductDiscoverySource("fixture-key", 100, async (input) => {
+    requestedUrl = String(input);
+    return new Response(JSON.stringify(await productDiscoveryFixture("serpapi-success")), {
+      status: 200,
+    });
+  });
+  const candidates = await success.search({
+    query: "night shift leak resistant tumbler",
+    candidateLimit: 4,
+    observedAt,
+  });
+  assert.equal(new URL(requestedUrl).searchParams.get("engine"), "google_shopping");
+  assert.equal(new URL(requestedUrl).searchParams.get("api_key"), "fixture-key");
+  assert.equal(candidates[0]!.sourceKind, "serpapi");
+  assert.equal(candidates[0]!.provider, "SerpAPI");
+  assert.equal(candidates[0]!.merchant, "Example Merchant");
+  assert.equal(candidates[0]!.query, "night shift leak resistant tumbler");
+  assert.equal(candidates[0]!.observedPrice, "$29.99");
+  assert.equal(candidates[0]!.observedRating, 4.7);
+  assert.equal(candidates[0]!.observedReviewCount, 321);
+  productSourceCandidateSchema.parse({
+    ...candidates[0],
+    id: "source_candidate_serpapi-fixture",
+    status: "needs-review",
+    addedAt: observedAt,
+  });
+
+  const adapterFor = (fixture: string) =>
+    new SerpApiProductDiscoverySource(
+      "fixture-key",
+      100,
+      async () =>
+        new Response(JSON.stringify(await productDiscoveryFixture(fixture)), { status: 200 }),
+    );
+  assert.deepEqual(
+    await adapterFor("serpapi-empty").search({ query: "none", candidateLimit: 4, observedAt }),
+    [],
+  );
+  await assert.rejects(
+    () =>
+      adapterFor("serpapi-malformed").search({
+        query: "malformed",
+        candidateLimit: 4,
+        observedAt,
+      }),
+    (error) => error instanceof ProductDiscoveryError && error.code === "malformed",
+  );
+  await assert.rejects(
+    () => adapterFor("serpapi-quota").search({ query: "quota", candidateLimit: 4, observedAt }),
+    (error) => error instanceof ProductDiscoveryError && error.code === "quota",
+  );
+  const timeoutFetch: typeof fetch = (_input, init) =>
+    new Promise((_resolve, reject) => {
+      const signal = init?.signal;
+      assert.ok(signal);
+      const fallback = setTimeout(() => reject(new Error("timeout signal did not fire")), 100);
+      signal.addEventListener(
+        "abort",
+        () => {
+          clearTimeout(fallback);
+          reject(signal.reason);
+        },
+        { once: true },
+      );
+    });
+  await assert.rejects(
+    () =>
+      new SerpApiProductDiscoverySource("fixture-key", 5, timeoutFetch).search({
+        query: "timeout",
+        candidateLimit: 4,
+        observedAt,
+      }),
+    (error) => error instanceof ProductDiscoveryError && error.code === "timeout",
+  );
+});
+
+test("mantiene DataForSEO apagado por defecto y exige selección, enablement, policy y Basic auth", async () => {
+  assert.deepEqual(resolveProductDiscoveryConfiguration({}), { provider: "disabled" });
+  assert.equal(createProductDiscoverySource({}), undefined);
+  assert.throws(
+    () => resolveProductDiscoveryConfiguration({ PRODUCT_DISCOVERY_PROVIDER: "dataforseo" }),
+    /remains disabled/,
+  );
+  assert.throws(
+    () =>
+      resolveProductDiscoveryConfiguration({
+        PRODUCT_DISCOVERY_PROVIDER: "dataforseo",
+        DATAFORSEO_ENABLED: "true",
+      }),
+    /PAID_POLICY/,
+  );
+  const environment = {
+    PRODUCT_DISCOVERY_PROVIDER: "dataforseo",
+    DATAFORSEO_ENABLED: "true",
+    PRODUCT_DISCOVERY_PAID_POLICY: "allow-paid-dataforseo",
+    DATAFORSEO_LOGIN: "fixture-login",
+    DATAFORSEO_PASSWORD: "fixture-password",
+  };
+  assert.equal(createProductDiscoverySource(environment)?.providerId, "dataforseo");
+
+  let requestedUrl = "";
+  let authorization = "";
+  const adapter = new DataForSeoProductDiscoverySource(
+    "fixture-login",
+    "fixture-password",
+    100,
+    async (input, init) => {
+      requestedUrl = String(input);
+      authorization = new Headers(init?.headers).get("authorization") ?? "";
+      return new Response(JSON.stringify(await productDiscoveryFixture("dataforseo-success")), {
+        status: 200,
+      });
+    },
+  );
+  const candidates = await adapter.search({
+    query: "compact overnight work tumbler",
+    candidateLimit: 4,
+    observedAt: "2026-08-11T12:00:00.000Z",
+  });
+  assert.equal(requestedUrl, "https://api.dataforseo.com/v3/serp/google/organic/live/advanced");
+  assert.equal(
+    authorization,
+    `Basic ${Buffer.from("fixture-login:fixture-password").toString("base64")}`,
+  );
+  assert.equal(candidates[0]!.sourceKind, "dataforseo");
+  assert.equal(candidates[0]!.domain, "shop.example.com");
+  assert.equal(candidates[0]!.externalId, "dfs-product-2001");
+  assert.equal(candidates[0]!.observedPrice, "$32.50");
+  assert.equal(candidates[0]!.observedReviewCount, 85);
+});
+
+test("acota consultas, concurrencia, candidatos y rondas sin cumplir ni asignar el slot", async () => {
+  const now = new Date("2026-08-11T12:00:00.000Z");
+  const draft = addManualRecommendation(
+    createGuideDraft("guide_bounded-discovery", now),
+    "Hard shell badge case",
+    "Protect a badge during a commute.",
+    ["hard shell", "badge case", "commute"],
+    "slot_bounded-discovery",
+  );
+  const base = createProductSourcingRequest(
+    {
+      origin: {
+        kind: "recommendation-slot",
+        guideDraftId: draft.id,
+        recommendationSlotId: "slot_bounded-discovery",
+      },
+      intendedRole: "Protect a badge during a commute.",
+      requiredCategory: "Hard shell badge case",
+      audience: "Working nurses",
+      occasion: "New job",
+      budgetContext: "Under $40",
+      mustHaveVerifiedFacts: [],
+      exclusions: ["soft sleeves"],
+      searchTerms: ["hard shell", "badge case", "commute"],
+    },
+    now,
+    "request_bounded-discovery",
+  );
+  const request = productSourcingRequestSchema.parse({
+    ...base,
+    searchPlan: {
+      productClass: "Hard shell badge case",
+      mustHaveAttributes: [],
+      usefulAttributes: ["compact"],
+      exclusions: ["soft sleeves"],
+      queries: ["hard shell badge case", "protect badge commute", "compact badge holder"],
+      providerId: "mock",
+      modelId: "mock-editorial-v1",
+      promptVersion: "product-search-plan-v1",
+      plannedAt: now.toISOString(),
+    },
+  });
+  let calls = 0;
+  let active = 0;
+  let maxActive = 0;
+  const source: ProductDiscoverySource = {
+    providerId: "serpapi",
+    paidUsage: true,
+    async search(input) {
+      calls += 1;
+      active += 1;
+      maxActive = Math.max(maxActive, active);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      active -= 1;
+      return Array.from({ length: 4 }, (_, index) => ({
+        sourceKind: "serpapi" as const,
+        provider: "SerpAPI",
+        merchant: "Fixture Merchant",
+        marketplace: "google.com",
+        externalId: `${input.query}-${index}`,
+        sourceUrl: `https://www.google.com/shopping/product/${encodeURIComponent(input.query)}/${index}`,
+        productUrl: `https://www.google.com/shopping/product/${encodeURIComponent(input.query)}/${index}`,
+        name: `${input.query} fixture ${index}`,
+        sourceFacts: [],
+        query: input.query,
+        observedAt: input.observedAt,
+      }));
+    },
+  };
+  const beforeCatalogCount = readPublicContent().products.length;
+  const first = await runProductDiscovery(request, source, {
+    products: [],
+    allRequests: [request],
+    forceExternal: true,
+    round: 1,
+    now,
+  });
+  assert.equal(calls, 3);
+  assert.equal(maxActive, 2);
+  assert.equal(first.sourceCandidates.length, 4);
+  assert.equal(first.discoveryRounds[0]!.providerCalls, 3);
+  assert.equal(first.discoveryRounds[0]!.status, "stored");
+  assert.equal(first.status, "open");
+  assert.deepEqual(first.approvedProductIds, []);
+  assert.equal(draft.recommendations[0]!.productId, undefined);
+  assert.equal(readPublicContent().products.length, beforeCatalogCount);
+  const second = await runProductDiscovery(first, source, {
+    products: [],
+    forceExternal: true,
+    round: 2,
+    now: new Date("2026-08-11T13:00:00.000Z"),
+  });
+  assert.equal(second.discoveryRounds.length, 2);
+  await assert.rejects(
+    () => runProductDiscovery(second, source, { products: [], forceExternal: true, round: 3 }),
+    /second and final discovery round/,
+  );
+});
+
+test("deduplica resultados, reutiliza catálogo/candidatos y nunca hace fallback pago oculto", async () => {
+  const now = new Date("2026-08-11T12:00:00.000Z");
+  const base = createProductSourcingRequest(
+    {
+      origin: { kind: "guide-draft", guideDraftId: "guide_discovery-reuse" },
+      intendedRole: "Keep drinks secure during a long shift.",
+      requiredCategory: "Insulated tumbler",
+      audience: "Working nurses",
+      occasion: "Graduation",
+      budgetContext: "Under $50",
+      mustHaveVerifiedFacts: [],
+      exclusions: [],
+      searchTerms: ["insulated tumbler"],
+    },
+    now,
+    "request_discovery-reuse",
+  );
+  const planned = productSourcingRequestSchema.parse({
+    ...base,
+    searchPlan: {
+      productClass: "Insulated tumbler",
+      mustHaveAttributes: [],
+      usefulAttributes: [],
+      exclusions: [],
+      queries: ["insulated tumbler"],
+      providerId: "mock",
+      promptVersion: "product-search-plan-v1",
+      plannedAt: now.toISOString(),
+    },
+  });
+  let providerCalls = 0;
+  const shouldNotCall: ProductDiscoverySource = {
+    providerId: "serpapi",
+    paidUsage: true,
+    async search() {
+      providerCalls += 1;
+      throw new Error("unexpected external call");
+    },
+  };
+  const catalogReuse = await runProductDiscovery(planned, shouldNotCall, {
+    products: readPublicContent().products,
+    round: 1,
+    now,
+  });
+  assert.equal(catalogReuse.discoveryRounds[0]!.status, "reused-catalog");
+  assert.equal(providerCalls, 0);
+
+  const duplicates = new SerpApiProductDiscoverySource(
+    "fixture-key",
+    100,
+    async () =>
+      new Response(JSON.stringify(await productDiscoveryFixture("serpapi-duplicates")), {
+        status: 200,
+      }),
+  );
+  const deduped = await runProductDiscovery(planned, duplicates, {
+    products: [],
+    forceExternal: true,
+    round: 1,
+    now,
+  });
+  assert.equal(deduped.sourceCandidates.length, 1);
+
+  const recentRequest = productSourcingRequestSchema.parse({
+    ...planned,
+    id: "request_recent-discovery",
+    origin: { kind: "guide-draft", guideDraftId: "guide_recent-discovery" },
+    sourceCandidates: deduped.sourceCandidates,
+    discoveryRounds: [],
+  });
+  const recentReuse = await runProductDiscovery(planned, shouldNotCall, {
+    products: [],
+    allRequests: [recentRequest],
+    round: 1,
+    now,
+  });
+  assert.equal(recentReuse.discoveryRounds[0]!.status, "reused-candidates");
+  assert.equal(providerCalls, 0);
+
+  const empty = new SerpApiProductDiscoverySource(
+    "fixture-key",
+    100,
+    async () =>
+      new Response(JSON.stringify(await productDiscoveryFixture("serpapi-empty")), { status: 200 }),
+  );
+  const zero = await runProductDiscovery(planned, empty, {
+    products: [],
+    forceExternal: true,
+    round: 1,
+    now,
+  });
+  assert.equal(zero.discoveryRounds[0]!.status, "empty");
+  assert.deepEqual(zero.sourceCandidates, []);
+
+  let dataForSeoCalls = 0;
+  const failedSerp: ProductDiscoverySource = {
+    providerId: "serpapi",
+    paidUsage: true,
+    async search() {
+      throw new ProductDiscoveryError("fixture quota", "quota");
+    },
+  };
+  const unusedDataForSeo: ProductDiscoverySource = {
+    providerId: "dataforseo",
+    paidUsage: true,
+    async search() {
+      dataForSeoCalls += 1;
+      return [];
+    },
+  };
+  assert.equal(unusedDataForSeo.providerId, "dataforseo");
+  const failed = await runProductDiscovery(planned, failedSerp, {
+    products: [],
+    forceExternal: true,
+    round: 1,
+    now,
+  });
+  assert.equal(failed.discoveryRounds[0]!.status, "failed");
+  assert.equal(failed.discoveryRounds[0]!.failureCode, "quota");
+  assert.equal(failed.discoveryRounds[0]!.provider, "serpapi");
+  assert.equal(dataForSeoCalls, 0);
+});
+
+test("mantiene precio y ratings descubiertos como evidencia observada durante P.1", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-discovery-intake-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const observedAt = "2026-08-11T12:00:00.000Z";
+  const adapter = new SerpApiProductDiscoverySource(
+    "fixture-key",
+    100,
+    async () =>
+      new Response(JSON.stringify(await productDiscoveryFixture("serpapi-success")), {
+        status: 200,
+      }),
+  );
+  const candidate = (
+    await adapter.search({ query: "shift tumbler", candidateLimit: 4, observedAt })
+  )[0]!;
+  const before = readPublicContent(repository).products.length;
+  const preview = prepareManualProductIntake(
+    {
+      productUrl: candidate.productUrl,
+      name: "Editor-authored insulated work tumbler",
+      merchant: candidate.merchant!,
+      shortDescription: "An editor-reviewed tumbler candidate for demanding work routines.",
+      sourceFacts: candidate.sourceFacts ?? [],
+      verifiedFacts: [],
+      verifiedFactsConfirmed: false,
+      status: "active",
+      discoveryProvenance: {
+        sourceKind: "serpapi",
+        provider: candidate.provider,
+        marketplace: candidate.marketplace,
+        externalId: candidate.externalId,
+        sourceUrl: candidate.sourceUrl,
+        observedAt,
+      },
+    },
+    repository,
+  );
+  assert.deepEqual(preview.errors, []);
+  assert.equal(preview.source?.sourceKind, "serpapi");
+  assert.equal(preview.source?.importMethod, "api");
+  assert.equal(preview.source?.lastSynchronizedAt, observedAt);
+  assert.ok(preview.source?.sourceFacts?.some((fact) => fact.includes("Observed rating")));
+  assert.equal("observedRating" in preview.product!, false);
+  assert.equal("observedReviewCount" in preview.product!, false);
+  assert.equal("priceLabel" in preview.product!, false);
+  assert.equal(productSchema.safeParse(preview.product).success, true);
+  assert.equal(readPublicContent(repository).products.length, before, "preview creates no Product");
 });
 
 test("resuelve una URL manual como candidato, usa P.1/P.0 y vuelve al mismo I.2", async (context) => {

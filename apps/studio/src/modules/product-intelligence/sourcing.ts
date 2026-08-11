@@ -25,6 +25,13 @@ export const PRODUCT_SOURCE_CANDIDATE_STATUSES = [
   "rejected",
   "linked-to-product",
 ] as const;
+export const PRODUCT_SOURCE_CANDIDATE_KINDS = [
+  "manual",
+  "amazon-creators-api",
+  "serpapi",
+  "dataforseo",
+] as const;
+export const PRODUCT_DISCOVERY_PROVIDERS = ["serpapi", "dataforseo"] as const;
 
 const nonEmptyText = z.string().trim().min(1);
 const textList = z.array(nonEmptyText);
@@ -50,8 +57,10 @@ export const productRequirementOriginSchema = z.discriminatedUnion("kind", [
 export const productSourceCandidateSchema = z
   .strictObject({
     id: sourceCandidateId,
-    sourceKind: z.enum(["manual", "amazon-creators-api"]),
+    sourceKind: z.enum(PRODUCT_SOURCE_CANDIDATE_KINDS),
     provider: nonEmptyText,
+    merchant: nonEmptyText.optional(),
+    domain: nonEmptyText.optional(),
     marketplace: nonEmptyText.optional(),
     externalId: nonEmptyText.optional(),
     sourceUrl: z.url({ protocol: /^https?$/ }).optional(),
@@ -63,6 +72,11 @@ export const productSourceCandidateSchema = z
     urlWarnings: textList.optional(),
     name: nonEmptyText,
     sourceFacts: textList,
+    query: nonEmptyText.optional(),
+    observedAt: timestamp.optional(),
+    observedPrice: nonEmptyText.optional(),
+    observedRating: z.number().nonnegative().optional(),
+    observedReviewCount: z.number().int().nonnegative().optional(),
     status: z.enum(PRODUCT_SOURCE_CANDIDATE_STATUSES),
     canonicalProductId: safeId.optional(),
     productSourceId: safeId.optional(),
@@ -70,6 +84,14 @@ export const productSourceCandidateSchema = z
     reviewedAt: timestamp.optional(),
   })
   .superRefine((candidate, context) => {
+    const discovered = candidate.sourceKind === "serpapi" || candidate.sourceKind === "dataforseo";
+    if (discovered && (!candidate.query || !candidate.observedAt)) {
+      context.addIssue({
+        code: "custom",
+        path: ["observedAt"],
+        message: "A discovered candidate requires its query and observation timestamp.",
+      });
+    }
     const reviewed = candidate.status !== "needs-review";
     if (reviewed !== Boolean(candidate.reviewedAt)) {
       context.addIssue({
@@ -95,6 +117,37 @@ export const productSourceCandidateSchema = z
     }
   });
 
+export const productSearchPlanSchema = z.strictObject({
+  productClass: nonEmptyText,
+  mustHaveAttributes: textList.max(10),
+  usefulAttributes: textList.max(10),
+  exclusions: textList.max(10),
+  queries: textList.min(1).max(3),
+  providerId: nonEmptyText,
+  modelId: nonEmptyText.optional(),
+  promptVersion: nonEmptyText,
+  plannedAt: timestamp,
+});
+
+export const productDiscoveryRoundSchema = z.strictObject({
+  round: z.number().int().min(1).max(2),
+  provider: z.enum(PRODUCT_DISCOVERY_PROVIDERS),
+  status: z.enum([
+    "stored",
+    "partial",
+    "empty",
+    "reused-catalog",
+    "reused-candidates",
+    "skipped-resolved",
+    "failed",
+  ]),
+  queries: textList.min(1).max(3),
+  providerCalls: z.number().int().nonnegative(),
+  storedCandidateCount: z.number().int().nonnegative().max(4),
+  attemptedAt: timestamp,
+  failureCode: z.enum(["configuration", "quota", "timeout", "unavailable", "malformed"]).optional(),
+});
+
 export const productSourcingRequestSchema = z
   .strictObject({
     schemaVersion: z.literal(1),
@@ -112,6 +165,8 @@ export const productSourcingRequestSchema = z
     status: z.enum(PRODUCT_SOURCING_REQUEST_STATUSES),
     approvedProductIds: z.array(safeId),
     sourceCandidates: z.array(productSourceCandidateSchema),
+    searchPlan: productSearchPlanSchema.optional(),
+    discoveryRounds: z.array(productDiscoveryRoundSchema).max(2).default([]),
     createdAt: timestamp,
     updatedAt: timestamp,
   })
@@ -148,6 +203,8 @@ export type ProductRequirementOrigin = z.infer<typeof productRequirementOriginSc
 export type ProductSourceCandidate = z.infer<typeof productSourceCandidateSchema>;
 export type ProductSourcingRequest = z.infer<typeof productSourcingRequestSchema>;
 export type ProductSourcingRequestStatus = ProductSourcingRequest["status"];
+export type ProductSearchPlan = z.infer<typeof productSearchPlanSchema>;
+export type ProductDiscoveryRound = z.infer<typeof productDiscoveryRoundSchema>;
 
 export interface ProductSourcingRequestInput {
   origin: ProductRequirementOrigin;
@@ -165,6 +222,8 @@ export interface ProductSourceCandidateInput {
   id?: string;
   sourceKind: ProductSourceCandidate["sourceKind"];
   provider: string;
+  merchant?: string;
+  domain?: string;
   marketplace?: string;
   externalId?: string;
   sourceUrl?: string;
@@ -176,6 +235,11 @@ export interface ProductSourceCandidateInput {
   urlWarnings?: string[];
   name: string;
   sourceFacts?: string[];
+  query?: string;
+  observedAt?: string;
+  observedPrice?: string;
+  observedRating?: number;
+  observedReviewCount?: number;
 }
 
 export interface ProductSourcingOriginContext {
@@ -307,6 +371,7 @@ export function createProductSourcingRequest(
     status: "open",
     approvedProductIds: [],
     sourceCandidates: [],
+    discoveryRounds: [],
     createdAt: timestampValue,
     updatedAt: timestampValue,
   });
@@ -408,11 +473,19 @@ export function addProductSourceCandidates(
   }
   if (!inputs.length) throw new TypeError("Add at least one source candidate.");
   const addedAt = now.toISOString();
+  const keys = new Set(request.sourceCandidates.map(productSourceCandidateKey));
+  const additions = inputs.filter((input) => {
+    const key = productSourceCandidateKey(input);
+    if (keys.has(key)) return false;
+    keys.add(key);
+    return true;
+  });
+  if (!additions.length) return request;
   return productSourcingRequestSchema.parse({
     ...request,
     sourceCandidates: [
       ...request.sourceCandidates,
-      ...inputs.map((input) => ({
+      ...additions.map((input) => ({
         ...input,
         id: input.id ?? `source_candidate_${randomUUID()}`,
         sourceFacts: input.sourceFacts ?? [],
@@ -422,6 +495,29 @@ export function addProductSourceCandidates(
     ],
     updatedAt: addedAt,
   });
+}
+
+function productSourceCandidateKey(
+  candidate: ProductSourceCandidateInput | ProductSourceCandidate,
+): string {
+  const provider = candidate.provider.trim().toLocaleLowerCase("en-US");
+  if (candidate.externalId) {
+    return [provider, candidate.marketplace ?? "", candidate.externalId]
+      .map((value) => value.trim().toLocaleLowerCase("en-US"))
+      .join("\u0000");
+  }
+  const rawUrl = candidate.productUrl ?? candidate.sourceUrl;
+  if (rawUrl) {
+    try {
+      const url = new URL(rawUrl);
+      url.hash = "";
+      url.searchParams.sort();
+      return `${provider}\u0000${url.toString()}`;
+    } catch {
+      return `${provider}\u0000${rawUrl.trim().toLocaleLowerCase("en-US")}`;
+    }
+  }
+  return `${provider}\u0000${candidate.name.trim().toLocaleLowerCase("en-US")}`;
 }
 
 export function reviewProductSourceCandidates(

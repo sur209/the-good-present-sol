@@ -1,0 +1,17 @@
+{
+  "search_metadata": { "status": "Success" },
+  "shopping_results": [
+    {
+      "position": 1,
+      "title": "Leak-resistant insulated shift tumbler",
+      "product_id": "google-product-1001",
+      "product_link": "https://www.google.com/shopping/product/1001?gl=us",
+      "source": "Example Merchant",
+      "price": "$29.99",
+      "extracted_price": 29.99,
+      "rating": 4.7,
+      "reviews": 321,
+      "snippet": "Observed product listing text"
+    }
+  ]
+}

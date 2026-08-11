@@ -21,6 +21,7 @@ import {
 import {
   createProductSourceId,
   findDuplicateAmazonAsin,
+  findDuplicateProductSource,
   productSourcePath,
   productSourceRecordSchema,
   ProductSourceStore,
@@ -47,6 +48,15 @@ const asinSchema = z
   .trim()
   .regex(/^[A-Z0-9]{10}$/i, "Must be a probable Amazon ASIN.");
 
+const discoveryProvenanceSchema = z.strictObject({
+  sourceKind: z.enum(["serpapi", "dataforseo"]),
+  provider: nonEmptyText,
+  marketplace: nonEmptyText.optional(),
+  externalId: nonEmptyText.optional(),
+  sourceUrl: optionalHttpUrl,
+  observedAt: z.iso.datetime({ offset: true }),
+});
+
 export const manualProductIntakeInputSchema = z.strictObject({
   productUrl: optionalHttpUrl,
   affiliateUrl: optionalHttpUrl,
@@ -72,6 +82,7 @@ export const manualProductIntakeInputSchema = z.strictObject({
   productId: safeId.optional(),
   sourceId: safeId.optional(),
   importedAt: z.iso.datetime({ offset: true }).optional(),
+  discoveryProvenance: discoveryProvenanceSchema.optional(),
 });
 
 export type ManualProductIntakeInput = z.infer<typeof manualProductIntakeInputSchema>;
@@ -189,7 +200,12 @@ function currentDuplicates(
   source: ProductSourceRecord,
 ): ProductIntakeDuplicate[] {
   const duplicates: ProductIntakeDuplicate[] = [];
-  const asin = source.externalId?.toUpperCase();
+  const asin =
+    source.marketplace?.toLocaleLowerCase("en-US") === "amazon.com" &&
+    source.externalId &&
+    /^[A-Z0-9]{10}$/i.test(source.externalId)
+      ? source.externalId.toUpperCase()
+      : undefined;
   if (asin) {
     const existingSource = sourceForAsin(sources, asin, source.id);
     if (existingSource) {
@@ -255,11 +271,13 @@ function sourceFields(
     sourceFacts: input.sourceFacts.length ? input.sourceFacts : undefined,
     imageRightsNotes: input.imageRightsNotes,
     notes: input.provenanceNotes,
-    ...(product.productUrl
-      ? { sourceUrl: product.productUrl, originalProductUrl: input.productUrl }
-      : input.affiliateUrl
-        ? { sourceUrl: input.affiliateUrl }
-        : {}),
+    ...(input.discoveryProvenance?.sourceUrl
+      ? { sourceUrl: input.discoveryProvenance.sourceUrl }
+      : product.productUrl
+        ? { sourceUrl: product.productUrl, originalProductUrl: input.productUrl }
+        : input.affiliateUrl
+          ? { sourceUrl: input.affiliateUrl }
+          : {}),
     ...(input.affiliateUrl
       ? {
           originalAffiliateUrl: input.affiliateUrl,
@@ -267,9 +285,19 @@ function sourceFields(
         }
       : {}),
     ...(input.trackingId ? { trackingId: input.trackingId } : {}),
-    ...(asin ? { externalId: asin, marketplace: "amazon.com" } : {}),
-    importMethod: "manual",
+    ...(input.discoveryProvenance?.externalId
+      ? {
+          externalId: input.discoveryProvenance.externalId,
+          marketplace: input.discoveryProvenance.marketplace,
+        }
+      : asin
+        ? { externalId: asin, marketplace: "amazon.com" }
+        : {}),
+    importMethod: input.discoveryProvenance ? "api" : "manual",
     importedAt: input.importedAt,
+    ...(input.discoveryProvenance
+      ? { lastSynchronizedAt: input.discoveryProvenance.observedAt }
+      : {}),
     sourceStatus: "active",
   };
 }
@@ -280,6 +308,15 @@ function sourceFromInput(
   asin: string | undefined,
   affiliateValidation: ReturnType<typeof validateAmazonAffiliateIntake> | undefined,
 ): ProductSourceRecord | undefined {
+  if (input.discoveryProvenance) {
+    return productSourceRecordSchema.parse({
+      id: input.sourceId,
+      productId: product.id,
+      sourceKind: input.discoveryProvenance.sourceKind,
+      provider: input.discoveryProvenance.provider,
+      ...sourceFields(input, product, undefined),
+    });
+  }
   if (input.affiliateUrl) {
     if (isApprovedAmazonUsHost(input.affiliateUrl)) {
       if (
@@ -526,6 +563,12 @@ export function prepareManualProductIntake(
         if (sources.some((existing) => existing.id === nextSource.id)) {
           errors.push(`El ID de fuente ${nextSource.id} ya existe.`);
         }
+        const duplicateSource = findDuplicateProductSource(sources, nextSource);
+        if (duplicateSource) {
+          errors.push(
+            `El ID externo ya existe para ${nextSource.provider} en ${nextSource.marketplace} (${duplicateSource.id}).`,
+          );
+        }
       }
     } catch (error) {
       errors.push(error instanceof Error ? error.message : String(error));
@@ -575,6 +618,12 @@ export async function commitManualProductIntake(
   }
   if (sources.some((source) => source.id === preview.source!.id)) {
     throw new TypeError(`El ID de fuente ${preview.source.id} ya existe.`);
+  }
+  const duplicateSource = findDuplicateProductSource(sources, preview.source);
+  if (duplicateSource) {
+    throw new TypeError(
+      `El ID externo ya existe para ${preview.source.provider} en ${preview.source.marketplace} (${duplicateSource.id}).`,
+    );
   }
   const duplicates = currentDuplicates(content.products, sources, preview.product, preview.source);
   if (duplicates.length) {

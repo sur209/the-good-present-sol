@@ -71,7 +71,7 @@ I.2 adds a controlled write path at `/product-sourcing`. Studio-owned records li
 
 The statuses are `open`, `partially-fulfilled`, `fulfilled`, `held`, and `rejected`. Holding or rejecting is explicit. Partial or complete fulfillment can happen only by explicitly selecting an active canonical Product from the existing catalog whose `verifiedFacts` contain every must-have fact on the request. The same Product can fulfill another request only through another explicit selection.
 
-The request detail uses the existing deterministic catalog matcher and links to the existing assisted manual intake. Intake returns the new Product to the request screen but does not select it. Manual and optional `amazon-creators-api` candidate records may be reviewed in a batch; approval means only “approved for intake.” A reviewed candidate must still become a canonical Product with a matching `ProductSourceRecord`, be linked back to that record, and then be selected separately. No Creators API client is added or required; an existing or future integration may provide the same validated candidate input.
+The request detail uses the existing deterministic catalog matcher and links to the existing assisted manual intake. Intake returns the new Product to the request screen but does not select it. Manual, SerpAPI, explicitly enabled DataForSEO, and optional future `amazon-creators-api` candidate records use the same review lifecycle; approval means only “approved for intake.” A reviewed candidate must still become a canonical Product with a matching `ProductSourceRecord`, be linked back to that record, and then be selected separately. No Creators API client is added or required; a future integration must provide the same validated candidate input.
 
 ## P.2.1 catalog-first and manual-URL resolution
 
@@ -83,15 +83,26 @@ The URL is stored as the existing I.2 `ProductSourceCandidate` with normalized a
 
 For a recommendation-slot origin, the final Assign action calls the ordinary Goal 2 `selectRecommendationProduct()` path and returns to the exact stable slot. The assignment preserves the slot ID and position and moves the slot to `needs-generation`, including when the generic idea was previously editorially ready or published. It does not approve Product-backed copy or publish.
 
+## P.2.2 bounded automatic discovery
+
+An editor can select multiple open requests on `/product-sourcing` and generate their compact `SearchPlan` records in one structured call through the existing editorial provider. Known context comes from each I.2 request and its `GuideDraft`, exact recommendation slot, questionnaire, originating brief, budget, and taxonomies. Each plan follows editorial problem → use case → Product class → concrete query and contains must-have/useful attributes, exclusions, and one to three queries.
+
+Running discovery is a separate editor action on one request. The provider-neutral Product source interface returns inputs for the existing I.2 `ProductSourceCandidate`; SerpAPI is supported, while DataForSEO is disabled by default and requires both explicit enablement and an explicit paid-use policy. There is exactly one configured provider and no automatic fallback. Missing credentials or provider failure leaves catalog search, recent candidates, manual URL intake, and idea-only publication available.
+
+The run checks canonical catalog coverage and recent compatible candidates before external calls, skips already resolved slots, and defaults to one round. A second and final round requires explicit action. Per slot, limits are three queries/provider calls, four stored external candidates, and two concurrent calls. Timeout, configuration/quota, malformed, unavailable, duplicate, and zero-result outcomes are recorded without autonomous retry.
+
+Returned title, merchant/domain, source URL, external/product ID, price, rating/review metadata, provider, query, and observation time are source observations only. The candidate never becomes a Product automatically, and these fields do not expand the canonical Product schema or count as `verifiedFacts`. Ordinary P.1 intake, source-provenance review, I.2 fulfillment, exact slot assignment, copy review, and publication remain separate editor-controlled gates. The earlier P.2 batch-import concept is deferred as a possible future source adapter and is not implemented.
+
 ## Boundaries
 
-- No AI provider or structured-generation call is used.
-- No embeddings, semantic index, network request, scraper, or product import is used.
+- I.0 analysis and ordinary I.2 transitions use no AI or network. P.2.2 uses the existing editorial structured-generation adapter only when the editor requests a batch SearchPlan, then calls only the explicitly selected Product discovery provider when the editor starts a bounded round.
+- No embeddings, semantic index, scraper, browser automation, automatic product import, or automatic provider fallback is used.
 - I.0 analysis and I.2 request transitions write no canonical product, guide, or cluster; only the separately confirmed existing intake and Goal 2 paths may do so.
 - No draft, candidate, or guide is created automatically.
 - I.1 reads selected I.0 results but does not change thresholds, calculate a second coverage report, or turn a signal into an editorial decision.
 - I.2 coordinates explicit requirements and reviewed selections but does not recalculate I.0, create Products, or choose products automatically. Editorial publication does not fulfill or hide an unresolved Product requirement.
 - P.2.1 coordinates catalog/URL resolution into I.2 but does not introduce a second candidate model, editorial-fit score, network lookup, automatic fulfillment, or automatic assignment.
+- P.2.2 stores plans, observed evidence, and bounded round outcomes on existing I.2 records. It does not add canonical rating/review fields, turn observation into verification, create Products, fulfill I.2, assign a slot, or publish.
 - Any later product work must use the existing intake and source-provenance flows.
 - Any later guide work must use the existing Goal 2 preview, validation, and atomic publication flow.
 

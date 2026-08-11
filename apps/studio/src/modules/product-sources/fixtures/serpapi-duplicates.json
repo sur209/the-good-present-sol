@@ -1,0 +1,19 @@
+{
+  "search_metadata": { "status": "Success" },
+  "shopping_results": [
+    {
+      "title": "Duplicate tumbler listing",
+      "product_id": "google-product-duplicate",
+      "product_link": "https://www.google.com/shopping/product/duplicate?gl=us",
+      "source": "Example Merchant",
+      "price": "$24.99"
+    },
+    {
+      "title": "Duplicate tumbler listing",
+      "product_id": "google-product-duplicate",
+      "product_link": "https://www.google.com/shopping/product/duplicate?gl=us",
+      "source": "Example Merchant",
+      "price": "$24.99"
+    }
+  ]
+}

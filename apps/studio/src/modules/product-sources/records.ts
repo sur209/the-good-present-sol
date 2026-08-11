@@ -14,6 +14,8 @@ export const PRODUCT_SOURCE_KINDS = [
   "manual-amazon",
   "csv-import",
   "amazon-creators-api",
+  "serpapi",
+  "dataforseo",
 ] as const;
 
 export const PRODUCT_SOURCE_IMPORT_METHODS = ["manual", "csv", "api"] as const;

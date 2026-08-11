@@ -96,6 +96,13 @@ import {
   type ProductSourceRecord,
 } from "./modules/product-sources/records.ts";
 import {
+  DEFAULT_PRODUCT_DISCOVERY_LIMITS,
+  createProductDiscoverySource,
+  generateProductSearchPlans,
+  runProductDiscovery,
+  type ProductDiscoverySource,
+} from "./modules/product-sources/discovery.ts";
+import {
   commitManualProductIntake,
   prepareManualProductIntake,
   type ManualProductIntakeInput,
@@ -374,6 +381,9 @@ function productFromForm(form: URLSearchParams, id = createProductId()): Product
 }
 
 function manualProductIntakeFromForm(form: URLSearchParams): ManualProductIntakeInput {
+  const discoverySourceKind = optionalValue(form, "discoverySourceKind");
+  const discoveryProvider = optionalValue(form, "discoveryProvider");
+  const discoveryObservedAt = optionalValue(form, "discoveryObservedAt");
   return {
     productUrl: optionalValue(form, "productUrl"),
     affiliateUrl: optionalValue(form, "affiliateUrl"),
@@ -399,6 +409,18 @@ function manualProductIntakeFromForm(form: URLSearchParams): ManualProductIntake
     productId: optionalValue(form, "productId"),
     sourceId: optionalValue(form, "sourceId"),
     importedAt: optionalValue(form, "importedAt"),
+    ...(discoverySourceKind && discoveryProvider && discoveryObservedAt
+      ? {
+          discoveryProvenance: {
+            sourceKind: discoverySourceKind as "serpapi" | "dataforseo",
+            provider: discoveryProvider,
+            marketplace: optionalValue(form, "discoveryMarketplace"),
+            externalId: optionalValue(form, "discoveryExternalId"),
+            sourceUrl: optionalValue(form, "discoverySourceUrl"),
+            observedAt: discoveryObservedAt,
+          },
+        }
+      : {}),
   };
 }
 
@@ -407,6 +429,8 @@ const sourceKindLabels: Record<(typeof PRODUCT_SOURCE_KINDS)[number], string> = 
   "manual-amazon": "Manual · Amazon",
   "csv-import": "Importación CSV",
   "amazon-creators-api": "Amazon Creators API",
+  serpapi: "SerpAPI",
+  dataforseo: "DataForSEO",
 };
 
 const sourceStatusLabels: Record<(typeof PRODUCT_SOURCE_STATUSES)[number], string> = {
@@ -793,8 +817,12 @@ interface ManualProductCandidateReview {
 function manualProductIntakeFromCandidate(
   candidate: ProductSourceCandidate,
 ): ManualProductIntakeInput {
-  let merchant = /Amazon/i.test(candidate.provider) ? "Amazon" : candidate.provider;
-  if (merchant === "Manual" && candidate.sourceUrl) {
+  let merchant =
+    candidate.merchant ?? (/Amazon/i.test(candidate.provider) ? "Amazon" : candidate.provider);
+  if (
+    (merchant === "Manual" || merchant === "SerpAPI" || merchant === "DataForSEO") &&
+    candidate.sourceUrl
+  ) {
     try {
       merchant = new URL(candidate.sourceUrl).hostname;
     } catch {
@@ -808,7 +836,9 @@ function manualProductIntakeFromCandidate(
     ...(candidate.originalAffiliateUrl || candidate.affiliateUrl
       ? { affiliateUrl: candidate.originalAffiliateUrl ?? candidate.affiliateUrl }
       : {}),
-    ...(candidate.externalId ? { asin: candidate.externalId } : {}),
+    ...(candidate.externalId && candidate.marketplace === "amazon.com"
+      ? { asin: candidate.externalId }
+      : {}),
     ...(candidate.trackingId ? { trackingId: candidate.trackingId } : {}),
     name: "",
     merchant,
@@ -817,6 +847,18 @@ function manualProductIntakeFromCandidate(
     verifiedFacts: [],
     verifiedFactsConfirmed: false,
     status: "active",
+    ...(candidate.sourceKind === "serpapi" || candidate.sourceKind === "dataforseo"
+      ? {
+          discoveryProvenance: {
+            sourceKind: candidate.sourceKind,
+            provider: candidate.provider,
+            ...(candidate.marketplace ? { marketplace: candidate.marketplace } : {}),
+            ...(candidate.externalId ? { externalId: candidate.externalId } : {}),
+            ...(candidate.sourceUrl ? { sourceUrl: candidate.sourceUrl } : {}),
+            observedAt: candidate.observedAt!,
+          },
+        }
+      : {}),
   };
 }
 
@@ -868,6 +910,9 @@ function manualProductIntakePage(
       : "",
     input.importedAt
       ? `<input type="hidden" name="importedAt" value="${escapeHtml(input.importedAt)}">`
+      : "",
+    input.discoveryProvenance
+      ? `<input type="hidden" name="discoverySourceKind" value="${escapeHtml(input.discoveryProvenance.sourceKind)}"><input type="hidden" name="discoveryProvider" value="${escapeHtml(input.discoveryProvenance.provider)}"><input type="hidden" name="discoveryObservedAt" value="${escapeHtml(input.discoveryProvenance.observedAt)}">${input.discoveryProvenance.marketplace ? `<input type="hidden" name="discoveryMarketplace" value="${escapeHtml(input.discoveryProvenance.marketplace)}">` : ""}${input.discoveryProvenance.externalId ? `<input type="hidden" name="discoveryExternalId" value="${escapeHtml(input.discoveryProvenance.externalId)}">` : ""}${input.discoveryProvenance.sourceUrl ? `<input type="hidden" name="discoverySourceUrl" value="${escapeHtml(input.discoveryProvenance.sourceUrl)}">` : ""}`
       : "",
   ].join("");
   const productPreview = preview?.product
@@ -1212,7 +1257,10 @@ function sourcingOriginLabel(request: ProductSourcingRequest): string {
   return `GuideDraft ${origin.guideDraftId} · slot ${origin.recommendationSlotId}`;
 }
 
-function productSourcingListPage(store: ProductSourcingRequestStore): string {
+function productSourcingListPage(
+  store: ProductSourcingRequestStore,
+  discoverySource?: ProductDiscoverySource,
+): string {
   const requests = store.list();
   const cards = requests
     .map(
@@ -1221,6 +1269,7 @@ function productSourcingListPage(store: ProductSourcingRequestStore): string {
         <p>${escapeHtml(request.intendedRole)}</p>
         <p><code>${escapeHtml(request.id)}</code> · ${escapeHtml(sourcingOriginLabel(request))}</p>
         <p>${request.approvedProductIds.length} Product canónico(s) seleccionado(s) · ${request.sourceCandidates.length} candidato(s) de fuente.</p>
+        ${request.status === "open" || request.status === "partially-fulfilled" ? `<label><input type="checkbox" name="requestId" value="${escapeHtml(request.id)}"> Incluir en el SearchPlan por lote</label>` : ""}
       </article>`,
     )
     .join("");
@@ -1228,7 +1277,8 @@ function productSourcingListPage(store: ProductSourcingRequestStore): string {
     "Sourcing de productos",
     `<div class="actions"><div><h1>Sourcing de productos</h1><p>Requisitos editoriales trazables conectados al catálogo y al intake existentes.</p></div></div>
      <p class="notice">Un candidato de fuente nunca satisface un requisito. Sólo una selección editorial explícita de un Product canónico activo puede hacerlo.</p>
-     <div class="grid">${cards || '<p class="notice">Todavía no hay solicitudes.</p>'}</div>
+     <form method="post" action="/product-sourcing/discovery/plan"><div class="grid">${cards || '<p class="notice">Todavía no hay solicitudes.</p>'}</div>${requests.length ? '<button type="submit">Planificar búsquedas seleccionadas</button>' : ""}</form>
+     <p class="muted">La planificación usa una sola solicitud por lote al proveedor editorial existente. Descubrimiento externo: ${discoverySource ? `${escapeHtml(discoverySource.providerId)} · uso pago visible` : "desactivado; catálogo, URL manual e idea-only siguen disponibles"}.</p>
      <form method="post" action="/product-sourcing" class="card">
        <h2>Crear solicitud</h2>
        <div class="grid">
@@ -1264,6 +1314,7 @@ function productSourcingDetailPage(
   url: URL,
   catalog: ProductCatalog,
   sourceStore: ProductSourceStore,
+  discoverySource?: ProductDiscoverySource,
 ): string {
   const content = catalog.read();
   const productsById = new Map(content.products.map((product) => [product.id, product]));
@@ -1307,12 +1358,15 @@ function productSourcingDetailPage(
         )
         .join("");
       return `<article class="card"><div class="actions"><h3>${escapeHtml(candidate.name)}</h3><span class="status">${escapeHtml(candidate.status)}</span></div>
-        <p>${escapeHtml(candidate.provider)}${candidate.marketplace ? ` · ${escapeHtml(candidate.marketplace)}` : ""}${candidate.externalId ? ` · <code>${escapeHtml(candidate.externalId)}</code>` : ""}</p>
+        <p>${escapeHtml(candidate.provider)}${candidate.merchant ? ` · ${escapeHtml(candidate.merchant)}` : ""}${candidate.domain ? ` · ${escapeHtml(candidate.domain)}` : ""}${candidate.marketplace ? ` · ${escapeHtml(candidate.marketplace)}` : ""}${candidate.externalId ? ` · <code>${escapeHtml(candidate.externalId)}</code>` : ""}</p>
+        ${candidate.query ? `<p class="muted">Consulta: ${escapeHtml(candidate.query)} · observado ${escapeHtml(formatDate(candidate.observedAt!))}</p>` : ""}
+        ${candidate.observedPrice ? `<p>Precio observado: ${escapeHtml(candidate.observedPrice)}</p>` : ""}${candidate.observedRating !== undefined ? `<p>Rating observado: ${candidate.observedRating}${candidate.observedReviewCount !== undefined ? ` · ${candidate.observedReviewCount} reseñas observadas` : ""}</p>` : ""}
         ${candidate.productUrl ? `<p>URL de producto: <code>${escapeHtml(candidate.productUrl)}</code></p>` : ""}
         ${candidate.affiliateUrl ? `<p>URL afiliada: <code>${escapeHtml(candidate.affiliateUrl)}</code></p>` : ""}
         ${candidate.urlWarnings?.length ? `<p class="muted">Advertencias de URL: ${candidate.urlWarnings.map((warning) => escapeHtml(warning)).join(" · ")}</p>` : ""}
         ${candidate.sourceFacts.length ? `<ul>${candidate.sourceFacts.map((fact) => `<li>${escapeHtml(fact)}</li>`).join("")}</ul>` : ""}
         ${activeRequest && candidate.status === "approved-for-intake" ? `<form method="post" action="/product-sourcing/${encodeURIComponent(request.id)}/source-candidates/${encodeURIComponent(candidate.id)}/link"><label>ProductSourceRecord del intake<select name="productSourceId" required><option value="">Elegir</option>${linkOptions}</select></label><button type="submit">Vincular intake revisado</button></form>` : ""}
+        ${activeRequest && candidate.status === "approved-for-intake" ? `<p><a href="/products/intake?returnTo=${encodeURIComponent(`/product-sourcing/${request.id}`)}&requestId=${encodeURIComponent(request.id)}&candidateId=${encodeURIComponent(candidate.id)}">Abrir P.1 con esta evidencia observada</a></p>` : ""}
         ${candidate.canonicalProductId ? `<p>Vinculado a <code>${escapeHtml(candidate.canonicalProductId)}</code> mediante <code>${escapeHtml(candidate.productSourceId)}</code>. Esto no cumple la solicitud.</p>` : ""}
       </article>`;
     })
@@ -1321,11 +1375,21 @@ function productSourcingDetailPage(
     .filter(({ status }) => status === "needs-review")
     .map(
       (candidate) =>
-        `<article class="card"><h3>${escapeHtml(candidate.name)}</h3><p>${escapeHtml(candidate.provider)}${candidate.externalId ? ` · <code>${escapeHtml(candidate.externalId)}</code>` : ""}</p>${candidate.productUrl ? `<p>URL de producto: <code>${escapeHtml(candidate.productUrl)}</code></p>` : ""}${candidate.affiliateUrl ? `<p>URL afiliada: <code>${escapeHtml(candidate.affiliateUrl)}</code></p>` : ""}${candidate.urlWarnings?.length ? `<p class="muted">Advertencias de URL: ${candidate.urlWarnings.map((warning) => escapeHtml(warning)).join(" · ")}</p>` : ""}<label>Decisión de lote<select name="${escapeHtml(candidate.id)}"><option value="">Sin cambio</option><option value="approved-for-intake">Aprobar para intake</option><option value="rejected">Rechazar</option></select></label></article>`,
+        `<article class="card"><h3>${escapeHtml(candidate.name)}</h3><p>${escapeHtml(candidate.provider)}${candidate.merchant ? ` · ${escapeHtml(candidate.merchant)}` : ""}${candidate.externalId ? ` · <code>${escapeHtml(candidate.externalId)}</code>` : ""}</p>${candidate.query ? `<p class="muted">Consulta: ${escapeHtml(candidate.query)} · observado ${escapeHtml(formatDate(candidate.observedAt!))}</p>` : ""}${candidate.productUrl ? `<p>URL de producto: <code>${escapeHtml(candidate.productUrl)}</code></p>` : ""}${candidate.affiliateUrl ? `<p>URL afiliada: <code>${escapeHtml(candidate.affiliateUrl)}</code></p>` : ""}${candidate.observedPrice ? `<p>Precio observado: ${escapeHtml(candidate.observedPrice)}</p>` : ""}${candidate.observedRating !== undefined ? `<p>Rating observado: ${candidate.observedRating}${candidate.observedReviewCount !== undefined ? ` · ${candidate.observedReviewCount} reseñas observadas` : ""}</p>` : ""}${candidate.sourceFacts.length ? `<ul>${candidate.sourceFacts.map((fact) => `<li>${escapeHtml(fact)}</li>`).join("")}</ul>` : ""}${candidate.urlWarnings?.length ? `<p class="muted">Advertencias de URL: ${candidate.urlWarnings.map((warning) => escapeHtml(warning)).join(" · ")}</p>` : ""}<label>Decisión de lote<select name="${escapeHtml(candidate.id)}"><option value="">Sin cambio</option><option value="approved-for-intake">Aprobar para intake</option><option value="rejected">Rechazar</option></select></label></article>`,
     )
     .join("");
   const reviewable =
     activeRequest && request.sourceCandidates.some(({ status }) => status === "needs-review");
+  const discoveryHistory = request.discoveryRounds
+    .map(
+      (round) =>
+        `<li>Ronda ${round.round} · ${escapeHtml(round.provider)} · ${escapeHtml(round.status)} · ${round.providerCalls} llamada(s) · ${round.storedCandidateCount} candidato(s) guardado(s)${round.failureCode ? ` · ${escapeHtml(round.failureCode)}` : ""}</li>`,
+    )
+    .join("");
+  const nextRound = request.discoveryRounds.length + 1;
+  const discoveryControls = request.searchPlan
+    ? `<section class="card wide"><h2>SearchPlan y descubrimiento acotado</h2><dl><dt>Product class</dt><dd>${escapeHtml(request.searchPlan.productClass)}</dd><dt>Must-have</dt><dd>${escapeHtml(request.searchPlan.mustHaveAttributes.join(", ") || "—")}</dd><dt>Useful</dt><dd>${escapeHtml(request.searchPlan.usefulAttributes.join(", ") || "—")}</dd><dt>Exclusiones</dt><dd>${escapeHtml(request.searchPlan.exclusions.join(", ") || "—")}</dd><dt>Consultas</dt><dd>${escapeHtml(request.searchPlan.queries.join(" · "))}</dd></dl>${discoveryHistory ? `<ol>${discoveryHistory}</ol>` : ""}${activeRequest && discoverySource && nextRound <= DEFAULT_PRODUCT_DISCOVERY_LIMITS.maxRounds ? `<form method="post" action="/product-sourcing/${encodeURIComponent(request.id)}/discover"><input type="hidden" name="round" value="${nextRound}"><p>Proveedor pago seleccionado: <strong>${escapeHtml(discoverySource.providerId)}</strong>. Máximo ${DEFAULT_PRODUCT_DISCOVERY_LIMITS.maxQueriesPerSlot} consultas y ${DEFAULT_PRODUCT_DISCOVERY_LIMITS.maxStoredCandidatesPerSlot} candidatos externos guardados por slot.</p><label><input type="checkbox" name="forceExternal" value="yes"> Usar llamadas externas aunque haya coincidencias compatibles en catálogo o candidatos recientes.</label><button type="submit">${nextRound === 1 ? "Ejecutar primera ronda" : "Ejecutar segunda ronda explícita"}</button></form>` : activeRequest && !discoverySource ? '<p class="notice">El proveedor externo está desactivado. Catálogo, URL manual e idea-only siguen disponibles.</p>' : ""}</section>`
+    : '<section class="notice"><p>Este requisito todavía no tiene SearchPlan. Seleccionalo en la lista de sourcing para planificar uno o varios slots con una sola solicitud editorial.</p></section>';
   const transitions = (
     request.status === "open"
       ? ["held", "rejected"]
@@ -1345,6 +1409,7 @@ function productSourcingDetailPage(
     `<p><a href="/product-sourcing">← Solicitudes</a></p>
      <div class="actions"><div><h1>${escapeHtml(request.requiredCategory)}</h1><p><code>${escapeHtml(request.id)}</code></p></div><span class="status">${escapeHtml(request.status)}</span></div>
      <p class="notice">Sourcing, candidate review, Product canónico y slot editorial conservan identidades distintas. Ninguna acción publica una guía.</p>
+     ${discoveryControls}
      <div class="grid"><section class="card"><h2>Requisito</h2><dl><dt>Origen</dt><dd>${escapeHtml(sourcingOriginLabel(request))}</dd><dt>Rol</dt><dd>${escapeHtml(request.intendedRole)}</dd><dt>Audiencia</dt><dd>${escapeHtml(request.audience)}</dd><dt>Ocasión</dt><dd>${escapeHtml(request.occasion)}</dd><dt>Presupuesto</dt><dd>${escapeHtml(request.budgetContext)}</dd><dt>Búsqueda</dt><dd>${escapeHtml(request.searchTerms.join(", "))}</dd></dl><h3>Datos obligatorios</h3>${request.mustHaveVerifiedFacts.length ? `<ul>${request.mustHaveVerifiedFacts.map((fact) => `<li>${escapeHtml(fact)}</li>`).join("")}</ul>` : '<p class="muted">—</p>'}<h3>Exclusiones</h3>${request.exclusions.length ? `<ul>${request.exclusions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : '<p class="muted">—</p>'}</section>
        <section class="card"><h2>Retorno editorial</h2><p><a class="button" href="${escapeHtml(productSourcingReturnPath(request))}">Volver al requisito de origen</a></p><p>Creado ${escapeHtml(formatDate(request.createdAt))}<br>Actualizado ${escapeHtml(formatDate(request.updatedAt))}</p><div class="actions">${transitions}</div></section></div>
      <h2>Products canónicos seleccionados</h2><div class="grid">${selected || '<p class="notice">Todavía no se seleccionó ningún Product canónico.</p>'}</div>
@@ -2733,6 +2798,7 @@ export function createStudioServer(
   approvedBriefs: readonly ApprovedEditorialBriefComparisonRecord[] = [],
   evaluationStore = new OpportunityEvaluationStore(catalog.root),
   briefStore = new EditorialBriefStore(catalog.root, candidateStore),
+  discoverySource: ProductDiscoverySource | undefined = createProductDiscoverySource(),
 ) {
   const sourcingStore = new ProductSourcingRequestStore(catalog.root);
   const currentApprovedBriefs = () => [
@@ -3266,7 +3332,7 @@ export function createStudioServer(
         return;
       }
       if (method === "GET" && url.pathname === "/product-sourcing") {
-        send(response, 200, productSourcingListPage(sourcingStore));
+        send(response, 200, productSourcingListPage(sourcingStore, discoverySource));
         return;
       }
       if (method === "POST" && url.pathname === "/product-sourcing") {
@@ -3289,6 +3355,32 @@ export function createStudioServer(
         redirect(response, `/product-sourcing/${encodeURIComponent(created.id)}`);
         return;
       }
+      if (method === "POST" && url.pathname === "/product-sourcing/discovery/plan") {
+        const form = await readForm(request);
+        const requestIds = [...new Set(form.getAll("requestId").map((id) => id.trim()))].filter(
+          Boolean,
+        );
+        if (!requestIds.length) throw new TypeError("Seleccioná al menos una solicitud activa.");
+        const selected = requestIds.map((id) => sourcingStore.get(id));
+        const listed = await store.list();
+        if (listed.errors.length) {
+          throw new TypeError(
+            `No se puede planificar contra borradores inválidos: ${listed.errors.join("; ")}`,
+          );
+        }
+        const guideDrafts = listed.drafts.filter(
+          (draft): draft is GuideDraft => draft.draftType === "gift-guide",
+        );
+        const planned = await generateProductSearchPlans(
+          selected,
+          provider,
+          guideDrafts,
+          briefStore.list(),
+        );
+        for (const sourcingRequest of planned) await sourcingStore.save(sourcingRequest);
+        redirect(response, `/product-sourcing/${encodeURIComponent(planned[0]!.id)}`);
+        return;
+      }
       const productSourcingMatch =
         method === "GET" ? /^\/product-sourcing\/(request_[a-z0-9_-]+)$/.exec(url.pathname) : null;
       if (productSourcingMatch?.[1]) {
@@ -3300,8 +3392,44 @@ export function createStudioServer(
             url,
             catalog,
             sourceStore,
+            discoverySource,
           ),
         );
+        return;
+      }
+      const productDiscoveryMatch =
+        method === "POST"
+          ? /^\/product-sourcing\/(request_[a-z0-9_-]+)\/discover$/.exec(url.pathname)
+          : null;
+      if (productDiscoveryMatch?.[1]) {
+        if (!discoverySource) {
+          throw new TypeError(
+            "El descubrimiento externo está desactivado; usá catálogo, URL manual o idea-only.",
+          );
+        }
+        const form = await readForm(request);
+        const round = Number(requiredValue(form, "round", "La ronda"));
+        if (round !== 1 && round !== 2) throw new TypeError("La ronda no es válida.");
+        const sourcingRequest = sourcingStore.get(productDiscoveryMatch[1]);
+        const sourcingOrigin = sourcingRequest.origin;
+        const slotResolved =
+          sourcingOrigin.kind === "recommendation-slot"
+            ? Boolean(
+                (await readGuideDraft(store, sourcingOrigin.guideDraftId)).recommendations.find(
+                  ({ id }) => id === sourcingOrigin.recommendationSlotId,
+                )?.productId,
+              )
+            : false;
+        const saved = await sourcingStore.save(
+          await runProductDiscovery(sourcingRequest, discoverySource, {
+            products: catalog.read().products,
+            allRequests: sourcingStore.list(),
+            slotResolved,
+            forceExternal: form.get("forceExternal") === "yes",
+            round,
+          }),
+        );
+        redirect(response, `/product-sourcing/${encodeURIComponent(saved.id)}`);
         return;
       }
       const productSourcingStatusMatch =

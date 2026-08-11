@@ -20,7 +20,8 @@ The canonical product remains `content/products/{product-id}.json`. Saving or re
 type ProductSourceRecord = {
   id: string;
   productId: string;
-  sourceKind: "manual" | "manual-amazon" | "csv-import" | "amazon-creators-api";
+  sourceKind:
+    "manual" | "manual-amazon" | "csv-import" | "amazon-creators-api" | "serpapi" | "dataforseo";
   provider: string;
   marketplace?: string;
   externalId?: string;
@@ -52,10 +53,12 @@ The same tuple is used for deterministic lookup. A source may point to only an e
 
 - `manual`: editor-entered provenance.
 - `manual-amazon`: editor-entered Amazon provenance created only by the validated Amazon US intake. It keeps the probable ASIN in `externalId`, the original pasted URLs, the normalized affiliate URL, and the selected tracking ID.
-- `csv-import`: provenance from a future controlled CSV import.
+- `serpapi`: observed SerpAPI discovery evidence retained when an editor completes the ordinary P.1 intake.
+- `dataforseo`: observed DataForSEO discovery evidence retained when the explicitly enabled paid provider is used and an editor completes P.1 intake.
+- `csv-import`: provenance from a possible future controlled batch-import source adapter. The previous P.2 batch-import concept is deferred and is not implemented.
 - `amazon-creators-api`: provenance from a future Amazon Creators API import.
 
-The last two kinds record provenance only at this stage. There is no CSV importer, Amazon API integration, scraper, or automatic synchronization. `lastSynchronizedAt` is retained for future controlled workflows and is never populated automatically now.
+There is no CSV importer, Amazon API integration, scraper, or automatic synchronization. `lastSynchronizedAt` is retained for controlled source workflows; external discovery writes its observation time only when the editor later confirms ordinary P.1 intake.
 
 ## Studio workflow
 
@@ -81,8 +84,10 @@ A product-source candidate inside a `ProductSourcingRequest` is not a `ProductSo
 
 ```ts
 type ProductSourceCandidate = {
-  sourceKind: "manual" | "amazon-creators-api";
+  sourceKind: "manual" | "amazon-creators-api" | "serpapi" | "dataforseo";
   provider: string;
+  merchant?: string;
+  domain?: string;
   marketplace?: string;
   externalId?: string;
   sourceUrl?: string;
@@ -92,6 +97,11 @@ type ProductSourceCandidate = {
   originalAffiliateUrl?: string;
   trackingId?: string;
   urlWarnings?: string[];
+  query?: string;
+  observedAt?: string;
+  observedPrice?: string;
+  observedRating?: number;
+  observedReviewCount?: number;
   name: string;
   sourceFacts: string[];
   status: "needs-review" | "approved-for-intake" | "rejected" | "linked-to-product";
@@ -106,7 +116,24 @@ The P.2 candidate handoff opens the existing P.1 intake with the URL evidence pr
 
 Batch approval authorizes later intake only. The existing manual intake, or a future controlled Creators API intake, must create the canonical Product and its normal source-provenance record. Linking the reviewed candidate then requires that exact `ProductSourceRecord` to belong to the active canonical Product and that supplied marketplace/external identity match. Linking still does not fulfill the editorial requirement; the editor separately selects the Product on the request.
 
-The current repository has no Creators API client. I.2 accepts optional `amazon-creators-api` candidate fixtures or records from a future existing integration without depending on it, making network requests, scraping, creating Products automatically, or bypassing the source ledger.
+The current repository has no Creators API client. I.2 accepts optional `amazon-creators-api` candidate fixtures or records from a future integration through this same candidate input and lifecycle. A later P.3 Amazon Creators API source must use this interface and queue rather than create a parallel catalog or review model.
+
+## P.2.2 bounded external discovery
+
+External candidate discovery stays inside `apps/studio/src/modules/product-sources/`. The provider-neutral `ProductDiscoverySource` accepts one concrete query plus a candidate bound and returns inputs for the existing `ProductSourceCandidate` model. SerpAPI and DataForSEO are adapters to that contract; neither creates a canonical Product, source record, I.2 fulfillment, or GuideDraft assignment.
+
+The editor first selects unresolved sourcing requests and generates one batched `SearchPlan` through the existing editorial structured-generation provider. The prompt derives the editorial problem, use case, intended Product class, attributes, exclusions, and one to three concrete queries from the `GuideDraft`, stable recommendation slot, I.2 request, questionnaire, originating brief, budget, and taxonomies. Editors do not re-enter known context. The plan and provider metadata are stored on each existing request.
+
+Before an external call, the run checks the canonical catalog and recent compatible candidates. Resolved slots are skipped. An editor may explicitly override reusable evidence, but each slot remains capped at three queries, four stored external candidates, two concurrent calls, three provider calls per run, and two total rounds. Only the first round is offered initially; the second requires its own editor action. There is no retry-until-satisfied loop.
+
+SerpAPI uses its current Google Shopping endpoint and API-key query authentication. DataForSEO uses its current Google organic live advanced endpoint with HTTP Basic authentication and extracts only returned shopping elements. These behaviors were verified against the official provider documentation on 2026-08-11:
+
+- [SerpAPI Google Shopping API](https://serpapi.com/google-shopping-api), [shopping results](https://serpapi.com/shopping-results), and [status/error behavior](https://serpapi.com/api-status-and-error-codes).
+- [DataForSEO authentication](https://docs.dataforseo.com/v3/auth/), [live advanced endpoint](https://docs.dataforseo.com/v3/serp-se-type-live-advanced/), and [advanced result fields](https://docs.dataforseo.com/v3/serp/google/organic/task_get/advanced/).
+
+No pricing or quota number is a domain invariant. Provider quota, configuration, timeout, malformed-response, unavailable, and zero-result states are surfaced as bounded round outcomes. `PRODUCT_DISCOVERY_PROVIDER` defaults to `disabled`; selecting `serpapi` also requires `SERPAPI_API_KEY`. DataForSEO additionally requires `DATAFORSEO_ENABLED=true`, `PRODUCT_DISCOVERY_PAID_POLICY=allow-paid-dataforseo`, and credentials. SerpAPI failure never invokes DataForSEO, because runtime configuration constructs exactly one selected provider and contains no fallback chain. Missing credentials leave catalog, recent-candidate, manual URL, and idea-only operation available.
+
+Provider fields remain observation evidence on the candidate: title, merchant/domain, source URL, external/product ID, observed price, rating/review metadata, query, provider, and timestamp are copied only when actually returned. They do not become canonical verified facts. P.1 keeps that discovery provenance in the ordinary non-public `ProductSourceRecord`, while the editor authors and verifies the canonical Product separately.
 
 ## Verification
 
