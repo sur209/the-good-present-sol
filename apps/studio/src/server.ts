@@ -611,7 +611,7 @@ async function ensureDraftSlotSourcingRequest(
     if (existing.status === "held") {
       return sourcingStore.save(transitionProductSourcingRequest(existing, "open"));
     }
-    return existing;
+    if (existing.status !== "fulfilled") return existing;
   }
   return sourcingStore.save(
     createProductSourcingRequestForDraftSlot(
@@ -1717,7 +1717,7 @@ function guideCurationPage(
         discoverySource &&
         request.discoveryRounds.length < DEFAULT_PRODUCT_DISCOVERY_LIMITS.maxRounds &&
         (!slot.productId || alternativeRequest)
-          ? `<form method="post" action="/drafts/${encodeURIComponent(draft.id)}/curation/discover"><input type="hidden" name="slotId" value="${escapeHtml(slot.id)}">${alternativeRequest ? '<input type="hidden" name="includeResolved" value="yes">' : ""}<button type="submit">Buscar otros con ${escapeHtml(discoverySource.providerId)} · uso pago</button></form>`
+          ? `<form method="post" action="/drafts/${encodeURIComponent(draft.id)}/curation/discover"><input type="hidden" name="slotId" value="${escapeHtml(slot.id)}"><input type="hidden" name="forceExternal" value="yes">${alternativeRequest ? '<input type="hidden" name="includeResolved" value="yes">' : ""}<button type="submit">Buscar otros con ${escapeHtml(discoverySource.providerId)} · uso pago</button></form>`
           : "";
       const planEditor = request?.searchPlan
         ? `<details><summary>Editar plan de búsqueda</summary><form method="post" action="/product-sourcing/${encodeURIComponent(request.id)}/plan" class="card"><input type="hidden" name="returnTo" value="/drafts/${escapeHtml(draft.id)}/curation"><label>Product class<input name="productClass" value="${value(request.searchPlan.productClass)}" required></label><label>Must-have · uno por línea<textarea name="mustHaveAttributes">${listText(request.searchPlan.mustHaveAttributes, "\n")}</textarea></label><label>Useful · uno por línea<textarea name="usefulAttributes">${listText(request.searchPlan.usefulAttributes, "\n")}</textarea></label><label>Exclusiones · una por línea<textarea name="exclusions">${listText(request.searchPlan.exclusions, "\n")}</textarea></label><label>Consultas · una por línea<textarea name="queries" required>${listText(request.searchPlan.queries, "\n")}</textarea></label><button type="submit">Guardar plan</button></form></details>`

@@ -91,7 +91,7 @@ Running discovery is a separate editor action on one request. The provider-neutr
 
 The run checks canonical catalog coverage, relevant EditorialBenchmarks, and recent compatible candidates before external calls, skips already resolved slots, and defaults to one round. A second and final round requires explicit action. Per slot, limits are three queries/provider calls, four stored external candidates, and two concurrent calls. Timeout, configuration/quota, malformed, unavailable, duplicate, and zero-result outcomes are recorded without autonomous retry.
 
-Returned title, merchant/domain, source URL, external/product ID, price, rating/review metadata, provider, query, and observation time are source observations only. The candidate never becomes a Product automatically, and these fields do not expand the canonical Product schema or count as `verifiedFacts`. Ordinary P.1 intake, source-provenance review, I.2 fulfillment, exact slot assignment, copy review, and publication remain separate editor-controlled gates. The earlier P.2 batch-import concept is deferred as a possible future source adapter and is not implemented.
+Returned title, merchant/domain, source URL, external/product ID, price, rating/review metadata, provider, query, and observation time are source observations only. The candidate never becomes a Product automatically, and these fields do not expand the canonical Product schema or count as `verifiedFacts`. Ordinary P.1 intake, source-provenance review, I.2 fulfillment, exact slot assignment, copy review, and publication remain separate editor-controlled gates. The current assisted-discovery P.2 supersedes the earlier standalone batch-import implementation concept; batch import remains only an optional future adapter to this same lifecycle.
 
 ## P.2.3 product fit and gift value
 
@@ -175,7 +175,7 @@ Reasons are optional and validated against the controlled vocabulary: `wrong-pro
 
 The internal report is pure deterministic code with visible numerator/denominator rates for catalog resolution, automatic-candidate acceptance, manual URL use, idea-only publication, later Product resolution, search-again, ProductClassProfile manual intervention, provider acceptance, DataForSEO paid-provider invocations, benchmark creation, and benchmark-associated later acceptance. It also reports rejection reasons and diagnostic-area counts. Summaries do not call AI, update ranking policy, mutate ProductClassProfiles, create benchmarks, personalize ranking, or promote Products.
 
-This evidence is editorial/discovery-only P.2 data. Affiliate-performance feedback and any I.3 loop remain out of scope. Feedback, benchmarks, and summaries stay internal Studio data and are excluded from `packages/content-schema` and Astro output.
+This evidence is editorial/discovery-only P.2 data. Affiliate-performance feedback and any I.3 loop remain out of scope; I.3 can begin only after real performance data exists, not from these editorial events as a proxy. Feedback, benchmarks, and summaries stay internal Studio data and are excluded from `packages/content-schema` and Astro output.
 
 ## Boundaries
 

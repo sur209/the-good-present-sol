@@ -69,7 +69,7 @@ The same tuple is used for deterministic lookup. A source may point to only an e
 - `manual-amazon`: editor-entered Amazon provenance created only by the validated Amazon US intake. It keeps the probable ASIN in `externalId`, the original pasted URLs, the normalized affiliate URL, and the selected tracking ID.
 - `serpapi`: observed SerpAPI discovery evidence retained when an editor completes the ordinary P.1 intake.
 - `dataforseo`: observed DataForSEO discovery evidence retained when the explicitly enabled paid provider is used and an editor completes P.1 intake.
-- `csv-import`: provenance from a possible future controlled batch-import source adapter. The previous P.2 batch-import concept is deferred and is not implemented.
+- `csv-import`: provenance reserved for an optional future controlled adapter to the current P.2 candidate and P.1/P.0 path. The current assisted-discovery P.2 supersedes the earlier standalone batch-import implementation concept; no importer is implemented.
 - `amazon-creators-api`: provenance from a future Amazon Creators API import.
 
 There is no CSV importer, Amazon API integration, scraper, or automatic synchronization. `lastSynchronizedAt` is retained for controlled source workflows; external discovery writes its observation time only when the editor later confirms ordinary P.1 intake.
@@ -122,7 +122,7 @@ type ProductSourceCandidate = {
 };
 ```
 
-For an unresolved GuideDraft slot, the editor can resolve from the catalog or paste a product/affiliate URL. Both actions first create or reuse the same slot-origin I.2 request and preserve the inherited Guide/slot/sourcing context. Catalog matches show deterministic I.0 evidence, its threshold, and whether the Product is already used in the Guide; that evidence is not an editorial-fit label and never auto-selects or assigns the Product.
+For an unresolved GuideDraft slot, the editor can resolve from the catalog or paste a product/affiliate URL. Both actions first create or reuse the same active slot-origin I.2 request and preserve the inherited Guide/slot/sourcing context. If a previously fulfilled slot is cleared, the next resolution action opens a fresh exact-slot request instead of reusing the terminal request. Catalog matches show deterministic I.0 evidence, its threshold, and whether the Product is already used in the Guide; that evidence is not an editorial-fit label and never auto-selects or assigns the Product.
 
 The manual URL path reuses the A.1 Amazon URL/ASIN/affiliate helpers. It performs no request, redirect expansion, HTML extraction, scrape, image download, or affiliate-link generation. Amazon URLs are separated into product and affiliate destinations locally; other HTTP(S) URLs are only normalized safely. Short links and missing tracking tags remain warnings for P.1 review.
 
@@ -153,7 +153,9 @@ Provider fields remain observation evidence on the candidate: title, merchant/do
 
 The GuideDraft curation board creates or reuses one exact slot-origin I.2 request for every selected recommendation, then sends the inherited contexts through one batch SearchPlan generation. Its default selection is all Product-unresolved slots; a subset or exact slot is allowed, and resolved/ready slots are skipped unless the editor explicitly requests alternatives.
 
-Resolution order is fixed and visible: active canonical catalog; relevant EditorialBenchmarks and recent compatible candidates; the one configured SerpAPI adapter; DataForSEO only when it is both enabled and explicitly selected; manual URL; or remain idea-only. Provider adapters are never chained, so a SerpAPI failure cannot spend against DataForSEO. SearchPlan edits and additional bounded rounds remain explicit editor actions.
+Resolution order is fixed and visible: active canonical catalog; relevant EditorialBenchmarks and recent compatible candidates; the one configured SerpAPI adapter; DataForSEO only when it is both enabled and explicitly selected; manual URL; or remain idea-only. The explicit curation action for an external provider opts into that paid run instead of silently stopping at a weak catalog match. Provider adapters are never chained, so a SerpAPI failure cannot spend against DataForSEO. SearchPlan edits and additional bounded rounds remain explicit editor actions.
+
+The P.3 Creators API remains a future adapter. If implemented, it must emit the same `ProductSourceCandidate` input and continue through ordinary P.1 review and P.0 provenance; it does not justify another candidate or Product lifecycle.
 
 Sourcing and provenance records support the decision without becoming separate checklist stages. Reviewing a candidate opens the existing P.1 intake; confirmed intake creates the ordinary P.0 record and links it to the candidate. The editor then explicitly fulfills I.2 and assigns the canonical Product to the exact slot. The board never assigns a source candidate or auto-selects a Product.
 

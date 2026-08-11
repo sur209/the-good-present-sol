@@ -4137,6 +4137,27 @@ test("deduplica resultados, reutiliza catálogo/candidatos y nunca hace fallback
   assert.equal(recentReuse.discoveryRounds[0]!.status, "reused-candidates");
   assert.equal(providerCalls, 0);
 
+  let staleCandidateCalls = 0;
+  const staleCandidateRun = await runProductDiscovery(
+    planned,
+    {
+      providerId: "serpapi",
+      paidUsage: true,
+      async search() {
+        staleCandidateCalls++;
+        return [];
+      },
+    },
+    {
+      products: [],
+      allRequests: [recentRequest],
+      round: 1,
+      now: new Date("2026-09-11T12:00:00.000Z"),
+    },
+  );
+  assert.equal(staleCandidateCalls, 1);
+  assert.equal(staleCandidateRun.discoveryRounds[0]!.status, "empty");
+
   const empty = new SerpApiProductDiscoverySource(
     "fixture-key",
     100,
@@ -5556,7 +5577,38 @@ test("cura slots sin resolver en lote, hereda contexto y crea o reutiliza I.2", 
       return mock.generateStructured(request);
     },
   };
-  const server = createStudioServer(store, catalog, provider, new Publisher(repository));
+  let discoveryCalls = 0;
+  const discoverySource: ProductDiscoverySource = {
+    providerId: "serpapi",
+    paidUsage: true,
+    async search(input) {
+      discoveryCalls++;
+      return [
+        {
+          sourceKind: "serpapi",
+          provider: "SerpAPI",
+          name: `Observed ${input.query}`,
+          sourceUrl: `https://merchant.example/${discoveryCalls}`,
+          productUrl: `https://merchant.example/${discoveryCalls}`,
+          sourceFacts: ["Observed fixture evidence"],
+          query: input.query,
+          observedAt: input.observedAt,
+        },
+      ];
+    },
+  };
+  const server = createStudioServer(
+    store,
+    catalog,
+    provider,
+    new Publisher(repository),
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    discoverySource,
+  );
   server.listen(0, STUDIO_HOST);
   await once(server, "listening");
   context.after(() => server.close());
@@ -5602,6 +5654,20 @@ test("cura slots sin resolver en lote, hereda contexto y crea o reutiliza I.2", 
     false,
   );
 
+  const forcedDiscovery = await fetch(`${origin}/drafts/${draft.id}/curation/discover`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ slotId: "slot_bulk-catalog", forceExternal: "yes" }),
+    redirect: "manual",
+  });
+  assert.equal(forcedDiscovery.status, 303);
+  assert.ok(discoveryCalls > 0, "the explicit curation action must override weak catalog reuse");
+  assert.equal(
+    findProductSourcingRequestForDraftSlot(sourcingStore.list(), draft.id, "slot_bulk-catalog")!
+      .discoveryRounds[0]!.providerCalls,
+    discoveryCalls,
+  );
+
   const externalRequest = findProductSourcingRequestForDraftSlot(
     requests,
     draft.id,
@@ -5631,6 +5697,7 @@ test("cura slots sin resolver en lote, hereda contexto y crea o reutiliza I.2", 
     assert.match(boardHtml, new RegExp(action));
   }
   assert.match(boardHtml, /Product class/);
+  assert.match(boardHtml, /name="forceExternal" value="yes"/);
   assert.doesNotMatch(boardHtml, /productClassMatch:|negativeCriticalDimensions:/);
 
   const selected = await fetch(`${origin}/drafts/${draft.id}/curation/use-product`, {
@@ -5663,6 +5730,26 @@ test("cura slots sin resolver en lote, hereda contexto y crea o reutiliza I.2", 
   });
   assert.equal(sourcingStore.list().length, 2);
   assert.equal(searchPlanCalls, 1);
+
+  await fetch(`${origin}/drafts/${draft.id}/recommendations/slot_bulk-catalog/product/clear`, {
+    method: "POST",
+    redirect: "manual",
+  });
+  await fetch(`${origin}/drafts/${draft.id}/curation/prepare`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ slotId: "slot_bulk-catalog" }),
+    redirect: "manual",
+  });
+  const replacementRequest = findProductSourcingRequestForDraftSlot(
+    sourcingStore.list(),
+    draft.id,
+    "slot_bulk-catalog",
+  )!;
+  assert.equal(replacementRequest.status, "open");
+  assert.ok(replacementRequest.searchPlan);
+  assert.equal(sourcingStore.list().length, 3);
+  assert.equal(searchPlanCalls, 2);
 });
 
 test("genera idea-only segura con contexto heredado y deja Stage 2 Product-backed sin cambios", async () => {
@@ -6577,6 +6664,20 @@ test("mantiene dimensiones independientes de encaje y regalo sin total opaco", (
     productFitEvaluationBatchSchema.safeParse({
       ...output,
       evaluations: [{ ...evaluation, selectedProductId: "product_forbidden" }],
+    }).success,
+    false,
+  );
+  assert.equal(
+    productFitEvaluationBatchSchema.safeParse({
+      ...output,
+      evaluations: [
+        {
+          ...evaluation,
+          editorialFunctionalFit: {
+            productClassMatch: evaluation.editorialFunctionalFit.productClassMatch,
+          },
+        },
+      ],
     }).success,
     false,
   );
