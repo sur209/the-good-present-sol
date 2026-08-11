@@ -21,6 +21,26 @@ export const PRODUCT_SOURCE_KINDS = [
 export const PRODUCT_SOURCE_IMPORT_METHODS = ["manual", "csv", "api"] as const;
 export const PRODUCT_SOURCE_STATUSES = ["active", "inactive", "needs-review"] as const;
 
+export function isGoogleShoppingIntermediaryUrl(value: string | undefined): boolean {
+  if (!value) return false;
+  try {
+    const url = new URL(value);
+    const hostname = url.hostname.toLocaleLowerCase("en-US");
+    const googleHost = /(^|\.)google\.(?:com|[a-z]{2,3}|com\.[a-z]{2}|co\.[a-z]{2})$/.test(
+      hostname,
+    );
+    return (
+      googleHost &&
+      (hostname.startsWith("shopping.") ||
+        ["/search", "/url", "/aclk", "/shopping"].some(
+          (path) => url.pathname === path || url.pathname.startsWith(`${path}/`),
+        ))
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function createProductSourceId(): string {
   return `source_${randomUUID()}`;
 }

@@ -3848,12 +3848,37 @@ test("mapea fixtures SerpAPI al candidato I.2 observado y sanea vacíos, forma, 
   assert.equal(candidates[0]!.observedPrice, "$29.99");
   assert.equal(candidates[0]!.observedRating, 4.7);
   assert.equal(candidates[0]!.observedReviewCount, 321);
+  assert.equal(candidates[0]!.sourceUrl, "https://www.google.com/shopping/product/1001?gl=us");
+  assert.equal(candidates[0]!.productUrl, undefined);
   productSourceCandidateSchema.parse({
     ...candidates[0],
     id: "source_candidate_serpapi-fixture",
     status: "needs-review",
     addedAt: observedAt,
   });
+
+  const direct = new SerpApiProductDiscoverySource(
+    "fixture-key",
+    100,
+    async () =>
+      new Response(
+        JSON.stringify({
+          shopping_results: [
+            {
+              title: "Direct merchant candidate",
+              product_link: "https://merchant.example/products/direct",
+              source: "Example Merchant",
+            },
+          ],
+        }),
+        { status: 200 },
+      ),
+  );
+  assert.equal(
+    (await direct.search({ query: "direct merchant product", candidateLimit: 1, observedAt }))[0]!
+      .productUrl,
+    "https://merchant.example/products/direct",
+  );
 
   const adapterFor = (fixture: string) =>
     new SerpApiProductDiscoverySource(
@@ -4302,12 +4327,142 @@ test("mantiene precio y ratings descubiertos como evidencia observada durante P.
   assert.equal(preview.source?.sourceKind, "serpapi");
   assert.equal(preview.source?.importMethod, "api");
   assert.equal(preview.source?.lastSynchronizedAt, observedAt);
+  assert.equal(preview.source?.sourceUrl, "https://www.google.com/shopping/product/1001?gl=us");
   assert.ok(preview.source?.sourceFacts?.some((fact) => fact.includes("Observed rating")));
+  assert.equal(preview.product?.productUrl, undefined);
   assert.equal("observedRating" in preview.product!, false);
   assert.equal("observedReviewCount" in preview.product!, false);
   assert.equal("priceLabel" in preview.product!, false);
   assert.equal(productSchema.safeParse(preview.product).success, true);
   assert.equal(readPublicContent(repository).products.length, before, "preview creates no Product");
+});
+
+test("mantiene URLs de Google Shopping como evidencia no pública durante la revisión P.1", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-shopping-evidence-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const requestStore = new ProductSourcingRequestStore(repository);
+  const observedAt = "2026-08-11T12:00:00.000Z";
+  const googleUrl =
+    "https://www.google.com/search?tbm=shop&q=Force+DSL+3L&prds=pid:google-product-force-dsl";
+  const saved = await requestStore.save(
+    addProductSourceCandidates(
+      createProductSourcingRequest(
+        {
+          origin: { kind: "guide-draft", guideDraftId: "guide_force-dsl-review" },
+          intendedRole: "Carry water on a wildland fire assignment",
+          requiredCategory: "Hydration reservoir",
+          audience: "Wildland firefighters",
+          occasion: "First season",
+          budgetContext: "Under $75",
+          mustHaveVerifiedFacts: [],
+          exclusions: [],
+          searchTerms: ["hydration reservoir"],
+        },
+        new Date(observedAt),
+        "request_force-dsl-review",
+      ),
+      [
+        {
+          id: "source_candidate_force-dsl-review",
+          sourceKind: "serpapi",
+          provider: "SerpAPI",
+          merchant: "HydraPak",
+          domain: "www.google.com",
+          marketplace: "google.com",
+          externalId: "google-product-force-dsl",
+          sourceUrl: googleUrl,
+          productUrl: googleUrl,
+          name: "Force DSL 3L",
+          sourceFacts: ["Observed merchant: HydraPak", "Observed price: $53.00"],
+          query: "hydration reservoir",
+          observedAt,
+          observedPrice: "$53.00",
+        },
+      ],
+      new Date(observedAt),
+    ),
+  );
+  const candidate = saved.sourceCandidates[0]!;
+  const server = createStudioServer(
+    new DraftStore(join(repository, "drafts")),
+    catalog,
+    new MockGuideGenerationProvider(),
+    new Publisher(repository),
+    sourceStore,
+  );
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(() => server.close());
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+  const reviewPath = `/products/intake?requestId=${saved.id}&candidateId=${candidate.id}`;
+  const reviewHtml = await (await fetch(`${origin}${reviewPath}`)).text();
+
+  assert.match(reviewHtml, /name="name" required value="Force DSL 3L"/);
+  assert.match(reviewHtml, /name="brand" value=""/);
+  assert.match(reviewHtml, /name="merchant" required value="HydraPak"/);
+  assert.match(reviewHtml, /name="productUrl" value=""/);
+  assert.doesNotMatch(reviewHtml, /name="productUrl" value="https:\/\/www\.google\.com/);
+  assert.match(reviewHtml, /name="discoverySourceUrl" value="https:\/\/www\.google\.com\/search\?/);
+  assert.match(reviewHtml, /URL de descubrimiento no pública/);
+  assert.match(reviewHtml, /Precio observado: \$53\.00/);
+
+  const intakeForm = new URLSearchParams({
+    requestId: saved.id,
+    candidateId: candidate.id,
+    name: "Force DSL 3L",
+    merchant: "HydraPak",
+    shortDescription: "A hydration reservoir reviewed for demanding field assignments.",
+    sourceFacts: candidate.sourceFacts.join("\n"),
+    status: "active",
+    discoverySourceKind: "serpapi",
+    discoveryProvider: "SerpAPI",
+    discoveryObservedAt: observedAt,
+    discoveryMarketplace: "google.com",
+    discoveryExternalId: "google-product-force-dsl",
+    discoverySourceUrl: googleUrl,
+    confirm: "yes",
+  });
+  const unconfirmed = await fetch(`${origin}/products/intake`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: intakeForm,
+  });
+  assert.equal(unconfirmed.status, 400);
+  assert.match(await unconfirmed.text(), /confirmIdentity/);
+  assert.equal(
+    catalog.read().products.some(({ name }) => name === "Force DSL 3L"),
+    false,
+  );
+
+  for (const name of ["confirmIdentity", "confirmProvenance", "confirmFacts", "confirmDescription"])
+    intakeForm.set(name, "yes");
+  const committed = await fetch(`${origin}/products/intake`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: intakeForm,
+    redirect: "manual",
+  });
+  assert.equal(committed.status, 303);
+  const product = catalog.read().products.find(({ name }) => name === "Force DSL 3L")!;
+  assert.equal(product.brand, undefined);
+  assert.equal(product.merchant, "HydraPak");
+  assert.equal(product.productUrl, undefined);
+  assert.equal(productDestination(product), undefined);
+  const source = sourceStore.forProduct(product.id, catalog.read().products)[0]!;
+  assert.equal(source.provider, "SerpAPI");
+  assert.equal(source.sourceUrl, googleUrl);
+  assert.ok(source.sourceFacts?.includes("Observed price: $53.00"));
+  assert.doesNotMatch(
+    await readFile(join(repository, "content", "products", `${product.id}.json`), "utf8"),
+    /google\.com/,
+  );
+  assert.equal(requestStore.get(saved.id).sourceCandidates[0]!.status, "linked-to-product");
+  assert.deepEqual(requestStore.get(saved.id).approvedProductIds, []);
 });
 
 test("resuelve una URL manual como candidato, usa P.1/P.0 y vuelve al mismo I.2", async (context) => {
@@ -4388,6 +4543,7 @@ test("resuelve una URL manual como candidato, usa P.1/P.0 y vuelve al mismo I.2"
   ).text();
   assert.match(reviewHtml, /Revision P\.1 del candidato/);
   assert.match(reviewHtml, /name="confirmIdentity"/);
+  assert.match(reviewHtml, /name="name" required value="Pasted Manual URL"/);
   assert.match(reviewHtml, /value="https:\/\/merchant\.example\/items\/shift-wrap\?b=2&amp;a=1"/);
 
   const intakeForm = new URLSearchParams({

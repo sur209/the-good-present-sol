@@ -22,6 +22,7 @@ import {
   createProductSourceId,
   findDuplicateAmazonAsin,
   findDuplicateProductSource,
+  isGoogleShoppingIntermediaryUrl,
   productSourcePath,
   productSourceRecordSchema,
   ProductSourceStore,
@@ -394,11 +395,15 @@ export function prepareManualProductIntake(
     input.affiliateUrl && isApprovedAmazonUsHost(input.affiliateUrl),
   );
 
-  if (!input.productUrl && !asin && !input.affiliateUrl) {
+  if (!input.productUrl && !asin && !input.affiliateUrl && !input.discoveryProvenance?.sourceUrl) {
     errors.push("Ingresá una URL de producto o afiliado, o el ASIN.");
   }
   if (input.productUrl) {
-    if (amazonProductUrl) {
+    if (isGoogleShoppingIntermediaryUrl(input.productUrl)) {
+      errors.push(
+        "Una URL intermediaria de Google Shopping es evidencia de descubrimiento, no una URL canónica de producto.",
+      );
+    } else if (amazonProductUrl) {
       normalizedProductUrl = normalizeAmazonUrl(input.productUrl);
       const urlAsin = extractAmazonAsin(input.productUrl);
       if (urlAsin && asin && urlAsin !== asin) {
@@ -528,7 +533,12 @@ export function prepareManualProductIntake(
   };
 
   let product: Product | undefined;
-  if (asin || normalizedProductUrl || normalizedAffiliateUrl) {
+  if (
+    asin ||
+    normalizedProductUrl ||
+    normalizedAffiliateUrl ||
+    input.discoveryProvenance?.sourceUrl
+  ) {
     try {
       product = productSchema.parse(productData);
       if (content.products.some((existing) => existing.id === product!.id)) {
@@ -553,7 +563,10 @@ export function prepareManualProductIntake(
   }
 
   let source: ProductSourceRecord | undefined;
-  if (product && (asin || normalizedProductUrl || normalizedAffiliateUrl)) {
+  if (
+    product &&
+    (asin || normalizedProductUrl || normalizedAffiliateUrl || input.discoveryProvenance?.sourceUrl)
+  ) {
     try {
       const nextSource = sourceFromInput(input, product, asin, affiliateValidation);
       if (!nextSource) {

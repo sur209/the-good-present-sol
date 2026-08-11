@@ -93,6 +93,7 @@ import {
   PRODUCT_SOURCE_STATUSES,
   ProductSourceStore,
   createProductSourceId,
+  isGoogleShoppingIntermediaryUrl,
   productSourceRecordSchema,
   type ProductSourceRecord,
 } from "./modules/product-sources/records.ts";
@@ -1018,6 +1019,9 @@ interface ManualProductCandidateReview {
 function manualProductIntakeFromCandidate(
   candidate: ProductSourceCandidate,
 ): ManualProductIntakeInput {
+  const productUrl = [candidate.originalProductUrl, candidate.productUrl].find(
+    (url) => !isGoogleShoppingIntermediaryUrl(url),
+  );
   let merchant =
     candidate.merchant ?? (/Amazon/i.test(candidate.provider) ? "Amazon" : candidate.provider);
   if (
@@ -1031,9 +1035,7 @@ function manualProductIntakeFromCandidate(
     }
   }
   return {
-    ...(candidate.originalProductUrl || candidate.productUrl
-      ? { productUrl: candidate.originalProductUrl ?? candidate.productUrl }
-      : {}),
+    ...(productUrl ? { productUrl } : {}),
     ...(candidate.originalAffiliateUrl || candidate.affiliateUrl
       ? { affiliateUrl: candidate.originalAffiliateUrl ?? candidate.affiliateUrl }
       : {}),
@@ -1041,7 +1043,7 @@ function manualProductIntakeFromCandidate(
       ? { asin: candidate.externalId }
       : {}),
     ...(candidate.trackingId ? { trackingId: candidate.trackingId } : {}),
-    name: "",
+    name: candidate.name,
     merchant,
     shortDescription: "",
     sourceFacts: [...candidate.sourceFacts],
@@ -1065,10 +1067,19 @@ function manualProductIntakeFromCandidate(
 
 function candidateReviewChecks(review?: ManualProductCandidateReview): string {
   if (!review) return "";
+  const evidence = [
+    `Proveedor: ${review.candidate.provider}`,
+    `Título observado: ${review.candidate.name}`,
+    review.candidate.merchant ? `Comercio observado: ${review.candidate.merchant}` : undefined,
+    review.candidate.observedPrice
+      ? `Precio observado: ${review.candidate.observedPrice}`
+      : undefined,
+  ].flatMap((item) => (item ? [`<li>${escapeHtml(item)}</li>`] : []));
+  const observed = `<section class="card"><h2>Evidencia observada</h2><p class="muted">Estos datos siguen siendo evidencia no pública hasta que el editor confirme la identidad del Product.</p><ul>${evidence.join("")}</ul>${review.candidate.sourceUrl ? `<p class="muted">URL de descubrimiento no pública: <code>${escapeHtml(review.candidate.sourceUrl)}</code></p>` : ""}</section>`;
   const warnings = review.candidate.urlWarnings?.length
     ? `<div class="notice"><strong>Advertencias de URL</strong><ul>${review.candidate.urlWarnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul></div>`
     : "";
-  return `${warnings}<fieldset class="card"><legend>Confirmaciones del candidato</legend><p class="muted">La URL solo prellena evidencia local. No identifica automaticamente el producto ni crea un Product.</p><div class="checks"><label><input type="checkbox" name="confirmIdentity" value="yes"> Confirmo la identidad y reconciliacion del Product con la fuente.</label><label><input type="checkbox" name="confirmProvenance" value="yes"> Confirmo la procedencia y el origen de la informacion.</label><label><input type="checkbox" name="confirmFacts" value="yes"> Revise y confirme los datos verificados seleccionados.</label><label><input type="checkbox" name="confirmDescription" value="yes"> Escribi y confirme la descripcion editorial breve.</label>${review.candidate.affiliateUrl ? '<label><input type="checkbox" name="confirmAffiliate" value="yes"> Confirmo el destino afiliado y su separacion del URL de producto.</label>' : ""}</div></fieldset>`;
+  return `${observed}${warnings}<fieldset class="card"><legend>Confirmaciones del candidato</legend><p class="muted">Los datos observados solo prellenan evidencia local. No identifican automaticamente el producto ni crean un Product.</p><div class="checks"><label><input type="checkbox" name="confirmIdentity" value="yes"> Confirmo la identidad y reconciliacion del Product con la fuente.</label><label><input type="checkbox" name="confirmProvenance" value="yes"> Confirmo la procedencia y el origen de la informacion.</label><label><input type="checkbox" name="confirmFacts" value="yes"> Revise y confirme los datos verificados seleccionados.</label><label><input type="checkbox" name="confirmDescription" value="yes"> Escribi y confirme la descripcion editorial breve.</label>${review.candidate.affiliateUrl ? '<label><input type="checkbox" name="confirmAffiliate" value="yes"> Confirmo el destino afiliado y su separacion del URL de producto.</label>' : ""}</div></fieldset>`;
 }
 
 function manualProductIntakePage(

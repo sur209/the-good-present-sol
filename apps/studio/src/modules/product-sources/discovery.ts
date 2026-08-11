@@ -5,6 +5,7 @@ import type { GuideGenerationProvider } from "../../ai-provider.ts";
 import type { GuideDraft } from "../../drafts.ts";
 import { productSlotMatchScore } from "../../product-catalog.ts";
 import type { EditorialBrief } from "../content-opportunity-lab/review.ts";
+import { isGoogleShoppingIntermediaryUrl } from "./records.ts";
 import {
   PRODUCT_DISCOVERY_PROVIDERS,
   addProductSourceCandidates,
@@ -494,7 +495,7 @@ export class SerpApiProductDiscoverySource implements ProductDiscoverySource {
           ...(domain ? { domain } : {}),
           ...(externalId ? { externalId, marketplace: "google.com" } : {}),
           sourceUrl,
-          productUrl: sourceUrl,
+          ...(isGoogleShoppingIntermediaryUrl(sourceUrl) ? {} : { productUrl: sourceUrl }),
           name: item.title,
           sourceFacts: sourceFacts({
             merchant,
@@ -669,7 +670,7 @@ export class DataForSeoProductDiscoverySource implements ProductDiscoverySource 
         ...(domain ? { domain } : {}),
         ...(externalId && domain ? { externalId, marketplace: domain } : {}),
         sourceUrl: item.url,
-        productUrl: item.url,
+        ...(isGoogleShoppingIntermediaryUrl(item.url) ? {} : { productUrl: item.url }),
         name: item.title,
         sourceFacts: sourceFacts({
           merchant,
