@@ -294,6 +294,30 @@ export async function generateProductSearchPlans(
   });
 }
 
+export interface ProductSearchPlanEdits {
+  productClass: string;
+  mustHaveAttributes: string[];
+  usefulAttributes: string[];
+  exclusions: string[];
+  queries: string[];
+}
+
+export function updateProductSearchPlan(
+  request: ProductSourcingRequest,
+  edits: ProductSearchPlanEdits,
+  now = new Date(),
+): ProductSourcingRequest {
+  if (!request.searchPlan) throw new TypeError("Generate a SearchPlan before editing it.");
+  if (request.status !== "open" && request.status !== "partially-fulfilled") {
+    throw new TypeError("Only an active sourcing request can edit its SearchPlan.");
+  }
+  return productSourcingRequestSchema.parse({
+    ...request,
+    searchPlan: { ...request.searchPlan, ...edits },
+    updatedAt: now.toISOString(),
+  });
+}
+
 export type ProductDiscoveryFailureCode =
   "configuration" | "quota" | "timeout" | "unavailable" | "malformed";
 
@@ -737,6 +761,7 @@ export function createProductDiscoverySource(
 interface ProductDiscoveryRunOptions {
   products: readonly Product[];
   allRequests?: readonly ProductSourcingRequest[];
+  benchmarkProductIds?: readonly string[];
   slotResolved?: boolean;
   forceExternal?: boolean;
   round?: number;
@@ -874,7 +899,12 @@ export async function runProductDiscovery(
       attemptedAt,
     );
   }
-  if (!options.forceExternal && compatibleCatalogProducts(request, options.products).length) {
+  const benchmarkProducts = new Set(options.benchmarkProductIds ?? []);
+  if (
+    !options.forceExternal &&
+    (compatibleCatalogProducts(request, options.products).length ||
+      options.products.some(({ id, status }) => status === "active" && benchmarkProducts.has(id)))
+  ) {
     return withDiscoveryRound(
       request,
       round,

@@ -106,6 +106,7 @@ test("accepts an editorially ready unresolved gift idea without a Product record
         editorialDescription: "Build the gift around how they prefer to decompress at home.",
         whyItFits: "It starts with the recipient's routine instead of inventing a product.",
         bestFor: "Someone whose off-shift preferences you know well",
+        selectionGuidance: "Compare care needs, format, and fit with their routine.",
         considerations: "Look for easy care and a format that suits their space.",
         editorialStatus: "ready",
       },
@@ -117,6 +118,7 @@ test("accepts an editorially ready unresolved gift idea without a Product record
   const recommendation = content.guides[0]!.recommendations[0]!;
   assert.equal(recommendation.productResolution, "unresolved");
   assert.equal(recommendation.productId, undefined);
+  assert.match(recommendation.selectionGuidance ?? "", /Compare care needs/);
 });
 
 test("rejects missing and mixed Product-resolution states", () => {

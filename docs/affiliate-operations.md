@@ -71,6 +71,14 @@ The pasted-URL path reuses the A.1 Amazon helpers for approved hosts, ASIN extra
 
 The URL becomes an existing I.2 `ProductSourceCandidate`, not a Product. Its `sourceUrl`, normalized product/affiliate URLs, original pasted URLs, ASIN/tracking evidence, and warnings remain non-public. P.1 pre-fills this evidence but requires explicit identity, provenance, fact, description, and affiliate confirmations. Only after P.1 creates the canonical Product and P.0 source record is the candidate linked; fulfillment and exact slot assignment remain separate editor actions.
 
+## Progressive guide monetization
+
+The guide-wide curation board makes Product gaps visible without turning provenance into another manual workflow stage. Its progress summary separates idea ready/Product unresolved, candidate review, Product resolved, Product copy needs review, affiliate destination missing, fully ready, and published idea-only. A ready idea can therefore publish usefully without a destination while remaining an explicit later monetization opportunity.
+
+Later resolution preserves the guide ID, recommendation ID, position, and canonical route. The editor chooses a catalog Product or sends a candidate/manual URL through exact I.2 create/reuse, ordinary P.1 review, P.0 provenance, canonical Product creation, explicit fulfillment, and explicit slot assignment. Product attachment moves generic copy to focused review; it does not make the old copy Product-specific `ready` or regenerate the entire guide. After copy review and republishing, ordinary Product-backed affiliate QA applies.
+
+Idea-only recommendations never render price, merchant, shopping CTA, or affiliate disclosure by themselves. Their missing destination is not a hard affiliate validation error, and publication does not remove them from I.0 Product-resolution coverage.
+
 ## Disclosure placement
 
 The global disclosure is the public `/affiliate-disclosure/` page and its persistent footer link. A short near-link disclosure appears on a guide when at least one recommendation resolves to an affiliate URL. It explains the possible commission and that the merchant controls current product terms. Ordinary direct product links do not receive affiliate wording or the `sponsored` relation.

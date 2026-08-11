@@ -47,6 +47,7 @@ import {
   duplicateProductIds,
   generateFinalGuide,
   generateGuideOutline,
+  generateIdeaOnlyRecommendation,
   moveRecommendation,
   normalizeQuestionnaire,
   regenerateRecommendation,
@@ -100,6 +101,7 @@ import {
   createProductDiscoverySource,
   generateProductSearchPlans,
   runProductDiscovery,
+  updateProductSearchPlan,
   type ProductDiscoverySource,
 } from "./modules/product-sources/discovery.ts";
 import {
@@ -132,6 +134,14 @@ import {
   evaluateProductFitBatch,
 } from "./modules/product-intelligence/fit.ts";
 import {
+  guideCurationNextAction,
+  guideCurationProgress,
+  guideSourcingRequestForSlot,
+  relevantEditorialBenchmarks,
+  selectGuideWideResolutionSlots,
+  type GuideCurationNextAction,
+} from "./modules/product-intelligence/curation.ts";
+import {
   PRODUCT_SOURCING_REQUEST_STATUSES,
   ProductSourcingRequestStore,
   addProductSourceCandidates,
@@ -154,6 +164,10 @@ import {
   type ProductSourcingRequestInput,
   type ProductSourcingRequestStatus,
 } from "./modules/product-intelligence/sourcing.ts";
+import {
+  IDEA_RECOMMENDATION_PROMPT_VERSION,
+  prepareIdeaRecommendationPrompt,
+} from "./idea-prompt.ts";
 import {
   CANDIDATE_DECISIONS,
   CANDIDATE_STATUSES,
@@ -523,6 +537,7 @@ function listText(items: string[] | undefined, separator = ", "): string {
 function safeReturnTo(value: string | null): string | undefined {
   return value &&
     (/^\/drafts\/[a-z0-9_-]+(?:#slot-[a-z0-9_-]+)?$/.test(value) ||
+      /^\/drafts\/[a-z0-9_-]+\/curation$/.test(value) ||
       /^\/product-sourcing\/request_[a-z0-9_-]+$/.test(value))
     ? value
     : undefined;
@@ -577,10 +592,13 @@ async function ensureDraftSlotSourcingRequest(
   slotId: string,
   sourcingStore: ProductSourcingRequestStore,
   brief?: EditorialBrief,
+  forceNew = false,
 ): Promise<ProductSourcingRequest> {
   const slot = draft.recommendations.find(({ id }) => id === slotId);
   if (!slot) throw new TypeError(`No existe el slot "${slotId}".`);
-  const existing = findProductSourcingRequestForDraftSlot(sourcingStore.list(), draft.id, slot.id);
+  const existing = forceNew
+    ? undefined
+    : findProductSourcingRequestForDraftSlot(sourcingStore.list(), draft.id, slot.id);
   if (existing) {
     if (existing.status === "held") {
       return sourcingStore.save(transitionProductSourcingRequest(existing, "open"));
@@ -1318,17 +1336,190 @@ function productFitSummary(
   );
   const group = (title: string, dimensions: object) =>
     `<details><summary>${escapeHtml(title)}</summary>${productFitDimensionList(dimensions as Record<string, { assessment: string; rationale: string }>)}</details>`;
-  return `<details class="card"><summary>Evaluacion de encaje - ${escapeHtml(formatDate(session.evaluatedAt))}</summary>
-    <p class="notice">Interpretacion de IA consultiva. No selecciona, cumple, asigna ni verifica Product facts.</p>
+  const compact = (label: string, dimension: { assessment: string; rationale: string }) =>
+    `<dt>${escapeHtml(label)}</dt><dd><strong>${escapeHtml(dimension.assessment)}</strong> · ${escapeHtml(dimension.rationale)}</dd>`;
+  const importantRisk =
+    evaluation.missingEvidence[0] ??
+    Object.values({
+      ...evaluation.editorialFunctionalFit,
+      ...evaluation.evidenceOperations,
+      ...evaluation.collectionQuality,
+    }).find(({ assessment }) => assessment === "negative")?.rationale ??
+    "No se identificó un riesgo crítico; confirmar la evidencia antes del intake.";
+  return `<div class="fit-summary"><dl>
+    ${compact("Encaje con este slot", evaluation.editorialFunctionalFit.slotSpecificity)}
+    ${compact("Valor como regalo", evaluation.consumerGiftValue.giftDesirability)}
+    ${compact("Calidad de evidencia", evaluation.evidenceOperations.evidenceQuality)}
+    ${compact("Distintividad en la guía", evaluation.collectionQuality.inGuideDistinctiveness)}
+    <dt>Riesgo o evidencia faltante</dt><dd>${escapeHtml(importantRisk)}</dd>
+  </dl><details><summary>Ver diagnóstico completo y trazabilidad</summary>
+    <p class="notice">Interpretación de IA consultiva. No selecciona, cumple, asigna ni verifica Product facts.</p>
     ${group("Encaje editorial y funcional", evaluation.editorialFunctionalFit)}
     ${group("Valor para consumidor y regalo", evaluation.consumerGiftValue)}
     ${group("Evidencia y operaciones", evaluation.evidenceOperations)}
-    ${group("Calidad de coleccion", evaluation.collectionQuality)}
-    <h4>Diagnostico</h4><dl><dt>Resultado de proveedor</dt><dd>${escapeHtml(evaluation.diagnosticSummary.providerResultQuality)}</dd><dt>SearchPlan o clase</dt><dd>${escapeHtml(evaluation.diagnosticSummary.searchPlanOrClassRisk)}</dd><dt>Perfil</dt><dd>${escapeHtml(evaluation.diagnosticSummary.profileCoverage)}</dd><dt>Confianza</dt><dd>${escapeHtml(evaluation.diagnosticSummary.fitConfidence)}</dd></dl>
+    ${group("Calidad de colección", evaluation.collectionQuality)}
+    <h4>Diagnóstico</h4><dl><dt>Resultado de proveedor</dt><dd>${escapeHtml(evaluation.diagnosticSummary.providerResultQuality)}</dd><dt>SearchPlan o clase</dt><dd>${escapeHtml(evaluation.diagnosticSummary.searchPlanOrClassRisk)}</dd><dt>Perfil</dt><dd>${escapeHtml(evaluation.diagnosticSummary.profileCoverage)}</dd><dt>Confianza</dt><dd>${escapeHtml(evaluation.diagnosticSummary.fitConfidence)}</dd></dl>
     ${evaluation.missingEvidence.length ? `<h4>Evidencia faltante</h4><ul>${evaluation.missingEvidence.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : ""}
-    ${ordering ? `<p class="muted">${escapeHtml(session.rankingPolicyVersion)}: ${ordering.signals.negativeCriticalDimensions} criticas negativas; ${ordering.signals.positiveCoreDimensions} centrales positivas; ${ordering.signals.negativeCollectionDimensions} alertas de coleccion; ${ordering.signals.unknownDimensions} desconocidas. Sin total ni ganador.</p>` : ""}
-    <p class="muted">Lote de ${session.candidateCount} candidato(s), ${session.providerCallCount} llamada(s)${session.providerUsage?.totalTokens !== undefined ? `, ${session.providerUsage.totalTokens} tokens reportados` : ""}.</p>
-  </details>`;
+    ${ordering ? `<p class="muted">${escapeHtml(session.rankingPolicyVersion)}: ${ordering.signals.negativeCriticalDimensions} críticas negativas; ${ordering.signals.positiveCoreDimensions} centrales positivas; ${ordering.signals.negativeCollectionDimensions} alertas de colección; ${ordering.signals.unknownDimensions} desconocidas. Sin total ni ganador.</p>` : ""}
+    <p class="muted">Evaluado ${escapeHtml(formatDate(session.evaluatedAt))}. Lote de ${session.candidateCount} candidato(s), ${session.providerCallCount} llamada(s)${session.providerUsage?.totalTokens !== undefined ? `, ${session.providerUsage.totalTokens} tokens reportados` : ""}.</p>
+  </details></div>`;
+}
+
+const guideCurationActionLabels: Record<GuideCurationNextAction, string> = {
+  "use-catalog-product": "Usar el mejor Product existente o descartarlo",
+  "review-candidate": "Revisar el candidato externo más prometedor",
+  "prepare-search": "Preparar la búsqueda con el contexto heredado",
+  "run-discovery": "Buscar otros con el proveedor configurado",
+  "generate-idea-copy": "Generar guía de selección y mantener como idea",
+  "keep-as-idea": "Mantener como idea y continuar a publicación",
+  "review-product-copy": "Revisar o regenerar sólo esta recomendación",
+  "add-affiliate-destination": "Completar el destino del Product",
+  "fully-ready": "Sin acción pendiente",
+};
+
+function guideCurationPage(
+  draft: GuideDraft,
+  catalog: ProductCatalog,
+  sourcingStore: ProductSourcingRequestStore,
+  fitStore: ProductFitEvaluationStore,
+  benchmarkStore: EditorialBenchmarkStore,
+  discoverySource?: ProductDiscoverySource,
+): string {
+  const content = catalog.read();
+  const requests = sourcingStore.list();
+  const benchmarks = benchmarkStore.list(content.products);
+  const productsById = new Map(content.products.map((product) => [product.id, product]));
+  const selectedProductIds = new Set(
+    draft.recommendations.flatMap(({ productId }) => (productId ? [productId] : [])),
+  );
+  const progress = guideCurationProgress(draft, content, requests);
+  const progressItems: [string, number][] = [
+    ["idea lista / Product sin resolver", progress.ideaReadyProductUnresolved],
+    ["candidato por revisar", progress.candidateReview],
+    ["Product resuelto", progress.productResolved],
+    ["copia de Product por revisar", progress.productCopyNeedsReview],
+    ["destino afiliado faltante", progress.affiliateDestinationMissing],
+    ["completamente lista", progress.fullyReady],
+    ["idea-only publicada", progress.publishedIdeaOnly],
+  ];
+  const unresolved = draft.recommendations.filter(({ productId }) => !productId);
+  const selection = unresolved.length
+    ? `<form method="post" action="/drafts/${encodeURIComponent(draft.id)}/curation/prepare" class="card"><h2>Buscar productos para slots sin resolver</h2><p>Por defecto se incluyen sólo estados de resolución de Product pendientes. El contexto conocido se hereda; no hay que volver a cargarlo.</p><div class="checks">${unresolved.map((slot) => `<label><input type="checkbox" name="slotId" value="${escapeHtml(slot.id)}" checked> ${slot.position}. ${escapeHtml(slot.slotLabel)}</label>`).join("")}</div><button type="submit">Preparar búsquedas seleccionadas</button></form>`
+    : '<p class="notice">Todos los slots tienen un Product. Las alternativas se buscan sólo desde el slot exacto.</p>';
+
+  const cards = [...draft.recommendations]
+    .sort((left, right) => left.position - right.position)
+    .map((slot) => {
+      const request = guideSourcingRequestForSlot(requests, draft.id, slot.id);
+      const relevantBenchmarks = relevantEditorialBenchmarks(draft, slot, request, benchmarks);
+      const benchmarkProductIds = new Set(
+        relevantBenchmarks.map(({ canonicalProductId }) => canonicalProductId),
+      );
+      const linkedProductIds =
+        request?.sourceCandidates.flatMap(({ canonicalProductId }) =>
+          canonicalProductId ? [canonicalProductId] : [],
+        ) ?? [];
+      const catalogCandidates = [
+        ...suggestProductsForSlot(content.products, slot, 3),
+        ...linkedProductIds.flatMap((id) => {
+          const product = productsById.get(id);
+          return product ? [product] : [];
+        }),
+        ...relevantBenchmarks.flatMap(({ canonicalProductId }) => {
+          const product = productsById.get(canonicalProductId);
+          return product ? [product] : [];
+        }),
+      ]
+        .filter(
+          (product, index, all) =>
+            product.status === "active" &&
+            product.id !== slot.productId &&
+            all.findIndex(({ id }) => id === product.id) === index,
+        )
+        .slice(0, 3);
+      const catalogCards = catalogCandidates
+        .map((product) => {
+          const benchmark = relevantBenchmarks.find(
+            ({ canonicalProductId }) => canonicalProductId === product.id,
+          );
+          const redundant = selectedProductIds.has(product.id);
+          return `<article class="card"><h4>${escapeHtml(product.name)}</h4><p>${escapeHtml(product.shortDescription)}</p>
+            <p><strong>Encaje con este slot:</strong> ${productSlotMatchScore(product, slot)} señales textuales compartidas. Confirmación editorial pendiente.</p>
+            ${benchmark ? `<p><strong>Referencia editorial:</strong> ${escapeHtml(benchmark.editorRationale)}</p>` : ""}
+            ${redundant ? '<p class="error">Advertencia de diversidad: este Product ya aparece en la guía.</p>' : ""}
+            <form method="post" action="/drafts/${encodeURIComponent(draft.id)}/curation/use-product"><input type="hidden" name="slotId" value="${escapeHtml(slot.id)}"><input type="hidden" name="productId" value="${escapeHtml(product.id)}">${redundant ? '<label><input type="checkbox" name="allowDuplicate" value="yes" required> Confirmar repetición deliberada.</label>' : ""}<button type="submit">Usar Product existente</button></form>
+            <details><summary>Ver evidencia y trazabilidad</summary><p>${escapeHtml(product.merchant)}</p><p><code>${escapeHtml(product.id)}</code>${benchmark ? ` · <code>${escapeHtml(benchmark.id)}</code>` : ""}</p></details>
+          </article>`;
+        })
+        .join("");
+      const externalCandidates = (request?.sourceCandidates ?? [])
+        .filter(({ status }) => status !== "rejected")
+        .slice(0, 4);
+      const externalCards = externalCandidates
+        .map((candidate) => {
+          const redundant = Boolean(
+            candidate.canonicalProductId && selectedProductIds.has(candidate.canonicalProductId),
+          );
+          const reviewLink = `/products/intake?returnTo=${encodeURIComponent(`/drafts/${draft.id}/curation`)}&requestId=${encodeURIComponent(request!.id)}&candidateId=${encodeURIComponent(candidate.id)}`;
+          return `<article class="card"><div class="actions"><h4>${escapeHtml(candidate.name)}</h4><span class="status">${candidate.status === "linked-to-product" ? "Product vinculado" : candidate.status === "approved-for-intake" ? "Listo para P.1" : "Por revisar"}</span></div>
+            ${productFitSummary(request!, candidate, fitStore)}
+            ${relevantBenchmarks.length ? `<p><strong>Referencia editorial compatible:</strong> ${escapeHtml(relevantBenchmarks[0]!.editorRationale)}</p>` : ""}
+            ${redundant ? '<p class="error">Advertencia de diversidad: el Product vinculado ya aparece en la guía.</p>' : ""}
+            <div class="actions">${candidate.status === "linked-to-product" ? "" : `<a class="button" href="${reviewLink}">Revisar este candidato</a>`}${candidate.status === "needs-review" ? `<form method="post" action="/product-sourcing/${encodeURIComponent(request!.id)}/source-candidates/review"><input type="hidden" name="${escapeHtml(candidate.id)}" value="rejected"><input type="hidden" name="returnTo" value="/drafts/${escapeHtml(draft.id)}/curation"><button type="submit">Rechazar</button></form>` : ""}</div>
+            <details><summary>Ver evidencia</summary>${candidate.sourceFacts.length ? `<ul>${candidate.sourceFacts.map((fact) => `<li>${escapeHtml(fact)}</li>`).join("")}</ul>` : '<p class="muted">Sin hechos observados adicionales.</p>'}${candidate.observedPrice ? `<p>Precio observado, no verificado: ${escapeHtml(candidate.observedPrice)}</p>` : ""}${candidate.observedRating !== undefined ? `<p>Rating observado, no verificado: ${candidate.observedRating}</p>` : ""}<details><summary>Trazabilidad interna</summary><p><code>${escapeHtml(request!.id)}</code> · <code>${escapeHtml(candidate.id)}</code> · ${escapeHtml(candidate.provider)}</p></details></details>
+          </article>`;
+        })
+        .join("");
+      const action =
+        !slot.productId && catalogCandidates.length
+          ? "use-catalog-product"
+          : guideCurationNextAction(draft, slot, content, request);
+      const selected = slot.productId ? productsById.get(slot.productId) : undefined;
+      const resolutionState = selected
+        ? `Product resuelto · ${slot.editorialStatus === "ready" ? "copia lista" : "copia necesita revisión"}`
+        : slot.editorialStatus === "ready"
+          ? "Idea lista · Product sin resolver"
+          : "Idea y Product sin resolver";
+      const productClass = request?.searchPlan?.productClass ?? slot.slotLabel;
+      const alternativeRequest = Boolean(
+        slot.productId &&
+        request &&
+        (request.status === "open" || request.status === "partially-fulfilled") &&
+        !request.approvedProductIds.length,
+      );
+      const discoveryAction =
+        request?.searchPlan &&
+        discoverySource &&
+        request.discoveryRounds.length < DEFAULT_PRODUCT_DISCOVERY_LIMITS.maxRounds &&
+        (!slot.productId || alternativeRequest)
+          ? `<form method="post" action="/drafts/${encodeURIComponent(draft.id)}/curation/discover"><input type="hidden" name="slotId" value="${escapeHtml(slot.id)}">${alternativeRequest ? '<input type="hidden" name="includeResolved" value="yes">' : ""}<button type="submit">Buscar otros con ${escapeHtml(discoverySource.providerId)} · uso pago</button></form>`
+          : "";
+      const planEditor = request?.searchPlan
+        ? `<details><summary>Editar plan de búsqueda</summary><form method="post" action="/product-sourcing/${encodeURIComponent(request.id)}/plan" class="card"><input type="hidden" name="returnTo" value="/drafts/${escapeHtml(draft.id)}/curation"><label>Product class<input name="productClass" value="${value(request.searchPlan.productClass)}" required></label><label>Must-have · uno por línea<textarea name="mustHaveAttributes">${listText(request.searchPlan.mustHaveAttributes, "\n")}</textarea></label><label>Useful · uno por línea<textarea name="usefulAttributes">${listText(request.searchPlan.usefulAttributes, "\n")}</textarea></label><label>Exclusiones · una por línea<textarea name="exclusions">${listText(request.searchPlan.exclusions, "\n")}</textarea></label><label>Consultas · una por línea<textarea name="queries" required>${listText(request.searchPlan.queries, "\n")}</textarea></label><button type="submit">Guardar plan</button></form></details>`
+        : "";
+      const unresolvedActions = !slot.productId
+        ? `<div class="actions"><form method="post" action="/drafts/${encodeURIComponent(draft.id)}/curation/prepare"><input type="hidden" name="slotId" value="${escapeHtml(slot.id)}"><button type="submit">Preparar sólo este slot</button></form>${discoveryAction}<a class="button" href="/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(slot.id)}/idea-prompt">Mantener como idea</a></div><form method="post" action="/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(slot.id)}/resolve-url" class="card"><input type="hidden" name="returnTo" value="/drafts/${escapeHtml(draft.id)}/curation"><label>Pegar URL<input type="url" name="url" required placeholder="https://..."></label><button type="submit">Pegar URL</button></form>`
+        : `<div class="actions"><a href="/drafts/${encodeURIComponent(draft.id)}#slot-${encodeURIComponent(slot.id)}">Revisión manual</a><a href="/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(slot.id)}/prompt">Regeneración enfocada</a><form method="post" action="/drafts/${encodeURIComponent(draft.id)}/curation/prepare"><input type="hidden" name="slotId" value="${escapeHtml(slot.id)}"><input type="hidden" name="includeResolved" value="yes"><button type="submit">Buscar alternativas</button></form>${discoveryAction}</div>`;
+      return `<section class="card"><div class="actions"><div><p class="muted">Recomendación ${slot.position}</p><h2>${escapeHtml(slot.heading ?? slot.slotLabel)}</h2></div><span class="status">${escapeHtml(resolutionState)}</span></div>
+        <p><strong>Propósito:</strong> ${escapeHtml(slot.slotIntent ?? slot.slotLabel)}</p><p><strong>Product class:</strong> ${escapeHtml(productClass)}</p>
+        ${request ? `<p class="muted">Sourcing integrado: ${escapeHtml(request.status)}${request.searchPlan ? ` · plan listo · ${request.sourceCandidates.length} candidato(s)` : ""}</p>` : ""}
+        <p class="notice"><strong>Siguiente acción recomendada:</strong> ${escapeHtml(guideCurationActionLabels[action])}</p>
+        ${selected ? `<article class="card"><h3>${escapeHtml(selected.name)}</h3><p>${escapeHtml(selected.shortDescription)}</p></article>` : ""}
+        ${catalogCards ? `<h3>Candidatos del catálogo</h3><div class="grid">${catalogCards}</div>` : ""}
+        ${externalCards ? `<h3>Candidatos externos</h3><div class="grid">${externalCards}</div>` : ""}
+        ${!selected && !catalogCards && !externalCards ? '<p class="muted">Todavía no hay una shortlist. La idea puede seguir siendo publicable sin Product cuando su copia esté lista.</p>' : ""}
+        ${unresolvedActions}${planEditor}
+        <details><summary>IDs y trazabilidad</summary><p><code>${escapeHtml(draft.id)}</code> · <code>${escapeHtml(slot.id)}</code>${request ? ` · <code>${escapeHtml(request.id)}</code>` : ""}</p></details>
+      </section>`;
+    })
+    .join("");
+  return page(
+    `Curación · ${draftName(draft)}`,
+    `<p><a href="/drafts/${encodeURIComponent(draft.id)}">← Volver a la guía</a></p><div class="actions"><div><h1>Curación de la guía</h1><p>Elegí Products; los diagnósticos completos quedan en detalles.</p></div><a class="button" href="/drafts/${encodeURIComponent(draft.id)}/preview">Vista previa</a></div>
+    <section class="card"><h2>Progreso</h2><div class="actions">${progressItems.map(([label, count]) => `<span class="status">${count} ${escapeHtml(label)}</span>`).join("")}</div></section>
+    ${selection}<p class="notice">Orden de resolución: catálogo y referencias editoriales; candidatos recientes; ${discoverySource ? escapeHtml(discoverySource.providerId) : "proveedor externo desactivado"}; URL manual; o idea-only. DataForSEO sólo existe cuando fue elegido y habilitado explícitamente. Nunca hay fallback pago oculto ni selección automática.</p>
+    ${cards}`,
+  );
 }
 
 function productSourcingListPage(
@@ -2385,6 +2576,7 @@ function recommendationCopyFromForm(
       editorialDescription: optionalValue(form, "editorialDescription"),
       whyItFits: optionalValue(form, "whyItFits"),
       bestFor: optionalValue(form, "bestFor"),
+      selectionGuidance: optionalValue(form, "selectionGuidance"),
       considerations: optionalValue(form, "considerations"),
     },
     form.get("markReady") === "yes",
@@ -2643,9 +2835,10 @@ function recommendationSelectionSection(
           <label>Descripción editorial<textarea name="editorialDescription" rows="4">${value(recommendation.editorialDescription)}</textarea></label>
           <label>Por qué encaja<textarea name="whyItFits" rows="3">${value(recommendation.whyItFits)}</textarea></label>
           <label>Ideal para<input name="bestFor" value="${value(recommendation.bestFor)}"></label>
+          <label>Guía de selección<textarea name="selectionGuidance" rows="3">${value(recommendation.selectionGuidance)}</textarea></label>
           <label>Consideraciones<textarea name="considerations" rows="3">${value(recommendation.considerations)}</textarea></label>
           <label><input type="checkbox" name="markReady" value="yes"> ${selected ? "Revisé el producto actual" : "Revisé que esta idea no contenga nombres, comercios, precios ni datos específicos de un Product"} y quiero marcar esta recomendación como lista.</label>
-          <div class="actions"><button type="submit">Guardar recomendación</button>${selected ? `<a href="/drafts/${draft.id}/recommendations/${recommendation.id}/prompt">Ver prompt y regenerar sólo esta recomendación</a>` : ""}</div>
+          <div class="actions"><button type="submit">Guardar recomendación</button>${selected ? `<a href="/drafts/${draft.id}/recommendations/${recommendation.id}/prompt">Ver prompt y regenerar sólo esta recomendación</a>` : `<a href="/drafts/${draft.id}/recommendations/${recommendation.id}/idea-prompt">Generar guía de selección idea-only</a>`}</div>
         </form>
         <details open>
           <summary>${selected ? "Reemplazar producto" : "Sugerencias del catálogo"}</summary>
@@ -2721,7 +2914,7 @@ function guideEditorPage(
   return page(
     draftName(draft),
     `<p><a href="/">← Borradores</a></p>
-     <div class="actions"><div><h1>${escapeHtml(draftName(draft))}</h1><p><code>${escapeHtml(draft.id)}</code> · ${escapeHtml(draft.status)}</p></div><a class="button" href="/drafts/${draft.id}/outline-prompt">${draft.outline ? "Revisar o regenerar esquema" : "Revisar y generar esquema"}</a><a class="button" href="/drafts/${draft.id}/final-prompt">Generación final</a><a class="button" href="/drafts/${draft.id}/preview">Vista previa</a><a class="button" href="/drafts/${draft.id}/validate">Validar</a></div>
+     <div class="actions"><div><h1>${escapeHtml(draftName(draft))}</h1><p><code>${escapeHtml(draft.id)}</code> · ${escapeHtml(draft.status)}</p></div><a class="button" href="/drafts/${draft.id}/curation">Buscar productos para slots sin resolver</a><a class="button" href="/drafts/${draft.id}/outline-prompt">${draft.outline ? "Revisar o regenerar esquema" : "Revisar y generar esquema"}</a><a class="button" href="/drafts/${draft.id}/final-prompt">Generación final</a><a class="button" href="/drafts/${draft.id}/preview">Vista previa</a><a class="button" href="/drafts/${draft.id}/validate">Validar</a></div>
      <aside class="notice"><strong>Cómo funciona la arquitectura editorial</strong><p>Las taxonomías clasifican contenido; no crean URLs. Una ruta pública existe sólo al publicar un hub o una guía. Cada guía hija pertenece a un cluster válido. Las guías relacionadas son enlaces editoriales, no jerarquía. “Nurse Gifts Under $25” es una guía con eje <code>budget</code>, no un filtro generado.</p></aside>
      <form method="post" action="/drafts/${draft.id}/guide/architecture" class="card">
        <h2>Arquitectura de la guía</h2>
@@ -2837,6 +3030,30 @@ function recommendationPromptPage(
   );
 }
 
+function ideaRecommendationPromptPage(
+  draft: GuideDraft,
+  recommendationId: string,
+  provider: GuideGenerationProvider,
+  sourcingStore: ProductSourcingRequestStore,
+): string {
+  const request = guideSourcingRequestForSlot(sourcingStore.list(), draft.id, recommendationId);
+  const prepared = prepareIdeaRecommendationPrompt(
+    draft,
+    recommendationId,
+    readPublicContent(),
+    request,
+  );
+  return page(
+    `Prompt idea-only · ${draftName(draft)}`,
+    `<p><a href="/drafts/${encodeURIComponent(draft.id)}/curation">← Volver a curación</a></p>
+     <h1>Generar una recomendación idea-only</h1>
+     <p class="notice">Sólo cambiará la copia de esta idea. Conserva su ID, posición y propósito; no incluye Products, candidatos, comercios, URLs ni datos comerciales.</p>
+     <p>Versión <code>${escapeHtml(prepared.version)}</code> · proveedor <code>${escapeHtml(provider.providerId)}</code>${provider.modelId ? ` · modelo <code>${escapeHtml(provider.modelId)}</code>` : ""}</p>
+     <details><summary>Ver prompt y contexto heredado</summary><pre>${escapeHtml(prepared.prompt)}</pre></details>
+     <form method="post" action="/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(recommendationId)}/idea/generate"><input type="hidden" name="promptVersion" value="${escapeHtml(prepared.version)}"><button type="submit">Generar guía de selección idea-only</button></form>`,
+  );
+}
+
 function guidePreviewPage(draft: GuideDraft): string {
   const content = readPublicContent();
   const validation = validateGuideDraft(draft, content);
@@ -2857,6 +3074,7 @@ function guidePreviewPage(draft: GuideDraft): string {
         <p>${escapeHtml(recommendation.editorialDescription ?? "Falta la descripción editorial.")}</p>
         <p><strong>Por qué encaja:</strong> ${escapeHtml(recommendation.whyItFits ?? "Falta este motivo.")}</p>
         ${recommendation.bestFor ? `<p><strong>Ideal para:</strong> ${escapeHtml(recommendation.bestFor)}</p>` : ""}
+        ${recommendation.selectionGuidance ? `<p><strong>Cómo elegir:</strong> ${escapeHtml(recommendation.selectionGuidance)}</p>` : ""}
         ${recommendation.considerations ? `<p><strong>Consideraciones:</strong> ${escapeHtml(recommendation.considerations)}</p>` : ""}
         ${destination && product ? `<p><a href="${escapeHtml(destination)}" target="_blank" rel="${linkRel}">${isAffiliate ? "Ver en" : "Ver producto en"} ${escapeHtml(product.merchant)}</a></p>` : ""}
       </article>`;
@@ -3187,6 +3405,167 @@ export function createStudioServer(
         redirect(response, `/drafts/${draft.id}`);
         return;
       }
+      const guideCurationMatch =
+        method === "GET" ? /^\/drafts\/([a-z0-9_-]+)\/curation$/.exec(url.pathname) : null;
+      if (guideCurationMatch?.[1]) {
+        send(
+          response,
+          200,
+          guideCurationPage(
+            await readGuideDraft(store, guideCurationMatch[1]),
+            catalog,
+            sourcingStore,
+            fitStore,
+            benchmarkStore,
+            discoverySource,
+          ),
+        );
+        return;
+      }
+      const guideCurationPrepareMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/curation\/prepare$/.exec(url.pathname)
+          : null;
+      if (guideCurationPrepareMatch?.[1]) {
+        const form = await readForm(request);
+        const draft = await readGuideDraft(store, guideCurationPrepareMatch[1]);
+        const slotIds = [...new Set(form.getAll("slotId").map((id) => id.trim()))].filter(Boolean);
+        const includeResolved = form.get("includeResolved") === "yes";
+        const slots = selectGuideWideResolutionSlots(
+          draft,
+          slotIds.length ? slotIds : undefined,
+          includeResolved,
+        );
+        const brief = briefStore.list().find(({ guideDraftId }) => guideDraftId === draft.id);
+        const ensured: ProductSourcingRequest[] = [];
+        for (const slot of slots) {
+          const current = guideSourcingRequestForSlot(sourcingStore.list(), draft.id, slot.id);
+          const forceNew =
+            includeResolved && Boolean(slot.productId) && current?.status === "fulfilled";
+          ensured.push(
+            await ensureDraftSlotSourcingRequest(draft, slot.id, sourcingStore, brief, forceNew),
+          );
+        }
+        const needsPlan = ensured.filter(({ searchPlan }) => !searchPlan);
+        if (needsPlan.length) {
+          const planned = await generateProductSearchPlans(
+            needsPlan,
+            provider,
+            [draft],
+            brief ? [brief] : [],
+          );
+          for (const sourcingRequest of planned) await sourcingStore.save(sourcingRequest);
+        }
+        redirect(response, `/drafts/${encodeURIComponent(draft.id)}/curation`);
+        return;
+      }
+      const guideCurationDiscoveryMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/curation\/discover$/.exec(url.pathname)
+          : null;
+      if (guideCurationDiscoveryMatch?.[1]) {
+        if (!discoverySource) {
+          throw new TypeError(
+            "El descubrimiento externo está desactivado; usá catálogo, URL manual o idea-only.",
+          );
+        }
+        const form = await readForm(request);
+        const draft = await readGuideDraft(store, guideCurationDiscoveryMatch[1]);
+        const slotIds = [...new Set(form.getAll("slotId").map((id) => id.trim()))].filter(Boolean);
+        const includeResolved = form.get("includeResolved") === "yes";
+        const slots = selectGuideWideResolutionSlots(
+          draft,
+          slotIds.length ? slotIds : undefined,
+          includeResolved,
+        );
+        const content = catalog.read();
+        const benchmarks = benchmarkStore.list(content.products);
+        for (const slot of slots) {
+          const sourcingRequest = guideSourcingRequestForSlot(
+            sourcingStore.list(),
+            draft.id,
+            slot.id,
+          );
+          if (!sourcingRequest?.searchPlan) {
+            throw new TypeError(`Prepará primero la búsqueda para "${slot.slotLabel}".`);
+          }
+          const compatibleBenchmarks = relevantEditorialBenchmarks(
+            draft,
+            slot,
+            sourcingRequest,
+            benchmarks,
+          );
+          if (
+            sourcingRequest.discoveryRounds.length >= DEFAULT_PRODUCT_DISCOVERY_LIMITS.maxRounds
+          ) {
+            continue;
+          }
+          await sourcingStore.save(
+            await runProductDiscovery(sourcingRequest, discoverySource, {
+              products: content.products,
+              allRequests: sourcingStore.list(),
+              benchmarkProductIds: compatibleBenchmarks.map(
+                ({ canonicalProductId }) => canonicalProductId,
+              ),
+              slotResolved: includeResolved ? false : Boolean(slot.productId),
+              forceExternal: form.get("forceExternal") === "yes",
+              round: sourcingRequest.discoveryRounds.length + 1,
+            }),
+          );
+        }
+        redirect(response, `/drafts/${encodeURIComponent(draft.id)}/curation`);
+        return;
+      }
+      const guideCurationUseProductMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/curation\/use-product$/.exec(url.pathname)
+          : null;
+      if (guideCurationUseProductMatch?.[1]) {
+        const form = await readForm(request);
+        const draft = await readGuideDraft(store, guideCurationUseProductMatch[1]);
+        const slotId = requiredValue(form, "slotId", "El slot");
+        const productId = requiredValue(form, "productId", "El Product canónico");
+        const brief = briefStore.list().find(({ guideDraftId }) => guideDraftId === draft.id);
+        let sourcingRequest = await ensureDraftSlotSourcingRequest(
+          draft,
+          slotId,
+          sourcingStore,
+          brief,
+        );
+        if (
+          sourcingRequest.status === "fulfilled" &&
+          !sourcingRequest.approvedProductIds.includes(productId)
+        ) {
+          sourcingRequest = await ensureDraftSlotSourcingRequest(
+            draft,
+            slotId,
+            sourcingStore,
+            brief,
+            true,
+          );
+        }
+        if (!sourcingRequest.approvedProductIds.includes(productId)) {
+          sourcingRequest = await sourcingStore.save(
+            selectCanonicalProductForRequest(
+              sourcingRequest,
+              productId,
+              catalog.read().products,
+              "fulfilled",
+            ),
+          );
+        }
+        await store.save(
+          assignSourcedProductToDraftSlot(
+            sourcingRequest,
+            productId,
+            draft,
+            catalog.read(),
+            form.get("allowDuplicate") === "yes",
+          ),
+        );
+        redirect(response, `/drafts/${encodeURIComponent(draft.id)}/curation`);
+        return;
+      }
       const outlinePromptMatch =
         method === "GET" ? /^\/drafts\/([a-z0-9_-]+)\/outline-prompt$/.exec(url.pathname) : null;
       if (outlinePromptMatch?.[1]) {
@@ -3248,6 +3627,54 @@ export function createStudioServer(
             provider,
           ),
         );
+        return;
+      }
+      const ideaRecommendationPromptMatch =
+        method === "GET"
+          ? /^\/drafts\/([a-z0-9_-]+)\/recommendations\/([a-z0-9_-]+)\/idea-prompt$/.exec(
+              url.pathname,
+            )
+          : null;
+      if (ideaRecommendationPromptMatch?.[1] && ideaRecommendationPromptMatch[2]) {
+        send(
+          response,
+          200,
+          ideaRecommendationPromptPage(
+            await readGuideDraft(store, ideaRecommendationPromptMatch[1]),
+            ideaRecommendationPromptMatch[2],
+            provider,
+            sourcingStore,
+          ),
+        );
+        return;
+      }
+      const generateIdeaRecommendationMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/recommendations\/([a-z0-9_-]+)\/idea\/generate$/.exec(
+              url.pathname,
+            )
+          : null;
+      if (generateIdeaRecommendationMatch?.[1] && generateIdeaRecommendationMatch[2]) {
+        const form = await readForm(request);
+        if (form.get("promptVersion") !== IDEA_RECOMMENDATION_PROMPT_VERSION) {
+          throw new TypeError("Revisá el prompt idea-only vigente antes de generar.");
+        }
+        const draft = await readGuideDraft(store, generateIdeaRecommendationMatch[1]);
+        const sourcingRequest = guideSourcingRequestForSlot(
+          sourcingStore.list(),
+          draft.id,
+          generateIdeaRecommendationMatch[2],
+        );
+        await store.save(
+          await generateIdeaOnlyRecommendation(
+            draft,
+            generateIdeaRecommendationMatch[2],
+            catalog.read(),
+            provider,
+            sourcingRequest,
+          ),
+        );
+        redirect(response, `/drafts/${encodeURIComponent(draft.id)}/curation`);
         return;
       }
       const regenerateRecommendationMatch =
@@ -3400,7 +3827,7 @@ export function createStudioServer(
         const candidate = existing ?? saved.sourceCandidates.at(-1)!;
         redirect(
           response,
-          `/products/intake?returnTo=${encodeURIComponent(`/product-sourcing/${encodeURIComponent(saved.id)}`)}&requestId=${encodeURIComponent(saved.id)}&candidateId=${encodeURIComponent(candidate.id)}`,
+          `/products/intake?returnTo=${encodeURIComponent(safeReturnTo(form.get("returnTo")) ?? `/product-sourcing/${encodeURIComponent(saved.id)}`)}&requestId=${encodeURIComponent(saved.id)}&candidateId=${encodeURIComponent(candidate.id)}`,
         );
         return;
       }
@@ -3640,19 +4067,33 @@ export function createStudioServer(
         if (round !== 1 && round !== 2) throw new TypeError("La ronda no es válida.");
         const sourcingRequest = sourcingStore.get(productDiscoveryMatch[1]);
         const sourcingOrigin = sourcingRequest.origin;
-        const slotResolved =
+        const originDraft =
           sourcingOrigin.kind === "recommendation-slot"
-            ? Boolean(
-                (await readGuideDraft(store, sourcingOrigin.guideDraftId)).recommendations.find(
-                  ({ id }) => id === sourcingOrigin.recommendationSlotId,
-                )?.productId,
-              )
-            : false;
+            ? await readGuideDraft(store, sourcingOrigin.guideDraftId)
+            : undefined;
+        const originSlot = originDraft?.recommendations.find(
+          ({ id }) =>
+            id ===
+            (sourcingOrigin.kind === "recommendation-slot"
+              ? sourcingOrigin.recommendationSlotId
+              : undefined),
+        );
+        const content = catalog.read();
+        const benchmarkProductIds =
+          originDraft && originSlot
+            ? relevantEditorialBenchmarks(
+                originDraft,
+                originSlot,
+                sourcingRequest,
+                benchmarkStore.list(content.products),
+              ).map(({ canonicalProductId }) => canonicalProductId)
+            : [];
         const saved = await sourcingStore.save(
           await runProductDiscovery(sourcingRequest, discoverySource, {
-            products: catalog.read().products,
+            products: content.products,
             allRequests: sourcingStore.list(),
-            slotResolved,
+            benchmarkProductIds,
+            slotResolved: Boolean(originSlot?.productId),
             forceExternal: form.get("forceExternal") === "yes",
             round,
           }),
@@ -3677,6 +4118,27 @@ export function createStudioServer(
           ),
         );
         redirect(response, `/product-sourcing/${encodeURIComponent(saved.id)}`);
+        return;
+      }
+      const productSourcingPlanMatch =
+        method === "POST"
+          ? /^\/product-sourcing\/(request_[a-z0-9_-]+)\/plan$/.exec(url.pathname)
+          : null;
+      if (productSourcingPlanMatch?.[1]) {
+        const form = await readForm(request);
+        const saved = await sourcingStore.save(
+          updateProductSearchPlan(sourcingStore.get(productSourcingPlanMatch[1]), {
+            productClass: requiredValue(form, "productClass", "La clase de Product"),
+            mustHaveAttributes: listValue(form, "mustHaveAttributes", "\n") ?? [],
+            usefulAttributes: listValue(form, "usefulAttributes", "\n") ?? [],
+            exclusions: listValue(form, "exclusions", "\n") ?? [],
+            queries: listValue(form, "queries", "\n") ?? [],
+          }),
+        );
+        redirect(
+          response,
+          safeReturnTo(form.get("returnTo")) ?? `/product-sourcing/${encodeURIComponent(saved.id)}`,
+        );
         return;
       }
       const productSourcingSelectionMatch =
@@ -3756,7 +4218,10 @@ export function createStudioServer(
         const saved = await sourcingStore.save(
           reviewProductSourceCandidates(sourcingRequest, decisions),
         );
-        redirect(response, `/product-sourcing/${encodeURIComponent(saved.id)}`);
+        redirect(
+          response,
+          safeReturnTo(form.get("returnTo")) ?? `/product-sourcing/${encodeURIComponent(saved.id)}`,
+        );
         return;
       }
       const sourceCandidateLinkMatch =

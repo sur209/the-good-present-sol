@@ -156,6 +156,7 @@ type UnresolvedGiftIdea = {
   editorialDescription: string;
   whyItFits: string;
   bestFor?: string;
+  selectionGuidance?: string;
   considerations?: string;
   editorialStatus: "ready";
 };
@@ -165,9 +166,11 @@ type GuideRecommendation = ProductBackedRecommendation | UnresolvedGiftIdea;
 
 Every guide has a nonempty explicit intent, one controlled primary axis, and at least one recommendation. Recommendation IDs and positions are unique within a guide. Related guides are unique, cannot self-reference, and must exist in the same cluster. Product-backed recommendations resolve active products by stable ID rather than duplicating product records.
 
-P.2 deliberately extends the original Goal 1/Goal 2 Product-required recommendation contract. Existing Product-backed records keep their exact shape and require no migration. An idea-only record is unambiguous because it must contain `productResolution: "unresolved"`, must not contain `productId`, and must still be editorially `ready`. It may contain only generic editorial guidance: no Product or merchant identity, price, rating, review, stock, discount, availability, unsupported Product specification, or shopping CTA. `considerations` carries any current what-to-look-for guidance without adding a parallel field.
+P.2 deliberately extends the original Goal 1/Goal 2 Product-required recommendation contract. Existing Product-backed records keep their exact shape and require no migration. An idea-only record is unambiguous because it must contain `productResolution: "unresolved"`, must not contain `productId`, and must still be editorially `ready`. It may contain only generic editorial guidance: no Product or merchant identity, price, rating, review, stock, discount, availability, unsupported Product specification, or shopping CTA. `selectionGuidance` carries practical what-to-look-for attributes, while `considerations` carries tradeoffs or cautions; both remain generic.
 
-`productResolution` is intentionally asymmetric for backward compatibility: legacy Product-backed records are resolved by their required `productId`; only the new idea-only branch carries the discriminator. A recommendation ID and position survive unresolved publication, sourcing, later Product resolution, and Product replacement.
+`productResolution` is intentionally asymmetric for backward compatibility: legacy Product-backed records are resolved by their required `productId`; only the new idea-only branch carries the discriminator. A recommendation ID and position survive unresolved publication, sourcing, later Product resolution, and Product replacement. Publishing does not erase the Product-resolution gap: I.0 continues to report the published idea, while A.2 treats it as a monetization opportunity rather than an affiliate-validation failure.
+
+Later Product resolution reuses the same guide and recommendation identity. The Studio creates or reuses the exact slot-origin I.2 request, sends the chosen candidate through P.1 review and P.0 provenance into the canonical catalog, then explicitly fulfills the request and assigns the Product. Generic idea copy is moved to the existing `needs-review` draft state; it is never assumed to be Product-specific `ready`. The editor can review it manually or regenerate only that recommendation before republishing the same guide route.
 
 ## Product update and replacement
 

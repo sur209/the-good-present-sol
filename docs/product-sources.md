@@ -138,7 +138,7 @@ External candidate discovery stays inside `apps/studio/src/modules/product-sourc
 
 The editor first selects unresolved sourcing requests and generates one batched `SearchPlan` through the existing editorial structured-generation provider. The prompt derives the editorial problem, use case, intended Product class, attributes, exclusions, and one to three concrete queries from the `GuideDraft`, stable recommendation slot, I.2 request, questionnaire, originating brief, budget, and taxonomies. Editors do not re-enter known context. The plan and provider metadata are stored on each existing request.
 
-Before an external call, the run checks the canonical catalog and recent compatible candidates. Resolved slots are skipped. An editor may explicitly override reusable evidence, but each slot remains capped at three queries, four stored external candidates, two concurrent calls, three provider calls per run, and two total rounds. Only the first round is offered initially; the second requires its own editor action. There is no retry-until-satisfied loop.
+Before an external call, the run checks the canonical catalog, relevant EditorialBenchmarks, and recent compatible candidates. Resolved slots are skipped. An editor may explicitly override reusable evidence, but each slot remains capped at three queries, four stored external candidates, two concurrent calls, three provider calls per run, and two total rounds. Only the first round is offered initially; the second requires its own editor action. There is no retry-until-satisfied loop.
 
 SerpAPI uses its current Google Shopping endpoint and API-key query authentication. DataForSEO uses its current Google organic live advanced endpoint with HTTP Basic authentication and extracts only returned shopping elements. These behaviors were verified against the official provider documentation on 2026-08-11:
 
@@ -148,6 +148,16 @@ SerpAPI uses its current Google Shopping endpoint and API-key query authenticati
 No pricing or quota number is a domain invariant. Provider quota, configuration, timeout, malformed-response, unavailable, and zero-result states are surfaced as bounded round outcomes. `PRODUCT_DISCOVERY_PROVIDER` defaults to `disabled`; selecting `serpapi` also requires `SERPAPI_API_KEY`. DataForSEO additionally requires `DATAFORSEO_ENABLED=true`, `PRODUCT_DISCOVERY_PAID_POLICY=allow-paid-dataforseo`, and credentials. SerpAPI failure never invokes DataForSEO, because runtime configuration constructs exactly one selected provider and contains no fallback chain. Missing credentials leave catalog, recent-candidate, manual URL, and idea-only operation available.
 
 Provider fields remain observation evidence on the candidate: title, merchant/domain, source URL, external/product ID, observed price, rating/review metadata, query, provider, and timestamp are copied only when actually returned. They do not become canonical verified facts. P.1 keeps that discovery provenance in the ordinary non-public `ProductSourceRecord`, while the editor authors and verifies the canonical Product separately.
+
+## P.2.4 guide-wide resolution
+
+The GuideDraft curation board creates or reuses one exact slot-origin I.2 request for every selected recommendation, then sends the inherited contexts through one batch SearchPlan generation. Its default selection is all Product-unresolved slots; a subset or exact slot is allowed, and resolved/ready slots are skipped unless the editor explicitly requests alternatives.
+
+Resolution order is fixed and visible: active canonical catalog; relevant EditorialBenchmarks and recent compatible candidates; the one configured SerpAPI adapter; DataForSEO only when it is both enabled and explicitly selected; manual URL; or remain idea-only. Provider adapters are never chained, so a SerpAPI failure cannot spend against DataForSEO. SearchPlan edits and additional bounded rounds remain explicit editor actions.
+
+Sourcing and provenance records support the decision without becoming separate checklist stages. Reviewing a candidate opens the existing P.1 intake; confirmed intake creates the ordinary P.0 record and links it to the candidate. The editor then explicitly fulfills I.2 and assigns the canonical Product to the exact slot. The board never assigns a source candidate or auto-selects a Product.
+
+All SearchPlans, candidates, evaluations, benchmarks, requests, provider observations, source identities, IDs, and trace data remain under `editorial-data/` or Studio draft storage. Astro reads canonical `content/` only, so guide-wide discovery internals cannot enter the public build.
 
 ## Verification
 

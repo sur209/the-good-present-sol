@@ -138,6 +138,7 @@ const unresolvedGuideRecommendationSchema = z.strictObject({
   editorialDescription: nonEmptyString,
   whyItFits: nonEmptyString,
   bestFor: nonEmptyString.optional(),
+  selectionGuidance: nonEmptyString.optional(),
   considerations: nonEmptyString.optional(),
   editorialStatus: z.literal("ready"),
 });

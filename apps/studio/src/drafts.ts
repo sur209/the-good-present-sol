@@ -97,6 +97,7 @@ export const draftRecommendationSchema = z.strictObject({
   editorialDescription: optionalText,
   whyItFits: optionalText,
   bestFor: optionalText,
+  selectionGuidance: optionalText,
   considerations: optionalText,
   editorialStatus: draftEditorialStatusSchema,
 });

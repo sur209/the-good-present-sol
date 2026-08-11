@@ -3,6 +3,7 @@ import { z } from "zod";
 import { finalPromptInputSchema, type FinalPromptInput } from "./final-prompt.ts";
 import { outlinePromptInputSchema } from "./outline-prompt.ts";
 import { recommendationPromptInputSchema } from "./recommendation-prompt.ts";
+import { ideaRecommendationPromptInputSchema } from "./idea-prompt.ts";
 import {
   mockOpportunityGeneration,
   opportunityGenerationPromptInputSchema,
@@ -32,6 +33,7 @@ export interface StructuredGenerationRequest<T> {
     | "outline"
     | "final-guide"
     | "single-recommendation"
+    | "idea-recommendation"
     | "opportunity-candidates"
     | "opportunity-evaluations"
     | "product-search-plans"
@@ -448,6 +450,25 @@ export class MockGuideGenerationProvider implements GuideGenerationProvider {
     if (request.operation === "single-recommendation") {
       const input = recommendationPromptInputSchema.parse(request.input);
       return request.schema.parse(mockRecommendation(input.recommendation));
+    }
+    if (request.operation === "idea-recommendation") {
+      const { recommendation } = ideaRecommendationPromptInputSchema.parse(request.input);
+      const attributes = recommendation.whatToLookFor.slice(0, 3);
+      return request.schema.parse({
+        id: recommendation.id,
+        position: recommendation.position,
+        heading: `A thoughtful ${recommendation.productClass.toLocaleLowerCase("en-US")} idea`,
+        editorialDescription: `Choose a version that fits the recipient's routine and the purpose of this gift slot.`,
+        whyItFits:
+          recommendation.slotIntent ??
+          `It gives the recipient something useful while keeping the choice personal.`,
+        selectionGuidance: attributes.length
+          ? `Compare ${attributes.join(", ")} and favor the option that best suits everyday use.`
+          : "Compare ease of use, care, and suitability for the recipient's routine.",
+        ...(recommendation.exclusions.length
+          ? { considerations: `Avoid ${recommendation.exclusions.join(" and ")}.` }
+          : {}),
+      });
     }
     throw new TypeError(`Mock operation not implemented: ${request.operation}`);
   }

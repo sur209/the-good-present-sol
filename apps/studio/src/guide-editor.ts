@@ -24,6 +24,13 @@ import {
 } from "./final-prompt.ts";
 import { prepareOutlinePrompt } from "./outline-prompt.ts";
 import {
+  generatedIdeaRecommendationSchema,
+  IDEA_RECOMMENDATION_PROMPT_VERSION,
+  prepareIdeaRecommendationPrompt,
+  type GeneratedIdeaRecommendation,
+} from "./idea-prompt.ts";
+import type { ProductSourcingRequest } from "./modules/product-intelligence/sourcing.ts";
+import {
   prepareRecommendationPrompt,
   RECOMMENDATION_PROMPT_VERSION,
 } from "./recommendation-prompt.ts";
@@ -148,7 +155,13 @@ export function selectRecommendationProduct(
   recommendations[index] = {
     ...recommendation,
     productId,
-    editorialStatus: recommendation.productId ? "needs-review" : "needs-generation",
+    editorialStatus:
+      recommendation.productId ||
+      recommendation.editorialDescription ||
+      recommendation.whyItFits ||
+      recommendation.selectionGuidance
+        ? "needs-review"
+        : "needs-generation",
   };
   return guideDraftSchema.parse({ ...draft, status: "selecting-products", recommendations });
 }
@@ -291,6 +304,7 @@ export async function generateFinalGuide(
         editorialDescription: _editorialDescription,
         whyItFits: _whyItFits,
         bestFor: _bestFor,
+        selectionGuidance: _selectionGuidance,
         considerations: _considerations,
         editorialStatus: _editorialStatus,
         ...slot
@@ -332,6 +346,7 @@ export async function regenerateRecommendation(
     editorialDescription: _editorialDescription,
     whyItFits: _whyItFits,
     bestFor: _bestFor,
+    selectionGuidance: _selectionGuidance,
     considerations: _considerations,
     editorialStatus: _editorialStatus,
     ...slot
@@ -345,6 +360,87 @@ export async function regenerateRecommendation(
     generationMetadata: generationMetadata(
       provider,
       RECOMMENDATION_PROMPT_VERSION,
+      prepared.prompt,
+      now,
+    ),
+  });
+}
+
+function rejectUnsafeIdeaOnlyClaims(
+  generated: GeneratedIdeaRecommendation,
+  content: ValidatedPublicContent,
+): void {
+  rejectGeneratedUrls(generated);
+  const copy = [
+    generated.heading,
+    generated.editorialDescription,
+    generated.whyItFits,
+    generated.selectionGuidance,
+    generated.considerations,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLocaleLowerCase("en-US");
+  const catalogTerms = [
+    ...content.products.map(({ name }) => name),
+    ...content.products.map(({ merchant }) => merchant),
+  ];
+  if (catalogTerms.some((term) => copy.includes(term.toLocaleLowerCase("en-US")))) {
+    throw new TypeError("La idea generada no puede nombrar Products ni comercios del catálogo.");
+  }
+  if (
+    /(?:[$€£]\s?\d|\b(?:usd|price|costs?|ratings?|reviews?|discounts?|stock|availability|available now|in stock)\b|\b\d+(?:\.\d+)?\s?(?:oz|ounces?|ml|liters?|inches?|cm|mm|hours?|watts?|volts?|mah|gb)\b)/i.test(
+      copy,
+    )
+  ) {
+    throw new TypeError(
+      "La idea generada no puede afirmar precios, ratings, disponibilidad ni especificaciones de Product.",
+    );
+  }
+}
+
+export async function generateIdeaOnlyRecommendation(
+  draft: GuideDraft,
+  recommendationId: string,
+  content: ValidatedPublicContent,
+  provider: GuideGenerationProvider,
+  request?: ProductSourcingRequest,
+  now = new Date(),
+): Promise<GuideDraft> {
+  const prepared = prepareIdeaRecommendationPrompt(draft, recommendationId, content, request);
+  const generated = generatedIdeaRecommendationSchema.parse(
+    await provider.generateStructured({
+      operation: "idea-recommendation",
+      prompt: prepared.prompt,
+      input: prepared.input,
+      schema: generatedIdeaRecommendationSchema,
+    }),
+  );
+  rejectUnsafeIdeaOnlyClaims(generated, content);
+  const index = recommendationIndex(draft, recommendationId);
+  const existing = draft.recommendations[index]!;
+  if (generated.id !== existing.id || generated.position !== existing.position) {
+    throw new TypeError("La respuesta cambió la identidad de la idea.");
+  }
+  const {
+    heading: _heading,
+    editorialDescription: _editorialDescription,
+    whyItFits: _whyItFits,
+    bestFor: _bestFor,
+    selectionGuidance: _selectionGuidance,
+    considerations: _considerations,
+    editorialStatus: _editorialStatus,
+    ...slot
+  } = existing;
+  const recommendations = [...draft.recommendations];
+  recommendations[index] = { ...slot, ...generated, editorialStatus: "ready" };
+  return guideDraftSchema.parse({
+    ...draft,
+    status: "editing",
+    recommendations,
+    generationMetadata: generationMetadata(
+      provider,
+      IDEA_RECOMMENDATION_PROMPT_VERSION,
       prepared.prompt,
       now,
     ),
@@ -369,6 +465,7 @@ export interface RecommendationEditorialCopy {
   editorialDescription?: string | undefined;
   whyItFits?: string | undefined;
   bestFor?: string | undefined;
+  selectionGuidance?: string | undefined;
   considerations?: string | undefined;
 }
 
@@ -464,6 +561,13 @@ export function validateGuideDraft(
     if (!recommendation.editorialDescription || !recommendation.whyItFits) {
       errors.push(`El slot "${recommendation.slotLabel}" necesita descripción y motivo.`);
     }
+    if (
+      !recommendation.productId &&
+      !recommendation.selectionGuidance &&
+      !recommendation.considerations
+    ) {
+      errors.push(`La idea "${recommendation.slotLabel}" necesita guía de selección.`);
+    }
     if (recommendation.productId) {
       const product = content.products.find((item) => item.id === recommendation.productId);
       if (!product || product.status !== "active") {
@@ -524,6 +628,11 @@ export function reopenGuideDraft(
           editorialDescription: recommendation.editorialDescription,
           whyItFits: recommendation.whyItFits,
           ...(recommendation.bestFor ? { bestFor: recommendation.bestFor } : {}),
+          ...(!recommendation.productId &&
+          "selectionGuidance" in recommendation &&
+          recommendation.selectionGuidance
+            ? { selectionGuidance: recommendation.selectionGuidance }
+            : {}),
           ...(recommendation.considerations
             ? { considerations: recommendation.considerations }
             : {}),

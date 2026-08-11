@@ -50,6 +50,7 @@ import {
   duplicateProductIds,
   generateFinalGuide,
   generateGuideOutline,
+  generateIdeaOnlyRecommendation,
   moveRecommendation,
   normalizeQuestionnaire,
   regenerateRecommendation,
@@ -69,6 +70,10 @@ import {
   validateProductUrl,
 } from "./product-catalog.ts";
 import { prepareRecommendationPrompt } from "./recommendation-prompt.ts";
+import {
+  generatedIdeaRecommendationSchema,
+  prepareIdeaRecommendationPrompt,
+} from "./idea-prompt.ts";
 import {
   affiliateProgramSchema,
   missingAffiliateProgramConfiguration,
@@ -91,6 +96,7 @@ import {
   prepareProductSearchPlanningPrompt,
   resolveProductDiscoveryConfiguration,
   runProductDiscovery,
+  updateProductSearchPlan,
   type ProductDiscoverySource,
 } from "./modules/product-sources/discovery.ts";
 import {
@@ -108,6 +114,11 @@ import {
   type ManualProductIntakeInput,
 } from "./modules/product-intelligence/intake.ts";
 import { analyzeProductCoverage } from "./modules/product-intelligence/coverage.ts";
+import {
+  guideCurationNextAction,
+  guideCurationProgress,
+  selectGuideWideResolutionSlots,
+} from "./modules/product-intelligence/curation.ts";
 import { inspectManualProductUrl } from "./modules/product-intelligence/manual-url.ts";
 import { productGapReportSchema } from "./modules/product-intelligence/gaps.ts";
 import {
@@ -134,6 +145,8 @@ import {
   assignSourcedProductToDraftSlot,
   catalogMatchesForRequest,
   createProductSourcingRequest,
+  createProductSourcingRequestForDraftSlot,
+  findProductSourcingRequestForDraftSlot,
   linkProductSourceCandidate,
   productSourcingPrefillForDraftSlot,
   productSourceCandidateSchema,
@@ -4153,6 +4166,64 @@ test("deduplica resultados, reutiliza catálogo/candidatos y nunca hace fallback
   assert.equal(dataForSeoCalls, 0);
 });
 
+test("prioriza benchmarks canónicos y permite editar el SearchPlan sin fallback externo", async () => {
+  const now = new Date("2026-08-11T12:00:00.000Z");
+  const product = new ProductCatalog().read().products[0]!;
+  const request = productSourcingRequestSchema.parse({
+    ...createProductSourcingRequest(
+      {
+        origin: { kind: "guide-draft", guideDraftId: "guide_benchmark-priority" },
+        intendedRole: "A deliberately unrelated role",
+        requiredCategory: "Xylophonic object",
+        audience: "Known audience",
+        occasion: "Known occasion",
+        budgetContext: "Known budget",
+        searchTerms: ["xylophonic"],
+      },
+      now,
+      "request_benchmark-priority",
+    ),
+    searchPlan: {
+      productClass: "Xylophonic object",
+      mustHaveAttributes: [],
+      usefulAttributes: [],
+      exclusions: [],
+      queries: ["xylophonic object"],
+      providerId: "mock",
+      promptVersion: "product-search-plan-v1",
+      plannedAt: now.toISOString(),
+    },
+  });
+  const edited = updateProductSearchPlan(request, {
+    productClass: "Edited object class",
+    mustHaveAttributes: ["required attribute"],
+    usefulAttributes: ["useful attribute"],
+    exclusions: ["excluded attribute"],
+    queries: ["edited query"],
+  });
+  assert.equal(edited.searchPlan!.productClass, "Edited object class");
+  assert.deepEqual(edited.searchPlan!.queries, ["edited query"]);
+  assert.equal(edited.searchPlan!.providerId, "mock");
+
+  let calls = 0;
+  const source: ProductDiscoverySource = {
+    providerId: "serpapi",
+    paidUsage: true,
+    async search() {
+      calls++;
+      return [];
+    },
+  };
+  const reused = await runProductDiscovery(edited, source, {
+    products: [product],
+    benchmarkProductIds: [product.id],
+    round: 1,
+    now,
+  });
+  assert.equal(reused.discoveryRounds[0]!.status, "reused-catalog");
+  assert.equal(calls, 0);
+});
+
 test("mantiene precio y ratings descubiertos como evidencia observada durante P.1", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-discovery-intake-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
@@ -5322,8 +5393,348 @@ test("separa la preparación editorial de la resolución de Product sin cambiar 
   );
   assert.equal(resolved.recommendations[0]!.id, slot.id);
   assert.equal(resolved.recommendations[0]!.productId, content.products[0]!.id);
-  assert.equal(resolved.recommendations[0]!.editorialStatus, "needs-generation");
+  assert.equal(resolved.recommendations[0]!.editorialStatus, "needs-review");
   assert.throws(() => prepareFinalPrompt(readyIdea, content), /no tiene producto/);
+});
+
+test("selecciona slots de resolución pendientes y resume el progreso sin mezclar estados", () => {
+  const content = new ProductCatalog().read();
+  const product = content.products[0]!;
+  const draft = guideDraftSchema.parse({
+    ...createGuideDraft("guide_wide-selection"),
+    recommendations: [
+      {
+        id: "slot_resolved-ready",
+        position: 1,
+        slotLabel: "Resolved gift",
+        productId: product.id,
+        editorialDescription: "Reviewed Product copy.",
+        whyItFits: "It fits the resolved slot.",
+        editorialStatus: "ready",
+      },
+      {
+        id: "slot_unresolved-review",
+        position: 2,
+        slotLabel: "Insulated tumbler",
+        editorialStatus: "needs-generation",
+      },
+      {
+        id: "slot_unresolved-ready",
+        position: 3,
+        slotLabel: "Recovery ritual",
+        editorialDescription: "Choose a format that suits their routine.",
+        whyItFits: "It remains useful without a specific Product.",
+        selectionGuidance: "Compare care, comfort, and ease of use.",
+        editorialStatus: "ready",
+      },
+    ],
+  });
+  const request = addProductSourceCandidates(
+    createProductSourcingRequestForDraftSlot(
+      draft,
+      draft.recommendations[1]!,
+      undefined,
+      new Date("2026-08-11T12:00:00.000Z"),
+      "request_wide-selection",
+    ),
+    [
+      {
+        sourceKind: "manual",
+        provider: "Observed source",
+        name: "Candidate needing review",
+        sourceFacts: [],
+      },
+    ],
+  );
+
+  assert.deepEqual(
+    selectGuideWideResolutionSlots(draft).map(({ id }) => id),
+    ["slot_unresolved-review", "slot_unresolved-ready"],
+  );
+  assert.deepEqual(
+    selectGuideWideResolutionSlots(draft, ["slot_unresolved-ready"]).map(({ id }) => id),
+    ["slot_unresolved-ready"],
+  );
+  assert.deepEqual(
+    selectGuideWideResolutionSlots(draft, ["slot_resolved-ready"], true).map(({ id }) => id),
+    ["slot_resolved-ready"],
+  );
+  assert.throws(
+    () => selectGuideWideResolutionSlots(draft, ["slot_resolved-ready"]),
+    /No unresolved Product slots/,
+  );
+  const progress = guideCurationProgress(draft, content, [request]);
+  assert.equal(progress.ideaReadyProductUnresolved, 1);
+  assert.equal(progress.candidateReview, 1);
+  assert.equal(progress.productResolved, 1);
+  assert.equal(
+    guideCurationNextAction(draft, draft.recommendations[1]!, content, request),
+    "use-catalog-product",
+  );
+  assert.equal(
+    guideCurationNextAction(
+      draft,
+      draft.recommendations[1]!,
+      { ...content, products: [] },
+      request,
+    ),
+    "review-candidate",
+  );
+});
+
+test("cura slots sin resolver en lote, hereda contexto y crea o reutiliza I.2", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-guide-curation-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const content = catalog.read();
+  const store = new DraftStore(join(repository, "drafts"));
+  const draft = await store.save(
+    guideDraftSchema.parse({
+      ...createGuideDraft("guide_bulk-curation"),
+      clusterId: content.clusters[0]!.id,
+      primaryAxis: "recipient",
+      primaryIntent: "Choose useful gifts without forcing a Product for every slot.",
+      questionnaire: {
+        giftCount: 3,
+        recipient: "Inherited audience",
+        occasion: "Inherited occasion",
+        budget: "Inherited budget",
+        avoid: "Inherited exclusion",
+      },
+      recommendations: [
+        {
+          id: "slot_bulk-resolved",
+          position: 1,
+          slotLabel: "Resolved slot",
+          productId: content.products[0]!.id,
+          editorialDescription: "Reviewed copy.",
+          whyItFits: "It fits.",
+          editorialStatus: "ready",
+        },
+        {
+          id: "slot_bulk-catalog",
+          position: 2,
+          slotLabel: "Insulated tumbler",
+          slotIntent: "Keep drinks secure during a long shift.",
+          searchTerms: ["insulated", "tumbler"],
+          editorialStatus: "needs-generation",
+        },
+        {
+          id: "slot_bulk-external",
+          position: 3,
+          slotLabel: "Xylophonic recovery object",
+          slotIntent: "Support a quiet recovery routine.",
+          searchTerms: ["xylophonic", "recovery"],
+          editorialStatus: "needs-generation",
+        },
+      ],
+    }),
+  );
+  const mock = new MockGuideGenerationProvider();
+  let searchPlanCalls = 0;
+  const provider: GuideGenerationProvider = {
+    providerId: mock.providerId,
+    modelId: mock.modelId,
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      if (request.operation === "product-search-plans") searchPlanCalls++;
+      return mock.generateStructured(request);
+    },
+  };
+  const server = createStudioServer(store, catalog, provider, new Publisher(repository));
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(() => server.close());
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+
+  const initialHtml = await (await fetch(`${origin}/drafts/${draft.id}/curation`)).text();
+  assert.match(initialHtml, /Buscar productos para slots sin resolver/);
+  assert.match(initialHtml, /Siguiente acción recomendada/);
+  assert.match(initialHtml, /IDs y trazabilidad/);
+  assert.match(initialHtml, /Pegar URL/);
+  assert.match(initialHtml, /Mantener como idea/);
+  assert.match(initialHtml, /DataForSEO sólo existe cuando fue elegido y habilitado/);
+
+  const prepared = await fetch(`${origin}/drafts/${draft.id}/curation/prepare`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams(),
+    redirect: "manual",
+  });
+  assert.equal(prepared.status, 303);
+  assert.equal(searchPlanCalls, 1);
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  let requests = sourcingStore.list();
+  assert.equal(requests.length, 2);
+  assert.ok(
+    requests.every(
+      ({ audience, occasion, budgetContext, exclusions, searchPlan }) =>
+        audience === "Inherited audience" &&
+        occasion === "Inherited occasion" &&
+        budgetContext === "Inherited budget" &&
+        exclusions.includes("Inherited exclusion") &&
+        Boolean(searchPlan),
+    ),
+  );
+  assert.equal(
+    requests.some(
+      ({ origin: requestOrigin }) =>
+        requestOrigin.kind === "recommendation-slot" &&
+        requestOrigin.recommendationSlotId === "slot_bulk-resolved",
+    ),
+    false,
+  );
+
+  const externalRequest = findProductSourcingRequestForDraftSlot(
+    requests,
+    draft.id,
+    "slot_bulk-external",
+  )!;
+  await sourcingStore.save(
+    addProductSourceCandidates(externalRequest, [
+      {
+        sourceKind: "serpapi",
+        provider: "SerpAPI",
+        name: "Observed external candidate",
+        sourceUrl: "https://merchant.example/observed",
+        sourceFacts: ["Observed description: internal discovery evidence"],
+        query: externalRequest.searchPlan!.queries[0]!,
+        observedAt: "2026-08-11T12:00:00.000Z",
+      },
+    ]),
+  );
+  const boardHtml = await (await fetch(`${origin}/drafts/${draft.id}/curation`)).text();
+  for (const action of [
+    "Usar Product existente",
+    "Revisar este candidato",
+    "Rechazar",
+    "Editar plan de búsqueda",
+    "Ver evidencia",
+  ]) {
+    assert.match(boardHtml, new RegExp(action));
+  }
+  assert.match(boardHtml, /Product class/);
+  assert.doesNotMatch(boardHtml, /productClassMatch:|negativeCriticalDimensions:/);
+
+  const selected = await fetch(`${origin}/drafts/${draft.id}/curation/use-product`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      slotId: "slot_bulk-catalog",
+      productId: "product_insulated-tumbler",
+    }),
+    redirect: "manual",
+  });
+  assert.equal(selected.status, 303);
+  const resolvedDraft = guideDraftSchema.parse(await store.read(draft.id));
+  assert.equal(
+    resolvedDraft.recommendations.find(({ id }) => id === "slot_bulk-catalog")!.productId,
+    "product_insulated-tumbler",
+  );
+  requests = sourcingStore.list();
+  assert.equal(requests.length, 2);
+  assert.equal(
+    findProductSourcingRequestForDraftSlot(requests, draft.id, "slot_bulk-catalog")!.status,
+    "fulfilled",
+  );
+
+  await fetch(`${origin}/drafts/${draft.id}/curation/prepare`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ slotId: "slot_bulk-external" }),
+    redirect: "manual",
+  });
+  assert.equal(sourcingStore.list().length, 2);
+  assert.equal(searchPlanCalls, 1);
+});
+
+test("genera idea-only segura con contexto heredado y deja Stage 2 Product-backed sin cambios", async () => {
+  const content = new ProductCatalog().read();
+  const draft = await generatedGuideDraft("guide_safe-idea-only");
+  const slot = draft.recommendations[0]!;
+  const request = productSourcingRequestSchema.parse({
+    ...createProductSourcingRequestForDraftSlot(
+      draft,
+      slot,
+      undefined,
+      new Date("2026-08-11T12:00:00.000Z"),
+      "request_safe-idea-only",
+    ),
+    searchPlan: {
+      productClass: "Recovery accessory",
+      mustHaveAttributes: ["easy care"],
+      usefulAttributes: ["comfortable format"],
+      exclusions: ["hard-to-clean materials"],
+      queries: ["recovery accessory gift"],
+      providerId: "mock",
+      modelId: "mock-editorial-v1",
+      promptVersion: "product-search-plan-v1",
+      plannedAt: "2026-08-11T12:00:00.000Z",
+    },
+  });
+  const prepared = prepareIdeaRecommendationPrompt(draft, slot.id, content, request);
+  const serializedInput = JSON.stringify(prepared.input);
+  assert.doesNotMatch(serializedInput, /merchant|affiliate|productUrl|sourceCandidates/);
+  assert.doesNotMatch(
+    prepared.prompt,
+    new RegExp(
+      content.products.map(({ name }) => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"),
+    ),
+  );
+  assert.deepEqual(prepared.input.recommendation.whatToLookFor.slice(0, 2), [
+    "easy care",
+    "comfortable format",
+  ]);
+
+  const generated = await generateIdeaOnlyRecommendation(
+    draft,
+    slot.id,
+    content,
+    new MockGuideGenerationProvider(),
+    request,
+  );
+  const idea = generated.recommendations[0]!;
+  assert.equal(idea.id, slot.id);
+  assert.equal(idea.position, slot.position);
+  assert.equal(idea.productId, undefined);
+  assert.equal(idea.editorialStatus, "ready");
+  assert.ok(idea.selectionGuidance);
+  assert.equal(generated.generationMetadata?.promptVersion, "idea-recommendation-v1");
+  assert.throws(() => prepareFinalPrompt(generated, content), /no tiene producto/);
+
+  for (const unsafeCopy of [content.products[0]!.name, "$29.99", "4.8 rating", "20 oz"]) {
+    const unsafe: GuideGenerationProvider = {
+      providerId: "unsafe-idea",
+      async generateStructured<T>(generationRequest: StructuredGenerationRequest<T>): Promise<T> {
+        assert.equal(generationRequest.operation, "idea-recommendation");
+        return {
+          id: slot.id,
+          position: slot.position,
+          heading: "Generic recovery idea",
+          editorialDescription: unsafeCopy,
+          whyItFits: "It suits the recipient.",
+          selectionGuidance: "Compare care and comfort.",
+        } as T;
+      },
+    };
+    await assert.rejects(
+      generateIdeaOnlyRecommendation(draft, slot.id, content, unsafe, request),
+      /no puede/,
+    );
+  }
+  assert.throws(() =>
+    generatedIdeaRecommendationSchema.parse({
+      id: slot.id,
+      position: slot.position,
+      heading: "Generic idea",
+      editorialDescription: "Useful guidance.",
+      whyItFits: "It fits.",
+      selectionGuidance: "Compare care.",
+      productName: "Injected Product",
+    }),
+  );
 });
 
 test("reabre una guía publicada con identidad y copia listas", () => {
@@ -5579,6 +5990,42 @@ test("publica y renderiza una idea sin Product ni CTA, conservando QA e I.0", as
     html.slice(resolvedStart, resolvedEnd + "</article>".length),
     /href=.*rel="sponsored nofollow noopener"/,
   );
+
+  const reopenedIdea = reopenGuideDraft(publicGuide, published);
+  const attached = selectRecommendationProduct(
+    reopenedIdea,
+    original.id,
+    original.productId!,
+    published,
+  );
+  const attachedSlot = attached.recommendations.find(({ id }) => id === original.id)!;
+  assert.equal(attached.id, existing.id);
+  assert.equal(attachedSlot.id, original.id);
+  assert.equal(attachedSlot.position, original.position);
+  assert.equal(attachedSlot.editorialStatus, "needs-review");
+  assert.ok(
+    validateGuideDraft(attached, published).errors.some((error) => /no está listo/.test(error)),
+  );
+
+  const focused = await regenerateRecommendation(
+    attached,
+    original.id,
+    published,
+    new MockGuideGenerationProvider(),
+  );
+  assert.equal(
+    focused.recommendations.find(({ id }) => id === original.id)!.editorialStatus,
+    "ready",
+  );
+  const republished = await publisher.publishGuide(focused, new Date("2026-08-11T13:00:00.000Z"));
+  const resolvedAgain = publisher
+    .read()
+    .guides.find(({ id }) => id === existing.id)!
+    .recommendations.find(({ id }) => id === original.id)!;
+  assert.equal(republished.id, existing.id);
+  assert.equal(resolvedAgain.id, original.id);
+  assert.equal(resolvedAgain.position, original.position);
+  assert.equal(resolvedAgain.productId, original.productId);
 });
 
 test("publica por ID estable, conserva publishedAt y rechaza conflictos antes de escribir", async (context) => {

@@ -110,6 +110,9 @@ export function guideDraftToPublic(
         editorialDescription: recommendation.editorialDescription,
         whyItFits: recommendation.whyItFits,
         ...(recommendation.bestFor ? { bestFor: recommendation.bestFor } : {}),
+        ...(!recommendation.productId && recommendation.selectionGuidance
+          ? { selectionGuidance: recommendation.selectionGuidance }
+          : {}),
         ...(recommendation.considerations ? { considerations: recommendation.considerations } : {}),
         editorialStatus: "ready",
       })),

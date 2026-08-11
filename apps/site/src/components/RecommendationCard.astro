@@ -16,6 +16,8 @@ const isAffiliate = Boolean(destination && destination === product?.affiliateUrl
 const isDemo = destination ? new URL(destination).hostname === "example.com" : false;
 const linkRel = isAffiliate ? "sponsored nofollow noopener" : "nofollow noopener";
 const merchantLabel = product?.merchant.replace(" (demo)", "");
+const selectionGuidance =
+  "selectionGuidance" in recommendation ? recommendation.selectionGuidance : undefined;
 const title = recommendation.heading ?? product?.name ?? "Gift idea";
 const initials = title
   .split(/\s+/)
@@ -41,12 +43,18 @@ const accent = `recommendation--accent-${((recommendation.position - 1) % 4) + 1
       <p>{recommendation.whyItFits}</p>
     </div>
     {
-      (recommendation.bestFor || recommendation.considerations) && (
+      (recommendation.bestFor || selectionGuidance || recommendation.considerations) && (
         <dl class="recommendation__details">
           {recommendation.bestFor && (
             <div>
               <dt>Best for</dt>
               <dd>{recommendation.bestFor}</dd>
+            </div>
+          )}
+          {selectionGuidance && (
+            <div>
+              <dt>How to choose</dt>
+              <dd>{selectionGuidance}</dd>
             </div>
           )}
           {recommendation.considerations && (

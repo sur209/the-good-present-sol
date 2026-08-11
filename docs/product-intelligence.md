@@ -81,7 +81,7 @@ The manual URL path reuses A.1 Amazon URL, ASIN, and affiliate helpers. It perfo
 
 The URL is stored as the existing I.2 `ProductSourceCandidate` with normalized and original URL fields, optional ASIN/tracking evidence, and warnings. P.1 opens with this evidence prefilled but requires explicit confirmation of identity, provenance, facts, original description, and affiliate destination when present. P.1 then creates the canonical Product and P.0 `ProductSourceRecord`, links the candidate to both records, and returns to the same request. Fulfillment and exact slot assignment remain explicit later actions.
 
-For a recommendation-slot origin, the final Assign action calls the ordinary Goal 2 `selectRecommendationProduct()` path and returns to the exact stable slot. The assignment preserves the slot ID and position and moves the slot to `needs-generation`, including when the generic idea was previously editorially ready or published. It does not approve Product-backed copy or publish.
+For a recommendation-slot origin, the final Assign action calls the ordinary Goal 2 `selectRecommendationProduct()` path and returns to the exact stable slot. The assignment preserves the slot ID and position. Existing generic copy moves to `needs-review`; an empty slot moves to `needs-generation`. It does not approve Product-backed copy or publish.
 
 ## P.2.2 bounded automatic discovery
 
@@ -89,7 +89,7 @@ An editor can select multiple open requests on `/product-sourcing` and generate 
 
 Running discovery is a separate editor action on one request. The provider-neutral Product source interface returns inputs for the existing I.2 `ProductSourceCandidate`; SerpAPI is supported, while DataForSEO is disabled by default and requires both explicit enablement and an explicit paid-use policy. There is exactly one configured provider and no automatic fallback. Missing credentials or provider failure leaves catalog search, recent candidates, manual URL intake, and idea-only publication available.
 
-The run checks canonical catalog coverage and recent compatible candidates before external calls, skips already resolved slots, and defaults to one round. A second and final round requires explicit action. Per slot, limits are three queries/provider calls, four stored external candidates, and two concurrent calls. Timeout, configuration/quota, malformed, unavailable, duplicate, and zero-result outcomes are recorded without autonomous retry.
+The run checks canonical catalog coverage, relevant EditorialBenchmarks, and recent compatible candidates before external calls, skips already resolved slots, and defaults to one round. A second and final round requires explicit action. Per slot, limits are three queries/provider calls, four stored external candidates, and two concurrent calls. Timeout, configuration/quota, malformed, unavailable, duplicate, and zero-result outcomes are recorded without autonomous retry.
 
 Returned title, merchant/domain, source URL, external/product ID, price, rating/review metadata, provider, query, and observation time are source observations only. The candidate never becomes a Product automatically, and these fields do not expand the canonical Product schema or count as `verifiedFacts`. Ordinary P.1 intake, source-provenance review, I.2 fulfillment, exact slot assignment, copy review, and publication remain separate editor-controlled gates. The earlier P.2 batch-import concept is deferred as a possible future source adapter and is not implemented.
 
@@ -97,7 +97,7 @@ Returned title, merchant/domain, source URL, external/product ID, price, rating/
 
 The `ProductFitEvaluator` is an advisory AI interpretation over selected I.2 source candidates. An editor can select candidates from one or several sourcing requests and evaluate the batch with one structured provider call. The stored session lives under `editorial-data/product-fit-evaluations/` and preserves the compact structured input, strict response, provider/model, one-call and candidate counts, prompt/policy versions, and request/token metadata when the provider returns it.
 
-The response keeps 21 dimensions visible; every dimension has its own `positive`, `neutral`, `negative`, or `unknown` assessment and rationale:
+The response persists all 21 dimensions; every dimension has its own `positive`, `neutral`, `negative`, or `unknown` assessment and rationale:
 
 - Editorial/functional fit: Product class match, slot specificity, Guide relevance, recipient fit, occasion/career-stage/work-context fit, and supported budget compatibility.
 - Consumer/gift value: practical usefulness, gift desirability, presentation/giftability, ease of choosing correctly, compatibility/selection risk, perceived value, and contextual emotional relevance or memorability.
@@ -107,6 +107,8 @@ The response keeps 21 dimensions visible; every dimension has its own `positive`
 `unknown` is required when the evidence cannot support a conclusion. In particular, price-band compatibility and perceived value remain unknown without usable observed-price and budget evidence. The diagnostic summary separately records possible provider-result weakness, SearchPlan/class mismatch, profile coverage, and fit-confidence limits so later review can distinguish discovery, planning, profile, and interpretation failures.
 
 The evaluator cannot return a total, winner, selection, rejection, canonical Product ID assignment, verified fact, fulfillment transition, or GuideDraft assignment. It receives provider observations in an explicitly labeled domain and canonical Product facts only when an already linked canonical Product exists. A profile requirement means “look for evidence”; it never supplies the missing fact.
+
+The guide-wide board does not expose all 21 dimensions by default. Candidate cards group the current editorial decision into slot fit, gift value, evidence quality, in-guide distinctiveness, and the most important risk or missing evidence. The full dimension-by-dimension record, provider observations, IDs, and traceability remain available through expandable diagnostics.
 
 ### ProductClassProfiles
 
@@ -153,6 +155,18 @@ The five domains remain separate throughout:
 
 Deterministic extraction precedes AI. Candidate/slot evaluation is batched by default, profiles and benchmarks are compact summaries rather than historical sessions, and the evaluator makes no discovery call. Provider call count is always one per fit batch; input/output/total token counts and request ID are stored only when returned by the configured provider.
 
+## P.2.4 guide-wide curation and progressive Product resolution
+
+`/drafts/{guide-id}/curation` is a compact projection over the authoritative GuideDraft, I.2 request/candidate data, P.2.2 discovery, P.2.3 fit sessions and EditorialBenchmarks, P.1 intake, and P.0 provenance. It does not add a curation record or parallel lifecycle.
+
+The default scope is every unresolved Product-resolution slot. The editor may choose a subset or one exact slot; Product-resolved/ready recommendations are omitted unless alternatives are explicitly requested. One batch action creates or reuses exact slot-origin I.2 requests and generates SearchPlans from inherited guide, slot, questionnaire, brief, discovery, budget, taxonomy, and requirement context. No known context is re-entered.
+
+Resolution remains editor-controlled and ordered: canonical catalog; recent compatible candidates and relevant EditorialBenchmarks; configured SerpAPI; DataForSEO only when explicitly enabled and selected; manual URL; or remain idea-only. There is no automatic Product selection or hidden paid fallback. Each slot receives one recommended next action, while ordinary actions link back to catalog selection, P.1 candidate review, URL intake, rejection, another bounded round, SearchPlan editing, idea-only copy, or evidence detail.
+
+Idea-only copy uses the separate `idea-recommendation-v1` operation. Its strict input contains only generic guide/slot intent, requirement guidance, audience, budget, Product class, what-to-look-for attributes, and exclusions. Product records, candidates, merchants, source URLs, and provenance are excluded. The output must provide useful consumer guidance without naming an exact Product or merchant or asserting price, rating/review, stock/discount/availability, URLs, or Product-specific specifications.
+
+Later Product attachment preserves guide ID, recommendation ID, position, and canonical route. The chosen item follows exact I.2 create/reuse, P.1 review, P.0 provenance, canonical Product creation, explicit sourcing fulfillment, and explicit slot assignment. Generic copy moves to `needs-review`; the editor reviews manually or regenerates only that recommendation. Publishing the idea does not satisfy I.0 coverage, and A.2 treats the gap as an opportunity rather than an affiliate hard error.
+
 ## Boundaries
 
 - I.0 analysis and ordinary I.2 transitions use no AI or network. P.2.2 uses the existing editorial structured-generation adapter only when the editor requests a batch SearchPlan, then calls only the explicitly selected Product discovery provider when the editor starts a bounded round.
@@ -164,6 +178,7 @@ Deterministic extraction precedes AI. Candidate/slot evaluation is batched by de
 - P.2.1 coordinates catalog/URL resolution into I.2 but does not introduce a second candidate model, editorial-fit score, network lookup, automatic fulfillment, or automatic assignment.
 - P.2.2 stores plans, observed evidence, and bounded round outcomes on existing I.2 records. It does not add canonical rating/review fields, turn observation into verification, create Products, fulfill I.2, assign a slot, or publish.
 - P.2.3 stores advisory fit sessions and explicit editor benchmarks in separate non-public directories. Neither record changes a source candidate, sourcing request, Product, ProductClassProfile, GuideDraft, or public artifact.
+- P.2.4 adds only a guide-wide projection and separate safe idea-copy operation. It reuses every existing request, discovery, intake, provenance, Product, assignment, review, publication, A.2, and I.0 boundary.
 - Any later product work must use the existing intake and source-provenance flows.
 - Any later guide work must use the existing Goal 2 preview, validation, and atomic publication flow.
 
