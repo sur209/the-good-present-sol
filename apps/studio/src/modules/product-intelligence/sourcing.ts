@@ -55,6 +55,12 @@ export const productSourceCandidateSchema = z
     marketplace: nonEmptyText.optional(),
     externalId: nonEmptyText.optional(),
     sourceUrl: z.url({ protocol: /^https?$/ }).optional(),
+    productUrl: z.url({ protocol: /^https?$/ }).optional(),
+    affiliateUrl: z.url({ protocol: /^https?$/ }).optional(),
+    originalProductUrl: z.url({ protocol: /^https?$/ }).optional(),
+    originalAffiliateUrl: z.url({ protocol: /^https?$/ }).optional(),
+    trackingId: nonEmptyText.optional(),
+    urlWarnings: textList.optional(),
     name: nonEmptyText,
     sourceFacts: textList,
     status: z.enum(PRODUCT_SOURCE_CANDIDATE_STATUSES),
@@ -162,6 +168,12 @@ export interface ProductSourceCandidateInput {
   marketplace?: string;
   externalId?: string;
   sourceUrl?: string;
+  productUrl?: string;
+  affiliateUrl?: string;
+  originalProductUrl?: string;
+  originalAffiliateUrl?: string;
+  trackingId?: string;
+  urlWarnings?: string[];
   name: string;
   sourceFacts?: string[];
 }
@@ -222,6 +234,61 @@ export function productSourcingPrefillForDraftSlot(
     exclusions: draft.questionnaire.avoid ? [draft.questionnaire.avoid] : [...(brief?.risks ?? [])],
     searchTerms: slot.searchTerms?.length ? [...slot.searchTerms] : [slot.slotLabel],
   };
+}
+
+const unspecifiedSourcingContext = "Not specified";
+
+export function productSourcingRequestInputForDraftSlot(
+  draft: GuideDraft,
+  slot: GuideDraft["recommendations"][number],
+  brief?: ProductSourcingBriefContext,
+): ProductSourcingRequestInput {
+  const prefill = productSourcingPrefillForDraftSlot(draft, slot, brief);
+  return {
+    origin: {
+      kind: "recommendation-slot",
+      guideDraftId: draft.id,
+      recommendationSlotId: slot.id,
+    },
+    intendedRole: prefill.intendedRole,
+    requiredCategory: prefill.requiredCategory,
+    audience: prefill.audience ?? unspecifiedSourcingContext,
+    occasion: prefill.occasion ?? unspecifiedSourcingContext,
+    budgetContext: prefill.budgetContext ?? unspecifiedSourcingContext,
+    mustHaveVerifiedFacts: prefill.mustHaveVerifiedFacts,
+    exclusions: prefill.exclusions,
+    searchTerms: prefill.searchTerms,
+  };
+}
+
+export function findProductSourcingRequestForDraftSlot(
+  requests: readonly ProductSourcingRequest[],
+  guideDraftId: string,
+  recommendationSlotId: string,
+): ProductSourcingRequest | undefined {
+  return [...requests]
+    .filter(
+      (request) =>
+        request.status !== "rejected" &&
+        request.origin.kind === "recommendation-slot" &&
+        request.origin.guideDraftId === guideDraftId &&
+        request.origin.recommendationSlotId === recommendationSlotId,
+    )
+    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0];
+}
+
+export function createProductSourcingRequestForDraftSlot(
+  draft: GuideDraft,
+  slot: GuideDraft["recommendations"][number],
+  brief?: ProductSourcingBriefContext,
+  now = new Date(),
+  id = `request_${randomUUID()}`,
+): ProductSourcingRequest {
+  return createProductSourcingRequest(
+    productSourcingRequestInputForDraftSlot(draft, slot, brief),
+    now,
+    id,
+  );
 }
 
 export function createProductSourcingRequest(

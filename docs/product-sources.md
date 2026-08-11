@@ -77,7 +77,32 @@ ASINs, source facts, and provenance notes are internal Studio data. The canonica
 
 ## I.2 sourcing integration
 
-A product-source candidate inside a `ProductSourcingRequest` is not a `ProductSourceRecord` and is not a canonical Product. It contains only reviewable source identity, observed name/facts, provenance kind, and review state. Candidate states are `needs-review`, `approved-for-intake`, `rejected`, and `linked-to-product`.
+A product-source candidate inside a `ProductSourcingRequest` is not a `ProductSourceRecord` and is not a canonical Product. It reuses the existing candidate model and contains reviewable source identity, observed name/facts, provenance kind, optional product/affiliate URL evidence, and review state. URL evidence keeps the normalized URL separate from the original pasted URL and may include a tracking ID and local warnings:
+
+```ts
+type ProductSourceCandidate = {
+  sourceKind: "manual" | "amazon-creators-api";
+  provider: string;
+  marketplace?: string;
+  externalId?: string;
+  sourceUrl?: string;
+  productUrl?: string;
+  affiliateUrl?: string;
+  originalProductUrl?: string;
+  originalAffiliateUrl?: string;
+  trackingId?: string;
+  urlWarnings?: string[];
+  name: string;
+  sourceFacts: string[];
+  status: "needs-review" | "approved-for-intake" | "rejected" | "linked-to-product";
+};
+```
+
+For an unresolved GuideDraft slot, the editor can resolve from the catalog or paste a product/affiliate URL. Both actions first create or reuse the same slot-origin I.2 request and preserve the inherited Guide/slot/sourcing context. Catalog matches show deterministic I.0 evidence, its threshold, and whether the Product is already used in the Guide; that evidence is not an editorial-fit label and never auto-selects or assigns the Product.
+
+The manual URL path reuses the A.1 Amazon URL/ASIN/affiliate helpers. It performs no request, redirect expansion, HTML extraction, scrape, image download, or affiliate-link generation. Amazon URLs are separated into product and affiliate destinations locally; other HTTP(S) URLs are only normalized safely. Short links and missing tracking tags remain warnings for P.1 review.
+
+The P.2 candidate handoff opens the existing P.1 intake with the URL evidence prefilled. The editor must still confirm Product identity, provenance, selected facts, original description, and affiliate destination when present. A successful P.1 write creates the canonical Product and its normal P.0 `ProductSourceRecord`, links the candidate back to both records, and returns to the same I.2 request. Linking is not fulfillment; the editor separately selects the Product and, for a slot, assigns it explicitly.
 
 Batch approval authorizes later intake only. The existing manual intake, or a future controlled Creators API intake, must create the canonical Product and its normal source-provenance record. Linking the reviewed candidate then requires that exact `ProductSourceRecord` to belong to the active canonical Product and that supplied marketplace/external identity match. Linking still does not fulfill the editorial requirement; the editor separately selects the Product on the request.
 

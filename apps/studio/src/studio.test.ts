@@ -96,6 +96,7 @@ import {
   type ManualProductIntakeInput,
 } from "./modules/product-intelligence/intake.ts";
 import { analyzeProductCoverage } from "./modules/product-intelligence/coverage.ts";
+import { inspectManualProductUrl } from "./modules/product-intelligence/manual-url.ts";
 import { productGapReportSchema } from "./modules/product-intelligence/gaps.ts";
 import {
   ProductSourcingRequestStore,
@@ -2931,6 +2932,34 @@ test("crea un producto desde el Studio, lo selecciona en un GuideDraft y excluye
   assert.doesNotMatch(outputHtml, /editorial-data|manual-amazon|amazon-us/);
 });
 
+test("inspecciona URLs manuales sin red y separa producto, afiliado y ASIN", () => {
+  const amazon = inspectManualProductUrl({
+    url: "https://www.amazon.com/gp/product/B012345678?tag=thegoodpresent-20",
+  });
+  assert.deepEqual(amazon.errors, []);
+  assert.equal(amazon.productUrl, "https://www.amazon.com/dp/B012345678");
+  assert.equal(
+    amazon.affiliateUrl,
+    "https://www.amazon.com/gp/product/B012345678?tag=thegoodpresent-20",
+  );
+  assert.equal(amazon.asin, "B012345678");
+  assert.equal(amazon.trackingId, "thegoodpresent-20");
+
+  const shortAmazon = inspectManualProductUrl({ url: "https://amzn.to/short-code" });
+  assert.deepEqual(shortAmazon.errors, []);
+  assert.ok(shortAmazon.warnings.some((warning) => warning.includes("enlace corto")));
+  assert.equal(shortAmazon.asin, undefined);
+
+  const merchant = inspectManualProductUrl({
+    url: "https://merchant.example/items/shift-wrap?b=2&a=1#details",
+    affiliateUrl: "https://affiliate.example/go/shift-wrap?b=2&a=1",
+  });
+  assert.deepEqual(merchant.errors, []);
+  assert.equal(merchant.productUrl, "https://merchant.example/items/shift-wrap?a=1&b=2");
+  assert.equal(merchant.affiliateUrl, "https://affiliate.example/go/shift-wrap?a=1&b=2");
+  assert.equal(merchant.asin, undefined);
+});
+
 test("prefill de sourcing reutiliza contexto conocido sin inventar datos faltantes", () => {
   const draft = guideDraftSchema.parse({
     ...addManualRecommendation(
@@ -3160,6 +3189,81 @@ test("muestra la brecha de monetización Amazon y la acción existente sin desre
   assert.match(html, /Agregar link de afiliado/);
   assert.match(html, new RegExp(`/products/${product.id}/edit`));
   assert.match(html, new RegExp(product.name));
+});
+
+test("resuelve una coincidencia de catÃ¡logo por I.2 y exige asignaciÃ³n exacta aparte", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-catalog-first-resolution-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const draft = await draftStore.save(
+    guideDraftSchema.parse({
+      ...createGuideDraft("guide_catalog-first-resolution"),
+      status: "selecting-products",
+      questionnaire: {
+        giftCount: 8,
+        recipient: "Inherited audience",
+        occasion: "Inherited occasion",
+        budget: "Inherited budget",
+      },
+      recommendations: [
+        {
+          id: "slot_catalog-first-resolution",
+          position: 1,
+          slotLabel: "Insulated tumbler",
+          slotIntent: "Keep drinks secure during long shifts.",
+          searchTerms: ["insulated", "tumbler"],
+          editorialStatus: "needs-generation",
+        },
+      ],
+    }),
+  );
+  const server = createStudioServer(draftStore, catalog);
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(() => server.close());
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+  const editor = await (await fetch(`${origin}/drafts/${draft.id}`)).text();
+  assert.match(editor, /Buscar en catalogo/);
+  assert.match(editor, /Pegar URL de producto\/afiliado/);
+  assert.match(editor, /evidencia determinista, no encaje editorial/);
+  assert.match(editor, /value="Inherited audience"/);
+  assert.doesNotMatch(editor, /Crear solicitud para este slot/);
+
+  const selection = await fetch(
+    `${origin}/drafts/${draft.id}/recommendations/slot_catalog-first-resolution/catalog`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        productId: "product_insulated-tumbler",
+        fulfillmentStatus: "fulfilled",
+      }),
+      redirect: "manual",
+    },
+  );
+  assert.equal(selection.status, 303);
+  const request = new ProductSourcingRequestStore(repository).list()[0]!;
+  assert.deepEqual(request.approvedProductIds, ["product_insulated-tumbler"]);
+  assert.equal(
+    guideDraftSchema.parse(await draftStore.read(draft.id)).recommendations[0]!.productId,
+    undefined,
+  );
+
+  const assignment = await fetch(`${origin}/product-sourcing/${request.id}/assign`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ productId: "product_insulated-tumbler" }),
+    redirect: "manual",
+  });
+  assert.equal(assignment.status, 303);
+  assert.equal(
+    guideDraftSchema.parse(await draftStore.read(draft.id)).recommendations[0]!.productId,
+    "product_insulated-tumbler",
+  );
 });
 
 test("mantiene el ciclo de vida y los IDs exactos de una solicitud de sourcing", async (context) => {
@@ -3457,6 +3561,140 @@ test("revisa candidatos API por lote sin permitirles saltar el Product canónico
     "fulfilled",
   );
   assert.deepEqual(fulfilled.approvedProductIds, [product.id]);
+});
+
+test("resuelve una URL manual como candidato, usa P.1/P.0 y vuelve al mismo I.2", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-manual-url-resolution-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourceStore = new ProductSourceStore(repository);
+  const draft = await draftStore.save(
+    guideDraftSchema.parse({
+      ...createGuideDraft("guide_manual-url-resolution"),
+      status: "selecting-products",
+      questionnaire: {
+        giftCount: 8,
+        recipient: "Known recipient",
+        occasion: "Known occasion",
+        budget: "Known budget",
+      },
+      recommendations: [
+        {
+          id: "slot_manual-url-resolution",
+          position: 1,
+          slotLabel: "Recovery wrap",
+          slotIntent: "Support recovery after a long shift.",
+          searchTerms: ["recovery", "wrap"],
+          editorialStatus: "needs-generation",
+        },
+      ],
+    }),
+  );
+  const server = createStudioServer(
+    draftStore,
+    catalog,
+    new MockGuideGenerationProvider(),
+    new Publisher(repository),
+    sourceStore,
+  );
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(() => server.close());
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+
+  const resolveResponse = await fetch(
+    `${origin}/drafts/${draft.id}/recommendations/slot_manual-url-resolution/resolve-url`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        url: "https://merchant.example/items/shift-wrap?b=2&a=1",
+      }),
+      redirect: "manual",
+    },
+  );
+  assert.equal(resolveResponse.status, 303);
+  const reviewLocation = new URL(resolveResponse.headers.get("location")!, origin);
+  assert.equal(reviewLocation.pathname, "/products/intake");
+  const requestId = reviewLocation.searchParams.get("requestId")!;
+  const candidateId = reviewLocation.searchParams.get("candidateId")!;
+  const requestStore = new ProductSourcingRequestStore(repository);
+  const request = requestStore.get(requestId);
+  const candidate = request.sourceCandidates.find(({ id }) => id === candidateId)!;
+  assert.equal(request.origin.kind, "recommendation-slot");
+  assert.equal(request.audience, "Known recipient");
+  assert.equal(request.occasion, "Known occasion");
+  assert.equal(candidate.status, "needs-review");
+  assert.equal(candidate.canonicalProductId, undefined);
+  assert.equal(candidate.productUrl, "https://merchant.example/items/shift-wrap?a=1&b=2");
+  assert.equal(
+    catalog.read().products.some(({ name }) => name === "Shift recovery wrap"),
+    false,
+  );
+
+  const reviewHtml = await (
+    await fetch(`${origin}${resolveResponse.headers.get("location")!}`)
+  ).text();
+  assert.match(reviewHtml, /Revision P\.1 del candidato/);
+  assert.match(reviewHtml, /name="confirmIdentity"/);
+  assert.match(reviewHtml, /value="https:\/\/merchant\.example\/items\/shift-wrap\?b=2&amp;a=1"/);
+
+  const intakeForm = new URLSearchParams({
+    returnTo: `/product-sourcing/${request.id}`,
+    requestId: request.id,
+    candidateId,
+    productUrl: "https://merchant.example/items/shift-wrap?a=1&b=2",
+    name: "Shift recovery wrap",
+    merchant: "merchant.example",
+    shortDescription: "A durable recovery wrap for review.",
+    sourceFacts: "Reusable wrap",
+    verifiedFacts: "Reusable wrap",
+    verifiedFactsConfirmed: "yes",
+    status: "active",
+  });
+  const previewResponse = await fetch(`${origin}/products/intake`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: intakeForm,
+  });
+  assert.equal(previewResponse.status, 200);
+  assert.match(await previewResponse.text(), /Vista previa lista/);
+  assert.equal(
+    catalog.read().products.some(({ name }) => name === "Shift recovery wrap"),
+    false,
+  );
+
+  for (const name of [
+    "confirmIdentity",
+    "confirmProvenance",
+    "confirmFacts",
+    "confirmDescription",
+    "confirm",
+  ])
+    intakeForm.set(name, "yes");
+  const commitResponse = await fetch(`${origin}/products/intake`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: intakeForm,
+    redirect: "manual",
+  });
+  assert.equal(commitResponse.status, 303);
+  const product = catalog.read().products.find(({ name }) => name === "Shift recovery wrap")!;
+  const source = sourceStore.forProduct(product.id, catalog.read().products)[0]!;
+  const linked = requestStore.get(request.id);
+  const linkedCandidate = linked.sourceCandidates.find(({ id }) => id === candidateId)!;
+  assert.equal(linkedCandidate.status, "linked-to-product");
+  assert.equal(linkedCandidate.canonicalProductId, product.id);
+  assert.equal(linkedCandidate.productSourceId, source.id);
+  assert.deepEqual(linked.approvedProductIds, []);
+  assert.equal(
+    guideDraftSchema.parse(await draftStore.read(draft.id)).recommendations[0]!.productId,
+    undefined,
+  );
 });
 
 test("crea, cumple y asigna una solicitud al slot exacto por HTTP", async (context) => {

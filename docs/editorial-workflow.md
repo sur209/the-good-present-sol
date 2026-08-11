@@ -33,9 +33,9 @@ The Studio does not generate or repair Amazon links, fetch Amazon pages, expand 
 
 ## Assisted manual product intake
 
-Use `/products/intake` for a new product when the editor has a pasted Amazon product URL, an optional affiliate URL from the affiliate intake, and editor-verified catalog information. The Studio does not fetch Amazon, scrape HTML, expand short links, download images, call Creators API, copy marketplace descriptions, or generate an affiliate URL.
+Use `/products/intake` for a new product when the editor has a pasted product URL from Amazon or another merchant, an optional affiliate URL, and editor-verified catalog information. The Studio does not fetch merchant pages, scrape HTML, expand short links, download images, call Creators API, copy marketplace descriptions, or generate an affiliate URL.
 
-1. Enter the Amazon URL and/or ASIN. The Studio checks only the submitted strings and approved HTTPS hosts.
+1. Enter the product URL and/or ASIN. The Studio checks only the submitted strings, approved Amazon HTTPS hosts, and safe generic HTTP(S) syntax.
 2. Enter source facts and original editorial fields separately. Select only facts supported by the entered source facts and affirm that support before saving.
 3. Add an image reference only when its alt text and rights/provenance notes are known. Use a durable price label or range; exact current prices are not stored.
 4. Review the proposed canonical `Product` and non-public source record. Duplicate ASINs and likely duplicate canonical products block the write.
@@ -49,11 +49,12 @@ ASINs, source facts, tracking IDs, original URLs, and provenance notes remain in
 Use `/product-sourcing`, a brief requirement, or a GuideDraft slot to create a traceable sourcing request. A slot-origin request stores both the GuideDraft ID and the exact stable recommendation-slot ID.
 
 1. Record the intended role, required category, audience, occasion, budget context, must-have verified facts, exclusions, and search terms. A slot-origin request derives audience, occasion/work context, budget, slot purpose, search terms, and exclusions from its GuideDraft, slot, questionnaire, taxonomies, and originating brief when available; the editor fills only genuinely missing or changed values. Keep the request `open`, or deliberately mark it `held` or `rejected`.
-2. Review active matches from the existing canonical catalog. A Product must contain every must-have fact in its canonical `verifiedFacts`; selecting it as partial or complete fulfillment is always an explicit editor action.
-3. If the catalog has no approved Product, open the existing assisted manual intake from the request. After confirmation, intake returns to the request with the new canonical Product highlighted; it does not select it automatically.
-4. Optionally add manual or Creators API source candidates for batch review. `approved-for-intake` is not fulfillment. Complete the ordinary intake/source-provenance review, link the resulting Product and `ProductSourceRecord`, and then select the Product explicitly.
-5. Return to an originating brief to continue planning, or use **Assign to originating slot** for a slot request. Assignment reuses the ordinary Goal 2 product-selection function and returns to that exact slot.
-6. Review or generate recommendation copy and run preview/readiness checks. Sourcing never marks copy ready and never publishes; an unresolved slot can be editorially ready while its sourcing request remains a Product gap.
+2. In an unresolved slot, use **Buscar en catálogo** to inspect active canonical Products. The page shows the existing deterministic I.0 token evidence, threshold, and current Guide reuse; it does not label editorial fit or choose a Product automatically. A Product must contain every must-have fact in its canonical `verifiedFacts`; selecting it as partial or complete fulfillment is always an explicit editor action.
+3. Use **Pegar URL de producto/afiliado** when the editor has a product or affiliate URL. The same request is created or reused automatically, the URL is parsed locally, and the candidate opens in the existing P.1 intake with the Guide/slot context and URL evidence prefilled. Amazon parsing reuses A.1; non-Amazon parsing only normalizes safe HTTP(S) values.
+4. After P.1 confirmation, the canonical Product and P.0 source record are created and linked to the same I.2 candidate. This does not fulfill or assign the slot. The editor separately selects the canonical Product for I.2 and then uses **Assign to originating slot** when the exact slot should receive it.
+5. Optionally add manual or Creators API source candidates for batch review. `approved-for-intake` is not fulfillment. Complete the ordinary intake/source-provenance review, link the resulting Product and `ProductSourceRecord`, and then select the Product explicitly.
+6. Return to an originating brief to continue planning, or use **Assign to originating slot** for a slot request. Assignment reuses the ordinary Goal 2 product-selection function and returns to that exact slot.
+7. Review or generate recommendation copy and run preview/readiness checks. Sourcing never marks copy ready and never publishes; an unresolved slot can be editorially ready while its sourcing request remains a Product gap.
 
 The request, source candidate, canonical Product, and GuideDraft recommendation slot remain four different records. A source candidate cannot be assigned to a draft, and neither candidate approval nor canonical-product linking fulfills a request.
 

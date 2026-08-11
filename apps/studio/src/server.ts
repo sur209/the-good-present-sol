@@ -107,6 +107,11 @@ import {
   type ProductCoverageAnalysis,
   type ProductEvidence,
 } from "./modules/product-intelligence/coverage.ts";
+import {
+  inspectManualProductUrl,
+  manualUrlCandidateInput,
+  type ManualProductUrlResolution,
+} from "./modules/product-intelligence/manual-url.ts";
 import { readProductGapReports } from "./modules/product-intelligence/gaps.ts";
 import {
   PRODUCT_SOURCING_REQUEST_STATUSES,
@@ -116,6 +121,8 @@ import {
   assignSourcedProductToDraftSlot,
   catalogMatchesForRequest,
   createProductSourcingRequest,
+  createProductSourcingRequestForDraftSlot,
+  findProductSourcingRequestForDraftSlot,
   linkProductSourceCandidate,
   productRequirementOriginSchema,
   productSourcingPrefillForDraftSlot,
@@ -124,6 +131,7 @@ import {
   selectCanonicalProductForRequest,
   transitionProductSourcingRequest,
   type ProductRequirementOrigin,
+  type ProductSourceCandidate,
   type ProductSourcingRequest,
   type ProductSourcingRequestInput,
   type ProductSourcingRequestStatus,
@@ -529,6 +537,76 @@ function productSourcingRequestFromForm(form: URLSearchParams): ProductSourcingR
   };
 }
 
+async function ensureDraftSlotSourcingRequest(
+  draft: GuideDraft,
+  slotId: string,
+  sourcingStore: ProductSourcingRequestStore,
+  brief?: EditorialBrief,
+): Promise<ProductSourcingRequest> {
+  const slot = draft.recommendations.find(({ id }) => id === slotId);
+  if (!slot) throw new TypeError(`No existe el slot "${slotId}".`);
+  const existing = findProductSourcingRequestForDraftSlot(sourcingStore.list(), draft.id, slot.id);
+  if (existing) {
+    if (existing.status === "held") {
+      return sourcingStore.save(transitionProductSourcingRequest(existing, "open"));
+    }
+    return existing;
+  }
+  return sourcingStore.save(
+    createProductSourcingRequestForDraftSlot(
+      draft,
+      slot,
+      brief ? { targetAudience: brief.targetAudience, risks: brief.risks } : undefined,
+    ),
+  );
+}
+
+function requestCandidate(
+  request: ProductSourcingRequest,
+  candidateId: string,
+): ProductSourceCandidate {
+  const candidate = request.sourceCandidates.find(({ id }) => id === candidateId);
+  if (!candidate) throw new TypeError("El candidato no pertenece a la solicitud de sourcing.");
+  return candidate;
+}
+
+function requireCandidateReviewConfirmations(
+  form: URLSearchParams,
+  candidate: ProductSourceCandidate,
+): void {
+  const required = ["confirmIdentity", "confirmProvenance", "confirmFacts", "confirmDescription"];
+  if (candidate.affiliateUrl) required.push("confirmAffiliate");
+  const missing = required.filter((name) => form.get(name) !== "yes");
+  if (missing.length) {
+    throw new TypeError(`Confirmá la revisión del candidato: ${missing.join(", ")}.`);
+  }
+}
+
+function manualUrlResolutionPage(
+  draftId: string,
+  slotId: string,
+  resolution: ManualProductUrlResolution,
+): string {
+  const errors = resolution.errors.length
+    ? `<div class="error"><strong>La URL necesita cambios.</strong><ul>${resolution.errors.map((error) => `<li>${escapeHtml(error)}</li>`).join("")}</ul></div>`
+    : "";
+  const warnings = resolution.warnings.length
+    ? `<div class="notice"><strong>Advertencias para P.1</strong><ul>${resolution.warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul></div>`
+    : "";
+  return page(
+    "Revisión de URL de producto",
+    `<p><a href="${guideDraftSlotPath(draftId, slotId)}">← Volver al slot</a></p>
+     <h1>Pegar URL de producto o afiliado</h1>
+     ${errors}${warnings}
+     <form method="post" action="/drafts/${encodeURIComponent(draftId)}/recommendations/${encodeURIComponent(slotId)}/resolve-url" class="card">
+       <label>URL de producto o afiliado<input type="url" name="url" value="${value(resolution.sourceUrl)}" required></label>
+       <label>Destino afiliado separado (opcional)<input type="url" name="affiliateUrl" value="${value(resolution.originalAffiliateUrl)}"></label>
+       <label>Tracking ID conocido (opcional)<input name="trackingId" value="${value(resolution.trackingId)}"></label>
+       <button type="submit">Crear candidato y revisar en P.1</button>
+     </form>`,
+  );
+}
+
 function productSourceSection(
   product: Product,
   sources: ProductSourceRecord[],
@@ -706,8 +784,58 @@ function emptyManualProductIntake(): ManualProductIntakeInput {
   };
 }
 
-function manualProductIntakePage(preview?: ManualProductIntakePreview, returnTo?: string): string {
-  const input = preview?.input ?? emptyManualProductIntake();
+interface ManualProductCandidateReview {
+  requestId: string;
+  candidateId: string;
+  candidate: ProductSourceCandidate;
+}
+
+function manualProductIntakeFromCandidate(
+  candidate: ProductSourceCandidate,
+): ManualProductIntakeInput {
+  let merchant = /Amazon/i.test(candidate.provider) ? "Amazon" : candidate.provider;
+  if (merchant === "Manual" && candidate.sourceUrl) {
+    try {
+      merchant = new URL(candidate.sourceUrl).hostname;
+    } catch {
+      merchant = "";
+    }
+  }
+  return {
+    ...(candidate.originalProductUrl || candidate.productUrl
+      ? { productUrl: candidate.originalProductUrl ?? candidate.productUrl }
+      : {}),
+    ...(candidate.originalAffiliateUrl || candidate.affiliateUrl
+      ? { affiliateUrl: candidate.originalAffiliateUrl ?? candidate.affiliateUrl }
+      : {}),
+    ...(candidate.externalId ? { asin: candidate.externalId } : {}),
+    ...(candidate.trackingId ? { trackingId: candidate.trackingId } : {}),
+    name: "",
+    merchant,
+    shortDescription: "",
+    sourceFacts: [...candidate.sourceFacts],
+    verifiedFacts: [],
+    verifiedFactsConfirmed: false,
+    status: "active",
+  };
+}
+
+function candidateReviewChecks(review?: ManualProductCandidateReview): string {
+  if (!review) return "";
+  const warnings = review.candidate.urlWarnings?.length
+    ? `<div class="notice"><strong>Advertencias de URL</strong><ul>${review.candidate.urlWarnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul></div>`
+    : "";
+  return `${warnings}<fieldset class="card"><legend>Confirmaciones del candidato</legend><p class="muted">La URL solo prellena evidencia local. No identifica automaticamente el producto ni crea un Product.</p><div class="checks"><label><input type="checkbox" name="confirmIdentity" value="yes"> Confirmo la identidad y reconciliacion del Product con la fuente.</label><label><input type="checkbox" name="confirmProvenance" value="yes"> Confirmo la procedencia y el origen de la informacion.</label><label><input type="checkbox" name="confirmFacts" value="yes"> Revise y confirme los datos verificados seleccionados.</label><label><input type="checkbox" name="confirmDescription" value="yes"> Escribi y confirme la descripcion editorial breve.</label>${review.candidate.affiliateUrl ? '<label><input type="checkbox" name="confirmAffiliate" value="yes"> Confirmo el destino afiliado y su separacion del URL de producto.</label>' : ""}</div></fieldset>`;
+}
+
+function manualProductIntakePage(
+  preview?: ManualProductIntakePreview,
+  returnTo?: string,
+  review?: ManualProductCandidateReview,
+): string {
+  const input =
+    preview?.input ??
+    (review ? manualProductIntakeFromCandidate(review.candidate) : emptyManualProductIntake());
   const errors = preview?.errors ?? [];
   const warnings = preview?.warnings ?? [];
   const errorHtml = errors.length
@@ -729,6 +857,9 @@ function manualProductIntakePage(preview?: ManualProductIntakePreview, returnTo?
     .join("");
   const hidden = [
     returnTo ? `<input type="hidden" name="returnTo" value="${escapeHtml(returnTo)}">` : "",
+    review
+      ? `<input type="hidden" name="requestId" value="${escapeHtml(review.requestId)}"><input type="hidden" name="candidateId" value="${escapeHtml(review.candidateId)}">`
+      : "",
     input.productId
       ? `<input type="hidden" name="productId" value="${escapeHtml(input.productId)}">`
       : "",
@@ -747,9 +878,10 @@ function manualProductIntakePage(preview?: ManualProductIntakePreview, returnTo?
     : '<p class="muted">Se mostrará después de completar los campos válidos.</p>';
 
   return page(
-    "Ingreso manual de producto",
+    review ? "Revision P.1 del candidato" : "Ingreso manual de producto",
     `<p><a href="/products">← Catálogo</a></p>
-     <h1>Ingreso manual de producto</h1>
+     <h1>${review ? "Revision P.1 del candidato" : "Ingreso manual de producto"}</h1>
+     ${review ? `<p>Solicitud I.2: <code>${escapeHtml(review.requestId)}</code> - candidato <code>${escapeHtml(review.candidateId)}</code>. Esta revision volvera al mismo requisito y no cumple ni asigna el slot automaticamente.</p>` : ""}
      <p class="notice">Este flujo acepta sólo información pegada y verificada por el editor. No visita Amazon, no raspa páginas, no descarga imágenes y no genera URLs afiliadas.</p>
      ${errorHtml}${warningHtml}${duplicateHtml}
      <form method="post" action="/products/intake" class="card">
@@ -758,7 +890,7 @@ function manualProductIntakePage(preview?: ManualProductIntakePreview, returnTo?
          <h2>Información de la fuente</h2>
          <p class="muted">Estos datos describen el origen y permanecen en el registro no público de Studio.</p>
          <div class="grid">
-           <label>URL de producto Amazon (opcional si ingresás el ASIN)<input type="url" name="productUrl" value="${value(input.productUrl)}" placeholder="https://www.amazon.com/dp/..."></label>
+           <label>URL de producto (Amazon u otro comercio; opcional si ingresas el ASIN)<input type="url" name="productUrl" value="${value(input.productUrl)}" placeholder="https://..."></label>
            <label>ASIN (opcional si aparece en la URL)<input name="asin" value="${value(input.asin)}" pattern="[A-Za-z0-9]{10}"></label>
            <label>URL afiliada pegada desde el intake de afiliados (opcional)<input type="url" name="affiliateUrl" value="${value(input.affiliateUrl)}" placeholder="https://www.amazon.com/dp/...?...tag=..."></label>
            <label>Tracking ID verificado (si hay URL afiliada)<input name="trackingId" value="${value(input.trackingId)}"></label>
@@ -788,7 +920,8 @@ function manualProductIntakePage(preview?: ManualProductIntakePreview, returnTo?
          </div>
        </section>
        <label><input type="checkbox" name="confirm" value="yes"> Confirmo la vista previa y autorizo escribir el Product canónico y su registro de fuente de forma atómica.</label>
-       <button type="submit">Revisar y guardar producto</button>
+        ${candidateReviewChecks(review)}
+        <button type="submit">Revisar y guardar producto</button>
      </form>
      ${preview ? `<div class="grid"><section class="card"><h2>Product canónico previsto</h2>${productPreview}</section><section class="card"><h2>Registro de fuente no público previsto</h2>${sourcePreview}</section></div>` : ""}`,
   );
@@ -1175,6 +1308,9 @@ function productSourcingDetailPage(
         .join("");
       return `<article class="card"><div class="actions"><h3>${escapeHtml(candidate.name)}</h3><span class="status">${escapeHtml(candidate.status)}</span></div>
         <p>${escapeHtml(candidate.provider)}${candidate.marketplace ? ` · ${escapeHtml(candidate.marketplace)}` : ""}${candidate.externalId ? ` · <code>${escapeHtml(candidate.externalId)}</code>` : ""}</p>
+        ${candidate.productUrl ? `<p>URL de producto: <code>${escapeHtml(candidate.productUrl)}</code></p>` : ""}
+        ${candidate.affiliateUrl ? `<p>URL afiliada: <code>${escapeHtml(candidate.affiliateUrl)}</code></p>` : ""}
+        ${candidate.urlWarnings?.length ? `<p class="muted">Advertencias de URL: ${candidate.urlWarnings.map((warning) => escapeHtml(warning)).join(" · ")}</p>` : ""}
         ${candidate.sourceFacts.length ? `<ul>${candidate.sourceFacts.map((fact) => `<li>${escapeHtml(fact)}</li>`).join("")}</ul>` : ""}
         ${activeRequest && candidate.status === "approved-for-intake" ? `<form method="post" action="/product-sourcing/${encodeURIComponent(request.id)}/source-candidates/${encodeURIComponent(candidate.id)}/link"><label>ProductSourceRecord del intake<select name="productSourceId" required><option value="">Elegir</option>${linkOptions}</select></label><button type="submit">Vincular intake revisado</button></form>` : ""}
         ${candidate.canonicalProductId ? `<p>Vinculado a <code>${escapeHtml(candidate.canonicalProductId)}</code> mediante <code>${escapeHtml(candidate.productSourceId)}</code>. Esto no cumple la solicitud.</p>` : ""}
@@ -1185,7 +1321,7 @@ function productSourcingDetailPage(
     .filter(({ status }) => status === "needs-review")
     .map(
       (candidate) =>
-        `<article class="card"><h3>${escapeHtml(candidate.name)}</h3><p>${escapeHtml(candidate.provider)}${candidate.externalId ? ` · <code>${escapeHtml(candidate.externalId)}</code>` : ""}</p><label>Decisión de lote<select name="${escapeHtml(candidate.id)}"><option value="">Sin cambio</option><option value="approved-for-intake">Aprobar para intake</option><option value="rejected">Rechazar</option></select></label></article>`,
+        `<article class="card"><h3>${escapeHtml(candidate.name)}</h3><p>${escapeHtml(candidate.provider)}${candidate.externalId ? ` · <code>${escapeHtml(candidate.externalId)}</code>` : ""}</p>${candidate.productUrl ? `<p>URL de producto: <code>${escapeHtml(candidate.productUrl)}</code></p>` : ""}${candidate.affiliateUrl ? `<p>URL afiliada: <code>${escapeHtml(candidate.affiliateUrl)}</code></p>` : ""}${candidate.urlWarnings?.length ? `<p class="muted">Advertencias de URL: ${candidate.urlWarnings.map((warning) => escapeHtml(warning)).join(" · ")}</p>` : ""}<label>Decisión de lote<select name="${escapeHtml(candidate.id)}"><option value="">Sin cambio</option><option value="approved-for-intake">Aprobar para intake</option><option value="rejected">Rechazar</option></select></label></article>`,
     )
     .join("");
   const reviewable =
@@ -2108,24 +2244,35 @@ function productChoiceForm(
   product: Product,
   duplicate: boolean,
   replacing: boolean,
+  evidence?: { score: number; threshold: number; usedInGuide: boolean },
 ): string {
-  return `<form method="post" action="/drafts/${draft.id}/recommendations/${recommendationId}/product" class="card">
+  const resolveThroughSourcing = !replacing;
+  const action = resolveThroughSourcing
+    ? `/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(recommendationId)}/catalog`
+    : `/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(recommendationId)}/product`;
+  const evidenceHtml = evidence
+    ? `<p class="muted">I.0: ${evidence.score} tokens compartidos - umbral ${evidence.threshold}. Esto es evidencia determinista, no encaje editorial. ${evidence.usedInGuide ? "Ya se usa en esta guia." : "No se usa en esta guia."}</p>`
+    : "";
+  return `<form method="post" action="${action}" class="card">
     <input type="hidden" name="productId" value="${product.id}">
+    ${resolveThroughSourcing ? '<input type="hidden" name="fulfillmentStatus" value="fulfilled">' : ""}
     <strong>${escapeHtml(product.name)}</strong>
     <span class="muted">${escapeHtml(product.merchant)}</span>
     <p>${escapeHtml(product.shortDescription)}</p>
+    ${evidenceHtml}
     ${duplicate ? '<label><input type="checkbox" name="allowDuplicate" value="yes" required> Confirmo que quiero repetir este producto en la guía.</label>' : ""}
-    <button type="submit">${replacing ? "Reemplazar con este producto" : "Seleccionar"}</button>
+    <button type="submit">${resolveThroughSourcing ? "Seleccionar para este requisito" : replacing ? "Reemplazar con este producto" : "Seleccionar"}</button>
   </form>`;
 }
 
 function recommendationSelectionSection(
   draft: GuideDraft,
   url: URL,
+  catalog: ProductCatalog,
   sourcingStore: ProductSourcingRequestStore,
   brief?: EditorialBrief,
 ): string {
-  const content = readPublicContent();
+  const content = catalog.read();
   const sourcingRequests = sourcingStore.list();
   const productsById = new Map(content.products.map((product) => [product.id, product]));
   const searchSlot = url.searchParams.get("slot");
@@ -2209,6 +2356,19 @@ function recommendationSelectionSection(
         draft.recommendations.some(
           (item) => item.id !== recommendation.id && item.productId === productId,
         );
+      const matchEvidence = (product: Product) => ({
+        score: productSlotMatchScore(product, recommendation),
+        threshold: coverage.thresholds.minimumSlotMatchTokenCount,
+        usedInGuide:
+          draft.recommendations.some(
+            (item) => item.id !== recommendation.id && item.productId === product.id,
+          ) ||
+          content.guides.some(
+            (guide) =>
+              guide.id === draft.id &&
+              guide.recommendations.some(({ productId }) => productId === product.id),
+          ),
+      });
       const suggestions = suggestProductsForSlot(content.products, recommendation, 3)
         .filter((product) => product.id !== recommendation.productId)
         .map((product) =>
@@ -2218,6 +2378,7 @@ function recommendationSelectionSection(
             product,
             isDuplicate(product.id),
             Boolean(selected),
+            matchEvidence(product),
           ),
         )
         .join("");
@@ -2232,6 +2393,7 @@ function recommendationSelectionSection(
                   product,
                   isDuplicate(product.id),
                   Boolean(selected),
+                  matchEvidence(product),
                 ),
               )
               .join("")
@@ -2247,11 +2409,12 @@ function recommendationSelectionSection(
           origin.recommendationSlotId === recommendation.id,
       );
       const prefill = productSourcingPrefillForDraftSlot(draft, recommendation, brief);
-      const sourcing = `<section class="card"><h4>Sourcing del requisito</h4>
-        ${slotRequests.length ? `<ul>${slotRequests.map((request) => `<li><a href="/product-sourcing/${encodeURIComponent(request.id)}"><code>${escapeHtml(request.id)}</code></a> · ${escapeHtml(request.status)}</li>`).join("")}</ul>` : '<p class="muted">No hay solicitud para este slot.</p>'}
-        <form method="post" action="/product-sourcing"><input type="hidden" name="originKind" value="recommendation-slot"><input type="hidden" name="guideDraftId" value="${escapeHtml(draft.id)}"><input type="hidden" name="recommendationSlotId" value="${escapeHtml(recommendation.id)}"><input type="hidden" name="intendedRole" value="${escapeHtml(prefill.intendedRole)}"><input type="hidden" name="requiredCategory" value="${escapeHtml(prefill.requiredCategory)}"><div class="grid"><label>Audiencia<input name="audience" required value="${value(prefill.audience)}"></label><label>Ocasión o contexto editorial<input name="occasion" required value="${value(prefill.occasion)}"></label><label>Contexto de presupuesto<input name="budgetContext" required value="${value(prefill.budgetContext)}"></label><label class="wide">Datos verificados obligatorios · uno por línea<textarea name="mustHaveVerifiedFacts" rows="2">${listText(prefill.mustHaveVerifiedFacts, "\n")}</textarea></label><label class="wide">Exclusiones · una por línea<textarea name="exclusions" rows="2">${listText(prefill.exclusions, "\n")}</textarea></label><label class="wide">Términos de búsqueda<input name="searchTerms" required value="${listText(prefill.searchTerms)}"></label></div><button type="submit">Crear solicitud para este slot</button></form>
-      </section>`;
       const slotPath = guideDraftSlotPath(draft.id, recommendation.id);
+      const fastResolution = `<section class="card"><h4>Resolver Product con I.2</h4>
+        ${slotRequests.length ? `<ul>${slotRequests.map((request) => `<li><a href="/product-sourcing/${encodeURIComponent(request.id)}"><code>${escapeHtml(request.id)}</code></a> - ${escapeHtml(request.status)}</li>`).join("")}</ul>` : '<p class="muted">La solicitud I.2 se crea automaticamente al elegir una coincidencia o pegar una URL.</p>'}
+        ${!selected ? `<form method="post" action="${slotPath}/resolve-url" class="card"><label>URL de producto o afiliado<input type="url" name="url" required placeholder="https://..."></label><label>Destino afiliado separado (opcional)<input type="url" name="affiliateUrl" placeholder="https://..."></label><label>Tracking ID conocido (opcional)<input name="trackingId"></label><button type="submit">Pegar URL de producto/afiliado</button></form>` : ""}
+        <details><summary>Contexto I.2 heredado automaticamente</summary><div class="grid"><label>Audiencia<input value="${value(prefill.audience)}" readonly></label><label>Ocasion o contexto<input value="${value(prefill.occasion)}" readonly></label><label>Presupuesto<input value="${value(prefill.budgetContext)}" readonly></label><label class="wide">Exclusiones<textarea rows="2" readonly>${listText(prefill.exclusions, "\n")}</textarea></label><label class="wide">Terminos de busqueda<input value="${listText(prefill.searchTerms)}" readonly></label></div></details>
+      </section>`;
       return `<article class="card" id="slot-${escapeHtml(recommendation.id)}">
         <div class="actions"><h3>${recommendation.position}. ${escapeHtml(recommendation.slotLabel)}</h3><span class="status">${escapeHtml(recommendation.editorialStatus)} · ${selected ? "Product resuelto" : "Product sin resolver"}</span></div>
         ${recommendation.slotIntent ? `<p>${escapeHtml(recommendation.slotIntent)}</p>` : ""}
@@ -2282,13 +2445,14 @@ function recommendationSelectionSection(
           <summary>${selected ? "Reemplazar producto" : "Sugerencias del catálogo"}</summary>
           <div class="grid">${suggestions || '<p class="muted">No hay coincidencias sugeridas.</p>'}</div>
         </details>
+        <h4>Buscar en catalogo</h4>
         <form method="get" action="${slotPath}" class="card">
           <input type="hidden" name="slot" value="${recommendation.id}">
           <label>Buscar en todo el catálogo<input type="search" name="productQ" value="${searchSlot === recommendation.id ? escapeHtml(productQuery) : ""}"></label>
           <button type="submit">Buscar</button>
         </form>
         ${searchSlot === recommendation.id ? `<section><h4>Resultados del catálogo</h4><div class="grid">${results || '<p class="notice">No hay productos activos que coincidan.</p>'}</div></section>` : ""}
-        ${sourcing}
+        ${fastResolution}
         <p><a href="/products/new?returnTo=${encodeURIComponent(slotPath)}">Crear un producto nuevo y volver a este slot</a> · <a href="/products/intake?returnTo=${encodeURIComponent(slotPath)}">ingreso asistido</a></p>
       </article>`;
     })
@@ -2312,10 +2476,11 @@ function recommendationSelectionSection(
 function guideEditorPage(
   draft: GuideDraft,
   url: URL,
+  catalog: ProductCatalog,
   sourcingStore: ProductSourcingRequestStore,
   briefStore: EditorialBriefStore,
 ): string {
-  const content = readPublicContent();
+  const content = catalog.read();
   const clusters = content.clusters
     .map(
       (cluster) =>
@@ -2400,12 +2565,13 @@ function guideEditorPage(
        </div>
        <button type="submit">Guardar cuestionario</button>
      </form>
-     ${metadata}${outline}${recommendationSelectionSection(
-       draft,
-       url,
-       sourcingStore,
-       briefStore.list().find(({ guideDraftId }) => guideDraftId === draft.id),
-     )}`,
+       ${metadata}${outline}${recommendationSelectionSection(
+         draft,
+         url,
+         catalog,
+         sourcingStore,
+         briefStore.list().find(({ guideDraftId }) => guideDraftId === draft.id),
+       )}`,
   );
 }
 
@@ -2926,6 +3092,105 @@ export function createStudioServer(
           ),
         );
         redirect(response, `/drafts/${draft.id}`);
+        return;
+      }
+      const catalogResolutionMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/recommendations\/([a-z0-9_-]+)\/catalog$/.exec(url.pathname)
+          : null;
+      if (catalogResolutionMatch?.[1] && catalogResolutionMatch[2]) {
+        const form = await readForm(request);
+        const draft = await readGuideDraft(store, catalogResolutionMatch[1]);
+        const sourcingRequest = await ensureDraftSlotSourcingRequest(
+          draft,
+          catalogResolutionMatch[2],
+          sourcingStore,
+          briefStore.list().find(({ guideDraftId }) => guideDraftId === draft.id),
+        );
+        if (sourcingRequest.status !== "open" && sourcingRequest.status !== "partially-fulfilled") {
+          throw new TypeError("La solicitud I.2 no está abierta para una nueva selección.");
+        }
+        const fulfillmentStatus = requiredValue(
+          form,
+          "fulfillmentStatus",
+          "El estado de cumplimiento",
+        );
+        if (fulfillmentStatus !== "partially-fulfilled" && fulfillmentStatus !== "fulfilled") {
+          throw new TypeError("El estado de cumplimiento no es válido.");
+        }
+        const productId = requiredValue(form, "productId", "El Product canónico");
+        const saved = await sourcingStore.save(
+          selectCanonicalProductForRequest(
+            sourcingRequest,
+            productId,
+            catalog.read().products,
+            fulfillmentStatus,
+          ),
+        );
+        redirect(
+          response,
+          `/product-sourcing/${encodeURIComponent(saved.id)}?productId=${encodeURIComponent(productId)}`,
+        );
+        return;
+      }
+      const manualUrlResolutionMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/recommendations\/([a-z0-9_-]+)\/resolve-url$/.exec(
+              url.pathname,
+            )
+          : null;
+      if (manualUrlResolutionMatch?.[1] && manualUrlResolutionMatch[2]) {
+        const form = await readForm(request);
+        const pastedUrl = optionalValue(form, "url");
+        const productUrl = optionalValue(form, "productUrl");
+        const affiliateUrl = optionalValue(form, "affiliateUrl");
+        const trackingId = optionalValue(form, "trackingId");
+        const resolution = inspectManualProductUrl(
+          {
+            ...(pastedUrl ? { url: pastedUrl } : {}),
+            ...(productUrl ? { productUrl } : {}),
+            ...(affiliateUrl ? { affiliateUrl } : {}),
+            ...(trackingId ? { trackingId } : {}),
+          },
+          catalog.root,
+        );
+        if (resolution.errors.length) {
+          send(
+            response,
+            400,
+            manualUrlResolutionPage(
+              manualUrlResolutionMatch[1],
+              manualUrlResolutionMatch[2],
+              resolution,
+            ),
+          );
+          return;
+        }
+        const draft = await readGuideDraft(store, manualUrlResolutionMatch[1]);
+        const sourcingRequest = await ensureDraftSlotSourcingRequest(
+          draft,
+          manualUrlResolutionMatch[2],
+          sourcingStore,
+          briefStore.list().find(({ guideDraftId }) => guideDraftId === draft.id),
+        );
+        if (sourcingRequest.status !== "open" && sourcingRequest.status !== "partially-fulfilled") {
+          throw new TypeError("La solicitud I.2 no está abierta para un nuevo candidato.");
+        }
+        const candidateInput = manualUrlCandidateInput(resolution);
+        const existing = sourcingRequest.sourceCandidates.find(
+          (candidate) =>
+            (candidate.status === "needs-review" || candidate.status === "approved-for-intake") &&
+            (candidate.sourceUrl === candidateInput.sourceUrl ||
+              Boolean(candidate.externalId && candidate.externalId === candidateInput.externalId)),
+        );
+        const saved = existing
+          ? sourcingRequest
+          : await sourcingStore.save(addProductSourceCandidates(sourcingRequest, [candidateInput]));
+        const candidate = existing ?? saved.sourceCandidates.at(-1)!;
+        redirect(
+          response,
+          `/products/intake?returnTo=${encodeURIComponent(`/product-sourcing/${encodeURIComponent(saved.id)}`)}&requestId=${encodeURIComponent(saved.id)}&candidateId=${encodeURIComponent(candidate.id)}`,
+        );
         return;
       }
       const selectProductMatch =
@@ -3464,10 +3729,27 @@ export function createStudioServer(
         return;
       }
       if (method === "GET" && url.pathname === "/products/intake") {
+        const requestId = optionalValue(url.searchParams, "requestId");
+        const candidateId = optionalValue(url.searchParams, "candidateId");
+        const review =
+          requestId && candidateId
+            ? (() => {
+                const request = sourcingStore.get(requestId);
+                return {
+                  requestId: request.id,
+                  candidateId,
+                  candidate: requestCandidate(request, candidateId),
+                } satisfies ManualProductCandidateReview;
+              })()
+            : undefined;
         send(
           response,
           200,
-          manualProductIntakePage(undefined, safeReturnTo(url.searchParams.get("returnTo"))),
+          manualProductIntakePage(
+            undefined,
+            safeReturnTo(url.searchParams.get("returnTo")),
+            review,
+          ),
         );
         return;
       }
@@ -3552,15 +3834,53 @@ export function createStudioServer(
         const form = await readForm(request);
         const input = manualProductIntakeFromForm(form);
         const preview = prepareManualProductIntake(input, catalog.root);
+        const requestId = optionalValue(form, "requestId");
+        const candidateId = optionalValue(form, "candidateId");
+        const review =
+          requestId && candidateId
+            ? (() => {
+                const request = sourcingStore.get(requestId);
+                return {
+                  requestId: request.id,
+                  candidateId,
+                  candidate: requestCandidate(request, candidateId),
+                  request,
+                };
+              })()
+            : undefined;
+        if (review && form.get("confirm") === "yes" && !preview.errors.length) {
+          try {
+            requireCandidateReviewConfirmations(form, review.candidate);
+          } catch (error) {
+            preview.errors.push(error instanceof Error ? error.message : String(error));
+          }
+        }
         if (preview.errors.length || form.get("confirm") !== "yes") {
           send(
             response,
             preview.errors.length ? 400 : 200,
-            manualProductIntakePage(preview, safeReturnTo(form.get("returnTo"))),
+            manualProductIntakePage(preview, safeReturnTo(form.get("returnTo")), review),
           );
           return;
         }
         const committed = await commitManualProductIntake(preview, catalog.root);
+        if (review) {
+          let updated = review.request;
+          if (review.candidate.status === "needs-review") {
+            updated = reviewProductSourceCandidates(updated, [
+              { candidateId: review.candidateId, decision: "approved-for-intake" },
+            ]);
+          }
+          updated = linkProductSourceCandidate(
+            updated,
+            review.candidateId,
+            committed.product.id,
+            committed.source.id,
+            catalog.read().products,
+            sourceStore.list(catalog.read().products),
+          );
+          await sourcingStore.save(updated);
+        }
         const returnTo = safeReturnTo(form.get("returnTo"));
         redirect(
           response,
@@ -3613,7 +3933,7 @@ export function createStudioServer(
           200,
           draft.draftType === "cluster-hub"
             ? clusterEditorPage(draft)
-            : guideEditorPage(draft, url, sourcingStore, briefStore),
+            : guideEditorPage(draft, url, catalog, sourcingStore, briefStore),
         );
         return;
       }

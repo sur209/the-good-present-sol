@@ -120,10 +120,10 @@ function visibleTrackingTags(url: URL): string[] {
     .map(([, value]) => value.trim());
 }
 
-function inspectAmazonUrl(
+export function inspectAmazonUrl(
   field: AmazonUrlField,
   submittedUrl: string,
-  approvedHosts: readonly string[],
+  approvedHosts: readonly string[] = AMAZON_US_APPROVED_HOSTS,
 ): AmazonUrlInspection {
   const trimmed = submittedUrl.trim();
   const errors: string[] = [];
@@ -164,6 +164,12 @@ function inspectAmazonUrl(
     errors,
     warnings,
   };
+}
+
+export function amazonProductUrlForAsin(asin: string): string {
+  const normalized = asin.trim().toUpperCase();
+  if (!ASIN_PATTERN.test(normalized)) throw new TypeError("Must be a probable Amazon ASIN.");
+  return `https://www.amazon.com/dp/${normalized}`;
 }
 
 function prefix(field: AmazonUrlField): string {

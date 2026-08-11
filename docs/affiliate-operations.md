@@ -63,6 +63,14 @@ To attach an Amazon link:
 
 The confirmation step is the only Amazon intake write path. Generic product editing rejects Amazon affiliate hosts, so an editor cannot bypass the local checks. Account credentials, API keys, tokens, and Amazon responses are never accepted or logged.
 
+## Catalog-first and pasted URL resolution
+
+An unresolved GuideDraft slot exposes two zero-cost resolution paths inside its existing I.2 context: **Buscar en catálogo** and **Pegar URL de producto/afiliado**. Catalog results reuse the deterministic I.0 matcher and show shared-token evidence, the configured threshold, and Guide reuse. They do not evaluate editorial fit, auto-select a Product, or assign the slot.
+
+The pasted-URL path reuses the A.1 Amazon helpers for approved hosts, ASIN extraction, normalization, and affiliate inspection. A single Amazon URL with a visible tracking tag is treated as an affiliate URL and its product URL is derived from the local ASIN when possible; separate product and affiliate fields remain separate. A short link or missing tracking tag produces a review warning rather than a network lookup. Non-Amazon input is limited to safe absolute HTTP(S) normalization; the Studio never fetches, follows redirects, scrapes HTML, downloads images, or generates an affiliate link.
+
+The URL becomes an existing I.2 `ProductSourceCandidate`, not a Product. Its `sourceUrl`, normalized product/affiliate URLs, original pasted URLs, ASIN/tracking evidence, and warnings remain non-public. P.1 pre-fills this evidence but requires explicit identity, provenance, fact, description, and affiliate confirmations. Only after P.1 creates the canonical Product and P.0 source record is the candidate linked; fulfillment and exact slot assignment remain separate editor actions.
+
 ## Disclosure placement
 
 The global disclosure is the public `/affiliate-disclosure/` page and its persistent footer link. A short near-link disclosure appears on a guide when at least one recommendation resolves to an affiliate URL. It explains the possible commission and that the merchant controls current product terms. Ordinary direct product links do not receive affiliate wording or the `sponsored` relation.

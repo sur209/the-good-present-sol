@@ -117,6 +117,22 @@ function normalizedAmazonUrl(value: string | undefined): string | undefined {
   }
 }
 
+function normalizedHttpUrl(value: string | undefined): string | undefined {
+  if (!value || !safeHttpUrlSchema.safeParse(value).success) return undefined;
+  try {
+    const url = new URL(value.trim());
+    url.hash = "";
+    url.searchParams.sort();
+    return url.toString();
+  } catch {
+    return undefined;
+  }
+}
+
+function normalizedComparableUrl(value: string | undefined): string | undefined {
+  return normalizedAmazonUrl(value) ?? normalizedHttpUrl(value);
+}
+
 function duplicateKey(duplicate: ProductIntakeDuplicate): string {
   return [duplicate.kind, duplicate.productId, duplicate.sourceId ?? "", duplicate.reason].join(
     "\u0000",
@@ -186,13 +202,13 @@ function currentDuplicates(
     }
   }
 
-  const productUrl = normalizedAmazonUrl(product.productUrl);
-  const affiliateUrl = normalizedAmazonUrl(product.affiliateUrl);
+  const productUrl = normalizedComparableUrl(product.productUrl);
+  const affiliateUrl = normalizedComparableUrl(product.affiliateUrl);
   const identity = productIdentity(product);
   for (const existing of products) {
     if (existing.id === product.id) continue;
-    const existingProductUrl = normalizedAmazonUrl(existing.productUrl);
-    const existingAffiliateUrl = normalizedAmazonUrl(existing.affiliateUrl);
+    const existingProductUrl = normalizedComparableUrl(existing.productUrl);
+    const existingAffiliateUrl = normalizedComparableUrl(existing.affiliateUrl);
     if (productUrl && productUrl === existingProductUrl) {
       addDuplicate(duplicates, {
         kind: "canonical-product",
@@ -233,7 +249,7 @@ function normalizeInput(input: ManualProductIntakeInput): ManualProductIntakeInp
 function sourceFields(
   input: ManualProductIntakeInput,
   product: Product,
-  asin: string,
+  asin: string | undefined,
 ): Record<string, unknown> {
   return {
     sourceFacts: input.sourceFacts.length ? input.sourceFacts : undefined,
@@ -241,9 +257,17 @@ function sourceFields(
     notes: input.provenanceNotes,
     ...(product.productUrl
       ? { sourceUrl: product.productUrl, originalProductUrl: input.productUrl }
+      : input.affiliateUrl
+        ? { sourceUrl: input.affiliateUrl }
+        : {}),
+    ...(input.affiliateUrl
+      ? {
+          originalAffiliateUrl: input.affiliateUrl,
+          normalizedAffiliateUrl: product.affiliateUrl,
+        }
       : {}),
-    externalId: asin,
-    marketplace: "amazon.com",
+    ...(input.trackingId ? { trackingId: input.trackingId } : {}),
+    ...(asin ? { externalId: asin, marketplace: "amazon.com" } : {}),
     importMethod: "manual",
     importedAt: input.importedAt,
     sourceStatus: "active",
@@ -253,38 +277,42 @@ function sourceFields(
 function sourceFromInput(
   input: ManualProductIntakeInput,
   product: Product,
-  asin: string,
+  asin: string | undefined,
   affiliateValidation: ReturnType<typeof validateAmazonAffiliateIntake> | undefined,
 ): ProductSourceRecord | undefined {
   if (input.affiliateUrl) {
-    if (
-      !affiliateValidation ||
-      affiliateValidation.errors.length ||
-      !affiliateValidation.normalizedAffiliateUrl
-    ) {
-      return undefined;
+    if (isApprovedAmazonUsHost(input.affiliateUrl)) {
+      if (
+        !affiliateValidation ||
+        affiliateValidation.errors.length ||
+        !affiliateValidation.normalizedAffiliateUrl
+      ) {
+        return undefined;
+      }
+      return productSourceRecordSchema.parse({
+        ...createAmazonProductSourceRecord(
+          product.id,
+          {
+            productUrl: input.productUrl!,
+            affiliateUrl: input.affiliateUrl,
+            trackingId: input.trackingId!,
+            ...(input.sourceId ? { sourceId: input.sourceId } : {}),
+          },
+          affiliateValidation,
+          input.importedAt,
+        ),
+        ...sourceFields(input, product, asin),
+      });
     }
-    return productSourceRecordSchema.parse({
-      ...createAmazonProductSourceRecord(
-        product.id,
-        {
-          productUrl: input.productUrl!,
-          affiliateUrl: input.affiliateUrl,
-          trackingId: input.trackingId!,
-          ...(input.sourceId ? { sourceId: input.sourceId } : {}),
-        },
-        affiliateValidation,
-        input.importedAt,
-      ),
-      ...sourceFields(input, product, asin),
-    });
   }
 
   return productSourceRecordSchema.parse({
     id: input.sourceId,
     productId: product.id,
     sourceKind: "manual",
-    provider: "Amazon",
+    provider: isApprovedAmazonUsHost(input.productUrl ?? input.affiliateUrl ?? "")
+      ? "Amazon"
+      : "Manual",
     ...sourceFields(input, product, asin),
   });
 }
@@ -324,14 +352,16 @@ export function prepareManualProductIntake(
   let normalizedAffiliateUrl: string | undefined;
   let affiliateValidation: ReturnType<typeof validateAmazonAffiliateIntake> | undefined;
   let asin = input.asin;
+  const amazonProductUrl = Boolean(input.productUrl && isApprovedAmazonUsHost(input.productUrl));
+  const amazonAffiliateUrl = Boolean(
+    input.affiliateUrl && isApprovedAmazonUsHost(input.affiliateUrl),
+  );
 
-  if (!input.productUrl && !asin) {
-    errors.push("Ingresá la URL de producto Amazon o el ASIN.");
+  if (!input.productUrl && !asin && !input.affiliateUrl) {
+    errors.push("Ingresá una URL de producto o afiliado, o el ASIN.");
   }
   if (input.productUrl) {
-    if (!isApprovedAmazonUsHost(input.productUrl)) {
-      errors.push("La URL de producto debe usar un host Amazon US aprobado.");
-    } else {
+    if (amazonProductUrl) {
       normalizedProductUrl = normalizeAmazonUrl(input.productUrl);
       const urlAsin = extractAmazonAsin(input.productUrl);
       if (urlAsin && asin && urlAsin !== asin) {
@@ -343,13 +373,35 @@ export function prepareManualProductIntake(
           "Ingresá el ASIN cuando la URL de producto no permite identificarlo localmente.",
         );
       }
+    } else {
+      normalizedProductUrl = normalizedHttpUrl(input.productUrl);
+      if (!normalizedProductUrl) errors.push("La URL de producto debe ser HTTP(S) y absoluta.");
+      if (input.asin) errors.push("El ASIN solo se usa con una URL Amazon.");
     }
   }
 
   if (input.affiliateUrl) {
-    if (!input.productUrl) errors.push("La URL afiliada requiere una URL de producto Amazon.");
-    if (!input.trackingId) errors.push("La URL afiliada requiere el tracking ID verificado.");
-    if (input.productUrl && input.trackingId) {
+    if (!amazonAffiliateUrl) {
+      normalizedAffiliateUrl = normalizedHttpUrl(input.affiliateUrl);
+      if (!normalizedAffiliateUrl) errors.push("La URL afiliada debe ser HTTP(S) y absoluta.");
+      if (amazonProductUrl)
+        errors.push("Una URL de producto Amazon requiere una URL afiliada Amazon o ninguna.");
+    } else {
+      const affiliateAsin = extractAmazonAsin(input.affiliateUrl);
+      if (affiliateAsin && asin && affiliateAsin !== asin) {
+        errors.push("Las URLs Amazon y el ASIN ingresado no coinciden.");
+      }
+      asin ??= affiliateAsin;
+      if (!input.productUrl && !asin) {
+        errors.push("La URL afiliada requiere una URL de producto Amazon o un ASIN.");
+      }
+    }
+    if (amazonAffiliateUrl && !input.productUrl)
+      errors.push("La URL afiliada requiere una URL de producto Amazon.");
+    if (amazonAffiliateUrl && !input.trackingId)
+      errors.push("La URL afiliada requiere el tracking ID verificado.");
+    if (amazonAffiliateUrl) normalizedAffiliateUrl = normalizedAmazonUrl(input.affiliateUrl);
+    if (amazonAffiliateUrl && input.productUrl && input.trackingId) {
       try {
         affiliateValidation = validateAmazonAffiliateIntake(
           {
@@ -439,7 +491,7 @@ export function prepareManualProductIntake(
   };
 
   let product: Product | undefined;
-  if (asin) {
+  if (asin || normalizedProductUrl || normalizedAffiliateUrl) {
     try {
       product = productSchema.parse(productData);
       if (content.products.some((existing) => existing.id === product!.id)) {
@@ -448,10 +500,9 @@ export function prepareManualProductIntake(
       const candidateDuplicates = currentDuplicates(content.products, sources, product, {
         id: input.sourceId!,
         productId: product.id,
-        sourceKind: input.affiliateUrl ? "manual-amazon" : "manual",
-        provider: input.affiliateUrl ? "Amazon Associates" : "Amazon",
-        marketplace: "amazon.com",
-        externalId: asin,
+        sourceKind: amazonAffiliateUrl ? "manual-amazon" : "manual",
+        provider: amazonAffiliateUrl ? "Amazon Associates" : amazonProductUrl ? "Amazon" : "Manual",
+        ...(asin ? { marketplace: "amazon.com", externalId: asin } : {}),
         importMethod: "manual",
         importedAt: input.importedAt!,
         sourceStatus: "active",
@@ -465,7 +516,7 @@ export function prepareManualProductIntake(
   }
 
   let source: ProductSourceRecord | undefined;
-  if (product && asin) {
+  if (product && (asin || normalizedProductUrl || normalizedAffiliateUrl)) {
     try {
       const nextSource = sourceFromInput(input, product, asin, affiliateValidation);
       if (!nextSource) {

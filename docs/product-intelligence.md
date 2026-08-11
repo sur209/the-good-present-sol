@@ -73,6 +73,14 @@ The statuses are `open`, `partially-fulfilled`, `fulfilled`, `held`, and `reject
 
 The request detail uses the existing deterministic catalog matcher and links to the existing assisted manual intake. Intake returns the new Product to the request screen but does not select it. Manual and optional `amazon-creators-api` candidate records may be reviewed in a batch; approval means only “approved for intake.” A reviewed candidate must still become a canonical Product with a matching `ProductSourceRecord`, be linked back to that record, and then be selected separately. No Creators API client is added or required; an existing or future integration may provide the same validated candidate input.
 
+## P.2.1 catalog-first and manual-URL resolution
+
+An unresolved recommendation slot can create or reuse its own slot-origin I.2 request automatically. The editor can inspect active catalog Products with the existing I.0 matcher or paste a product/affiliate URL. Catalog cards show deterministic shared-token evidence, the I.0 threshold, and whether the Product is already used in the Guide. This is evidence with explicit limitations, not an editorial-fit label; there is no automatic Product choice or slot assignment.
+
+The manual URL path reuses A.1 Amazon URL, ASIN, and affiliate helpers. It performs no network request, redirect expansion, HTML parsing, scraping, image download, or affiliate generation. Amazon product and affiliate URLs are separated locally, while non-Amazon input is limited to safe absolute HTTP(S) normalization. Short links, missing ASINs, and missing visible tracking tags are warnings for review rather than hidden resolution.
+
+The URL is stored as the existing I.2 `ProductSourceCandidate` with normalized and original URL fields, optional ASIN/tracking evidence, and warnings. P.1 opens with this evidence prefilled but requires explicit confirmation of identity, provenance, facts, original description, and affiliate destination when present. P.1 then creates the canonical Product and P.0 `ProductSourceRecord`, links the candidate to both records, and returns to the same request. Fulfillment and exact slot assignment remain explicit later actions.
+
 For a recommendation-slot origin, the final Assign action calls the ordinary Goal 2 `selectRecommendationProduct()` path and returns to the exact stable slot. The assignment preserves the slot ID and position and moves the slot to `needs-generation`, including when the generic idea was previously editorially ready or published. It does not approve Product-backed copy or publish.
 
 ## Boundaries
@@ -83,6 +91,7 @@ For a recommendation-slot origin, the final Assign action calls the ordinary Goa
 - No draft, candidate, or guide is created automatically.
 - I.1 reads selected I.0 results but does not change thresholds, calculate a second coverage report, or turn a signal into an editorial decision.
 - I.2 coordinates explicit requirements and reviewed selections but does not recalculate I.0, create Products, or choose products automatically. Editorial publication does not fulfill or hide an unresolved Product requirement.
+- P.2.1 coordinates catalog/URL resolution into I.2 but does not introduce a second candidate model, editorial-fit score, network lookup, automatic fulfillment, or automatic assignment.
 - Any later product work must use the existing intake and source-provenance flows.
 - Any later guide work must use the existing Goal 2 preview, validation, and atomic publication flow.
 
