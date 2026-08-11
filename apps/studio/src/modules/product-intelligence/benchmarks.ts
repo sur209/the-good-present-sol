@@ -117,6 +117,20 @@ export function createEditorialBenchmark(
   });
 }
 
+export function retireEditorialBenchmark(
+  benchmark: EditorialBenchmark,
+  now = new Date(),
+): EditorialBenchmark {
+  if (benchmark.status === "inactive") {
+    throw new TypeError("The editorial benchmark is already retired.");
+  }
+  return editorialBenchmarkSchema.parse({
+    ...benchmark,
+    status: "inactive",
+    updatedAt: now.toISOString(),
+  });
+}
+
 function validationMessage(error: z.ZodError): string {
   return error.issues
     .map(({ path, message }) => `${path.length ? path.join(".") : "$record"}: ${message}`)

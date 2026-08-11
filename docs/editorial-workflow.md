@@ -115,6 +115,12 @@ Use **Buscar productos para slots sin resolver** from a GuideDraft to open the c
 
 A published idea-only recommendation remains on the same guide route while later resolution proceeds through exact I.2 create/reuse, P.1 review, P.0 provenance, canonical Product creation, explicit fulfillment, focused copy review, and republishing. Its guide ID, recommendation ID, and position never change.
 
+## Editorial feedback evidence
+
+Meaningful discovery decisions are recorded internally as append-only events. The records reuse the existing Guide/recommendation and I.2 request identities, candidate and canonical Product IDs, provider/source kind, ProductClassProfile version, ranking-policy version, and EditorialBenchmark ID when applicable. Editors may select, approve, reject, replace, search again, edit a SearchPlan, paste a URL, keep an idea-only recommendation, resolve it later, assign/remove/replace a Product, or create/retire a benchmark. Ordinary selections do not require a reason; when useful, the optional reason is one of the controlled P.2 vocabulary values and rationale remains optional.
+
+The Product intelligence page reports deterministic numerators and denominators for catalog resolution, automatic-candidate acceptance, manual URL use, idea-only publication, later resolution, search-again, profile intervention, provider acceptance, paid DataForSEO invocations, benchmark creation, and benchmark-associated later acceptance, plus rejection reasons. These are internal evidence only: no AI summary, online learning, ranking/profile mutation, automatic benchmark creation, or automatic personalization occurs. P.2.5 does not implement I.3 affiliate-performance feedback.
+
 ## Publication boundary
 
 Publish creates or updates by stable ID, validates the complete candidate content graph, and atomically replaces the stable-ID file. Product-backed recommendations retain the original public shape. Ready slots without a Product become the strict idea-only branch with `productResolution: "unresolved"` and no `productId`. Publication strips questionnaire, prompt, outline, generation, selection, and review metadata; preserves `publishedAt` during updates; and refreshes `updatedAt`. A successful local publication is not an Internet deployment. GitHub Pages builds only after canonical changes are committed and pushed.

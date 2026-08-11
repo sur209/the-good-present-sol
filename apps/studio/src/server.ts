@@ -126,13 +126,21 @@ import {
   EDITORIAL_BENCHMARK_REASONS,
   EditorialBenchmarkStore,
   createEditorialBenchmark,
+  retireEditorialBenchmark,
   type EditorialBenchmark,
 } from "./modules/product-intelligence/benchmarks.ts";
 import {
   PRODUCT_FIT_RANKING_POLICY_VERSION,
   ProductFitEvaluationStore,
   evaluateProductFitBatch,
+  resolveProductClassProfile,
 } from "./modules/product-intelligence/fit.ts";
+import {
+  EDITORIAL_FEEDBACK_REASONS,
+  EditorialFeedbackStore,
+  summarizeEditorialFeedback,
+  type EditorialFeedbackReason,
+} from "./modules/product-intelligence/feedback.ts";
 import {
   guideCurationNextAction,
   guideCurationProgress,
@@ -612,6 +620,170 @@ async function ensureDraftSlotSourcingRequest(
       brief ? { targetAudience: brief.targetAudience, risks: brief.risks } : undefined,
     ),
   );
+}
+
+function sourcingFeedbackReferences(request: ProductSourcingRequest): {
+  guideId?: string;
+  recommendationId?: string;
+} {
+  return request.origin.kind === "recommendation-slot"
+    ? {
+        guideId: request.origin.guideDraftId,
+        recommendationId: request.origin.recommendationSlotId,
+      }
+    : {};
+}
+
+function feedbackContext(request: ProductSourcingRequest | undefined) {
+  if (!request) return {};
+  const profile = resolveProductClassProfile(
+    request.searchPlan?.productClass ?? request.requiredCategory,
+  );
+  return {
+    productClassProfile: { classId: profile.classId, version: profile.version },
+    rankingPolicyVersion: PRODUCT_FIT_RANKING_POLICY_VERSION,
+  };
+}
+
+function feedbackReasonValue(form: URLSearchParams): EditorialFeedbackReason | undefined {
+  const value = optionalValue(form, "reason");
+  if (!value) return undefined;
+  if (!(EDITORIAL_FEEDBACK_REASONS as readonly string[]).includes(value)) {
+    throw new TypeError("La razón editorial estructurada no es válida.");
+  }
+  return value as EditorialFeedbackReason;
+}
+
+function automaticDiscoveryWasInsufficient(request: ProductSourcingRequest): boolean {
+  const attempted = request.discoveryRounds.some(({ providerCalls }) => providerCalls > 0);
+  const viableAutomaticCandidate = request.sourceCandidates.some(
+    ({ sourceKind, status }) =>
+      (sourceKind === "serpapi" || sourceKind === "dataforseo") && status !== "rejected",
+  );
+  return attempted && !viableAutomaticCandidate;
+}
+
+async function recordNewCandidateReviewEvents(
+  before: ProductSourcingRequest,
+  after: ProductSourcingRequest,
+  feedbackStore: EditorialFeedbackStore,
+): Promise<void> {
+  const previousIds = new Set(before.sourceCandidates.map(({ id }) => id));
+  for (const candidate of after.sourceCandidates) {
+    if (previousIds.has(candidate.id)) continue;
+    await feedbackStore.record({
+      eventType: "candidate-sent-to-review",
+      ...sourcingFeedbackReferences(after),
+      requestId: after.id,
+      candidateId: candidate.id,
+      provider: candidate.provider,
+      candidateSourceKind: candidate.sourceKind,
+      ...feedbackContext(after),
+    });
+  }
+}
+
+async function recordCandidateReviewEvents(
+  before: ProductSourcingRequest,
+  after: ProductSourcingRequest,
+  feedbackStore: EditorialFeedbackStore,
+  reason?: EditorialFeedbackReason,
+): Promise<void> {
+  const previous = new Map(before.sourceCandidates.map((candidate) => [candidate.id, candidate]));
+  for (const candidate of after.sourceCandidates) {
+    const beforeCandidate = previous.get(candidate.id);
+    if (
+      !beforeCandidate ||
+      beforeCandidate.status !== "needs-review" ||
+      (candidate.status !== "approved-for-intake" && candidate.status !== "rejected")
+    ) {
+      continue;
+    }
+    await feedbackStore.record({
+      eventType:
+        candidate.status === "approved-for-intake"
+          ? "candidate-approved-for-intake"
+          : "candidate-rejected",
+      ...sourcingFeedbackReferences(after),
+      requestId: after.id,
+      candidateId: candidate.id,
+      provider: candidate.provider,
+      candidateSourceKind: candidate.sourceKind,
+      ...(reason ? { reason } : {}),
+      ...feedbackContext(after),
+    });
+  }
+}
+
+async function recordCatalogProductSelection(
+  request: ProductSourcingRequest | undefined,
+  guideId: string | undefined,
+  recommendationId: string | undefined,
+  productId: string,
+  feedbackStore: EditorialFeedbackStore,
+): Promise<void> {
+  await feedbackStore.record({
+    eventType: "catalog-product-selected",
+    ...(guideId ? { guideId } : {}),
+    ...(recommendationId ? { recommendationId } : {}),
+    ...(request ? { requestId: request.id, ...sourcingFeedbackReferences(request) } : {}),
+    canonicalProductId: productId,
+    ...feedbackContext(request),
+  });
+  await feedbackStore.record({
+    eventType: "canonical-product-reused",
+    ...(guideId ? { guideId } : {}),
+    ...(recommendationId ? { recommendationId } : {}),
+    ...(request ? { requestId: request.id, ...sourcingFeedbackReferences(request) } : {}),
+    canonicalProductId: productId,
+    ...feedbackContext(request),
+  });
+}
+
+async function recordProductAssignment(
+  before: GuideDraft,
+  after: GuideDraft,
+  recommendationId: string,
+  request: ProductSourcingRequest | undefined,
+  feedbackStore: EditorialFeedbackStore,
+): Promise<void> {
+  const previous = before.recommendations.find(({ id }) => id === recommendationId);
+  const current = after.recommendations.find(({ id }) => id === recommendationId);
+  if (!current?.productId || current.productId === previous?.productId) return;
+  const refs = {
+    guideId: after.id,
+    recommendationId,
+    ...(request ? { requestId: request.id, ...sourcingFeedbackReferences(request) } : {}),
+    canonicalProductId: current.productId,
+    ...feedbackContext(request),
+  };
+  await feedbackStore.record({ eventType: "product-assigned", ...refs });
+  if (previous?.productId) {
+    await feedbackStore.record({
+      eventType: "product-replaced",
+      ...refs,
+      previousCanonicalProductId: previous.productId,
+    });
+  } else if (previous?.editorialStatus === "ready") {
+    await feedbackStore.record({ eventType: "idea-only-recommendation-resolved", ...refs });
+  }
+}
+
+async function recordProductRemoval(
+  draft: GuideDraft,
+  recommendationId: string,
+  previousProductId: string,
+  request: ProductSourcingRequest | undefined,
+  feedbackStore: EditorialFeedbackStore,
+): Promise<void> {
+  await feedbackStore.record({
+    eventType: "product-removed",
+    guideId: draft.id,
+    recommendationId,
+    ...(request ? { requestId: request.id, ...sourcingFeedbackReferences(request) } : {}),
+    previousCanonicalProductId: previousProductId,
+    ...feedbackContext(request),
+  });
 }
 
 function requestCandidate(
@@ -1159,10 +1331,62 @@ function coverageCards(cards: string[], empty: string): string {
     : `<p class="notice">${empty}</p>`;
 }
 
+function feedbackRateLabel(rate: {
+  numerator: number;
+  denominator: number;
+  rate: number | null;
+}): string {
+  return `${rate.numerator}/${rate.denominator} (${rate.rate === null ? "—" : `${(rate.rate * 100).toFixed(1)}%`})`;
+}
+
+function editorialFeedbackReportHtml(feedbackStore: EditorialFeedbackStore): string {
+  const summary = summarizeEditorialFeedback(feedbackStore.list());
+  const reasons = Object.entries(summary.rejectionReasons)
+    .filter(([, count]) => count > 0)
+    .map(([reason, count]) => `<li><code>${escapeHtml(reason)}</code>: ${count}</li>`)
+    .join("");
+  const providers = Object.entries(summary.providerAcceptanceRate)
+    .map(
+      ([provider, acceptance]) =>
+        `<li><code>${escapeHtml(provider)}</code>: ${feedbackRateLabel(acceptance)} accepted (${acceptance.accepted} accepted, ${acceptance.rejected} rejected)</li>`,
+    )
+    .join("");
+  const classes = Object.entries(summary.productClassManualInterventionRate)
+    .map(
+      ([classId, intervention]) =>
+        `<li><code>${escapeHtml(classId)}</code>: ${feedbackRateLabel(intervention)}</li>`,
+    )
+    .join("");
+  const diagnosticAreas = Object.entries(summary.diagnosticAreaCounts)
+    .filter(([, count]) => count > 0)
+    .map(([area, count]) => `<li><code>${escapeHtml(area)}</code>: ${count}</li>`)
+    .join("");
+  return `<section class="card"><h2>Evidence editorial determinista</h2>
+    <p class="muted">${summary.eventCount} eventos internos. Cada métrica muestra numerador/denominador; no hay llamadas de IA ni cambios automáticos de ranking, perfiles o benchmarks.</p>
+    <dl>
+      <dt>Resolución desde catálogo</dt><dd>${feedbackRateLabel(summary.catalogResolutionRate)}</dd>
+      <dt>Aceptación de candidatos automáticos</dt><dd>${feedbackRateLabel(summary.automaticCandidateAcceptanceRate)}</dd>
+      <dt>Tasa de URL manual</dt><dd>${feedbackRateLabel(summary.manualUrlRate)}</dd>
+      <dt>Publicación idea-only</dt><dd>${feedbackRateLabel(summary.ideaOnlyPublicationRate)}</dd>
+      <dt>Idea-only → Product posterior</dt><dd>${feedbackRateLabel(summary.laterProductResolutionRate)}</dd>
+      <dt>Solicitud de búsqueda adicional</dt><dd>${feedbackRateLabel(summary.searchAgainRate)}</dd>
+      <dt>Creación de benchmark</dt><dd>${feedbackRateLabel(summary.benchmarkCreationRate)}</dd>
+      <dt>Aceptación posterior asociada a benchmark</dt><dd>${feedbackRateLabel(summary.benchmarkAssociatedLaterAcceptanceRate)}</dd>
+      <dt>Invocaciones pagas DataForSEO</dt><dd>${summary.dataForSeoPaidProviderInvocationCount}</dd>
+    </dl>
+    ${diagnosticAreas ? `<h3>Diagnostic areas recorded</h3><ul>${diagnosticAreas}</ul>` : ""}
+    ${reasons ? `<h3>Razones de rechazo</h3><ul>${reasons}</ul>` : ""}
+    ${providers ? `<h3>Aceptación por proveedor</h3><ul>${providers}</ul>` : ""}
+    ${classes ? `<h3>Intervención manual por ProductClassProfile</h3><ul>${classes}</ul>` : ""}
+    <p class="muted">Las áreas de diagnóstico se almacenan como evidencia editorial estructurada; este reporte no las infiere con un modelo.</p>
+  </section>`;
+}
+
 function productIntelligencePage(
   repositoryRoot: string,
   drafts: GuideDraft[],
   draftErrors: string[],
+  feedbackStore = new EditorialFeedbackStore(repositoryRoot),
 ): string {
   const analysis = analyzeProductCoverage(
     readPublicContent(repositoryRoot),
@@ -1249,6 +1473,7 @@ function productIntelligencePage(
   return page(
     "Cobertura de productos",
     `<h1>Cobertura de productos</h1>
+     ${editorialFeedbackReportHtml(feedbackStore)}
      <p>Señales deterministas sobre cómo el catálogo activo sostiene el contenido publicado, los GuideDrafts y los requisitos de briefs estructurados.</p>
      <p class="notice"><strong>Límite editorial:</strong> estas ${signalCount} observaciones no son un ranking, no proponen guías y no convierten el uso o la falta de uso en una decisión editorial.</p>
      ${draftErrorHtml}
@@ -2636,7 +2861,7 @@ function editorialBenchmarkSection(
       status === "active",
   );
   if (existing.length) {
-    return `<details><summary>Referencia editorial (${existing.length})</summary>${existing.map((benchmark) => `<p><code>${escapeHtml(benchmark.id)}</code> - ${escapeHtml(benchmark.productClass)} v${benchmark.version}<br>${escapeHtml(benchmark.editorRationale)}<br><span class="muted">${benchmark.strongFitReasons.map((reason) => escapeHtml(benchmarkReasonLabels[reason])).join("; ")}</span></p>`).join("")}</details>`;
+    return `<details><summary>Referencia editorial (${existing.length})</summary>${existing.map((benchmark) => `<p><code>${escapeHtml(benchmark.id)}</code> - ${escapeHtml(benchmark.productClass)} v${benchmark.version}<br>${escapeHtml(benchmark.editorRationale)}<br><span class="muted">${benchmark.strongFitReasons.map((reason) => escapeHtml(benchmarkReasonLabels[reason])).join("; ")}</span></p><form method="post" action="/editorial-benchmarks/${encodeURIComponent(benchmark.id)}/retire"><button type="submit">Retirar referencia</button></form>`).join("")}</details>`;
   }
   const audience = draft.questionnaire.recipient ?? draft.taxonomies?.recipients?.join(", ") ?? "";
   const contextTags = [
@@ -3160,6 +3385,7 @@ export function createStudioServer(
   evaluationStore = new OpportunityEvaluationStore(catalog.root),
   briefStore = new EditorialBriefStore(catalog.root, candidateStore),
   discoverySource: ProductDiscoverySource | undefined = createProductDiscoverySource(),
+  feedbackStore = new EditorialFeedbackStore(catalog.root),
 ) {
   const sourcingStore = new ProductSourcingRequestStore(catalog.root);
   const fitStore = new ProductFitEvaluationStore(catalog.root);
@@ -3172,6 +3398,38 @@ export function createStudioServer(
       ]),
     ).values(),
   ];
+  const recordPublicationEvents = async (draft: EditorialDraft): Promise<void> => {
+    if (draft.draftType !== "gift-guide") return;
+    const existing = feedbackStore.list();
+    const requests = sourcingStore.list();
+    for (const recommendation of draft.recommendations) {
+      const request = guideSourcingRequestForSlot(requests, draft.id, recommendation.id);
+      const context = feedbackContext(request);
+      const references = {
+        guideId: draft.id,
+        recommendationId: recommendation.id,
+        ...(request ? { requestId: request.id, ...sourcingFeedbackReferences(request) } : {}),
+        ...(recommendation.productId ? { canonicalProductId: recommendation.productId } : {}),
+        ...context,
+      };
+      if (
+        !recommendation.productId &&
+        !existing.some(
+          (event) =>
+            event.eventType === "recommendation-left-idea-only" &&
+            event.guideId === draft.id &&
+            event.recommendationId === recommendation.id,
+        )
+      ) {
+        await feedbackStore.record({ eventType: "recommendation-left-idea-only", ...references });
+      }
+      await feedbackStore.record({
+        eventType: "recommendation-published",
+        ...references,
+        publicationResolution: recommendation.productId ? "product-backed" : "idea-only",
+      });
+    }
+  };
   return createServer(async (request, response) => {
     try {
       const method = request.method ?? "GET";
@@ -3262,6 +3520,7 @@ export function createStudioServer(
           throw new TypeError("Validá el borrador antes de publicarlo.");
         }
         const result = await publisher.publish(draft);
+        await recordPublicationEvents(draft);
         send(response, 200, publicationResultPage(draft, result));
         return;
       }
@@ -3500,18 +3759,41 @@ export function createStudioServer(
           ) {
             continue;
           }
-          await sourcingStore.save(
-            await runProductDiscovery(sourcingRequest, discoverySource, {
-              products: content.products,
-              allRequests: sourcingStore.list(),
-              benchmarkProductIds: compatibleBenchmarks.map(
-                ({ canonicalProductId }) => canonicalProductId,
-              ),
-              slotResolved: includeResolved ? false : Boolean(slot.productId),
-              forceExternal: form.get("forceExternal") === "yes",
-              round: sourcingRequest.discoveryRounds.length + 1,
-            }),
-          );
+          const updated = await runProductDiscovery(sourcingRequest, discoverySource, {
+            products: content.products,
+            allRequests: sourcingStore.list(),
+            benchmarkProductIds: compatibleBenchmarks.map(
+              ({ canonicalProductId }) => canonicalProductId,
+            ),
+            slotResolved: includeResolved ? false : Boolean(slot.productId),
+            forceExternal: form.get("forceExternal") === "yes",
+            round: sourcingRequest.discoveryRounds.length + 1,
+          });
+          const saved = await sourcingStore.save(updated);
+          const discoveryRound = saved.discoveryRounds.at(-1)!;
+          if (discoveryRound.round > 1) {
+            await feedbackStore.record({
+              eventType: "search-again-requested",
+              ...sourcingFeedbackReferences(saved),
+              requestId: saved.id,
+              provider: discoverySource.providerId,
+              discoveryRound: discoveryRound.round,
+              ...feedbackContext(saved),
+            });
+          }
+          if (discoveryRound.providerCalls > 0) {
+            await feedbackStore.record({
+              eventType: "automatic-discovery-invoked",
+              ...sourcingFeedbackReferences(saved),
+              requestId: saved.id,
+              provider: discoverySource.providerId,
+              candidateSourceKind: discoverySource.providerId,
+              discoveryRound: discoveryRound.round,
+              providerInvocationCount: discoveryRound.providerCalls,
+              ...feedbackContext(saved),
+            });
+          }
+          await recordNewCandidateReviewEvents(sourcingRequest, saved, feedbackStore);
         }
         redirect(response, `/drafts/${encodeURIComponent(draft.id)}/curation`);
         return;
@@ -3554,15 +3836,22 @@ export function createStudioServer(
             ),
           );
         }
-        await store.save(
-          assignSourcedProductToDraftSlot(
-            sourcingRequest,
-            productId,
-            draft,
-            catalog.read(),
-            form.get("allowDuplicate") === "yes",
-          ),
+        const updatedDraft = assignSourcedProductToDraftSlot(
+          sourcingRequest,
+          productId,
+          draft,
+          catalog.read(),
+          form.get("allowDuplicate") === "yes",
         );
+        await store.save(updatedDraft);
+        await recordCatalogProductSelection(
+          sourcingRequest,
+          draft.id,
+          slotId,
+          productId,
+          feedbackStore,
+        );
+        await recordProductAssignment(draft, updatedDraft, slotId, sourcingRequest, feedbackStore);
         redirect(response, `/drafts/${encodeURIComponent(draft.id)}/curation`);
         return;
       }
@@ -3665,15 +3954,23 @@ export function createStudioServer(
           draft.id,
           generateIdeaRecommendationMatch[2],
         );
-        await store.save(
-          await generateIdeaOnlyRecommendation(
-            draft,
-            generateIdeaRecommendationMatch[2],
-            catalog.read(),
-            provider,
-            sourcingRequest,
-          ),
+        const updatedDraft = await generateIdeaOnlyRecommendation(
+          draft,
+          generateIdeaRecommendationMatch[2],
+          catalog.read(),
+          provider,
+          sourcingRequest,
         );
+        await store.save(updatedDraft);
+        const reason = feedbackReasonValue(form);
+        await feedbackStore.record({
+          eventType: "recommendation-left-idea-only",
+          guideId: draft.id,
+          recommendationId: generateIdeaRecommendationMatch[2],
+          ...(sourcingRequest ? { requestId: sourcingRequest.id } : {}),
+          ...(reason ? { reason } : {}),
+          ...feedbackContext(sourcingRequest),
+        });
         redirect(response, `/drafts/${encodeURIComponent(draft.id)}/curation`);
         return;
       }
@@ -3765,6 +4062,13 @@ export function createStudioServer(
             fulfillmentStatus,
           ),
         );
+        await recordCatalogProductSelection(
+          saved,
+          draft.id,
+          catalogResolutionMatch[2],
+          productId,
+          feedbackStore,
+        );
         redirect(
           response,
           `/product-sourcing/${encodeURIComponent(saved.id)}?productId=${encodeURIComponent(productId)}`,
@@ -3815,6 +4119,7 @@ export function createStudioServer(
           throw new TypeError("La solicitud I.2 no está abierta para un nuevo candidato.");
         }
         const candidateInput = manualUrlCandidateInput(resolution);
+        const automaticDiscoveryInsufficient = automaticDiscoveryWasInsufficient(sourcingRequest);
         const existing = sourcingRequest.sourceCandidates.find(
           (candidate) =>
             (candidate.status === "needs-review" || candidate.status === "approved-for-intake") &&
@@ -3825,6 +4130,21 @@ export function createStudioServer(
           ? sourcingRequest
           : await sourcingStore.save(addProductSourceCandidates(sourcingRequest, [candidateInput]));
         const candidate = existing ?? saved.sourceCandidates.at(-1)!;
+        if (!existing) await recordNewCandidateReviewEvents(sourcingRequest, saved, feedbackStore);
+        const reason = feedbackReasonValue(form);
+        await feedbackStore.record({
+          eventType: automaticDiscoveryInsufficient
+            ? "manual-url-supplied-after-automatic-discovery-insufficient"
+            : "manual-url-supplied",
+          guideId: draft.id,
+          recommendationId: manualUrlResolutionMatch[2],
+          requestId: saved.id,
+          candidateId: candidate.id,
+          provider: candidate.provider,
+          candidateSourceKind: candidate.sourceKind,
+          ...(reason ? { reason } : {}),
+          ...feedbackContext(saved),
+        });
         redirect(
           response,
           `/products/intake?returnTo=${encodeURIComponent(safeReturnTo(form.get("returnTo")) ?? `/product-sourcing/${encodeURIComponent(saved.id)}`)}&requestId=${encodeURIComponent(saved.id)}&candidateId=${encodeURIComponent(candidate.id)}`,
@@ -3838,14 +4158,33 @@ export function createStudioServer(
       if (selectProductMatch?.[1] && selectProductMatch[2]) {
         const form = await readForm(request);
         const draft = await readGuideDraft(store, selectProductMatch[1]);
-        await store.save(
-          selectRecommendationProduct(
-            draft,
-            selectProductMatch[2],
-            requiredValue(form, "productId", "El producto"),
-            catalog.read(),
-            form.get("allowDuplicate") === "yes",
-          ),
+        const productId = requiredValue(form, "productId", "El producto");
+        const updatedDraft = selectRecommendationProduct(
+          draft,
+          selectProductMatch[2],
+          productId,
+          catalog.read(),
+          form.get("allowDuplicate") === "yes",
+        );
+        await store.save(updatedDraft);
+        const sourcingRequest = guideSourcingRequestForSlot(
+          sourcingStore.list(),
+          draft.id,
+          selectProductMatch[2],
+        );
+        await recordCatalogProductSelection(
+          sourcingRequest,
+          draft.id,
+          selectProductMatch[2],
+          productId,
+          feedbackStore,
+        );
+        await recordProductAssignment(
+          draft,
+          updatedDraft,
+          selectProductMatch[2],
+          sourcingRequest,
+          feedbackStore,
         );
         redirect(response, guideDraftSlotPath(draft.id, selectProductMatch[2]));
         return;
@@ -3876,28 +4215,78 @@ export function createStudioServer(
         ) {
           throw new TypeError("Selecciona al menos una razon estructurada valida.");
         }
-        await benchmarkStore.save(
-          createEditorialBenchmark(
-            {
-              canonicalProductId: productId,
-              productClass: requiredValue(form, "productClass", "La clase de Product"),
-              context: {
-                guideId: draft.id,
-                recommendationSlotId: recommendation.id,
-                semanticContext: [recommendation.slotLabel, recommendation.slotIntent]
-                  .filter(Boolean)
-                  .join(": "),
-              },
-              audienceTags: listValue(form, "audienceTags") ?? [],
-              contextTags: listValue(form, "contextTags") ?? [],
-              editorRationale: requiredValue(form, "editorRationale", "La razon editorial"),
-              strongFitReasons: reasons as EditorialBenchmark["strongFitReasons"],
-              attributesOrReasons: listValue(form, "attributesOrReasons", "\n") ?? [],
+        const benchmark = createEditorialBenchmark(
+          {
+            canonicalProductId: productId,
+            productClass: requiredValue(form, "productClass", "La clase de Product"),
+            context: {
+              guideId: draft.id,
+              recommendationSlotId: recommendation.id,
+              semanticContext: [recommendation.slotLabel, recommendation.slotIntent]
+                .filter(Boolean)
+                .join(": "),
             },
-            catalog.read().products,
-          ),
+            audienceTags: listValue(form, "audienceTags") ?? [],
+            contextTags: listValue(form, "contextTags") ?? [],
+            editorRationale: requiredValue(form, "editorRationale", "La razon editorial"),
+            strongFitReasons: reasons as EditorialBenchmark["strongFitReasons"],
+            attributesOrReasons: listValue(form, "attributesOrReasons", "\n") ?? [],
+          },
+          catalog.read().products,
         );
+        await benchmarkStore.save(benchmark);
+        const sourcingRequest = guideSourcingRequestForSlot(
+          sourcingStore.list(),
+          draft.id,
+          recommendation.id,
+        );
+        await feedbackStore.record({
+          eventType: "product-marked-benchmark",
+          guideId: draft.id,
+          recommendationId: recommendation.id,
+          ...(sourcingRequest ? { requestId: sourcingRequest.id } : {}),
+          canonicalProductId: productId,
+          benchmarkId: benchmark.id,
+          ...feedbackContext(sourcingRequest),
+        });
         redirect(response, guideDraftSlotPath(draft.id, recommendation.id));
+        return;
+      }
+      const benchmarkRetireMatch =
+        method === "POST"
+          ? /^\/editorial-benchmarks\/(benchmark_[a-z0-9_-]+)\/retire$/.exec(url.pathname)
+          : null;
+      if (benchmarkRetireMatch?.[1]) {
+        const benchmark = benchmarkStore
+          .list(catalog.read().products)
+          .find(({ id }) => id === benchmarkRetireMatch[1]);
+        if (!benchmark) throw new TypeError("La referencia editorial no existe.");
+        await benchmarkStore.save(retireEditorialBenchmark(benchmark));
+        const request =
+          benchmark.context.guideId && benchmark.context.recommendationSlotId
+            ? guideSourcingRequestForSlot(
+                sourcingStore.list(),
+                benchmark.context.guideId,
+                benchmark.context.recommendationSlotId,
+              )
+            : undefined;
+        await feedbackStore.record({
+          eventType: "benchmark-retired",
+          ...(benchmark.context.guideId ? { guideId: benchmark.context.guideId } : {}),
+          ...(benchmark.context.recommendationSlotId
+            ? { recommendationId: benchmark.context.recommendationSlotId }
+            : {}),
+          ...(request ? { requestId: request.id } : {}),
+          canonicalProductId: benchmark.canonicalProductId,
+          benchmarkId: benchmark.id,
+          ...feedbackContext(request),
+        });
+        redirect(
+          response,
+          benchmark.context.guideId && benchmark.context.recommendationSlotId
+            ? guideDraftSlotPath(benchmark.context.guideId, benchmark.context.recommendationSlotId)
+            : "/product-intelligence",
+        );
         return;
       }
       const clearProductMatch =
@@ -3908,7 +4297,18 @@ export function createStudioServer(
           : null;
       if (clearProductMatch?.[1] && clearProductMatch[2]) {
         const draft = await readGuideDraft(store, clearProductMatch[1]);
-        await store.save(clearRecommendationProduct(draft, clearProductMatch[2]));
+        const recommendation = draft.recommendations.find(({ id }) => id === clearProductMatch[2]);
+        const updatedDraft = clearRecommendationProduct(draft, clearProductMatch[2]);
+        await store.save(updatedDraft);
+        if (recommendation?.productId) {
+          await recordProductRemoval(
+            draft,
+            clearProductMatch[2],
+            recommendation.productId,
+            guideSourcingRequestForSlot(sourcingStore.list(), draft.id, clearProductMatch[2]),
+            feedbackStore,
+          );
+        }
         redirect(response, guideDraftSlotPath(draft.id, clearProductMatch[2]));
         return;
       }
@@ -3949,6 +4349,7 @@ export function createStudioServer(
             catalog.root,
             listed.drafts.filter((draft): draft is GuideDraft => draft.draftType === "gift-guide"),
             listed.errors,
+            feedbackStore,
           ),
         );
         return;
@@ -4088,16 +4489,39 @@ export function createStudioServer(
                 benchmarkStore.list(content.products),
               ).map(({ canonicalProductId }) => canonicalProductId)
             : [];
-        const saved = await sourcingStore.save(
-          await runProductDiscovery(sourcingRequest, discoverySource, {
-            products: content.products,
-            allRequests: sourcingStore.list(),
-            benchmarkProductIds,
-            slotResolved: Boolean(originSlot?.productId),
-            forceExternal: form.get("forceExternal") === "yes",
-            round,
-          }),
-        );
+        const updated = await runProductDiscovery(sourcingRequest, discoverySource, {
+          products: content.products,
+          allRequests: sourcingStore.list(),
+          benchmarkProductIds,
+          slotResolved: Boolean(originSlot?.productId),
+          forceExternal: form.get("forceExternal") === "yes",
+          round,
+        });
+        const saved = await sourcingStore.save(updated);
+        const discoveryRound = saved.discoveryRounds.at(-1)!;
+        if (discoveryRound.round > 1) {
+          await feedbackStore.record({
+            eventType: "search-again-requested",
+            ...sourcingFeedbackReferences(saved),
+            requestId: saved.id,
+            provider: discoverySource.providerId,
+            discoveryRound: discoveryRound.round,
+            ...feedbackContext(saved),
+          });
+        }
+        if (discoveryRound.providerCalls > 0) {
+          await feedbackStore.record({
+            eventType: "automatic-discovery-invoked",
+            ...sourcingFeedbackReferences(saved),
+            requestId: saved.id,
+            provider: discoverySource.providerId,
+            candidateSourceKind: discoverySource.providerId,
+            discoveryRound: discoveryRound.round,
+            providerInvocationCount: discoveryRound.providerCalls,
+            ...feedbackContext(saved),
+          });
+        }
+        await recordNewCandidateReviewEvents(sourcingRequest, saved, feedbackStore);
         redirect(response, `/product-sourcing/${encodeURIComponent(saved.id)}`);
         return;
       }
@@ -4126,8 +4550,9 @@ export function createStudioServer(
           : null;
       if (productSourcingPlanMatch?.[1]) {
         const form = await readForm(request);
+        const before = sourcingStore.get(productSourcingPlanMatch[1]);
         const saved = await sourcingStore.save(
-          updateProductSearchPlan(sourcingStore.get(productSourcingPlanMatch[1]), {
+          updateProductSearchPlan(before, {
             productClass: requiredValue(form, "productClass", "La clase de Product"),
             mustHaveAttributes: listValue(form, "mustHaveAttributes", "\n") ?? [],
             usefulAttributes: listValue(form, "usefulAttributes", "\n") ?? [],
@@ -4135,6 +4560,15 @@ export function createStudioServer(
             queries: listValue(form, "queries", "\n") ?? [],
           }),
         );
+        const reason = feedbackReasonValue(form);
+        await feedbackStore.record({
+          eventType: "search-plan-edited",
+          ...sourcingFeedbackReferences(saved),
+          requestId: saved.id,
+          provider: saved.searchPlan!.providerId,
+          ...(reason ? { reason } : {}),
+          ...feedbackContext(saved),
+        });
         redirect(
           response,
           safeReturnTo(form.get("returnTo")) ?? `/product-sourcing/${encodeURIComponent(saved.id)}`,
@@ -4147,6 +4581,7 @@ export function createStudioServer(
           : null;
       if (productSourcingSelectionMatch?.[1]) {
         const form = await readForm(request);
+        const productId = requiredValue(form, "productId", "product");
         const fulfillmentStatus = requiredValue(
           form,
           "fulfillmentStatus",
@@ -4163,6 +4598,15 @@ export function createStudioServer(
             fulfillmentStatus,
           ),
         );
+        await recordCatalogProductSelection(
+          saved,
+          saved.origin.kind === "recommendation-slot" ? saved.origin.guideDraftId : undefined,
+          saved.origin.kind === "recommendation-slot"
+            ? saved.origin.recommendationSlotId
+            : undefined,
+          productId,
+          feedbackStore,
+        );
         redirect(response, `/product-sourcing/${encodeURIComponent(saved.id)}`);
         return;
       }
@@ -4172,6 +4616,7 @@ export function createStudioServer(
           : null;
       if (sourceCandidateCreateMatch?.[1]) {
         const form = await readForm(request);
+        const before = sourcingStore.get(sourceCandidateCreateMatch[1]);
         const sourceKind = requiredValue(form, "sourceKind", "El origen del candidato");
         if (sourceKind !== "manual" && sourceKind !== "amazon-creators-api") {
           throw new TypeError("El origen del candidato no es válido.");
@@ -4180,7 +4625,7 @@ export function createStudioServer(
         const externalId = optionalValue(form, "externalId");
         const sourceUrl = optionalValue(form, "sourceUrl");
         const saved = await sourcingStore.save(
-          addProductSourceCandidates(sourcingStore.get(sourceCandidateCreateMatch[1]), [
+          addProductSourceCandidates(before, [
             {
               sourceKind,
               provider: requiredValue(form, "provider", "El proveedor"),
@@ -4192,6 +4637,7 @@ export function createStudioServer(
             },
           ]),
         );
+        await recordNewCandidateReviewEvents(before, saved, feedbackStore);
         redirect(response, `/product-sourcing/${encodeURIComponent(saved.id)}`);
         return;
       }
@@ -4204,6 +4650,7 @@ export function createStudioServer(
       if (sourceCandidateReviewMatch?.[1]) {
         const form = await readForm(request);
         const sourcingRequest = sourcingStore.get(sourceCandidateReviewMatch[1]);
+        const reason = feedbackReasonValue(form);
         const decisions = sourcingRequest.sourceCandidates.flatMap((candidate) => {
           const decision = form.get(candidate.id);
           return decision === "approved-for-intake" || decision === "rejected"
@@ -4218,6 +4665,7 @@ export function createStudioServer(
         const saved = await sourcingStore.save(
           reviewProductSourceCandidates(sourcingRequest, decisions),
         );
+        await recordCandidateReviewEvents(sourcingRequest, saved, feedbackStore, reason);
         redirect(
           response,
           safeReturnTo(form.get("returnTo")) ?? `/product-sourcing/${encodeURIComponent(saved.id)}`,
@@ -4233,13 +4681,14 @@ export function createStudioServer(
       if (sourceCandidateLinkMatch?.[1] && sourceCandidateLinkMatch[2]) {
         const form = await readForm(request);
         const products = catalog.read().products;
+        const before = sourcingStore.get(sourceCandidateLinkMatch[1]);
         const source = sourceStore.get(
           requiredValue(form, "productSourceId", "El ProductSourceRecord"),
           products,
         );
         const saved = await sourcingStore.save(
           linkProductSourceCandidate(
-            sourcingStore.get(sourceCandidateLinkMatch[1]),
+            before,
             sourceCandidateLinkMatch[2],
             source.productId,
             source.id,
@@ -4247,6 +4696,19 @@ export function createStudioServer(
             sourceStore.list(products),
           ),
         );
+        const linkedCandidate = saved.sourceCandidates.find(
+          ({ id }) => id === sourceCandidateLinkMatch[2],
+        )!;
+        await feedbackStore.record({
+          eventType: "canonical-product-reused",
+          ...sourcingFeedbackReferences(saved),
+          requestId: saved.id,
+          candidateId: linkedCandidate.id,
+          canonicalProductId: source.productId,
+          provider: linkedCandidate.provider,
+          candidateSourceKind: linkedCandidate.sourceKind,
+          ...feedbackContext(saved),
+        });
         redirect(response, `/product-sourcing/${encodeURIComponent(saved.id)}`);
         return;
       }
@@ -4261,14 +4723,20 @@ export function createStudioServer(
           throw new TypeError("La solicitud no pertenece a un slot de GuideDraft.");
         }
         const draft = await readGuideDraft(store, sourcingRequest.origin.guideDraftId);
-        await store.save(
-          assignSourcedProductToDraftSlot(
-            sourcingRequest,
-            requiredValue(form, "productId", "El Product canónico"),
-            draft,
-            catalog.read(),
-            form.get("allowDuplicate") === "yes",
-          ),
+        const updatedDraft = assignSourcedProductToDraftSlot(
+          sourcingRequest,
+          requiredValue(form, "productId", "El Product canónico"),
+          draft,
+          catalog.read(),
+          form.get("allowDuplicate") === "yes",
+        );
+        await store.save(updatedDraft);
+        await recordProductAssignment(
+          draft,
+          updatedDraft,
+          sourcingRequest.origin.recommendationSlotId,
+          sourcingRequest,
+          feedbackStore,
         );
         redirect(response, productSourcingReturnPath(sourcingRequest));
         return;
@@ -4686,14 +5154,15 @@ export function createStudioServer(
         }
         const committed = await commitManualProductIntake(preview, catalog.root);
         if (review) {
-          let updated = review.request;
+          let approved = review.request;
           if (review.candidate.status === "needs-review") {
-            updated = reviewProductSourceCandidates(updated, [
+            approved = reviewProductSourceCandidates(approved, [
               { candidateId: review.candidateId, decision: "approved-for-intake" },
             ]);
           }
-          updated = linkProductSourceCandidate(
-            updated,
+          await recordCandidateReviewEvents(review.request, approved, feedbackStore);
+          const updated = linkProductSourceCandidate(
+            approved,
             review.candidateId,
             committed.product.id,
             committed.source.id,
@@ -4701,6 +5170,25 @@ export function createStudioServer(
             sourceStore.list(catalog.read().products),
           );
           await sourcingStore.save(updated);
+          const linkedCandidate = updated.sourceCandidates.find(
+            ({ id }) => id === review.candidateId,
+          )!;
+          await feedbackStore.record({
+            eventType: "canonical-product-created",
+            ...sourcingFeedbackReferences(updated),
+            requestId: updated.id,
+            candidateId: linkedCandidate.id,
+            canonicalProductId: committed.product.id,
+            provider: linkedCandidate.provider,
+            candidateSourceKind: linkedCandidate.sourceKind,
+            ...feedbackContext(updated),
+          });
+        } else {
+          await feedbackStore.record({
+            eventType: "canonical-product-created",
+            canonicalProductId: committed.product.id,
+            provider: committed.source.provider,
+          });
         }
         const returnTo = safeReturnTo(form.get("returnTo"));
         redirect(
@@ -4713,7 +5201,13 @@ export function createStudioServer(
       }
       if (method === "POST" && url.pathname === "/products") {
         const form = await readForm(request);
-        await catalog.save(productFromForm(form));
+        const product = productFromForm(form);
+        await catalog.save(product);
+        await feedbackStore.record({
+          eventType: "canonical-product-created",
+          canonicalProductId: product.id,
+          provider: "Manual",
+        });
         redirect(response, safeReturnTo(form.get("returnTo")) ?? "/products?saved=1");
         return;
       }

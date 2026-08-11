@@ -125,7 +125,15 @@ import {
   EditorialBenchmarkStore,
   createEditorialBenchmark,
   editorialBenchmarkSchema,
+  retireEditorialBenchmark,
 } from "./modules/product-intelligence/benchmarks.ts";
+import {
+  EDITORIAL_FEEDBACK_POLICY,
+  EditorialFeedbackStore,
+  createEditorialFeedbackEvent,
+  editorialFeedbackEventSchema,
+  summarizeEditorialFeedback,
+} from "./modules/product-intelligence/feedback.ts";
 import {
   PRODUCT_CLASS_PROFILES,
   PRODUCT_FIT_RANKING_POLICY_V1,
@@ -851,6 +859,13 @@ test("shows traceability in Studio and excludes product intelligence from the pu
     "request_intelligence-sentinel",
   );
   await new ProductSourcingRequestStore(repository).save(sourcingRequest);
+  await new EditorialFeedbackStore(repository).record({
+    eventType: "recommendation-left-idea-only",
+    guideId: draft.id,
+    recommendationId: draft.recommendations[0]!.id,
+    requestId: sourcingRequest.id,
+    rationale: `${sentinel} remains internal feedback evidence.`,
+  });
   const catalog = new ProductCatalog(repository);
   const server = createStudioServer(
     draftStore,
@@ -898,7 +913,7 @@ test("shows traceability in Studio and excludes product intelligence from the pu
   ).join("\n");
   assert.doesNotMatch(
     outputFiles.join("\n"),
-    /product-intelligence|gap_coverage-brief|request_intelligence-sentinel/,
+    /product-intelligence|gap_coverage-brief|request_intelligence-sentinel|editorial-feedback|feedback_event/,
   );
   assert.doesNotMatch(outputHtml, new RegExp(sentinel));
   assert.doesNotMatch(outputHtml, /product-gap-report|editorial-data/);
@@ -6746,6 +6761,10 @@ test("crea benchmarks internos consultivos sin seleccionar ni alterar perfiles",
   assert.equal(editorialBenchmarkSchema.parse(benchmark).canonicalProductId, product.id);
   assert.equal("selectedProductId" in benchmark, false);
   assert.equal("rankingBoost" in benchmark, false);
+  assert.equal(
+    retireEditorialBenchmark(benchmark, new Date("2026-08-11T16:00:00.000Z")).status,
+    "inactive",
+  );
   assert.deepEqual(PRODUCT_CLASS_PROFILES, profilesBefore);
 
   const repository = await mkdtemp(join(tmpdir(), "tgp-benchmark-"));
@@ -6772,4 +6791,165 @@ test("crea benchmarks internos consultivos sin seleccionar ni alterar perfiles",
   assert.equal("sourceDiscoverySessionId" in summary, false);
   assert.match(prepared.prompt, /not training data, selection instructions, or ranking boosts/i);
   assert.deepEqual(request.approvedProductIds, []);
+});
+
+test("persiste eventos editoriales con referencias estables y valida razones", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "tgp-feedback-events-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  const event = createEditorialFeedbackEvent(
+    {
+      eventType: "candidate-rejected",
+      guideId: "guide_feedback-example",
+      recommendationId: "slot_feedback-example",
+      requestId: "request_feedback-example",
+      candidateId: "source_candidate_feedback-example",
+      provider: "SerpAPI",
+      candidateSourceKind: "serpapi",
+      productClassProfile: { classId: "insulated-drinkware", version: 1 },
+      rankingPolicyVersion: "product-fit-ranking-v1",
+      reason: "wrong-product-class",
+      rationale: "The result was a phone case rather than drinkware.",
+      diagnosticAreas: ["provider-quality", "product-class-profile"],
+    },
+    new Date("2026-08-11T16:00:00.000Z"),
+    "feedback_event_stable-example",
+  );
+  assert.equal(editorialFeedbackEventSchema.parse(event).candidateId, event.candidateId);
+  assert.equal(event.requestId, "request_feedback-example");
+  assert.equal(event.productClassProfile?.version, 1);
+  assert.equal(event.rankingPolicyVersion, "product-fit-ranking-v1");
+  assert.equal(
+    editorialFeedbackEventSchema.safeParse({ ...event, reason: "not-a-reason" }).success,
+    false,
+  );
+  assert.equal(
+    editorialFeedbackEventSchema.safeParse({ ...event, recommendationId: "slot/unsafe" }).success,
+    false,
+  );
+
+  const store = new EditorialFeedbackStore(repository);
+  await store.save(event);
+  const read = store.list();
+  assert.equal(read.length, 1);
+  assert.equal(read[0]!.id, event.id);
+  assert.equal(read[0]!.candidateId, "source_candidate_feedback-example");
+  await assert.rejects(() => store.save(event), /already exists/);
+});
+
+test("resume decisiones editoriales con denominadores visibles y sin llamadas de IA", () => {
+  const context = {
+    guideId: "guide_feedback-summary",
+    recommendationId: "slot_feedback-summary",
+    requestId: "request_feedback-summary",
+    productClassProfile: { classId: "insulated-drinkware", version: 1 },
+    rankingPolicyVersion: "product-fit-ranking-v1",
+  } as const;
+  const events = [
+    createEditorialFeedbackEvent({
+      ...context,
+      eventType: "catalog-product-selected",
+      canonicalProductId: "product_feedback-catalog",
+    }),
+    createEditorialFeedbackEvent({
+      ...context,
+      eventType: "candidate-approved-for-intake",
+      candidateId: "source_candidate_feedback-auto-accepted",
+      provider: "SerpAPI",
+      candidateSourceKind: "serpapi",
+      benchmarkId: "benchmark_feedback-example",
+    }),
+    createEditorialFeedbackEvent({
+      ...context,
+      eventType: "candidate-rejected",
+      candidateId: "source_candidate_feedback-auto-rejected",
+      provider: "SerpAPI",
+      candidateSourceKind: "serpapi",
+      reason: "provider-results-poor",
+      diagnosticAreas: ["provider-quality"],
+    }),
+    createEditorialFeedbackEvent({
+      ...context,
+      eventType: "manual-url-supplied-after-automatic-discovery-insufficient",
+      candidateId: "source_candidate_feedback-manual",
+      provider: "Manual",
+      candidateSourceKind: "manual",
+      reason: "manual-choice-better",
+    }),
+    createEditorialFeedbackEvent({
+      ...context,
+      eventType: "automatic-discovery-invoked",
+      provider: "DataForSEO",
+      candidateSourceKind: "dataforseo",
+      discoveryRound: 1,
+      providerInvocationCount: 2,
+    }),
+    createEditorialFeedbackEvent({
+      ...context,
+      eventType: "search-again-requested",
+      reason: "provider-results-poor",
+    }),
+    createEditorialFeedbackEvent({
+      ...context,
+      eventType: "recommendation-left-idea-only",
+    }),
+    createEditorialFeedbackEvent({
+      ...context,
+      eventType: "recommendation-published",
+      publicationResolution: "idea-only",
+    }),
+    createEditorialFeedbackEvent({
+      ...context,
+      eventType: "idea-only-recommendation-resolved",
+      canonicalProductId: "product_feedback-later",
+    }),
+    createEditorialFeedbackEvent({
+      ...context,
+      eventType: "product-assigned",
+      canonicalProductId: "product_feedback-later",
+    }),
+    createEditorialFeedbackEvent({
+      ...context,
+      eventType: "product-marked-benchmark",
+      canonicalProductId: "product_feedback-later",
+      benchmarkId: "benchmark_feedback-example",
+    }),
+  ];
+  const summary = summarizeEditorialFeedback(events);
+
+  assert.equal(summary.eventCount, events.length);
+  assert.deepEqual(summary.catalogResolutionRate, { numerator: 1, denominator: 4, rate: 0.25 });
+  assert.deepEqual(summary.automaticCandidateAcceptanceRate, {
+    numerator: 1,
+    denominator: 2,
+    rate: 0.5,
+  });
+  assert.deepEqual(summary.manualUrlRate, { numerator: 1, denominator: 4, rate: 0.25 });
+  assert.deepEqual(summary.ideaOnlyPublicationRate, { numerator: 1, denominator: 1, rate: 1 });
+  assert.deepEqual(summary.laterProductResolutionRate, { numerator: 1, denominator: 1, rate: 1 });
+  assert.deepEqual(summary.searchAgainRate, { numerator: 1, denominator: 1, rate: 1 });
+  assert.equal(summary.rejectionReasons["provider-results-poor"], 1);
+  assert.deepEqual(summary.providerAcceptanceRate.SerpAPI, {
+    accepted: 1,
+    rejected: 1,
+    numerator: 1,
+    denominator: 2,
+    rate: 0.5,
+  });
+  assert.equal(summary.dataForSeoPaidProviderInvocationCount, 2);
+  assert.deepEqual(summary.benchmarkCreationRate, { numerator: 1, denominator: 1, rate: 1 });
+  assert.deepEqual(summary.benchmarkAssociatedLaterAcceptanceRate, {
+    numerator: 1,
+    denominator: 1,
+    rate: 1,
+  });
+  assert.equal(summary.diagnosticAreaCounts["provider-quality"], 1);
+  assert.equal(EDITORIAL_FEEDBACK_POLICY.onlineLearning, false);
+  assert.equal(EDITORIAL_FEEDBACK_POLICY.automaticRankingMutation, false);
+
+  const retired = createEditorialFeedbackEvent({
+    eventType: "benchmark-retired",
+    canonicalProductId: "product_feedback-later",
+    benchmarkId: "benchmark_feedback-example",
+  });
+  assert.equal(retired.eventType, "benchmark-retired");
 });

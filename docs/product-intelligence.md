@@ -167,6 +167,16 @@ Idea-only copy uses the separate `idea-recommendation-v1` operation. Its strict 
 
 Later Product attachment preserves guide ID, recommendation ID, position, and canonical route. The chosen item follows exact I.2 create/reuse, P.1 review, P.0 provenance, canonical Product creation, explicit sourcing fulfillment, and explicit slot assignment. Generic copy moves to `needs-review`; the editor reviews manually or regenerates only that recommendation. Publishing the idea does not satisfy I.0 coverage, and A.2 treats the gap as an opportunity rather than an affiliate hard error.
 
+## P.2.5 editorial feedback and deterministic learning evidence
+
+Editorial decisions are recorded internally as append-only `EditorialFeedbackEvent` records under `editorial-data/editorial-feedback/`. Events reuse the existing Guide/recommendation, I.2 request, candidate, canonical Product, provider, ProductClassProfile version, ranking-policy version, and EditorialBenchmark identities; no shadow identity is introduced. The event vocabulary covers candidate review, catalog selection, discovery quality, SearchPlan edits, manual URLs, candidate replacement, Product create/reuse/assignment/removal, idea-only publication and later resolution, and benchmark creation/retirement. Passive `viewed` events are not recorded.
+
+Reasons are optional and validated against the controlled vocabulary: `wrong-product-class`, `too-generic`, `insufficient-specificity`, `poor-recipient-fit`, `poor-context-fit`, `low-gift-desirability`, `low-giftability`, `redundant-with-guide`, `weak-evidence`, `compatibility-risk`, `maintenance-concern`, `budget-mismatch`, `commercial-mismatch`, `provider-results-poor`, `manual-choice-better`, and `other`. Events also preserve explicit diagnostic-area metadata for provider quality, search/query planning, ProductClassProfile, fit/ranking, catalog coverage, and collection diversity; Studio does not infer a diagnosis automatically.
+
+The internal report is pure deterministic code with visible numerator/denominator rates for catalog resolution, automatic-candidate acceptance, manual URL use, idea-only publication, later Product resolution, search-again, ProductClassProfile manual intervention, provider acceptance, DataForSEO paid-provider invocations, benchmark creation, and benchmark-associated later acceptance. It also reports rejection reasons and diagnostic-area counts. Summaries do not call AI, update ranking policy, mutate ProductClassProfiles, create benchmarks, personalize ranking, or promote Products.
+
+This evidence is editorial/discovery-only P.2 data. Affiliate-performance feedback and any I.3 loop remain out of scope. Feedback, benchmarks, and summaries stay internal Studio data and are excluded from `packages/content-schema` and Astro output.
+
 ## Boundaries
 
 - I.0 analysis and ordinary I.2 transitions use no AI or network. P.2.2 uses the existing editorial structured-generation adapter only when the editor requests a batch SearchPlan, then calls only the explicitly selected Product discovery provider when the editor starts a bounded round.
