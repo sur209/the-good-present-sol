@@ -2967,22 +2967,25 @@ test("resume ocho slots con matching I.0 y sourcing sin tomar decisiones editori
   await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
   const catalog = new ProductCatalog(repository);
   const content = catalog.read();
-  const activeProducts = content.products.filter(({ status }) => status === "active");
-  assert.ok(activeProducts.length >= 2);
+  const assignedProduct = content.products.find(({ id }) => id === "product_badge-reel");
+  const matchedProduct = content.products.find(({ id }) => id === "product_insulated-tumbler");
+  const weakProduct = content.products.find(({ id }) => id === "product_shift-tote");
+  assert.ok(assignedProduct && matchedProduct && weakProduct);
   const draftStore = new DraftStore(join(repository, "drafts"));
   const recommendations = [
     {
       id: "slot_triage-assigned",
       position: 1,
-      slotLabel: "Assigned product",
-      productId: activeProducts[0]!.id,
+      slotLabel: assignedProduct.name,
+      productId: assignedProduct.id,
       editorialStatus: "ready" as const,
     },
     {
       id: "slot_triage-generate",
       position: 2,
-      slotLabel: "Ready for copy",
-      productId: activeProducts[1]!.id,
+      slotLabel: "Insulated tumbler",
+      searchTerms: ["insulated", "tumbler"],
+      productId: matchedProduct.id,
       editorialStatus: "needs-generation" as const,
     },
     {
@@ -2992,9 +2995,17 @@ test("resume ocho slots con matching I.0 y sourcing sin tomar decisiones editori
       searchTerms: ["insulated", "tumbler"],
       editorialStatus: "unassigned" as const,
     },
-    ...Array.from({ length: 5 }, (_, index) => ({
+    {
+      id: "slot_triage-review-fit",
+      position: 4,
+      slotLabel: "Portable Exam Prep Study Cards",
+      searchTerms: ["firefighter exam prep", "study flashcards"],
+      productId: weakProduct.id,
+      editorialStatus: "needs-generation" as const,
+    },
+    ...Array.from({ length: 4 }, (_, index) => ({
       id: `slot_triage-missing-${index + 1}`,
-      position: index + 4,
+      position: index + 5,
       slotLabel: `Xylophonic quasar ${index + 1}`,
       searchTerms: [`xylophonic-${index + 1}`, `quasar-${index + 1}`],
       editorialStatus: "unassigned" as const,
@@ -3039,10 +3050,17 @@ test("resume ocho slots con matching I.0 y sourcing sin tomar decisiones editori
   assert.match(html, /Resumen de slots/);
   assert.match(html, /Asignado/);
   assert.match(html, /Listo para generar recomendación/);
-  assert.match(html, /Coincidencia creíble en catálogo/);
-  assert.match(html, /Sin coincidencia creíble · sourcing probable/);
+  assert.match(html, /Posible coincidencia determinista/);
+  assert.match(html, /Sin coincidencia determinista · sourcing probable/);
+  assert.match(html, /Producto asignado · revisar encaje/);
+  assert.doesNotMatch(html, /coincidencia creíble/i);
   assert.match(html, /Sourcing activo/);
-  assert.match(html, /I\.0 de 2 tokens compartidos/);
+  assert.match(html, /El umbral determinista I\.0 es de 2 tokens compartidos/);
+  assert.match(html, /Structured Shift Tote · I\.0: 0 tokens compartidos/);
+  assert.match(
+    html,
+    new RegExp(`/drafts/${draft.id}/recommendations/slot_triage-review-fit/prompt`),
+  );
   for (const recommendation of recommendations) {
     assert.match(html, new RegExp(`href="#slot-${recommendation.id}"`));
     assert.match(html, new RegExp(`id="slot-${recommendation.id}"`));
@@ -3051,7 +3069,15 @@ test("resume ocho slots con matching I.0 y sourcing sin tomar decisiones editori
 
   const unchangedDraft = guideDraftSchema.parse(await draftStore.read(draft.id));
   assert.deepEqual(unchangedDraft.recommendations, recommendations);
-  assert.ok(unchangedDraft.recommendations.slice(2).every(({ productId }) => !productId));
+  assert.equal(
+    unchangedDraft.recommendations.find(({ id }) => id === "slot_triage-review-fit")!.productId,
+    weakProduct.id,
+  );
+  assert.ok(
+    unchangedDraft.recommendations
+      .filter(({ editorialStatus }) => editorialStatus === "unassigned")
+      .every(({ productId }) => !productId),
+  );
   assert.equal(sourcingStore.get(request.id).status, "open");
   assert.deepEqual(sourcingStore.get(request.id).approvedProductIds, []);
   assert.ok(validateGuideDraft(unchangedDraft, content).errors.length > 0);

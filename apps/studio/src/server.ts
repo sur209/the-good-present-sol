@@ -62,6 +62,7 @@ import {
   ProductCatalog,
   createProductId,
   matchProducts,
+  productSlotMatchScore,
   productUsage,
   suggestProductsForSlot,
   validateProductUrl,
@@ -2128,7 +2129,7 @@ function recommendationSelectionSection(
     (left, right) => left.position - right.position,
   );
   const coverage = analyzeProductCoverage(content, [draft]);
-  const slotsWithoutCredibleMatch = new Set(
+  const slotsWithoutDeterministicMatch = new Set(
     coverage.editorialCoverage.draftSlotsWithoutSuitableProducts.map(({ slotId }) => slotId),
   );
   const activeSourcingStatuses: ProductSourcingRequestStatus[] = ["open", "partially-fulfilled"];
@@ -2137,10 +2138,16 @@ function recommendationSelectionSection(
       const selected = recommendation.productId
         ? productsById.get(recommendation.productId)
         : undefined;
-      const credibleMatch =
-        !recommendation.productId && !slotsWithoutCredibleMatch.has(recommendation.id)
+      const possibleMatch =
+        !recommendation.productId && !slotsWithoutDeterministicMatch.has(recommendation.id)
           ? suggestProductsForSlot(content.products, recommendation, 1)[0]
           : undefined;
+      const selectedMatchTokens = selected
+        ? productSlotMatchScore(selected, recommendation)
+        : undefined;
+      const assignedNeedsFitReview =
+        Boolean(recommendation.productId) &&
+        (!selected || (selectedMatchTokens ?? 0) < coverage.thresholds.minimumSlotMatchTokenCount);
       const activeRequests = sourcingRequests.filter(
         ({ origin, status }) =>
           activeSourcingStatuses.includes(status) &&
@@ -2149,17 +2156,21 @@ function recommendationSelectionSection(
           origin.recommendationSlotId === recommendation.id,
       );
       const state = recommendation.productId
-        ? recommendation.editorialStatus === "needs-generation"
-          ? "Listo para generar recomendación"
-          : "Asignado"
-        : credibleMatch
-          ? "Coincidencia creíble en catálogo"
-          : "Sin coincidencia creíble · sourcing probable";
+        ? assignedNeedsFitReview
+          ? "Producto asignado · revisar encaje"
+          : recommendation.editorialStatus === "needs-generation"
+            ? "Listo para generar recomendación"
+            : "Asignado"
+        : possibleMatch
+          ? "Posible coincidencia determinista"
+          : "Sin coincidencia determinista · sourcing probable";
       const evidence = selected
-        ? escapeHtml(selected.name)
-        : credibleMatch
-          ? escapeHtml(credibleMatch.name)
-          : `I.0: menos de ${coverage.thresholds.minimumSlotMatchTokenCount} tokens compartidos`;
+        ? `${escapeHtml(selected.name)} · I.0: ${selectedMatchTokens} tokens compartidos`
+        : recommendation.productId
+          ? `<code>${escapeHtml(recommendation.productId)}</code> · no disponible en catálogo`
+          : possibleMatch
+            ? escapeHtml(possibleMatch.name)
+            : `I.0: menos de ${coverage.thresholds.minimumSlotMatchTokenCount} tokens compartidos`;
       const sourcing = activeRequests.length
         ? activeRequests
             .map(
@@ -2271,7 +2282,7 @@ function recommendationSelectionSection(
   return `<section>
     <h2>Selección de productos</h2>
     <p>Actualizar un producto cambia el catálogo compartido y todas sus guías. Reemplazarlo aquí cambia sólo este slot y conserva su ID, posición y propósito.</p>
-    ${triage ? `<section class="card"><h3>Resumen de slots</h3><p class="muted">“Coincidencia creíble” reutiliza el umbral determinista I.0 de ${coverage.thresholds.minimumSlotMatchTokenCount} tokens compartidos; sigue siendo una ayuda de inspección, no una selección.</p><table><thead><tr><th>Slot</th><th>Estado</th><th>Sourcing</th><th>Ir a</th></tr></thead><tbody>${triage}</tbody></table></section>` : ""}
+    ${triage ? `<section class="card"><h3>Resumen de slots</h3><p class="muted">El umbral determinista I.0 es de ${coverage.thresholds.minimumSlotMatchTokenCount} tokens compartidos; no evalúa el encaje editorial ni selecciona productos.</p><table><thead><tr><th>Slot</th><th>Estado</th><th>Sourcing</th><th>Ir a</th></tr></thead><tbody>${triage}</tbody></table></section>` : ""}
     ${duplicateWarning}
     <div class="grid">${recommendations || `<p class="notice">No hay slots. <a href="/drafts/${draft.id}/outline-prompt">Revisá y generá el esquema</a> para crearlos con el flujo editorial, o agregá uno manualmente.</p>`}</div>
     <form method="post" action="/drafts/${draft.id}/recommendations" class="card">
