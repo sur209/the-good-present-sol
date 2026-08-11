@@ -93,6 +93,66 @@ The run checks canonical catalog coverage and recent compatible candidates befor
 
 Returned title, merchant/domain, source URL, external/product ID, price, rating/review metadata, provider, query, and observation time are source observations only. The candidate never becomes a Product automatically, and these fields do not expand the canonical Product schema or count as `verifiedFacts`. Ordinary P.1 intake, source-provenance review, I.2 fulfillment, exact slot assignment, copy review, and publication remain separate editor-controlled gates. The earlier P.2 batch-import concept is deferred as a possible future source adapter and is not implemented.
 
+## P.2.3 product fit and gift value
+
+The `ProductFitEvaluator` is an advisory AI interpretation over selected I.2 source candidates. An editor can select candidates from one or several sourcing requests and evaluate the batch with one structured provider call. The stored session lives under `editorial-data/product-fit-evaluations/` and preserves the compact structured input, strict response, provider/model, one-call and candidate counts, prompt/policy versions, and request/token metadata when the provider returns it.
+
+The response keeps 21 dimensions visible; every dimension has its own `positive`, `neutral`, `negative`, or `unknown` assessment and rationale:
+
+- Editorial/functional fit: Product class match, slot specificity, Guide relevance, recipient fit, occasion/career-stage/work-context fit, and supported budget compatibility.
+- Consumer/gift value: practical usefulness, gift desirability, presentation/giftability, ease of choosing correctly, compatibility/selection risk, perceived value, and contextual emotional relevance or memorability.
+- Evidence/operations: evidence quality, maintenance risk, commercial suitability, and existing-catalog reuse opportunity.
+- Collection quality: in-Guide distinctiveness, redundancy with current selections, repeated Product class, and repeated functional role.
+
+`unknown` is required when the evidence cannot support a conclusion. In particular, price-band compatibility and perceived value remain unknown without usable observed-price and budget evidence. The diagnostic summary separately records possible provider-result weakness, SearchPlan/class mismatch, profile coverage, and fit-confidence limits so later review can distinguish discovery, planning, profile, and interpretation failures.
+
+The evaluator cannot return a total, winner, selection, rejection, canonical Product ID assignment, verified fact, fulfillment transition, or GuideDraft assignment. It receives provider observations in an explicitly labeled domain and canonical Product facts only when an already linked canonical Product exists. A profile requirement means “look for evidence”; it never supplies the missing fact.
+
+### ProductClassProfiles
+
+The internal v1 registry is deliberately small and dogfood-derived:
+
+- `weatherproof-field-notebook`
+- `hydration-reservoir`
+- `compression-socks`
+- `insulated-drinkware`
+- `protective-equipment-case`
+- `generic`, the mandatory fallback
+
+Each profile has a stable class ID, aliases/search vocabulary, important and truly required attributes, undesirable attributes, compatibility risks, giftability guidance, query-expansion hints, maintenance considerations, evaluation guidance, and version. The evaluator passes only a compact profile summary. Profiles are code-controlled internal guidance; benchmarks do not mutate them, and missing profile attributes do not become Product facts.
+
+### Ranking policy v1
+
+`product-fit-ranking-v1` is a deterministic lexicographic ordering aid, not a score. It orders by:
+
+1. fewer negative critical dimensions;
+2. more positive core dimensions;
+3. fewer negative collection dimensions;
+4. fewer unknown dimensions;
+5. stable request/candidate ID tie-break.
+
+Every stored candidate ordering entry exposes those four counts, the session preserves all dimensions, and the policy object lists the contributing dimension paths. There is no sum, weight, automatic winner, selection, or rejection.
+
+### EditorialBenchmarks
+
+An editor may optionally use **Marcar como referencia editorial** on an especially strong selected canonical Product. The internal record under `editorial-data/editorial-benchmarks/` keeps the canonical Product ID, Product class, Guide/slot or semantic context, audience/context tags, concise rationale, structured strong-fit reasons, free-form attributes/reasons, optional discovery-session/rejected-alternative references, status, version, and timestamps.
+
+Structured reasons are: more specific, correct class, stronger real-world use, better gift desirability, easier to choose, better presentation, better value, better context fit, and less generic. A benchmark is an explicit editor decision and a compact advisory example. It does not auto-select, add a ranking boost, mutate a class profile, become hidden training data, or force later Product reuse.
+
+### Collection diversity and evidence boundaries
+
+The deterministic input stores exact in-Guide canonical repetition separately from distinct published Guide IDs that reuse the Product. In-Guide repetition can produce a visible collection concern and affect v1 ordering through the documented signals; it never auto-rejects legitimate overlap. Cross-Guide reuse is a separate reuse opportunity and is not treated as in-Guide redundancy.
+
+The five domains remain separate throughout:
+
+1. I.0 deterministic evidence;
+2. provider-observed evidence;
+3. AI interpretation;
+4. editor decisions, including benchmarks;
+5. canonical verified Product facts.
+
+Deterministic extraction precedes AI. Candidate/slot evaluation is batched by default, profiles and benchmarks are compact summaries rather than historical sessions, and the evaluator makes no discovery call. Provider call count is always one per fit batch; input/output/total token counts and request ID are stored only when returned by the configured provider.
+
 ## Boundaries
 
 - I.0 analysis and ordinary I.2 transitions use no AI or network. P.2.2 uses the existing editorial structured-generation adapter only when the editor requests a batch SearchPlan, then calls only the explicitly selected Product discovery provider when the editor starts a bounded round.
@@ -103,6 +163,7 @@ Returned title, merchant/domain, source URL, external/product ID, price, rating/
 - I.2 coordinates explicit requirements and reviewed selections but does not recalculate I.0, create Products, or choose products automatically. Editorial publication does not fulfill or hide an unresolved Product requirement.
 - P.2.1 coordinates catalog/URL resolution into I.2 but does not introduce a second candidate model, editorial-fit score, network lookup, automatic fulfillment, or automatic assignment.
 - P.2.2 stores plans, observed evidence, and bounded round outcomes on existing I.2 records. It does not add canonical rating/review fields, turn observation into verification, create Products, fulfill I.2, assign a slot, or publish.
+- P.2.3 stores advisory fit sessions and explicit editor benchmarks in separate non-public directories. Neither record changes a source candidate, sourcing request, Product, ProductClassProfile, GuideDraft, or public artifact.
 - Any later product work must use the existing intake and source-provenance flows.
 - Any later guide work must use the existing Goal 2 preview, validation, and atomic publication flow.
 

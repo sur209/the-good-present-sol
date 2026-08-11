@@ -111,6 +111,23 @@ import { analyzeProductCoverage } from "./modules/product-intelligence/coverage.
 import { inspectManualProductUrl } from "./modules/product-intelligence/manual-url.ts";
 import { productGapReportSchema } from "./modules/product-intelligence/gaps.ts";
 import {
+  EditorialBenchmarkStore,
+  createEditorialBenchmark,
+  editorialBenchmarkSchema,
+} from "./modules/product-intelligence/benchmarks.ts";
+import {
+  PRODUCT_CLASS_PROFILES,
+  PRODUCT_FIT_RANKING_POLICY_V1,
+  ProductFitEvaluationStore,
+  evaluateProductFitBatch,
+  mockProductFitEvaluation,
+  orderProductFitEvaluations,
+  prepareProductFitEvaluationPrompt,
+  productFitEvaluationBatchSchema,
+  resolveProductClassProfile,
+  type ProductFitEvaluation,
+} from "./modules/product-intelligence/fit.ts";
+import {
   ProductSourcingRequestStore,
   addProductSourceCandidates,
   assertProductSourcingOrigin,
@@ -500,6 +517,65 @@ function productCoverageFixture() {
     nextActions: ["Review the catalog manually."],
   });
   return { content, draft, report };
+}
+
+function fitSourcingRequest(
+  requestId: string,
+  candidateId: string,
+  productClass: string,
+  overrides: { name?: string; sourceFacts?: string[]; observedPrice?: string } = {},
+) {
+  const now = new Date("2026-08-11T12:00:00.000Z");
+  const base = createProductSourcingRequest(
+    {
+      origin: {
+        kind: "recommendation-slot",
+        guideDraftId: "guide_fit-evaluation",
+        recommendationSlotId: `slot_${requestId.replace(/^request_/, "")}`,
+      },
+      intendedRole: `Serve the ${productClass} role in a specific work routine.`,
+      requiredCategory: productClass,
+      audience: "A nurse or firefighter in the stated work context",
+      occasion: "Career milestone",
+      budgetContext: "Under $75",
+      mustHaveVerifiedFacts: [],
+      exclusions: ["generic profession slogans"],
+      searchTerms: [productClass],
+    },
+    now,
+    requestId,
+  );
+  const withCandidate = addProductSourceCandidates(
+    base,
+    [
+      {
+        id: candidateId,
+        sourceKind: "serpapi",
+        provider: "SerpAPI",
+        merchant: "Observed merchant",
+        name: overrides.name ?? `${productClass} candidate`,
+        sourceFacts: overrides.sourceFacts ?? ["Observed material detail"],
+        query: productClass,
+        observedAt: now.toISOString(),
+        ...(overrides.observedPrice ? { observedPrice: overrides.observedPrice } : {}),
+      },
+    ],
+    now,
+  );
+  return productSourcingRequestSchema.parse({
+    ...withCandidate,
+    searchPlan: {
+      productClass,
+      mustHaveAttributes: [],
+      usefulAttributes: [],
+      exclusions: withCandidate.exclusions,
+      queries: [productClass],
+      providerId: "mock",
+      modelId: "mock-editorial-v1",
+      promptVersion: "product-search-plan-v1",
+      plannedAt: now.toISOString(),
+    },
+  });
 }
 
 test("discrimina borradores estrictos de hub y guía", () => {
@@ -5783,8 +5859,12 @@ test("el adaptador compatible envía JSON mode y valida el objeto exacto", async
     return new Response(
       JSON.stringify({
         choices: [{ finish_reason: "stop", message: { content: '{"answer":"ready"}' } }],
+        usage: { prompt_tokens: 12, completion_tokens: 4, total_tokens: 16 },
       }),
-      { status: 200, headers: { "content-type": "application/json" } },
+      {
+        status: 200,
+        headers: { "content-type": "application/json", "x-request-id": "request-usage-test" },
+      },
     );
   };
   const provider = createGuideGenerationProvider(environment, fakeFetch);
@@ -5805,6 +5885,12 @@ test("el adaptador compatible envía JSON mode y valida el objeto exacto", async
   assert.equal(body.stream, false);
   assert.match(body.messages[0].content, /JSON/);
   assert.doesNotMatch(String(requestedInit?.body), /test-secret/);
+  assert.deepEqual(provider.lastCallMetadata, {
+    requestId: "request-usage-test",
+    inputTokens: 12,
+    outputTokens: 4,
+    totalTokens: 16,
+  });
 });
 
 test("rechaza fences, prosa, vacíos, JSON roto y objetos fuera de esquema", () => {
@@ -5966,4 +6052,277 @@ test("sanitiza autenticación, rate limit, red, timeout, vacíos y rechazos", as
     );
     assert.equal(failure.code, code);
   }
+});
+
+test("resuelve perfiles de clase dogfood versionados con fallback generico", () => {
+  assert.ok(PRODUCT_CLASS_PROFILES.length >= 6);
+  assert.equal(
+    resolveProductClassProfile("all-weather notebook").classId,
+    "weatherproof-field-notebook",
+  );
+  assert.equal(
+    resolveProductClassProfile("large capacity water bladder").classId,
+    "hydration-reservoir",
+  );
+  assert.equal(
+    resolveProductClassProfile("everyday compression socks").classId,
+    "compression-socks",
+  );
+  assert.equal(
+    resolveProductClassProfile("protective stethoscope case").classId,
+    "protective-equipment-case",
+  );
+  assert.equal(resolveProductClassProfile("unmodeled retirement experience").classId, "generic");
+  assert.ok(PRODUCT_CLASS_PROFILES.every(({ version }) => version === 1));
+});
+
+test("mantiene dimensiones independientes de encaje y regalo sin total opaco", () => {
+  const request = fitSourcingRequest(
+    "request_fit-dimensions",
+    "source_candidate_fit-dimensions",
+    "Weatherproof field notebook",
+  );
+  const prepared = prepareProductFitEvaluationPrompt(
+    [{ request, candidateId: "source_candidate_fit-dimensions" }],
+    { content: readPublicContent() },
+  );
+  const output = mockProductFitEvaluation(prepared.input);
+  const evaluation = output.evaluations[0]!;
+  assert.deepEqual(Object.keys(evaluation.editorialFunctionalFit), [
+    "productClassMatch",
+    "slotSpecificity",
+    "guideRelevance",
+    "recipientFit",
+    "contextFit",
+    "budgetCompatibility",
+  ]);
+  assert.deepEqual(Object.keys(evaluation.consumerGiftValue), [
+    "practicalUsefulness",
+    "giftDesirability",
+    "giftabilityPresentation",
+    "easeOfChoosingCorrectly",
+    "compatibilitySelectionRisk",
+    "perceivedValue",
+    "emotionalRelevanceMemorability",
+  ]);
+  assert.equal("total" in evaluation, false);
+  assert.equal("totalScore" in evaluation, false);
+  assert.equal(
+    productFitEvaluationBatchSchema.safeParse({ ...output, totalScore: 100 }).success,
+    false,
+  );
+  assert.equal(
+    productFitEvaluationBatchSchema.safeParse({
+      ...output,
+      evaluations: [{ ...evaluation, selectedProductId: "product_forbidden" }],
+    }).success,
+    false,
+  );
+});
+
+test("evalua candidatos y slots en un solo lote estricto sin canonicalizar, cumplir ni asignar", async () => {
+  const requests = [
+    fitSourcingRequest(
+      "request_fit-batch-one",
+      "source_candidate_fit-batch-one",
+      "Weatherproof field notebook",
+    ),
+    fitSourcingRequest(
+      "request_fit-batch-two",
+      "source_candidate_fit-batch-two",
+      "Compression socks",
+      { sourceFacts: [], observedPrice: "$24.00" },
+    ),
+  ];
+  const before = structuredClone(requests);
+  const mock = new MockGuideGenerationProvider();
+  let calls = 0;
+  const provider: GuideGenerationProvider = {
+    providerId: mock.providerId,
+    modelId: mock.modelId,
+    lastCallMetadata: {
+      requestId: "provider-fit-batch",
+      inputTokens: 800,
+      outputTokens: 400,
+      totalTokens: 1200,
+    },
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      calls += 1;
+      assert.equal(request.operation, "product-fit-evaluations");
+      return mock.generateStructured(request);
+    },
+  };
+  const session = await evaluateProductFitBatch(
+    requests.map((request) => ({ request, candidateId: request.sourceCandidates[0]!.id })),
+    { content: readPublicContent(), provider, now: new Date("2026-08-11T14:00:00.000Z") },
+  );
+  assert.equal(calls, 1);
+  assert.equal(session.providerCallCount, 1);
+  assert.equal(session.candidateCount, 2);
+  assert.equal(session.providerUsage?.totalTokens, 1200);
+  assert.equal(session.aiInterpretation.evaluations.length, 2);
+  assert.equal(session.rankingPolicyVersion, "product-fit-ranking-v1");
+  assert.deepEqual(requests, before);
+  assert.ok(requests.every(({ status }) => status === "open"));
+  assert.ok(requests.every(({ approvedProductIds }) => approvedProductIds.length === 0));
+  assert.ok(
+    requests.every(({ sourceCandidates }) =>
+      sourceCandidates.every(({ canonicalProductId }) => canonicalProductId === undefined),
+    ),
+  );
+  assert.equal(
+    session.input.candidates[0]!.providerObservedEvidence.sourceFacts[0],
+    "Observed material detail",
+  );
+  assert.equal(session.input.candidates[0]!.canonicalProductEvidence, undefined);
+
+  const repository = await mkdtemp(join(tmpdir(), "tgp-fit-session-"));
+  try {
+    const store = new ProductFitEvaluationStore(repository);
+    await store.save(session);
+    assert.equal(store.list()[0]!.id, session.id);
+  } finally {
+    await rm(repository, { recursive: true, force: true });
+  }
+});
+
+test("ordena con politica v1 inspeccionable y conserva todas las dimensiones", () => {
+  const request = fitSourcingRequest(
+    "request_fit-ordering",
+    "source_candidate_fit-ordering",
+    "Insulated tumbler",
+  );
+  const prepared = prepareProductFitEvaluationPrompt(
+    [{ request, candidateId: "source_candidate_fit-ordering" }],
+    { content: readPublicContent() },
+  );
+  const base = mockProductFitEvaluation(prepared.input).evaluations[0]!;
+  const stronger = structuredClone(base) as ProductFitEvaluation;
+  stronger.candidateId = "source_candidate_fit-stronger";
+  stronger.editorialFunctionalFit.productClassMatch = {
+    assessment: "positive",
+    rationale: "Exact class evidence is visible.",
+  };
+  stronger.consumerGiftValue.practicalUsefulness = {
+    assessment: "positive",
+    rationale: "The use is specific and credible.",
+  };
+  const weaker = structuredClone(base) as ProductFitEvaluation;
+  weaker.candidateId = "source_candidate_fit-weaker";
+  weaker.editorialFunctionalFit.productClassMatch = {
+    assessment: "negative",
+    rationale: "The observed result is the wrong class.",
+  };
+  const ordered = orderProductFitEvaluations([weaker, stronger]);
+  assert.equal(ordered[0]!.candidateId, stronger.candidateId);
+  assert.equal(PRODUCT_FIT_RANKING_POLICY_V1.automaticWinner, false);
+  assert.equal(PRODUCT_FIT_RANKING_POLICY_V1.totalScore, false);
+  assert.deepEqual(ordered[0]!.consumerGiftValue, stronger.consumerGiftValue);
+});
+
+test("separa repeticion dentro de una guia de reuso entre guias", () => {
+  const content = readPublicContent();
+  const usedRecommendation = content.guides
+    .flatMap(({ recommendations }) => recommendations)
+    .find(({ productId }) => productId !== undefined);
+  assert.ok(usedRecommendation?.productId);
+  const productId = usedRecommendation.productId;
+  const base = fitSourcingRequest(
+    "request_fit-collection",
+    "source_candidate_fit-collection",
+    "Insulated tumbler",
+  );
+  const candidate = base.sourceCandidates[0]!;
+  const request = productSourcingRequestSchema.parse({
+    ...base,
+    sourceCandidates: [
+      {
+        ...candidate,
+        status: "linked-to-product",
+        reviewedAt: "2026-08-11T13:00:00.000Z",
+        canonicalProductId: productId,
+        productSourceId: "source_fit-collection",
+      },
+    ],
+  });
+  const draft = guideDraftSchema.parse({
+    ...createGuideDraft("guide_fit-evaluation", new Date("2026-08-11T12:00:00.000Z")),
+    status: "selecting-products",
+    recommendations: [
+      {
+        id: "slot_fit-collection",
+        position: 1,
+        slotLabel: "Current selection",
+        productId,
+        editorialStatus: "needs-generation",
+      },
+    ],
+  });
+  const prepared = prepareProductFitEvaluationPrompt([{ request, candidateId: candidate.id }], {
+    content,
+    drafts: [draft],
+  });
+  const deterministic = prepared.input.candidates[0]!.deterministicEvidence;
+  assert.equal(deterministic.inGuideCanonicalProductRepeat, true);
+  assert.ok(deterministic.crossGuideReuseGuideIds.length >= 1);
+  assert.ok(deterministic.crossGuideReuseGuideIds.every((id) => id !== draft.id));
+  const collection = mockProductFitEvaluation(prepared.input).evaluations[0]!.collectionQuality;
+  assert.equal(collection.inGuideDistinctiveness.assessment, "negative");
+  assert.ok("repeatedProductClass" in collection);
+  assert.ok("repeatedFunctionalRole" in collection);
+});
+
+test("crea benchmarks internos consultivos sin seleccionar ni alterar perfiles", async () => {
+  const content = readPublicContent();
+  const product = content.products[0]!;
+  const profilesBefore = structuredClone(PRODUCT_CLASS_PROFILES);
+  const benchmark = createEditorialBenchmark(
+    {
+      canonicalProductId: product.id,
+      productClass: "Insulated tumbler",
+      context: {
+        guideId: "guide_fit-benchmark",
+        recommendationSlotId: "slot_fit-benchmark",
+        semanticContext: "A useful shift drinkware gift",
+      },
+      audienceTags: ["nurses"],
+      contextTags: ["night shift"],
+      editorRationale: "Specific to the routine and easier to choose than generic alternatives.",
+      strongFitReasons: ["more-specific", "better-context-fit", "less-generic"],
+      attributesOrReasons: ["clear real-world use", "familiar gift presentation"],
+      rejectedAlternativeIds: ["source_candidate_rejected-alternative"],
+    },
+    content.products,
+    new Date("2026-08-11T15:00:00.000Z"),
+    "benchmark_fit-example",
+  );
+  assert.equal(editorialBenchmarkSchema.parse(benchmark).canonicalProductId, product.id);
+  assert.equal("selectedProductId" in benchmark, false);
+  assert.equal("rankingBoost" in benchmark, false);
+  assert.deepEqual(PRODUCT_CLASS_PROFILES, profilesBefore);
+
+  const repository = await mkdtemp(join(tmpdir(), "tgp-benchmark-"));
+  try {
+    const store = new EditorialBenchmarkStore(repository);
+    await store.save(benchmark);
+    assert.equal(store.list(content.products)[0]!.status, "active");
+  } finally {
+    await rm(repository, { recursive: true, force: true });
+  }
+
+  const request = fitSourcingRequest(
+    "request_fit-benchmark",
+    "source_candidate_fit-benchmark",
+    "Insulated tumbler",
+  );
+  const prepared = prepareProductFitEvaluationPrompt(
+    [{ request, candidateId: "source_candidate_fit-benchmark" }],
+    { content, benchmarks: [benchmark] },
+  );
+  const summary = prepared.input.candidates[0]!.editorialBenchmarks[0]!;
+  assert.equal(summary.benchmarkId, benchmark.id);
+  assert.equal(summary.editorRationale, benchmark.editorRationale);
+  assert.equal("sourceDiscoverySessionId" in summary, false);
+  assert.match(prepared.prompt, /not training data, selection instructions, or ranking boosts/i);
+  assert.deepEqual(request.approvedProductIds, []);
 });

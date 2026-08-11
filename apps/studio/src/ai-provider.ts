@@ -15,6 +15,17 @@ import {
   mockProductSearchPlanning,
   productSearchPlanningPromptInputSchema,
 } from "./modules/product-sources/discovery.ts";
+import {
+  mockProductFitEvaluation,
+  productFitPromptInputSchema,
+} from "./modules/product-intelligence/fit.ts";
+
+export interface ProviderCallMetadata {
+  requestId?: string;
+  inputTokens?: number;
+  outputTokens?: number;
+  totalTokens?: number;
+}
 
 export interface StructuredGenerationRequest<T> {
   operation:
@@ -23,7 +34,8 @@ export interface StructuredGenerationRequest<T> {
     | "single-recommendation"
     | "opportunity-candidates"
     | "opportunity-evaluations"
-    | "product-search-plans";
+    | "product-search-plans"
+    | "product-fit-evaluations";
   prompt: string;
   input: unknown;
   schema: z.ZodType<T>;
@@ -32,6 +44,7 @@ export interface StructuredGenerationRequest<T> {
 export interface GuideGenerationProvider {
   readonly providerId: string;
   readonly modelId?: string;
+  readonly lastCallMetadata?: ProviderCallMetadata | undefined;
   generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T>;
 }
 
@@ -169,6 +182,14 @@ const chatCompletionSchema = z
         })
         .passthrough(),
     ),
+    usage: z
+      .object({
+        prompt_tokens: z.number().int().nonnegative().optional(),
+        completion_tokens: z.number().int().nonnegative().optional(),
+        total_tokens: z.number().int().nonnegative().optional(),
+      })
+      .passthrough()
+      .optional(),
   })
   .passthrough();
 
@@ -238,6 +259,7 @@ type CompatibleConfiguration = Extract<AiConfiguration, { provider: "openai-comp
 class OpenAiCompatibleGuideGenerationProvider implements GuideGenerationProvider {
   readonly providerId: string;
   readonly modelId: string;
+  lastCallMetadata: ProviderCallMetadata | undefined;
   private readonly configuration: CompatibleConfiguration;
   private readonly fetchImplementation: typeof fetch;
 
@@ -249,6 +271,7 @@ class OpenAiCompatibleGuideGenerationProvider implements GuideGenerationProvider
   }
 
   async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+    this.lastCallMetadata = undefined;
     const signal = AbortSignal.timeout(this.configuration.timeoutMs);
     let response: Response;
     try {
@@ -327,6 +350,14 @@ class OpenAiCompatibleGuideGenerationProvider implements GuideGenerationProvider
     if (typeof choice.message.content !== "string") {
       throw new ProviderError("El proveedor devolvió contenido vacío.", "empty-response");
     }
+    const usage = envelope.data.usage;
+    const requestId = response.headers.get("x-request-id") ?? undefined;
+    this.lastCallMetadata = {
+      ...(requestId ? { requestId } : {}),
+      ...(usage?.prompt_tokens !== undefined ? { inputTokens: usage.prompt_tokens } : {}),
+      ...(usage?.completion_tokens !== undefined ? { outputTokens: usage.completion_tokens } : {}),
+      ...(usage?.total_tokens !== undefined ? { totalTokens: usage.total_tokens } : {}),
+    };
     return parseExactStructuredContent(choice.message.content, request.schema);
   }
 }
@@ -346,6 +377,11 @@ export class MockGuideGenerationProvider implements GuideGenerationProvider {
   readonly modelId = "mock-editorial-v1";
 
   async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+    if (request.operation === "product-fit-evaluations") {
+      return request.schema.parse(
+        mockProductFitEvaluation(productFitPromptInputSchema.parse(request.input)),
+      );
+    }
     if (request.operation === "product-search-plans") {
       return request.schema.parse(
         mockProductSearchPlanning(productSearchPlanningPromptInputSchema.parse(request.input)),

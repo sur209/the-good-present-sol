@@ -121,6 +121,17 @@ import {
 } from "./modules/product-intelligence/manual-url.ts";
 import { readProductGapReports } from "./modules/product-intelligence/gaps.ts";
 import {
+  EDITORIAL_BENCHMARK_REASONS,
+  EditorialBenchmarkStore,
+  createEditorialBenchmark,
+  type EditorialBenchmark,
+} from "./modules/product-intelligence/benchmarks.ts";
+import {
+  PRODUCT_FIT_RANKING_POLICY_VERSION,
+  ProductFitEvaluationStore,
+  evaluateProductFitBatch,
+} from "./modules/product-intelligence/fit.ts";
+import {
   PRODUCT_SOURCING_REQUEST_STATUSES,
   ProductSourcingRequestStore,
   addProductSourceCandidates,
@@ -1257,6 +1268,69 @@ function sourcingOriginLabel(request: ProductSourcingRequest): string {
   return `GuideDraft ${origin.guideDraftId} · slot ${origin.recommendationSlotId}`;
 }
 
+const productFitDimensionLabels: Record<string, string> = {
+  productClassMatch: "Clase de Product",
+  slotSpecificity: "Especificidad del slot",
+  guideRelevance: "Relevancia para la Guide",
+  recipientFit: "Encaje con destinatario",
+  contextFit: "Ocasion, etapa o contexto",
+  budgetCompatibility: "Compatibilidad de presupuesto",
+  practicalUsefulness: "Utilidad practica",
+  giftDesirability: "Deseabilidad como regalo",
+  giftabilityPresentation: "Presentacion y giftability",
+  easeOfChoosingCorrectly: "Facilidad de elegir bien",
+  compatibilitySelectionRisk: "Riesgo de compatibilidad",
+  perceivedValue: "Valor percibido",
+  emotionalRelevanceMemorability: "Relevancia emocional",
+  evidenceQuality: "Calidad de evidencia",
+  maintenanceRisk: "Riesgo de mantenimiento",
+  commercialSuitability: "Aptitud comercial",
+  existingCatalogReuseOpportunity: "Reuso de catalogo",
+  inGuideDistinctiveness: "Distintividad dentro de la Guide",
+  redundancyWithCurrentSelections: "Redundancia actual",
+  repeatedProductClass: "Clase de Product repetida",
+  repeatedFunctionalRole: "Rol funcional repetido",
+};
+
+function productFitDimensionList(
+  dimensions: Record<string, { assessment: string; rationale: string }>,
+): string {
+  return `<ul>${Object.entries(dimensions)
+    .map(
+      ([key, dimension]) =>
+        `<li><strong>${escapeHtml(productFitDimensionLabels[key] ?? key)} - ${escapeHtml(dimension.assessment)}</strong><br>${escapeHtml(dimension.rationale)}</li>`,
+    )
+    .join("")}</ul>`;
+}
+
+function productFitSummary(
+  request: ProductSourcingRequest,
+  candidate: ProductSourceCandidate,
+  fitStore: ProductFitEvaluationStore,
+): string {
+  const session = fitStore.latestForCandidate(request.id, candidate.id);
+  const evaluation = session?.aiInterpretation.evaluations.find(
+    ({ requestId, candidateId }) => requestId === request.id && candidateId === candidate.id,
+  );
+  if (!session || !evaluation) return '<p class="muted">Sin evaluacion de encaje.</p>';
+  const ordering = session.ordering.find(
+    ({ requestId, candidateId }) => requestId === request.id && candidateId === candidate.id,
+  );
+  const group = (title: string, dimensions: object) =>
+    `<details><summary>${escapeHtml(title)}</summary>${productFitDimensionList(dimensions as Record<string, { assessment: string; rationale: string }>)}</details>`;
+  return `<details class="card"><summary>Evaluacion de encaje - ${escapeHtml(formatDate(session.evaluatedAt))}</summary>
+    <p class="notice">Interpretacion de IA consultiva. No selecciona, cumple, asigna ni verifica Product facts.</p>
+    ${group("Encaje editorial y funcional", evaluation.editorialFunctionalFit)}
+    ${group("Valor para consumidor y regalo", evaluation.consumerGiftValue)}
+    ${group("Evidencia y operaciones", evaluation.evidenceOperations)}
+    ${group("Calidad de coleccion", evaluation.collectionQuality)}
+    <h4>Diagnostico</h4><dl><dt>Resultado de proveedor</dt><dd>${escapeHtml(evaluation.diagnosticSummary.providerResultQuality)}</dd><dt>SearchPlan o clase</dt><dd>${escapeHtml(evaluation.diagnosticSummary.searchPlanOrClassRisk)}</dd><dt>Perfil</dt><dd>${escapeHtml(evaluation.diagnosticSummary.profileCoverage)}</dd><dt>Confianza</dt><dd>${escapeHtml(evaluation.diagnosticSummary.fitConfidence)}</dd></dl>
+    ${evaluation.missingEvidence.length ? `<h4>Evidencia faltante</h4><ul>${evaluation.missingEvidence.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : ""}
+    ${ordering ? `<p class="muted">${escapeHtml(session.rankingPolicyVersion)}: ${ordering.signals.negativeCriticalDimensions} criticas negativas; ${ordering.signals.positiveCoreDimensions} centrales positivas; ${ordering.signals.negativeCollectionDimensions} alertas de coleccion; ${ordering.signals.unknownDimensions} desconocidas. Sin total ni ganador.</p>` : ""}
+    <p class="muted">Lote de ${session.candidateCount} candidato(s), ${session.providerCallCount} llamada(s)${session.providerUsage?.totalTokens !== undefined ? `, ${session.providerUsage.totalTokens} tokens reportados` : ""}.</p>
+  </details>`;
+}
+
 function productSourcingListPage(
   store: ProductSourcingRequestStore,
   discoverySource?: ProductDiscoverySource,
@@ -1270,6 +1344,13 @@ function productSourcingListPage(
         <p><code>${escapeHtml(request.id)}</code> · ${escapeHtml(sourcingOriginLabel(request))}</p>
         <p>${request.approvedProductIds.length} Product canónico(s) seleccionado(s) · ${request.sourceCandidates.length} candidato(s) de fuente.</p>
         ${request.status === "open" || request.status === "partially-fulfilled" ? `<label><input type="checkbox" name="requestId" value="${escapeHtml(request.id)}"> Incluir en el SearchPlan por lote</label>` : ""}
+        ${request.sourceCandidates
+          .filter(({ status }) => status !== "rejected")
+          .map(
+            (candidate) =>
+              `<label><input type="checkbox" name="fitCandidate" value="${escapeHtml(`${request.id}:${candidate.id}`)}"> Evaluar encaje: ${escapeHtml(candidate.name)}</label>`,
+          )
+          .join("")}
       </article>`,
     )
     .join("");
@@ -1277,7 +1358,8 @@ function productSourcingListPage(
     "Sourcing de productos",
     `<div class="actions"><div><h1>Sourcing de productos</h1><p>Requisitos editoriales trazables conectados al catálogo y al intake existentes.</p></div></div>
      <p class="notice">Un candidato de fuente nunca satisface un requisito. Sólo una selección editorial explícita de un Product canónico activo puede hacerlo.</p>
-     <form method="post" action="/product-sourcing/discovery/plan"><div class="grid">${cards || '<p class="notice">Todavía no hay solicitudes.</p>'}</div>${requests.length ? '<button type="submit">Planificar búsquedas seleccionadas</button>' : ""}</form>
+     <form method="post" action="/product-sourcing/discovery/plan"><div class="grid">${cards || '<p class="notice">Todavía no hay solicitudes.</p>'}</div>${requests.length ? '<div class="actions"><button type="submit">Planificar búsquedas seleccionadas</button><button type="submit" formaction="/product-sourcing/fit/evaluate">Evaluar candidatos seleccionados</button></div>' : ""}</form>
+     <p class="muted">El evaluador usa una llamada por lote y ordena con ${PRODUCT_FIT_RANKING_POLICY_VERSION}: señales visibles, sin total ni ganador automático.</p>
      <p class="muted">La planificación usa una sola solicitud por lote al proveedor editorial existente. Descubrimiento externo: ${discoverySource ? `${escapeHtml(discoverySource.providerId)} · uso pago visible` : "desactivado; catálogo, URL manual e idea-only siguen disponibles"}.</p>
      <form method="post" action="/product-sourcing" class="card">
        <h2>Crear solicitud</h2>
@@ -1314,6 +1396,7 @@ function productSourcingDetailPage(
   url: URL,
   catalog: ProductCatalog,
   sourceStore: ProductSourceStore,
+  fitStore: ProductFitEvaluationStore,
   discoverySource?: ProductDiscoverySource,
 ): string {
   const content = catalog.read();
@@ -1380,6 +1463,10 @@ function productSourcingDetailPage(
     .join("");
   const reviewable =
     activeRequest && request.sourceCandidates.some(({ status }) => status === "needs-review");
+  const fitCandidates = request.sourceCandidates.filter(({ status }) => status !== "rejected");
+  const fitReview = fitCandidates.length
+    ? `<section><h2>Encaje y valor consultivos</h2><p class="notice">Las observaciones del proveedor siguen siendo evidencia observada. Esta IA no crea Product facts verificados ni toma decisiones editoriales.</p><form method="post" action="/product-sourcing/fit/evaluate" class="card">${fitCandidates.map((candidate) => `<label><input type="checkbox" name="fitCandidate" value="${escapeHtml(`${request.id}:${candidate.id}`)}"> ${escapeHtml(candidate.name)}</label>`).join("")}<button type="submit">Evaluar lote seleccionado</button></form><div class="grid">${fitCandidates.map((candidate) => `<article class="card"><h3>${escapeHtml(candidate.name)}</h3>${productFitSummary(request, candidate, fitStore)}</article>`).join("")}</div></section>`
+    : "";
   const discoveryHistory = request.discoveryRounds
     .map(
       (round) =>
@@ -1415,6 +1502,7 @@ function productSourcingDetailPage(
      <h2>Products canónicos seleccionados</h2><div class="grid">${selected || '<p class="notice">Todavía no se seleccionó ningún Product canónico.</p>'}</div>
      <h2>Coincidencias manuales del catálogo</h2><div class="grid">${matches || '<p class="notice">No hay coincidencias deterministas activas.</p>'}</div>
      ${activeRequest ? `<p><a href="/products/intake?returnTo=${encodeURIComponent(`/product-sourcing/${request.id}`)}">Abrir el intake manual y volver a esta solicitud</a></p>` : ""}
+     ${fitReview}
      <h2>Candidatos de fuente para revisión</h2>
      ${reviewable ? `<form method="post" action="/product-sourcing/${encodeURIComponent(request.id)}/source-candidates/review"><div class="grid">${pendingCandidateCards}</div><button type="submit">Guardar revisión del lote</button></form>` : ""}
      <div class="grid">${candidateCards || (reviewable ? "" : '<p class="notice">No hay candidatos de fuente.</p>')}</div>
@@ -2330,14 +2418,66 @@ function productChoiceForm(
   </form>`;
 }
 
+const benchmarkReasonLabels: Record<(typeof EDITORIAL_BENCHMARK_REASONS)[number], string> = {
+  "more-specific": "mas especifico",
+  "correct-class": "clase correcta",
+  "stronger-real-world-use": "mejor uso real",
+  "better-gift-desirability": "mas deseable como regalo",
+  "easier-to-choose": "mas facil de elegir",
+  "better-presentation": "mejor presentacion",
+  "better-value": "mejor valor",
+  "better-context-fit": "mejor encaje contextual",
+  "less-generic": "menos generico",
+};
+
+function editorialBenchmarkSection(
+  draft: GuideDraft,
+  recommendation: GuideDraft["recommendations"][number],
+  product: Product,
+  benchmarks: readonly EditorialBenchmark[],
+): string {
+  const existing = benchmarks.filter(
+    ({ canonicalProductId, context, status }) =>
+      canonicalProductId === product.id &&
+      context.guideId === draft.id &&
+      context.recommendationSlotId === recommendation.id &&
+      status === "active",
+  );
+  if (existing.length) {
+    return `<details><summary>Referencia editorial (${existing.length})</summary>${existing.map((benchmark) => `<p><code>${escapeHtml(benchmark.id)}</code> - ${escapeHtml(benchmark.productClass)} v${benchmark.version}<br>${escapeHtml(benchmark.editorRationale)}<br><span class="muted">${benchmark.strongFitReasons.map((reason) => escapeHtml(benchmarkReasonLabels[reason])).join("; ")}</span></p>`).join("")}</details>`;
+  }
+  const audience = draft.questionnaire.recipient ?? draft.taxonomies?.recipients?.join(", ") ?? "";
+  const contextTags = [
+    draft.questionnaire.occasion,
+    draft.primaryAxis,
+    ...(draft.taxonomies?.careerStages ?? []),
+    ...(draft.taxonomies?.workContexts ?? []),
+  ].filter((value): value is string => Boolean(value));
+  return `<details><summary>Marcar como referencia editorial</summary>
+    <form method="post" action="/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(recommendation.id)}/benchmark" class="card">
+      <input type="hidden" name="productId" value="${escapeHtml(product.id)}">
+      <label>Clase de Product<input name="productClass" value="${escapeHtml(recommendation.slotLabel)}" required></label>
+      <label>Audiencia - tags separados por coma<input name="audienceTags" value="${escapeHtml(audience)}"></label>
+      <label>Contexto - tags separados por coma<input name="contextTags" value="${escapeHtml(contextTags.join(", "))}"></label>
+      <fieldset><legend>Razones estructuradas</legend>${EDITORIAL_BENCHMARK_REASONS.map((reason) => `<label><input type="checkbox" name="strongFitReason" value="${reason}"> ${escapeHtml(benchmarkReasonLabels[reason])}</label>`).join("")}</fieldset>
+      <label>Razon editorial breve<textarea name="editorRationale" rows="2" required></textarea></label>
+      <label>Atributos o razones - uno por linea<textarea name="attributesOrReasons" rows="3"></textarea></label>
+      <button type="submit">Marcar como referencia editorial</button>
+    </form>
+    <p class="muted">Referencia interna y consultiva: no selecciona, rankea ni fuerza reuso.</p>
+  </details>`;
+}
+
 function recommendationSelectionSection(
   draft: GuideDraft,
   url: URL,
   catalog: ProductCatalog,
   sourcingStore: ProductSourcingRequestStore,
+  benchmarkStore: EditorialBenchmarkStore,
   brief?: EditorialBrief,
 ): string {
   const content = catalog.read();
+  const benchmarks = benchmarkStore.list(content.products);
   const sourcingRequests = sourcingStore.list();
   const productsById = new Map(content.products.map((product) => [product.id, product]));
   const searchSlot = url.searchParams.get("slot");
@@ -2495,6 +2635,7 @@ function recommendationSelectionSection(
           ${selected ? `<p><strong>${escapeHtml(selected.name)}</strong> · ${escapeHtml(selected.merchant)}${selected.status === "inactive" ? ' · <span class="error">Inactivo</span>' : ""}</p><p>${escapeHtml(selected.shortDescription)}</p>` : '<p class="notice">Podés completar y publicar esta idea sin Product; no tendrá datos comerciales ni CTA.</p>'}
           ${replacementWarning}
           ${selected ? `<form method="post" action="/drafts/${draft.id}/recommendations/${recommendation.id}/product/clear"><button type="submit">Quitar selección</button></form>` : ""}
+          ${selected ? editorialBenchmarkSection(draft, recommendation, selected, benchmarks) : ""}
         </section>
         <form method="post" action="/drafts/${draft.id}/recommendations/${recommendation.id}/copy" class="card">
           <h4>${selected ? "Editar esta recomendación" : "Editar idea editorial"}</h4>
@@ -2544,6 +2685,7 @@ function guideEditorPage(
   catalog: ProductCatalog,
   sourcingStore: ProductSourcingRequestStore,
   briefStore: EditorialBriefStore,
+  benchmarkStore: EditorialBenchmarkStore,
 ): string {
   const content = catalog.read();
   const clusters = content.clusters
@@ -2635,6 +2777,7 @@ function guideEditorPage(
          url,
          catalog,
          sourcingStore,
+         benchmarkStore,
          briefStore.list().find(({ guideDraftId }) => guideDraftId === draft.id),
        )}`,
   );
@@ -2801,6 +2944,8 @@ export function createStudioServer(
   discoverySource: ProductDiscoverySource | undefined = createProductDiscoverySource(),
 ) {
   const sourcingStore = new ProductSourcingRequestStore(catalog.root);
+  const fitStore = new ProductFitEvaluationStore(catalog.root);
+  const benchmarkStore = new EditorialBenchmarkStore(catalog.root);
   const currentApprovedBriefs = () => [
     ...new Map(
       [...approvedBriefs, ...editorialBriefComparisonRecords(briefStore.list())].map((brief) => [
@@ -3278,6 +3423,56 @@ export function createStudioServer(
         redirect(response, guideDraftSlotPath(draft.id, selectProductMatch[2]));
         return;
       }
+      const benchmarkMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/recommendations\/([a-z0-9_-]+)\/benchmark$/.exec(
+              url.pathname,
+            )
+          : null;
+      if (benchmarkMatch?.[1] && benchmarkMatch[2]) {
+        const form = await readForm(request);
+        const draft = await readGuideDraft(store, benchmarkMatch[1]);
+        const recommendation = draft.recommendations.find(({ id }) => id === benchmarkMatch[2]);
+        if (!recommendation?.productId) {
+          throw new TypeError("El slot necesita un Product seleccionado para crear la referencia.");
+        }
+        const productId = requiredValue(form, "productId", "El Product canonico");
+        if (recommendation.productId !== productId) {
+          throw new TypeError("La referencia debe usar el Product seleccionado en este slot.");
+        }
+        const reasons = form.getAll("strongFitReason").map((reason) => reason.trim());
+        if (
+          !reasons.length ||
+          reasons.some(
+            (reason) => !(EDITORIAL_BENCHMARK_REASONS as readonly string[]).includes(reason),
+          )
+        ) {
+          throw new TypeError("Selecciona al menos una razon estructurada valida.");
+        }
+        await benchmarkStore.save(
+          createEditorialBenchmark(
+            {
+              canonicalProductId: productId,
+              productClass: requiredValue(form, "productClass", "La clase de Product"),
+              context: {
+                guideId: draft.id,
+                recommendationSlotId: recommendation.id,
+                semanticContext: [recommendation.slotLabel, recommendation.slotIntent]
+                  .filter(Boolean)
+                  .join(": "),
+              },
+              audienceTags: listValue(form, "audienceTags") ?? [],
+              contextTags: listValue(form, "contextTags") ?? [],
+              editorRationale: requiredValue(form, "editorRationale", "La razon editorial"),
+              strongFitReasons: reasons as EditorialBenchmark["strongFitReasons"],
+              attributesOrReasons: listValue(form, "attributesOrReasons", "\n") ?? [],
+            },
+            catalog.read().products,
+          ),
+        );
+        redirect(response, guideDraftSlotPath(draft.id, recommendation.id));
+        return;
+      }
       const clearProductMatch =
         method === "POST"
           ? /^\/drafts\/([a-z0-9_-]+)\/recommendations\/([a-z0-9_-]+)\/product\/clear$/.exec(
@@ -3381,6 +3576,38 @@ export function createStudioServer(
         redirect(response, `/product-sourcing/${encodeURIComponent(planned[0]!.id)}`);
         return;
       }
+      if (method === "POST" && url.pathname === "/product-sourcing/fit/evaluate") {
+        const form = await readForm(request);
+        const refs = [...new Set(form.getAll("fitCandidate").map((value) => value.trim()))].filter(
+          Boolean,
+        );
+        if (!refs.length) throw new TypeError("Selecciona al menos un candidato para evaluar.");
+        const selections = refs.map((ref) => {
+          const [storedRequestId, storedCandidateId, extra] = ref.split(":");
+          if (!storedRequestId || !storedCandidateId || extra) {
+            throw new TypeError("La referencia de candidato no es valida.");
+          }
+          return { request: sourcingStore.get(storedRequestId), candidateId: storedCandidateId };
+        });
+        const listed = await store.list();
+        if (listed.errors.length) {
+          throw new TypeError(
+            `No se puede evaluar contra borradores invalidos: ${listed.errors.join("; ")}`,
+          );
+        }
+        const guideDrafts = listed.drafts.filter(
+          (draft): draft is GuideDraft => draft.draftType === "gift-guide",
+        );
+        const session = await evaluateProductFitBatch(selections, {
+          content: catalog.read(),
+          drafts: guideDrafts,
+          benchmarks: benchmarkStore.list(catalog.read().products),
+          provider,
+        });
+        await fitStore.save(session);
+        redirect(response, `/product-sourcing/${encodeURIComponent(selections[0]!.request.id)}`);
+        return;
+      }
       const productSourcingMatch =
         method === "GET" ? /^\/product-sourcing\/(request_[a-z0-9_-]+)$/.exec(url.pathname) : null;
       if (productSourcingMatch?.[1]) {
@@ -3392,6 +3619,7 @@ export function createStudioServer(
             url,
             catalog,
             sourceStore,
+            fitStore,
             discoverySource,
           ),
         );
@@ -4061,7 +4289,7 @@ export function createStudioServer(
           200,
           draft.draftType === "cluster-hub"
             ? clusterEditorPage(draft)
-            : guideEditorPage(draft, url, catalog, sourcingStore, briefStore),
+            : guideEditorPage(draft, url, catalog, sourcingStore, briefStore, benchmarkStore),
         );
         return;
       }

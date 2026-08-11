@@ -14,6 +14,20 @@ The owning Studio module is `apps/studio/src/modules/product-sources/`. The modu
 
 The canonical product remains `content/products/{product-id}.json`. Saving or replacing a source record never changes the product's stable ID, merchant, URLs, copy, status, or other editorial fields. A source record can be updated by its own stable source ID.
 
+## Evidence domains
+
+Product sourcing and fit review preserve five explicit domains:
+
+| Domain                           | Owner and meaning                                                                                | May create canonical verified Product facts? |
+| -------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------- |
+| I.0 deterministic evidence       | System-derived token matches, exact IDs, in-Guide repetition, and distinct cross-Guide reuse IDs | No                                           |
+| Provider-observed evidence       | Returned or manually observed name, merchant, URL/ID, price, rating/reviews, query, time, facts  | No                                           |
+| AI interpretation                | Product-fit, gift-value, evidence/operations, and collection-quality assessments                 | No                                           |
+| Editor decision                  | Intake confirmation, fulfillment/assignment choices, and optional EditorialBenchmarks            | Only through the separate confirmed intake   |
+| Canonical verified Product facts | Editor-approved fields on an existing `content/products/{product-id}.json` record                | This is the canonical domain                 |
+
+The P.2.3 fit prompt labels these domains in its structured input. A provider observation cannot be copied into `verifiedFacts` by the evaluator, and a ProductClassProfile requirement or EditorialBenchmark rationale is guidance rather than proof. Only the existing P.1 confirmation path can author a canonical Product; fit evaluation, benchmark creation, linking, fulfillment, and assignment remain separate actions.
+
 ## Record shape
 
 ```ts
