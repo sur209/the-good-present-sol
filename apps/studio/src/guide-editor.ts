@@ -98,7 +98,7 @@ export async function generateGuideOutline(
       slotIntent: slot.intent,
       searchTerms: slot.searchTerms,
       ...(slot.budgetHint ? { budgetHint: slot.budgetHint } : {}),
-      editorialStatus: "unassigned",
+      editorialStatus: "needs-generation",
     })),
   });
 }
@@ -161,7 +161,13 @@ export function clearRecommendationProduct(
   const recommendation = draft.recommendations[index]!;
   const { productId: _productId, ...withoutProduct } = recommendation;
   const recommendations = [...draft.recommendations];
-  recommendations[index] = { ...withoutProduct, editorialStatus: "unassigned" };
+  recommendations[index] = {
+    ...withoutProduct,
+    editorialStatus:
+      recommendation.editorialDescription || recommendation.whyItFits
+        ? "needs-review"
+        : "needs-generation",
+  };
   return guideDraftSchema.parse({ ...draft, status: "selecting-products", recommendations });
 }
 
@@ -220,7 +226,7 @@ export function addManualRecommendation(
         slotLabel,
         ...(slotIntent ? { slotIntent } : {}),
         ...(searchTerms?.length ? { searchTerms } : {}),
-        editorialStatus: "unassigned",
+        editorialStatus: "needs-generation",
       },
     ],
   });
@@ -375,9 +381,9 @@ export function updateRecommendationEditorialCopy(
   const index = recommendationIndex(draft, recommendationId);
   const current = draft.recommendations[index]!;
   const updated = { ...current, ...copy };
-  if (markReady && (!updated.productId || !updated.editorialDescription || !updated.whyItFits)) {
+  if (markReady && (!updated.editorialDescription || !updated.whyItFits)) {
     throw new TypeError(
-      "Para marcarla lista se requieren producto, descripción editorial y motivo de elección.",
+      "Para marcarla lista se requieren descripción editorial y motivo de elección.",
     );
   }
   const recommendations = [...draft.recommendations];
@@ -452,19 +458,17 @@ export function validateGuideDraft(
       errors.push(`La posición ${recommendation.position} está duplicada.`);
     }
     positions.add(recommendation.position);
-    if (!recommendation.productId) {
-      errors.push(`El slot "${recommendation.slotLabel}" no tiene producto.`);
-      continue;
-    }
-    const product = content.products.find((item) => item.id === recommendation.productId);
-    if (!product || product.status !== "active") {
-      errors.push(`El producto "${recommendation.productId}" no existe o está inactivo.`);
-    }
     if (recommendation.editorialStatus !== "ready") {
       errors.push(`El slot "${recommendation.slotLabel}" no está listo para publicar.`);
     }
     if (!recommendation.editorialDescription || !recommendation.whyItFits) {
       errors.push(`El slot "${recommendation.slotLabel}" necesita descripción y motivo.`);
+    }
+    if (recommendation.productId) {
+      const product = content.products.find((item) => item.id === recommendation.productId);
+      if (!product || product.status !== "active") {
+        errors.push(`El producto "${recommendation.productId}" no existe o está inactivo.`);
+      }
     }
   }
 
@@ -503,14 +507,19 @@ export function reopenGuideDraft(
     recommendations: [...guide.recommendations]
       .sort((left, right) => left.position - right.position)
       .map((recommendation) => {
-        const product = products.get(recommendation.productId)!;
+        const product = recommendation.productId
+          ? products.get(recommendation.productId)
+          : undefined;
         return {
           id: recommendation.id,
           position: recommendation.position,
-          slotLabel: recommendation.heading ?? product.name,
+          slotLabel:
+            recommendation.heading ?? product?.name ?? `Gift idea ${recommendation.position}`,
           slotIntent: recommendation.whyItFits,
-          searchTerms: [product.name, product.merchant],
-          productId: recommendation.productId,
+          searchTerms: product
+            ? [product.name, product.merchant]
+            : [recommendation.heading ?? `Gift idea ${recommendation.position}`],
+          ...(recommendation.productId ? { productId: recommendation.productId } : {}),
           ...(recommendation.heading ? { heading: recommendation.heading } : {}),
           editorialDescription: recommendation.editorialDescription,
           whyItFits: recommendation.whyItFits,

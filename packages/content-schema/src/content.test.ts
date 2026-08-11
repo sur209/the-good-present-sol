@@ -87,6 +87,62 @@ test("parses a complete valid public content graph", () => {
   assert.equal(content.guides[0]?.recommendations[0]?.productId, product.id);
 });
 
+test("accepts an editorially ready unresolved gift idea without a Product record", () => {
+  const sources = validSources();
+  sources.guides[0] = source(`content/guides/${guide.id}.json`, {
+    ...guide,
+    recommendations: [
+      {
+        id: "practical_recovery-ritual",
+        productResolution: "unresolved",
+        position: 1,
+        heading: "A small recovery ritual for after a long shift",
+        editorialDescription: "Build the gift around how they prefer to decompress at home.",
+        whyItFits: "It starts with the recipient's routine instead of inventing a product.",
+        bestFor: "Someone whose off-shift preferences you know well",
+        considerations: "Look for easy care and a format that suits their space.",
+        editorialStatus: "ready",
+      },
+    ],
+  });
+  sources.products = [];
+
+  const content = assertValidPublicContent(sources);
+  const recommendation = content.guides[0]!.recommendations[0]!;
+  assert.equal(recommendation.productResolution, "unresolved");
+  assert.equal(recommendation.productId, undefined);
+});
+
+test("rejects missing and mixed Product-resolution states", () => {
+  for (const recommendation of [
+    {
+      id: "mixed_idea",
+      productResolution: "unresolved",
+      productId: product.id,
+      position: 1,
+      heading: "Mixed idea",
+      editorialDescription: "Editorial description.",
+      whyItFits: "Editorial reason.",
+      editorialStatus: "ready",
+    },
+    {
+      id: "ambiguous_idea",
+      position: 1,
+      heading: "Ambiguous idea",
+      editorialDescription: "Editorial description.",
+      whyItFits: "Editorial reason.",
+      editorialStatus: "ready",
+    },
+  ]) {
+    const sources = validSources();
+    sources.guides[0] = source(`content/guides/${guide.id}.json`, {
+      ...guide,
+      recommendations: [recommendation],
+    });
+    assert.equal(validatePublicContent(sources).success, false);
+  }
+});
+
 test("resolves one safe merchant destination from the central product record", () => {
   const { affiliateUrl: _affiliateUrl, ...withoutAffiliate } = product;
   const { affiliateUrl: _affiliateUrl2, productUrl: _productUrl, ...withoutLinks } = product;
@@ -154,7 +210,7 @@ test("reports source-aware schema, URL, date, image, SEO, and draft-state failur
   assert.ok(fields.includes("primaryAxis"));
   assert.ok(fields.includes("primaryIntent"));
   assert.ok(fields.includes("seoDescription"));
-  assert.ok(fields.includes("recommendations[0].editorialStatus"));
+  assert.ok(fields.includes("recommendations[0]"));
   assert.ok(fields.includes("seoTitle"));
   assert.ok(fields.includes("publishedAt"));
   assert.ok(fields.includes("schemaVersion"));
@@ -190,6 +246,7 @@ test("reports duplicate identities, routes, filenames, and broken cross-record r
   );
 
   const baseRecommendation = guide.recommendations[0]!;
+  assert.ok(baseRecommendation.productId);
   const brokenGuide: GiftGuide = {
     ...guide,
     clusterId: "cluster_missing",

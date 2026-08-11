@@ -43,15 +43,15 @@ const recommendations = [...guide.recommendations]
   .sort((left, right) => left.position - right.position)
   .map((recommendation) => ({
     recommendation,
-    product: productsById.get(recommendation.productId)!,
+    product: recommendation.productId ? productsById.get(recommendation.productId) : undefined,
   }));
 const relatedGuides = (guide.relatedGuideIds ?? []).map((guideId) => guidesById.get(guideId)!);
 const hasAffiliateLinks = recommendations.some(({ product }) => {
-  const destination = productDestination(product);
-  return Boolean(destination && destination === product.affiliateUrl);
+  const destination = product ? productDestination(product) : undefined;
+  return Boolean(destination && destination === product?.affiliateUrl);
 });
 const hasDemoLinks = recommendations.some(({ product }) => {
-  const destination = productDestination(product);
+  const destination = product ? productDestination(product) : undefined;
   return destination ? new URL(destination).hostname === "example.com" : false;
 });
 ---
@@ -129,7 +129,11 @@ const hasDemoLinks = recommendations.some(({ product }) => {
           {
             recommendations.map(({ recommendation, product }) => (
               <li>
-                <a href={`#pick-${recommendation.position}`}>{product.name}</a>
+                <a href={`#pick-${recommendation.position}`}>
+                  {recommendation.heading ??
+                    product?.name ??
+                    `Gift idea ${recommendation.position}`}
+                </a>
               </li>
             ))
           }

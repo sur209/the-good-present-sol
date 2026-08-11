@@ -288,6 +288,7 @@ function validateGuideRelations(
       }
       positions.add(recommendation.position);
 
+      if (!recommendation.productId) return;
       const product = productsById.get(recommendation.productId);
       if (!product) {
         issues.push({

@@ -85,12 +85,12 @@ function routeForGuide(
 
 function findingContext(
   guide: ValidatedPublicContent["guides"][number],
-  recommendation: ValidatedPublicContent["guides"][number]["recommendations"][number],
+  productId: string,
   product: ValidatedPublicContent["products"][number] | undefined,
   route: string,
 ): FindingContext {
   return {
-    productId: recommendation.productId,
+    productId,
     product: product?.name ?? "<missing product>",
     guideId: guide.id,
     guide: guide.title,
@@ -422,8 +422,9 @@ export function validateAffiliateOperations(
     const route = routesByGuideId.get(guide.id) ?? "<unknown route>";
     const guideEntries: AffiliateCoverageEntry[] = [];
     for (const recommendation of guide.recommendations) {
+      if (!recommendation.productId) continue;
       const product = productsById.get(recommendation.productId);
-      const context = findingContext(guide, recommendation, product, route);
+      const context = findingContext(guide, recommendation.productId, product, route);
       if (!product) {
         addFinding(
           findings,

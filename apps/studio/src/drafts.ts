@@ -80,6 +80,11 @@ export const guideOutlineSchema = z
     });
   });
 
+const draftEditorialStatusSchema = z.preprocess(
+  (status) => (status === "unassigned" ? "needs-generation" : status),
+  z.enum(["needs-generation", "needs-review", "ready"]),
+);
+
 export const draftRecommendationSchema = z.strictObject({
   id: contentIdSchema,
   position: z.number().int().positive(),
@@ -93,7 +98,7 @@ export const draftRecommendationSchema = z.strictObject({
   whyItFits: optionalText,
   bestFor: optionalText,
   considerations: optionalText,
-  editorialStatus: z.enum(["unassigned", "needs-generation", "needs-review", "ready"]),
+  editorialStatus: draftEditorialStatusSchema,
 });
 
 const draftBaseShape = {

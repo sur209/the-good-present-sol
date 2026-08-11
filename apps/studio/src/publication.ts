@@ -97,9 +97,16 @@ export function guideDraftToPublic(
       .sort((left, right) => left.position - right.position)
       .map((recommendation) => ({
         id: recommendation.id,
-        productId: recommendation.productId,
+        ...(recommendation.productId
+          ? { productId: recommendation.productId }
+          : {
+              productResolution: "unresolved" as const,
+              heading: recommendation.heading ?? recommendation.slotLabel,
+            }),
         position: recommendation.position,
-        ...(recommendation.heading ? { heading: recommendation.heading } : {}),
+        ...(recommendation.productId && recommendation.heading
+          ? { heading: recommendation.heading }
+          : {}),
         editorialDescription: recommendation.editorialDescription,
         whyItFits: recommendation.whyItFits,
         ...(recommendation.bestFor ? { bestFor: recommendation.bestFor } : {}),

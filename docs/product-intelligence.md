@@ -1,6 +1,6 @@
 # Product intelligence
 
-The deterministic product-coverage analysis is a read-only, non-public Studio view of how the canonical product catalog supports published content, current GuideDrafts, and structured product-gap reports. Open `/product-intelligence` in the local Editorial Studio to inspect it. I.2 adds a separate non-public sourcing-request ledger at `/product-sourcing`; it does not change the coverage calculation.
+The deterministic product-coverage analysis is a read-only, non-public Studio view of how the canonical product catalog supports published content, current GuideDrafts, and structured product-gap reports. Open `/product-intelligence` in the local Editorial Studio to inspect it. I.2 adds a separate non-public sourcing-request ledger at `/product-sourcing`. P.2 extends coverage with published recommendations whose editorial content is ready while Product resolution remains open.
 
 It reports catalog-health and editorial-coverage observations. It does not rank opportunities, propose a guide, create a candidate, select a product, or write canonical content.
 
@@ -28,7 +28,8 @@ All counts use normalized lowercase metadata and distinct canonical IDs.
 | Catalog health     | Categories represented by one product        | Normalized category represented by exactly 1 active product ID.                                                                                                                                             |
 | Catalog health     | Clusters with low product-category diversity | Published cluster content draws from fewer than 3 distinct normalized categories across its distinct active product IDs. Reusing a product or category does not increase diversity.                         |
 | Catalog health     | Broad audience or occasion metadata          | Active product has at least 3 distinct recipients or at least 3 distinct occasions. The Studio shows both lists; breadth is not treated as proof that more content should exist.                            |
-| Editorial coverage | GuideDraft slots without a catalog match     | Unassigned slot has no active product sharing at least 2 distinct tokens with its label, intent, and search terms through the existing deterministic product-matching fields.                               |
+| Editorial coverage | Published recommendations without a Product  | A valid published recommendation uses `productResolution: unresolved`. It remains a Product-resolution gap even though it is editorially publishable and renders without a CTA.                             |
+| Editorial coverage | GuideDraft slots without a catalog match     | Slot without `productId` has no active product sharing at least 2 distinct tokens with its label, intent, and search terms through the existing deterministic product-matching fields.                      |
 | Editorial coverage | Brief requirements without catalog coverage  | A validated product-gap report has a stable slot whose explicit status is `unassigned`. The analyzer reports that structured editorial fact and reason; it does not reinterpret prose or infer suitability. |
 
 Inactive products appear in their own section and are excluded from active coverage, diversity, broad-metadata, and slot-match calculations. Any published guide references are still shown as trace evidence if invalid input is supplied, though the canonical public validator normally rejects that state.
@@ -53,6 +54,7 @@ Every signal exposes its contributing stable IDs:
 - Reuse and cluster observations show every contributing published guide ID, title, cluster ID, and canonical route.
 - Category observations list every distinct contributing active product.
 - Draft-slot observations link to the existing GuideDraft and show the stable slot ID and search terms.
+- Published unresolved observations show the guide ID/title/route and stable recommendation ID.
 - Brief observations show the report, guide, cluster, and requirement slot IDs plus the stored reason.
 
 There is no aggregate opportunity score. Catalog-health observations answer what the current records contain and reuse; editorial-coverage observations identify explicit missing support. Whether any observation merits product research, a brief change, a guide, or no action remains an editor decision.
@@ -71,7 +73,7 @@ The statuses are `open`, `partially-fulfilled`, `fulfilled`, `held`, and `reject
 
 The request detail uses the existing deterministic catalog matcher and links to the existing assisted manual intake. Intake returns the new Product to the request screen but does not select it. Manual and optional `amazon-creators-api` candidate records may be reviewed in a batch; approval means only “approved for intake.” A reviewed candidate must still become a canonical Product with a matching `ProductSourceRecord`, be linked back to that record, and then be selected separately. No Creators API client is added or required; an existing or future integration may provide the same validated candidate input.
 
-For a recommendation-slot origin, the final Assign action calls the ordinary Goal 2 `selectRecommendationProduct()` path and returns to the exact stable slot. The assignment moves the slot to its existing `needs-generation` state. It does not mark editorial copy ready, change guide readiness, or publish.
+For a recommendation-slot origin, the final Assign action calls the ordinary Goal 2 `selectRecommendationProduct()` path and returns to the exact stable slot. The assignment preserves the slot ID and position and moves the slot to `needs-generation`, including when the generic idea was previously editorially ready or published. It does not approve Product-backed copy or publish.
 
 ## Boundaries
 
@@ -80,7 +82,7 @@ For a recommendation-slot origin, the final Assign action calls the ordinary Goa
 - I.0 analysis and I.2 request transitions write no canonical product, guide, or cluster; only the separately confirmed existing intake and Goal 2 paths may do so.
 - No draft, candidate, or guide is created automatically.
 - I.1 reads selected I.0 results but does not change thresholds, calculate a second coverage report, or turn a signal into an editorial decision.
-- I.2 coordinates explicit requirements and reviewed selections but does not recalculate I.0, create Products, or choose products automatically.
+- I.2 coordinates explicit requirements and reviewed selections but does not recalculate I.0, create Products, or choose products automatically. Editorial publication does not fulfill or hide an unresolved Product requirement.
 - Any later product work must use the existing intake and source-provenance flows.
 - Any later guide work must use the existing Goal 2 preview, validation, and atomic publication flow.
 

@@ -136,7 +136,7 @@ type GiftGuide = {
   recommendations: GuideRecommendation[];
 };
 
-type GuideRecommendation = {
+type ProductBackedRecommendation = {
   id: string;
   productId: string;
   position: number;
@@ -147,9 +147,27 @@ type GuideRecommendation = {
   considerations?: string;
   editorialStatus: "ready";
 };
+
+type UnresolvedGiftIdea = {
+  id: string;
+  productResolution: "unresolved";
+  position: number;
+  heading: string;
+  editorialDescription: string;
+  whyItFits: string;
+  bestFor?: string;
+  considerations?: string;
+  editorialStatus: "ready";
+};
+
+type GuideRecommendation = ProductBackedRecommendation | UnresolvedGiftIdea;
 ```
 
-Every guide has a nonempty explicit intent, one controlled primary axis, and at least one recommendation. Recommendation IDs and positions are unique within a guide. Related guides are unique, cannot self-reference, and must exist in the same cluster. Recommendations resolve active products by stable ID rather than duplicating product records.
+Every guide has a nonempty explicit intent, one controlled primary axis, and at least one recommendation. Recommendation IDs and positions are unique within a guide. Related guides are unique, cannot self-reference, and must exist in the same cluster. Product-backed recommendations resolve active products by stable ID rather than duplicating product records.
+
+P.2 deliberately extends the original Goal 1/Goal 2 Product-required recommendation contract. Existing Product-backed records keep their exact shape and require no migration. An idea-only record is unambiguous because it must contain `productResolution: "unresolved"`, must not contain `productId`, and must still be editorially `ready`. It may contain only generic editorial guidance: no Product or merchant identity, price, rating, review, stock, discount, availability, unsupported Product specification, or shopping CTA. `considerations` carries any current what-to-look-for guidance without adding a parallel field.
+
+`productResolution` is intentionally asymmetric for backward compatibility: legacy Product-backed records are resolved by their required `productId`; only the new idea-only branch carries the discriminator. A recommendation ID and position survive unresolved publication, sourcing, later Product resolution, and Product replacement.
 
 ## Product update and replacement
 
@@ -170,19 +188,19 @@ existing recommendation slot
   -> publish through the canonical public schema
 ```
 
-`needs-review` is intentionally not a public value or schema in this stage. The canonical public contract accepts only `editorialStatus: "ready"`, ensuring draft-only workflow metadata cannot publish.
+`needs-review` and `needs-generation` are intentionally not public values. The canonical public contract accepts only `editorialStatus: "ready"`, while Product resolution remains the separate `productId`/`productResolution` state. Legacy draft `unassigned` values are accepted on read and normalized to `needs-generation`.
 
 Questionnaire answers, prompts, outlines, provider/model identifiers, generation timestamps, validation notes, and temporary recommendation fields exist only in guide drafts. Provider credentials are neither draft fields nor public fields. Publication constructs a fresh strict public object, so none of that operational state can cross the canonical boundary.
 
 ## Cross-record validation
 
-Validation fails with the affected source file, record ID when discoverable, field or relation, and an actionable reason. It covers malformed records plus duplicate IDs and slugs, filename/ID mismatches, reserved path collisions, missing or cross-cluster references, related-guide duplicates and self-links, invalid axes or intents, missing or inactive products, unsafe URLs, invalid dates, image/alt mismatches, empty guides, duplicate recommendation IDs or positions, non-ready recommendations, missing SEO fields, and unsupported schema versions.
+Validation fails with the affected source file, record ID when discoverable, field or relation, and an actionable reason. It covers malformed records plus duplicate IDs and slugs, filename/ID mismatches, reserved path collisions, missing or cross-cluster references, related-guide duplicates and self-links, invalid axes or intents, missing or inactive referenced products, ambiguous or mixed resolution states, unsafe URLs, invalid dates, image/alt mismatches, empty guides, duplicate recommendation IDs or positions, non-ready recommendations, missing SEO fields, and unsupported schema versions. Idea-only recommendations bypass Product lookup only because their strict unresolved branch forbids `productId`; Product-backed cross-record checks are unchanged.
 
 The public build consumes the same validation result as the standalone validation command. No invalid or draft public content is rendered.
 
 ## Affiliate links
 
-Public guides resolve every outbound destination through the selected stable product ID and the central product catalog. `productDestination(product)` uses a valid `affiliateUrl` first, then a valid ordinary `productUrl`; it returns no destination when neither URL is valid. The guide record never stores a merchant URL.
+Product-backed recommendations resolve every outbound destination through the selected stable product ID and the central product catalog. `productDestination(product)` uses a valid `affiliateUrl` first, then a valid ordinary `productUrl`; it returns no destination when neither URL is valid. The guide record never stores a merchant URL. An unresolved gift idea has no Product lookup and renders no Product, merchant, price, or shopping UI.
 
 An affiliate destination is manually controlled editorial data and uses a safe absolute HTTP(S) URL. Affiliate links open in a new tab with `rel="sponsored nofollow noopener"`. An ordinary product URL opens in a new tab with `rel="nofollow noopener"` and uses a `View product at…` label, so a direct merchant link is not presented as an affiliate link. Products without a valid destination render no merchant CTA. Links are direct external anchors; there is no internal open-redirect route or URL parameter.
 
@@ -224,7 +242,7 @@ Direct JSON editing remains a supported fallback. Every canonical record is name
 1. Confirm the intent is differentiated, substantial, and better than a section in an existing guide.
 2. Create `content/guides/{guide-id}.json`; keep the stable ID independent from the slug.
 3. Reference an existing published cluster, choose exactly one controlled `primaryAxis`, and write an explicit `primaryIntent`.
-4. Reference products by stable ID. Keep each recommendation ID and position unique and publish only `editorialStatus: "ready"`.
+4. Keep each recommendation ID and position unique and publish only `editorialStatus: "ready"`. Use a stable `productId` for a Product-backed recommendation, or `productResolution: "unresolved"` with no `productId` for an editorially complete idea-only recommendation.
 5. Add only same-cluster published guides to `relatedGuideIds`. Secondary taxonomies remain metadata and never create routes.
 6. For a budget guide, record the editorial constraint in `budgetContext`; do not generate the guide from a price query.
 

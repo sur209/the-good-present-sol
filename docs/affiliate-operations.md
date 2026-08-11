@@ -5,7 +5,7 @@ Affiliate operations are local editorial tooling. They do not create links, call
 ## Boundaries
 
 - Public products remain the only source for merchant-facing fields and URLs.
-- Guides reference products by stable `productId`; they never carry `productUrl`, `affiliateUrl`, tracking IDs, or account identifiers.
+- Product-backed recommendations reference products by stable `productId`; idea-only recommendations use `productResolution: "unresolved"` and no Product reference. Neither branch carries `productUrl`, `affiliateUrl`, tracking IDs, or account identifiers.
 - `productDestination(product)` in `packages/content-schema/` resolves a valid `affiliateUrl` first and a valid ordinary `productUrl` second.
 - Astro renders direct external anchors. There is no internal redirect or outbound URL proxy.
 - Product URLs are validated as absolute HTTP(S) values before they enter the canonical content graph.
@@ -18,10 +18,11 @@ Affiliate operations are local editorial tooling. They do not create links, call
 | Valid `affiliateUrl`                 | Uses the affiliate URL        | `sponsored nofollow noopener`, “View at…” |
 | No affiliate URL, valid `productUrl` | Uses the ordinary product URL | `nofollow noopener`, “View product at…”   |
 | Neither URL is valid                 | No merchant CTA               | No outbound anchor                        |
+| Idea-only recommendation             | No Product or merchant UI     | No outbound anchor                        |
 
 All merchant links use `target="_blank"` and `rel` values containing `noopener`. The link is direct and the merchant is named in the visible label. Demo `example.com` destinations are labeled as demonstrations and are not launch-ready shopping links.
 
-AI receives selected product context without either URL field. Strict generated-response schemas reject extra URL fields, generated copy rejects URLs, and the draft-to-public transform constructs recommendations without any product or affiliate fields. Product selection and affiliate URL editing remain separate manual Studio actions.
+AI receives selected product context without either URL field. Strict generated-response schemas reject extra URL fields, generated copy rejects URLs, and the draft-to-public transform never copies product or affiliate URL fields into recommendations. Product selection and affiliate URL editing remain separate manual Studio actions.
 
 ## Internal program records
 
@@ -67,11 +68,13 @@ The global disclosure is the public `/affiliate-disclosure/` page and its persis
 
 ## Affiliate QA review
 
-The Studio page at `/affiliate-operations` and the read-only command `npm run affiliate:validate` use the same local report. It lists every published recommendation as one of:
+The Studio page at `/affiliate-operations` and the read-only command `npm run affiliate:validate` use the same local report. It lists every Product-backed published recommendation as one of:
 
 - `affiliate`: the central destination resolver selects `affiliateUrl`.
 - `ordinary`: only `productUrl` is available; this is a monetization gap, not a product-contract error.
 - `none`: no outbound URL is available; this is also a review warning, not an automatic product invalidation.
+
+An idea-only recommendation is outside destination coverage because it has neither a Product reference nor an eligible CTA. Affiliate QA does not report it as a broken Product or hard affiliate error. It remains visible separately in I.0 as a published Product-resolution gap.
 
 Each finding includes the product ID/name, guide ID/title, canonical route, stored field, severity, and reason. Hard errors cover unsafe protocols, unexpected non-demo hosts, disabled programs, visible tracking-ID mismatches, and rendered CTA/disclosure contract failures. Warnings cover unknown or incomplete program context, short links whose final parameters are not visible locally, missing visible tracking tags, and monetization gaps. The command exits non-zero only for hard errors.
 

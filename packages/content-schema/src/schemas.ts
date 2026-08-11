@@ -116,9 +116,10 @@ const budgetContextSchema = z
     },
   );
 
-export const guideRecommendationSchema = z.strictObject({
+const productBackedGuideRecommendationSchema = z.strictObject({
   id: contentIdSchema,
   productId: contentIdSchema,
+  productResolution: z.never().optional(),
   position: z.number().int().positive(),
   heading: nonEmptyString.optional(),
   editorialDescription: nonEmptyString,
@@ -127,6 +128,24 @@ export const guideRecommendationSchema = z.strictObject({
   considerations: nonEmptyString.optional(),
   editorialStatus: z.literal("ready"),
 });
+
+const unresolvedGuideRecommendationSchema = z.strictObject({
+  id: contentIdSchema,
+  productId: z.never().optional(),
+  productResolution: z.literal("unresolved"),
+  position: z.number().int().positive(),
+  heading: nonEmptyString,
+  editorialDescription: nonEmptyString,
+  whyItFits: nonEmptyString,
+  bestFor: nonEmptyString.optional(),
+  considerations: nonEmptyString.optional(),
+  editorialStatus: z.literal("ready"),
+});
+
+export const guideRecommendationSchema = z.union([
+  productBackedGuideRecommendationSchema,
+  unresolvedGuideRecommendationSchema,
+]);
 
 export const giftGuideSchema = z.strictObject({
   schemaVersion: z.literal(PUBLIC_SCHEMA_VERSION),

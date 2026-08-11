@@ -71,6 +71,10 @@ function guideEvidence(
   };
 }
 
+function resolvedProductIds(guide: GiftGuide): string[] {
+  return guide.recommendations.flatMap(({ productId }) => (productId ? [productId] : []));
+}
+
 function thresholds(overrides: Partial<ProductCoverageThresholds>): ProductCoverageThresholds {
   const result = { ...DEFAULT_PRODUCT_COVERAGE_THRESHOLDS, ...overrides };
   for (const [name, value] of Object.entries(result)) {
@@ -96,7 +100,7 @@ export function analyzeProductCoverage(
   const guideRefs = new Map(guides.map((guide) => [guide.id, guideEvidence(guide, clustersById)]));
   const guideIdsByProduct = new Map<string, Set<string>>();
   for (const guide of guides) {
-    for (const productId of new Set(guide.recommendations.map(({ productId }) => productId))) {
+    for (const productId of new Set(resolvedProductIds(guide))) {
       const guideIds = guideIdsByProduct.get(productId) ?? new Set<string>();
       guideIds.add(guide.id);
       guideIdsByProduct.set(productId, guideIds);
@@ -122,9 +126,7 @@ export function analyzeProductCoverage(
     .sort((left, right) => left.id.localeCompare(right.id))
     .map((cluster) => {
       const clusterGuides = guides.filter((guide) => guide.clusterId === cluster.id);
-      const productIds = new Set(
-        clusterGuides.flatMap((guide) => guide.recommendations.map(({ productId }) => productId)),
-      );
+      const productIds = new Set(clusterGuides.flatMap(resolvedProductIds));
       const contributingProducts = [...productIds]
         .map((id) => productsById.get(id))
         .filter((product): product is Product => product?.status === "active")
@@ -181,6 +183,17 @@ export function analyzeProductCoverage(
         ),
     },
     editorialCoverage: {
+      publishedRecommendationsWithoutProducts: guides.flatMap((guide) =>
+        guide.recommendations
+          .filter(({ productId }) => !productId)
+          .map((recommendation) => ({
+            guideId: guide.id,
+            guideTitle: guide.title,
+            route: guideRefs.get(guide.id)?.route,
+            recommendationId: recommendation.id,
+            heading: recommendation.heading,
+          })),
+      ),
       draftSlotsWithoutSuitableProducts: [...drafts]
         .sort((left, right) => left.id.localeCompare(right.id))
         .flatMap((draft) =>

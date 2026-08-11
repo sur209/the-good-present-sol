@@ -7,16 +7,17 @@ import {
 
 interface Props {
   recommendation: GuideRecommendation;
-  product: Product;
+  product?: Product;
 }
 
 const { recommendation, product } = Astro.props;
-const destination = productDestination(product);
-const isAffiliate = Boolean(destination && destination === product.affiliateUrl);
+const destination = product ? productDestination(product) : undefined;
+const isAffiliate = Boolean(destination && destination === product?.affiliateUrl);
 const isDemo = destination ? new URL(destination).hostname === "example.com" : false;
 const linkRel = isAffiliate ? "sponsored nofollow noopener" : "nofollow noopener";
-const merchantLabel = product.merchant.replace(" (demo)", "");
-const initials = product.name
+const merchantLabel = product?.merchant.replace(" (demo)", "");
+const title = recommendation.heading ?? product?.name ?? "Gift idea";
+const initials = title
   .split(/\s+/)
   .slice(0, 2)
   .map((word) => word[0])
@@ -31,9 +32,9 @@ const accent = `recommendation--accent-${((recommendation.position - 1) % 4) + 1
   </div>
   <div class="recommendation__body">
     <p class="recommendation__position">Recommendation {recommendation.position}</p>
-    <h2>{recommendation.heading ?? product.name}</h2>
-    {recommendation.heading && <p class="recommendation__product">{product.name}</p>}
-    <p class="recommendation__catalog">{product.shortDescription}</p>
+    <h2>{title}</h2>
+    {product && recommendation.heading && <p class="recommendation__product">{product.name}</p>}
+    {product && <p class="recommendation__catalog">{product.shortDescription}</p>}
     <p>{recommendation.editorialDescription}</p>
     <div class="why-box">
       <h3>Why it fits</h3>
@@ -50,30 +51,32 @@ const accent = `recommendation--accent-${((recommendation.position - 1) % 4) + 1
           )}
           {recommendation.considerations && (
             <div>
-              <dt>Before you buy</dt>
+              <dt>{product ? "Before you buy" : "What to consider"}</dt>
               <dd>{recommendation.considerations}</dd>
             </div>
           )}
         </dl>
       )
     }
-    <div class="recommendation__commerce">
-      {product.priceLabel && <span>{product.priceLabel}</span>}
-      {
-        destination && (
-          <a
-            class="button button--small"
-            href={destination}
-            target="_blank"
-            rel={linkRel}
-            aria-label={`${isDemo ? "View demo for" : "View"} ${product.name} at ${product.merchant} (opens in a new tab)`}
-          >
-            {isDemo
-              ? `View demo at ${merchantLabel}`
-              : `${isAffiliate ? "View at" : "View product at"} ${product.merchant}`}
-          </a>
-        )
-      }
-    </div>
+    {
+      product && (product.priceLabel || destination) && (
+        <div class="recommendation__commerce">
+          {product.priceLabel && <span>{product.priceLabel}</span>}
+          {destination && (
+            <a
+              class="button button--small"
+              href={destination}
+              target="_blank"
+              rel={linkRel}
+              aria-label={`${isDemo ? "View demo for" : "View"} ${product.name} at ${product.merchant} (opens in a new tab)`}
+            >
+              {isDemo
+                ? `View demo at ${merchantLabel}`
+                : `${isAffiliate ? "View at" : "View product at"} ${product.merchant}`}
+            </a>
+          )}
+        </div>
+      )
+    }
   </div>
 </article>

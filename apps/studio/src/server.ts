@@ -1016,6 +1016,11 @@ function productIntelligencePage(
       <p>Ningún producto activo comparte al menos ${thresholds.minimumSlotMatchTokenCount} términos distintos con el label, la intención o los términos de búsqueda del slot.</p>
       <p class="muted">Términos: ${escapeHtml(slot.searchTerms.join(", ") || "sin términos adicionales")}.</p></article>`,
   );
+  const publishedProductGaps = editorialCoverage.publishedRecommendationsWithoutProducts.map(
+    (recommendation) => `<article class="card"><h3>${escapeHtml(recommendation.heading)}</h3>
+      <p>${escapeHtml(recommendation.guideTitle)} <code>${escapeHtml(recommendation.guideId)}</code>${recommendation.route ? ` · <code>${escapeHtml(recommendation.route)}</code>` : ""}</p>
+      <p>La recomendación <code>${escapeHtml(recommendation.recommendationId)}</code> está publicada editorialmente, pero todavía no tiene Product canónico.</p></article>`,
+  );
   const briefRequirements = editorialCoverage.briefRequirementsWithoutCatalogCoverage.map(
     (requirement) => `<article class="card"><h3>${escapeHtml(requirement.requirement)}</h3>
       <p>Reporte <code>${escapeHtml(requirement.reportId)}</code> · guía <a href="/drafts/${encodeURIComponent(requirement.guideId)}"><code>${escapeHtml(requirement.guideId)}</code></a> · cluster <code>${escapeHtml(requirement.clusterId)}</code> · requisito <code>${escapeHtml(requirement.slotId)}</code></p>
@@ -1029,6 +1034,7 @@ function productIntelligencePage(
     catalogHealth.singleProductCategories.length +
     catalogHealth.clustersWithLowCategoryDiversity.length +
     catalogHealth.productsWithBroadMetadata.length +
+    editorialCoverage.publishedRecommendationsWithoutProducts.length +
     editorialCoverage.draftSlotsWithoutSuitableProducts.length +
     editorialCoverage.briefRequirementsWithoutCatalogCoverage.length;
 
@@ -1054,8 +1060,10 @@ function productIntelligencePage(
      ${coverageCards(broadMetadata, "Ningún producto activo alcanza el umbral de destinatarios u ocasiones.")}
      <h3>Productos inactivos (${catalogHealth.inactiveProducts.length})</h3>
      ${coverageCards(inactive, "No hay productos inactivos.")}
-     <h2>Cobertura editorial</h2>
-     <h3>Slots de GuideDraft sin coincidencias activas (${editorialCoverage.draftSlotsWithoutSuitableProducts.length})</h3>
+      <h2>Cobertura editorial</h2>
+      <h3>Recomendaciones publicadas sin Product (${editorialCoverage.publishedRecommendationsWithoutProducts.length})</h3>
+      ${coverageCards(publishedProductGaps, "Todas las recomendaciones publicadas tienen un Product canónico.")}
+      <h3>Slots de GuideDraft sin coincidencias activas (${editorialCoverage.draftSlotsWithoutSuitableProducts.length})</h3>
      ${coverageCards(draftSlots, "Todos los slots no asignados tienen al menos una coincidencia textual activa, o no hay slots para analizar.")}
      <h3>Requisitos de briefs sin cobertura declarada (${editorialCoverage.briefRequirementsWithoutCatalogCoverage.length})</h3>
      ${coverageCards(briefRequirements, "Ningún requisito estructurado está marcado como no asignado.")}`,
@@ -2161,9 +2169,11 @@ function recommendationSelectionSection(
           : recommendation.editorialStatus === "needs-generation"
             ? "Listo para generar recomendación"
             : "Asignado"
-        : possibleMatch
-          ? "Posible coincidencia determinista"
-          : "Sin coincidencia determinista · sourcing probable";
+        : recommendation.editorialStatus === "ready"
+          ? "Editorialmente lista · Product sin resolver"
+          : possibleMatch
+            ? "Posible coincidencia determinista"
+            : "Sin coincidencia determinista · sourcing probable";
       const evidence = selected
         ? `${escapeHtml(selected.name)} · I.0: ${selectedMatchTokens} tokens compartidos`
         : recommendation.productId
@@ -2235,7 +2245,7 @@ function recommendationSelectionSection(
       </section>`;
       const slotPath = guideDraftSlotPath(draft.id, recommendation.id);
       return `<article class="card" id="slot-${escapeHtml(recommendation.id)}">
-        <div class="actions"><h3>${recommendation.position}. ${escapeHtml(recommendation.slotLabel)}</h3><span class="status">${escapeHtml(recommendation.editorialStatus)}</span></div>
+        <div class="actions"><h3>${recommendation.position}. ${escapeHtml(recommendation.slotLabel)}</h3><span class="status">${escapeHtml(recommendation.editorialStatus)} · ${selected ? "Product resuelto" : "Product sin resolver"}</span></div>
         ${recommendation.slotIntent ? `<p>${escapeHtml(recommendation.slotIntent)}</p>` : ""}
         ${recommendation.searchTerms?.length ? `<p class="muted">Búsqueda sugerida: ${escapeHtml(recommendation.searchTerms.join(", "))}</p>` : ""}
         ${recommendation.budgetHint ? `<p class="muted">Presupuesto: ${escapeHtml(recommendation.budgetHint)}</p>` : ""}
@@ -2246,24 +2256,20 @@ function recommendationSelectionSection(
         </div>
         <section>
           <h4>${selected ? "Producto seleccionado" : "Sin producto asignado"}</h4>
-          ${selected ? `<p><strong>${escapeHtml(selected.name)}</strong> · ${escapeHtml(selected.merchant)}${selected.status === "inactive" ? ' · <span class="error">Inactivo</span>' : ""}</p><p>${escapeHtml(selected.shortDescription)}</p>` : '<p class="notice">Podés dejar este slot sin asignar mientras trabajás.</p>'}
+          ${selected ? `<p><strong>${escapeHtml(selected.name)}</strong> · ${escapeHtml(selected.merchant)}${selected.status === "inactive" ? ' · <span class="error">Inactivo</span>' : ""}</p><p>${escapeHtml(selected.shortDescription)}</p>` : '<p class="notice">Podés completar y publicar esta idea sin Product; no tendrá datos comerciales ni CTA.</p>'}
           ${replacementWarning}
           ${selected ? `<form method="post" action="/drafts/${draft.id}/recommendations/${recommendation.id}/product/clear"><button type="submit">Quitar selección</button></form>` : ""}
         </section>
-        ${
-          selected
-            ? `<form method="post" action="/drafts/${draft.id}/recommendations/${recommendation.id}/copy" class="card">
-          <h4>Editar esta recomendación</h4>
+        <form method="post" action="/drafts/${draft.id}/recommendations/${recommendation.id}/copy" class="card">
+          <h4>${selected ? "Editar esta recomendación" : "Editar idea editorial"}</h4>
           <label>Encabezado<input name="heading" value="${value(recommendation.heading)}"></label>
           <label>Descripción editorial<textarea name="editorialDescription" rows="4">${value(recommendation.editorialDescription)}</textarea></label>
           <label>Por qué encaja<textarea name="whyItFits" rows="3">${value(recommendation.whyItFits)}</textarea></label>
           <label>Ideal para<input name="bestFor" value="${value(recommendation.bestFor)}"></label>
           <label>Consideraciones<textarea name="considerations" rows="3">${value(recommendation.considerations)}</textarea></label>
-          <label><input type="checkbox" name="markReady" value="yes"> Revisé el producto actual y quiero marcar esta recomendación como lista.</label>
-          <div class="actions"><button type="submit">Guardar recomendación</button><a href="/drafts/${draft.id}/recommendations/${recommendation.id}/prompt">Ver prompt y regenerar sólo esta recomendación</a></div>
-        </form>`
-            : ""
-        }
+          <label><input type="checkbox" name="markReady" value="yes"> ${selected ? "Revisé el producto actual" : "Revisé que esta idea no contenga nombres, comercios, precios ni datos específicos de un Product"} y quiero marcar esta recomendación como lista.</label>
+          <div class="actions"><button type="submit">Guardar recomendación</button>${selected ? `<a href="/drafts/${draft.id}/recommendations/${recommendation.id}/prompt">Ver prompt y regenerar sólo esta recomendación</a>` : ""}</div>
+        </form>
         <details open>
           <summary>${selected ? "Reemplazar producto" : "Sugerencias del catálogo"}</summary>
           <div class="grid">${suggestions || '<p class="muted">No hay coincidencias sugeridas.</p>'}</div>
@@ -2465,7 +2471,7 @@ function guidePreviewPage(draft: GuideDraft): string {
       return `<article class="card">
         <p class="muted">Recomendación ${recommendation.position}</p>
         <h2>${escapeHtml(recommendation.heading ?? product?.name ?? recommendation.slotLabel)}</h2>
-        ${product ? `<p><strong>${escapeHtml(product.name)}</strong> · ${escapeHtml(product.merchant)}${product.priceLabel ? ` · ${escapeHtml(product.priceLabel)}` : ""}</p><p>${escapeHtml(product.shortDescription)}</p>` : '<p class="error">Producto sin resolver.</p>'}
+        ${product ? `<p><strong>${escapeHtml(product.name)}</strong> · ${escapeHtml(product.merchant)}${product.priceLabel ? ` · ${escapeHtml(product.priceLabel)}` : ""}</p><p>${escapeHtml(product.shortDescription)}</p>` : '<p class="notice">Idea editorial publicada sin Product ni CTA.</p>'}
         <p>${escapeHtml(recommendation.editorialDescription ?? "Falta la descripción editorial.")}</p>
         <p><strong>Por qué encaja:</strong> ${escapeHtml(recommendation.whyItFits ?? "Falta este motivo.")}</p>
         ${recommendation.bestFor ? `<p><strong>Ideal para:</strong> ${escapeHtml(recommendation.bestFor)}</p>` : ""}

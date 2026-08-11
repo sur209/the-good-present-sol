@@ -48,12 +48,12 @@ ASINs, source facts, tracking IDs, original URLs, and provenance notes remain in
 
 Use `/product-sourcing`, a brief requirement, or a GuideDraft slot to create a traceable sourcing request. A slot-origin request stores both the GuideDraft ID and the exact stable recommendation-slot ID.
 
-1. Record the intended role, required category, audience, occasion, budget context, must-have verified facts, exclusions, and search terms. Keep the request `open`, or deliberately mark it `held` or `rejected`.
+1. Record the intended role, required category, audience, occasion, budget context, must-have verified facts, exclusions, and search terms. A slot-origin request derives audience, occasion/work context, budget, slot purpose, search terms, and exclusions from its GuideDraft, slot, questionnaire, taxonomies, and originating brief when available; the editor fills only genuinely missing or changed values. Keep the request `open`, or deliberately mark it `held` or `rejected`.
 2. Review active matches from the existing canonical catalog. A Product must contain every must-have fact in its canonical `verifiedFacts`; selecting it as partial or complete fulfillment is always an explicit editor action.
 3. If the catalog has no approved Product, open the existing assisted manual intake from the request. After confirmation, intake returns to the request with the new canonical Product highlighted; it does not select it automatically.
 4. Optionally add manual or Creators API source candidates for batch review. `approved-for-intake` is not fulfillment. Complete the ordinary intake/source-provenance review, link the resulting Product and `ProductSourceRecord`, and then select the Product explicitly.
 5. Return to an originating brief to continue planning, or use **Assign to originating slot** for a slot request. Assignment reuses the ordinary Goal 2 product-selection function and returns to that exact slot.
-6. Review or generate recommendation copy and run the unchanged preview/readiness checks. Sourcing never marks copy ready and never publishes.
+6. Review or generate recommendation copy and run preview/readiness checks. Sourcing never marks copy ready and never publishes; an unresolved slot can be editorially ready while its sourcing request remains a Product gap.
 
 The request, source candidate, canonical Product, and GuideDraft recommendation slot remain four different records. A source candidate cannot be assigned to a draft, and neither candidate approval nor canonical-product linking fulfills a request.
 
@@ -87,19 +87,19 @@ Cluster hubs do not use questionnaires, product slots, or guide-copy generation.
 2. Choose its published cluster, slug, one primary axis, and a distinct primary intent. Add secondary taxonomies, budget context, and same-cluster related guides only when editorially useful.
 3. Optionally answer the questionnaire. Blank answers are allowed; gift count defaults to 8 and accepts 3–20.
 4. Preview the deterministic outline prompt, then generate an outline and stable editorial slots. The mock provider works offline and invents no commercial products.
-5. Search the active catalog or use deterministic suggestions for each slot. Products can be created, edited, reused, selected, cleared, or replaced; slots can be added, removed, and reordered.
-6. Preview the final prompt and generate guide copy using only the selected product records. AI output cannot set product or affiliate URLs.
-7. Edit guide and recommendation copy manually as needed.
-8. When replacing a product, the recommendation ID and position stay fixed and its copy becomes `needs-review`. Regenerate only that recommendation or edit it, then mark it `ready`.
-9. Preview the canonical nested route and validate. Missing/inactive products, unresolved copy, duplicate slugs, bad relations, and non-ready recommendations block publication.
+5. Search the active catalog or use deterministic suggestions for each slot when a Product is available. Products can be created, edited, reused, selected, cleared, or replaced; slots can be added, removed, and reordered. Product selection is not required to finish generic editorial guidance.
+6. For Product-backed generation, preview the final prompt and generate guide copy using only the selected Product records. Every slot must have an active Product; the existing exact-ID, catalog-field, verified-fact, price-label, and no-URL rules remain unchanged.
+7. Edit guide and recommendation copy manually as needed. An unresolved slot may be marked `ready` once it has a description and why-it-fits and the editor confirms it contains no Product name, merchant, price, rating/review, availability, unsupported Product specification, or commercial claim.
+8. Product resolution and editorial readiness are separate. Resolving a ready idea preserves its recommendation ID and position but returns its copy to `needs-generation`; replacing a Product returns it to `needs-review`; clearing a Product with existing copy also requires review before the slot can be published as generic again.
+9. Preview the canonical nested route and validate. A missing Product is valid only for a complete, ready unresolved idea. Missing/inactive referenced Products, unresolved copy, duplicate slugs, bad relations, and non-ready recommendations block publication.
 10. Publish to `content/guides/{guide-id}.json`, update the cluster's curated group separately if it should link the new guide, and publish the hub.
 11. Review the repository diff, run `npm run verify`, then commit and push manually.
 
-Updating a catalog product changes what every referencing guide resolves. Replacing a product ID changes only that one recommendation.
+Updating a catalog product changes what every referencing guide resolves. Resolving an idea or replacing a product ID changes only that one recommendation and never changes its stable recommendation ID or position.
 
 ## Publication boundary
 
-Publish creates or updates by stable ID, validates the complete candidate content graph, and atomically replaces the stable-ID file. It strips questionnaire, prompt, outline, generation, selection, and review metadata; preserves `publishedAt` during updates; and refreshes `updatedAt`. A successful local publication is not an Internet deployment. GitHub Pages builds only after canonical changes are committed and pushed.
+Publish creates or updates by stable ID, validates the complete candidate content graph, and atomically replaces the stable-ID file. Product-backed recommendations retain the original public shape. Ready slots without a Product become the strict idea-only branch with `productResolution: "unresolved"` and no `productId`. Publication strips questionnaire, prompt, outline, generation, selection, and review metadata; preserves `publishedAt` during updates; and refreshes `updatedAt`. A successful local publication is not an Internet deployment. GitHub Pages builds only after canonical changes are committed and pushed.
 
 The Studio does not automate Git, unpublish records, delete public content, schedule publication, or expire content.
 

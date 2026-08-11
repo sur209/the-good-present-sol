@@ -396,6 +396,7 @@ function productCoverageFixture() {
     }),
   ];
   const recommendation = base.guides[0]!.recommendations[0]!;
+  assert.ok(recommendation.productId);
   const guide = (id: string, index: number, duplicate = false) => ({
     ...base.guides[0]!,
     id,
@@ -2255,6 +2256,8 @@ test("reporta cobertura, tracking, programas, hosts, disclosure y protocolos con
       { ...withoutUrls("product_insulated-tumbler"), affiliateUrl: "javascript:alert(1)" },
     ],
   ]);
+  const baseRecommendation = base.guides[0]!.recommendations[0]!;
+  assert.ok(baseRecommendation.productId);
   const content = {
     ...base,
     products: base.products.map((product) => replacements.get(product.id) ?? product),
@@ -2271,7 +2274,7 @@ test("reporta cobertura, tracking, programas, hosts, disclosure y protocolos con
           "product_rechargeable-penlight",
           "product_insulated-tumbler",
         ].map((productId, index) => ({
-          ...base.guides[0]!.recommendations[0]!,
+          ...baseRecommendation,
           id: `qa_${index + 1}`,
           productId,
           position: index + 1,
@@ -2621,6 +2624,7 @@ test("escribe productos por ID y bloquea desactivar uno publicado", async (conte
   );
 
   const usedId = catalog.read().guides[0]!.recommendations[0]!.productId;
+  assert.ok(usedId);
   const usedProduct = catalog.get(usedId);
   await assert.rejects(
     catalog.save({ ...usedProduct, status: "inactive" }),
@@ -2993,7 +2997,7 @@ test("resume ocho slots con matching I.0 y sourcing sin tomar decisiones editori
       position: 3,
       slotLabel: "Insulated tumbler",
       searchTerms: ["insulated", "tumbler"],
-      editorialStatus: "unassigned" as const,
+      editorialStatus: "needs-generation" as const,
     },
     {
       id: "slot_triage-review-fit",
@@ -3008,7 +3012,7 @@ test("resume ocho slots con matching I.0 y sourcing sin tomar decisiones editori
       position: index + 5,
       slotLabel: `Xylophonic quasar ${index + 1}`,
       searchTerms: [`xylophonic-${index + 1}`, `quasar-${index + 1}`],
-      editorialStatus: "unassigned" as const,
+      editorialStatus: "needs-generation" as const,
     })),
   ];
   const draft = await draftStore.save(
@@ -3075,8 +3079,8 @@ test("resume ocho slots con matching I.0 y sourcing sin tomar decisiones editori
   );
   assert.ok(
     unchangedDraft.recommendations
-      .filter(({ editorialStatus }) => editorialStatus === "unassigned")
-      .every(({ productId }) => !productId),
+      .filter(({ productId }) => !productId)
+      .every(({ editorialStatus }) => editorialStatus === "needs-generation"),
   );
   assert.equal(sourcingStore.get(request.id).status, "open");
   assert.deepEqual(sourcingStore.get(request.id).approvedProductIds, []);
@@ -3793,7 +3797,7 @@ test("el mock genera slots validados y guarda metadatos sin productos", async ()
   assert.equal(generated.recommendations.length, 5);
   assert.equal(generated.recommendations[0]!.id, "guide_mock-outline_slot-1");
   assert.ok(generated.recommendations.every((slot) => !slot.productId));
-  assert.ok(generated.recommendations.every((slot) => slot.editorialStatus === "unassigned"));
+  assert.ok(generated.recommendations.every((slot) => slot.editorialStatus === "needs-generation"));
   assert.equal(generated.generationMetadata?.providerId, "mock");
   assert.equal(generated.generationMetadata?.validation.success, true);
   assert.match(generated.generationMetadata?.prompt ?? "", /Structured input/);
@@ -3989,7 +3993,7 @@ test("bloquea duplicados accidentales y admite confirmación explícita", async 
   assert.deepEqual(duplicateProductIds(confirmed), [productId]);
   const cleared = clearRecommendationProduct(confirmed, confirmed.recommendations[1]!.id);
   assert.equal(cleared.recommendations[1]!.productId, undefined);
-  assert.equal(cleared.recommendations[1]!.editorialStatus, "unassigned");
+  assert.equal(cleared.recommendations[1]!.editorialStatus, "needs-generation");
 });
 
 test("mueve, elimina y agrega slots sin cambiar IDs sobrevivientes", async () => {
@@ -4243,7 +4247,7 @@ test("la edición manual sólo marca ready con copia mínima completa", async ()
 
   assert.throws(
     () => updateRecommendationEditorialCopy(draft, slotId, { heading: "Only a heading" }, true),
-    /se requieren producto, descripción editorial y motivo/,
+    /se requieren descripción editorial y motivo/,
   );
   const ready = updateRecommendationEditorialCopy(
     draft,
@@ -4259,6 +4263,38 @@ test("la edición manual sólo marca ready con copia mínima completa", async ()
   assert.ok(
     validateGuideDraft(ready, content).errors.some((error) => error.includes("no está listo")),
   );
+});
+
+test("separa la preparación editorial de la resolución de Product sin cambiar el slot estable", async () => {
+  const content = new ProductCatalog().read();
+  const draft = await generatedGuideDraft("guide_unresolved-ready");
+  const slot = draft.recommendations[0]!;
+  const readyIdea = updateRecommendationEditorialCopy(
+    draft,
+    slot.id,
+    {
+      heading: "A recovery ritual shaped around their routine",
+      editorialDescription: "Choose a format that matches how they prefer to unwind at home.",
+      whyItFits: "The idea is useful before a particular Product has been selected.",
+      considerations: "Look for easy care and a size that suits their space.",
+    },
+    true,
+  );
+  const unresolved = readyIdea.recommendations[0]!;
+  assert.equal(unresolved.id, slot.id);
+  assert.equal(unresolved.productId, undefined);
+  assert.equal(unresolved.editorialStatus, "ready");
+
+  const resolved = selectRecommendationProduct(
+    readyIdea,
+    slot.id,
+    content.products[0]!.id,
+    content,
+  );
+  assert.equal(resolved.recommendations[0]!.id, slot.id);
+  assert.equal(resolved.recommendations[0]!.productId, content.products[0]!.id);
+  assert.equal(resolved.recommendations[0]!.editorialStatus, "needs-generation");
+  assert.throws(() => prepareFinalPrompt(readyIdea, content), /no tiene producto/);
 });
 
 test("reabre una guía publicada con identidad y copia listas", () => {
@@ -4427,6 +4463,95 @@ test("transforma borradores completos al esquema público sin campos editoriales
   assert.deepEqual(clusterDraftToPublic(emptyHub, content).navigationGroups, []);
 });
 
+test("publica y renderiza una idea sin Product ni CTA, conservando QA e I.0", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-unresolved-build-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const publisher = new Publisher(repository);
+  const content = publisher.read();
+  const existing = content.guides[0]!;
+  const original = existing.recommendations[0]!;
+  assert.ok(original.productId);
+
+  let draft = reopenGuideDraft(existing, content);
+  draft = clearRecommendationProduct(draft, original.id);
+  draft = updateRecommendationEditorialCopy(
+    draft,
+    original.id,
+    {
+      heading: "A low-effort recovery ritual",
+      editorialDescription: "Shape the gift around how they already decompress after a long day.",
+      whyItFits: "It stays useful without pretending one specific item fits everyone.",
+      considerations: "Favor easy care and a format that works in their available space.",
+    },
+    true,
+  );
+  const unresolvedDraft = draft.recommendations.find(({ id }) => id === original.id)!;
+  assert.equal(unresolvedDraft.id, original.id);
+  assert.equal(unresolvedDraft.productId, undefined);
+  assert.equal(unresolvedDraft.editorialStatus, "ready");
+  assert.deepEqual(validateGuideDraft(draft, content).errors, []);
+
+  await publisher.publishGuide(draft, new Date("2026-08-11T12:00:00.000Z"));
+  const published = publisher.read();
+  const publicGuide = published.guides.find(({ id }) => id === existing.id)!;
+  const publicIdea = publicGuide.recommendations.find(({ id }) => id === original.id)!;
+  assert.equal(publicIdea.id, original.id);
+  assert.equal(publicIdea.productResolution, "unresolved");
+  assert.equal(publicIdea.productId, undefined);
+
+  const intelligence = analyzeProductCoverage(published);
+  assert.ok(
+    intelligence.editorialCoverage.publishedRecommendationsWithoutProducts.some(
+      ({ guideId, recommendationId }) =>
+        guideId === existing.id && recommendationId === original.id,
+    ),
+  );
+  const affiliate = validateAffiliateOperations(published, []);
+  assert.equal(
+    affiliate.errors.some(({ field }) => field === "productId"),
+    false,
+  );
+  assert.equal(
+    affiliate.coverage.length,
+    published.guides.flatMap(({ recommendations }) =>
+      recommendations.filter(({ productId }) => productId),
+    ).length,
+  );
+
+  await execFileAsync(process.execPath, [join(REPOSITORY_ROOT, "scripts", "astro.mjs"), "build"], {
+    cwd: join(REPOSITORY_ROOT, "apps", "site"),
+    env: { ...process.env, CONTENT_REPOSITORY_ROOT: repository },
+    maxBuffer: 10 * 1024 * 1024,
+    windowsHide: true,
+  });
+  const cluster = published.clusters.find(({ id }) => id === existing.clusterId)!;
+  const html = await readFile(
+    join(REPOSITORY_ROOT, "apps", "site", "dist", cluster.slug, existing.slug, "index.html"),
+    "utf8",
+  );
+  const ideaIndex = html.indexOf('id="pick-1"');
+  const ideaStart = html.lastIndexOf("<article", ideaIndex);
+  const ideaEnd = html.indexOf("</article>", ideaIndex);
+  assert.ok(ideaIndex >= 0 && ideaStart >= 0 && ideaEnd >= 0);
+  const ideaCard = html.slice(ideaStart, ideaEnd + "</article>".length);
+  assert.doesNotMatch(ideaCard, /href=|recommendation__catalog|recommendation__commerce/);
+  assert.doesNotMatch(
+    ideaCard,
+    new RegExp(content.products.find(({ id }) => id === original.productId)!.name),
+  );
+
+  const resolved = publicGuide.recommendations.find(({ productId }) => productId)!;
+  const resolvedProduct = published.products.find(({ id }) => id === resolved.productId)!;
+  const resolvedIndex = html.indexOf(resolvedProduct.name);
+  const resolvedStart = html.lastIndexOf("<article", resolvedIndex);
+  const resolvedEnd = html.indexOf("</article>", resolvedIndex);
+  assert.match(
+    html.slice(resolvedStart, resolvedEnd + "</article>".length),
+    /href=.*rel="sponsored nofollow noopener"/,
+  );
+});
+
 test("publica por ID estable, conserva publishedAt y rechaza conflictos antes de escribir", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-publication-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
@@ -4541,7 +4666,7 @@ test("publicar una guía y enlazarla desde su hub produce ambas páginas reales"
   const sharedProductId = initial.guides
     .flatMap(({ recommendations }) => recommendations)
     .map(({ productId }) => productId)
-    .find((productId) => !otherSelectedProductIds.has(productId));
+    .find((productId) => productId && !otherSelectedProductIds.has(productId));
   assert.ok(sharedProductId);
   const draft = await generateFinalGuide(
     selectRecommendationProduct(
@@ -4591,7 +4716,9 @@ test("publicar una guía y enlazarla desde su hub produce ambas páginas reales"
   );
 
   const catalog = new ProductCatalog(repository);
-  const directProduct = catalog.get(finalGuide.recommendations[0]!.productId);
+  const directProductId = finalGuide.recommendations[0]!.productId;
+  assert.ok(directProductId);
+  const directProduct = catalog.get(directProductId);
   const otherGuide = publisher
     .read()
     .guides.find(
