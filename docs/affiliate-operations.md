@@ -6,19 +6,20 @@ Affiliate operations are local editorial tooling. They do not create links, call
 
 - Public products remain the only source for merchant-facing fields and URLs.
 - Product-backed recommendations reference products by stable `productId`; idea-only recommendations use `productResolution: "unresolved"` and no Product reference. Neither branch carries `productUrl`, `affiliateUrl`, tracking IDs, or account identifiers.
-- `productDestination(product)` in `packages/content-schema/` resolves a valid `affiliateUrl` first and a valid ordinary `productUrl` second.
+- `productDestination(product)` in `packages/content-schema/` resolves a valid Amazon affiliate URL for Amazon Products; other Products retain the valid affiliate-first, ordinary-URL fallback.
 - Astro renders direct external anchors. There is no internal redirect or outbound URL proxy.
 - Product URLs are validated as absolute HTTP(S) values before they enter the canonical content graph.
 - Guide publication still goes through the existing Studio Goal 2 publication boundary.
 
 ## Link behavior
 
-| Catalog state                        | Public result                 | Relation and label                        |
-| ------------------------------------ | ----------------------------- | ----------------------------------------- |
-| Valid `affiliateUrl`                 | Uses the affiliate URL        | `sponsored nofollow noopener`, “View at…” |
-| No affiliate URL, valid `productUrl` | Uses the ordinary product URL | `nofollow noopener`, “View product at…”   |
-| Neither URL is valid                 | No merchant CTA               | No outbound anchor                        |
-| Idea-only recommendation             | No Product or merchant UI     | No outbound anchor                        |
+| Catalog state                               | Public result                 | Relation and label                        |
+| ------------------------------------------- | ----------------------------- | ----------------------------------------- |
+| Amazon Product with valid `affiliateUrl`    | Uses the affiliate URL        | `sponsored nofollow noopener`, “View at…” |
+| Amazon Product without valid `affiliateUrl` | No merchant CTA               | Monetization pending; no outbound anchor  |
+| Non-Amazon Product with valid `productUrl`  | Uses the ordinary product URL | `nofollow noopener`, “View product at…”   |
+| Neither URL is valid                        | No merchant CTA               | No outbound anchor                        |
+| Idea-only recommendation                    | No Product or merchant UI     | No outbound anchor                        |
 
 All merchant links use `target="_blank"` and `rel` values containing `noopener`. The link is direct and the merchant is named in the visible label. Demo `example.com` destinations are labeled as demonstrations and are not launch-ready shopping links.
 
@@ -72,13 +73,14 @@ The Studio page at `/affiliate-operations` and the read-only command `npm run af
 
 - `affiliate`: the central destination resolver selects `affiliateUrl`.
 - `ordinary`: only `productUrl` is available; this is a monetization gap, not a product-contract error.
+- `amazon-pending`: an Amazon Product is resolved but has no valid affiliate destination; this is a monetization gap, not a broken Product reference.
 - `none`: no outbound URL is available; this is also a review warning, not an automatic product invalidation.
 
 An idea-only recommendation is outside destination coverage because it has neither a Product reference nor an eligible CTA. Affiliate QA does not report it as a broken Product or hard affiliate error. It remains visible separately in I.0 as a published Product-resolution gap.
 
 Each finding includes the product ID/name, guide ID/title, canonical route, stored field, severity, and reason. Hard errors cover unsafe protocols, unexpected non-demo hosts, disabled programs, visible tracking-ID mismatches, and rendered CTA/disclosure contract failures. Warnings cover unknown or incomplete program context, short links whose final parameters are not visible locally, missing visible tracking tags, and monetization gaps. The command exits non-zero only for hard errors.
 
-When `apps/site/dist/` exists, the report also checks each rendered guide route: affiliate CTAs must use the affiliate destination with `target="_blank"` and `sponsored nofollow noopener`; ordinary CTAs must use the ordinary destination with `nofollow noopener`; guides with affiliate CTAs must render `guide-disclosure`, and guides without them must not. Run the command after `npm run build` for this rendered-output check; no build step, network request, redirect follow, link checker, URL rewrite, or disclosure rewrite is performed by the QA command.
+When `apps/site/dist/` exists, the report also checks each rendered guide route: affiliate CTAs must use the affiliate destination with `target="_blank"` and `sponsored nofollow noopener`; ordinary CTAs must use the ordinary destination with `nofollow noopener`; Amazon-pending cards must not contain a shopping CTA; guides with affiliate CTAs must render `guide-disclosure`, and guides without them must not. Run the command after `npm run build` for this rendered-output check; no build step, network request, redirect follow, link checker, URL rewrite, or disclosure rewrite is performed by the QA command.
 
 ## Verification
 

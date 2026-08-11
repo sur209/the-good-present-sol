@@ -60,11 +60,11 @@ No other concrete A.0/P.0 defect was demonstrated.
 
 ### Affiliate destinations
 
-- `productDestination(product)` remains the single public-contract resolver. It selects a valid `affiliateUrl`, then a valid ordinary `productUrl`, and otherwise returns no destination.
+- `productDestination(product)` remains the single public-contract resolver. For Amazon Products it selects only a valid Amazon `affiliateUrl`; other Products retain the valid affiliate-first, ordinary-URL fallback.
 - Studio preview and Astro both call that resolver and classify the selected URL as affiliate only when it is the resolved `affiliateUrl`.
 - Affiliate destinations use sponsored/nofollow/noopener semantics and the affiliate CTA.
-- Ordinary destinations use nofollow/noopener without sponsored semantics and use the ordinary-product CTA.
-- Missing destinations render no merchant anchor.
+- Ordinary non-Amazon destinations use nofollow/noopener without sponsored semantics and use the ordinary-product CTA.
+- Amazon Products without a valid affiliate destination render no merchant anchor.
 - Guides contain no merchant destination fields, and no outbound redirect/proxy route exists.
 
 ### Affiliate program state and privacy

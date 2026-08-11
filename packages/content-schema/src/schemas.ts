@@ -181,7 +181,46 @@ export type ClusterHub = z.infer<typeof clusterHubSchema>;
 export type GuideRecommendation = z.infer<typeof guideRecommendationSchema>;
 export type GiftGuide = z.infer<typeof giftGuideSchema>;
 
+const AMAZON_HOSTS = new Set([
+  "amazon.com",
+  "www.amazon.com",
+  "smile.amazon.com",
+  "amzn.to",
+  "a.co",
+]);
+
+function isAmazonUrl(value: string | undefined): boolean {
+  if (!value) return false;
+  try {
+    return AMAZON_HOSTS.has(new URL(value).hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+export function isAmazonProduct(
+  product: Pick<Product, "merchant" | "productUrl" | "affiliateUrl">,
+): boolean {
+  return (
+    /\bamazon\b/i.test(product.merchant) ||
+    isAmazonUrl(product.productUrl) ||
+    isAmazonUrl(product.affiliateUrl)
+  );
+}
+
 export function productDestination(product: Product): string | undefined {
+  if (isAmazonProduct(product)) {
+    const affiliateUrl = product.affiliateUrl;
+    if (
+      !affiliateUrl ||
+      !safeHttpUrlSchema.safeParse(affiliateUrl).success ||
+      !isAmazonUrl(affiliateUrl)
+    ) {
+      return undefined;
+    }
+    return new URL(affiliateUrl).protocol === "https:" ? affiliateUrl : undefined;
+  }
+
   return [product.affiliateUrl, product.productUrl].find(
     (value) => value && safeHttpUrlSchema.safeParse(value).success,
   );

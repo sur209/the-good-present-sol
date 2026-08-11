@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
+  isAmazonProduct,
   guidePath,
   productDestination,
   type ValidatedPublicContent,
@@ -10,7 +11,7 @@ import {
 import type { AffiliateProgram, AffiliateProgramRecord } from "./programs.ts";
 
 export type AffiliateFindingSeverity = "warning" | "error";
-export type AffiliateCoverageKind = "affiliate" | "ordinary" | "none";
+export type AffiliateCoverageKind = "affiliate" | "ordinary" | "amazon-pending" | "none";
 
 export interface AffiliateFinding {
   severity: AffiliateFindingSeverity;
@@ -402,6 +403,25 @@ function checkRenderedGuide(
       );
     }
   }
+
+  for (const entry of entries.filter((candidate) => candidate.kind === "amazon-pending")) {
+    const card = productCardHtml(html, entry.product);
+    if (card.includes('href="')) {
+      addFinding(
+        findings,
+        "error",
+        {
+          productId: entry.productId,
+          product: entry.product,
+          guideId: entry.guideId,
+          guide: entry.guide,
+          route: entry.route,
+        },
+        "affiliateUrl",
+        "La recomendación Amazon sin destino afiliado no debe renderizar una CTA de compra.",
+      );
+    }
+  }
 }
 
 export function validateAffiliateOperations(
@@ -448,11 +468,14 @@ export function validateAffiliateOperations(
       const affiliateIsDestination = Boolean(
         destination && affiliateUrl && product.affiliateUrl && destination === product.affiliateUrl,
       );
+      const amazonMonetizationPending = isAmazonProduct(product) && !affiliateIsDestination;
       const kind: AffiliateCoverageKind = affiliateIsDestination
         ? "affiliate"
-        : destination
-          ? "ordinary"
-          : "none";
+        : amazonMonetizationPending
+          ? "amazon-pending"
+          : destination
+            ? "ordinary"
+            : "none";
       const entry: AffiliateCoverageEntry = {
         ...context,
         kind,
@@ -462,7 +485,15 @@ export function validateAffiliateOperations(
       guideEntries.push(entry);
 
       if (affiliateUrl) checkAffiliateUrl(affiliateUrl, context, programRecords, findings);
-      if (kind === "ordinary" && !product.affiliateUrl && product.productUrl) {
+      if (kind === "amazon-pending") {
+        addFinding(
+          findings,
+          "warning",
+          context,
+          "affiliateUrl",
+          "Falta un destino afiliado Amazon; el Product y la recomendación siguen siendo válidos editorialmente, pero no deben publicar una CTA Amazon.",
+        );
+      } else if (kind === "ordinary" && !product.affiliateUrl && product.productUrl) {
         addFinding(
           findings,
           "warning",
@@ -497,11 +528,14 @@ export function formatAffiliateValidationReport(report: AffiliateValidationRepor
       result[entry.kind] += 1;
       return result;
     },
-    { affiliate: 0, ordinary: 0, none: 0 } as Record<AffiliateCoverageKind, number>,
+    { affiliate: 0, ordinary: 0, "amazon-pending": 0, none: 0 } as Record<
+      AffiliateCoverageKind,
+      number
+    >,
   );
   const lines = [
     "Affiliate QA",
-    `Coverage: ${counts.affiliate} affiliate, ${counts.ordinary} ordinary, ${counts.none} without outbound URL(s).`,
+    `Coverage: ${counts.affiliate} affiliate, ${counts.ordinary} ordinary, ${counts["amazon-pending"]} Amazon monetization pending, ${counts.none} without outbound URL(s).`,
     `Findings: ${report.errors.length} error(s), ${report.warnings.length} warning(s).`,
     `Rendered CTA/disclosure output: ${report.renderedOutput}.`,
   ];

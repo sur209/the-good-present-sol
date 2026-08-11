@@ -16,6 +16,7 @@ export {
   clusterHubSchema,
   giftGuideSchema,
   guideRecommendationSchema,
+  isAmazonProduct,
   pageTypeSchema,
   primaryAxisSchema,
   productDestination,

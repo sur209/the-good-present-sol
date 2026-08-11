@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { productDestination, type ClusterHub, type GiftGuide, type Product } from "./schemas.ts";
+import {
+  isAmazonProduct,
+  productDestination,
+  type ClusterHub,
+  type GiftGuide,
+  type Product,
+} from "./schemas.ts";
 import {
   assertValidPublicContent,
   formatValidationIssues,
@@ -160,6 +166,37 @@ test("resolves one safe merchant destination from the central product record", (
     } as Product),
     "https://merchant.test/fallback",
   );
+});
+
+test("requires an Amazon affiliate destination without changing non-Amazon fallback behavior", () => {
+  const { affiliateUrl: _affiliateUrl, ...amazonWithoutAffiliate } = {
+    ...product,
+    merchant: "Amazon",
+    productUrl: "https://www.amazon.com/dp/B012345678",
+  };
+  assert.equal(isAmazonProduct(amazonWithoutAffiliate), true);
+  assert.equal(productDestination(amazonWithoutAffiliate), undefined);
+
+  const withAffiliate = {
+    ...amazonWithoutAffiliate,
+    affiliateUrl: "https://www.amazon.com/dp/B012345678?tag=thegoodpresent-20",
+  };
+  assert.equal(productDestination(withAffiliate), withAffiliate.affiliateUrl);
+  assert.equal(
+    productDestination({
+      ...amazonWithoutAffiliate,
+      affiliateUrl: "https://merchant.test/not-amazon",
+    }),
+    undefined,
+  );
+
+  const ordinary = {
+    ...amazonWithoutAffiliate,
+    merchant: "Independent Merchant",
+    productUrl: "https://merchant.test/item",
+  };
+  assert.equal(isAmazonProduct(ordinary), false);
+  assert.equal(productDestination(ordinary), ordinary.productUrl);
 });
 
 test("reports source-aware schema, URL, date, image, SEO, and draft-state failures", () => {

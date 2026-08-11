@@ -7,6 +7,7 @@ import {
   PUBLIC_SCHEMA_VERSION,
   clusterPath,
   guidePath,
+  isAmazonProduct,
   productDestination,
   type PrimaryAxis,
   type Product,
@@ -897,7 +898,7 @@ function affiliateValidationPage(repositoryRoot = REPOSITORY_ROOT): string {
       result[entry.kind] += 1;
       return result;
     },
-    { affiliate: 0, ordinary: 0, none: 0 },
+    { affiliate: 0, ordinary: 0, "amazon-pending": 0, none: 0 },
   );
   const coverage = report.coverage
     .map(
@@ -919,7 +920,7 @@ function affiliateValidationPage(repositoryRoot = REPOSITORY_ROOT): string {
     "Affiliate QA",
     `<div class="actions"><div><h1>QA de enlaces afiliados</h1><p>Revisión local de cobertura, tracking, hosts, CTA y disclosure de las guías publicadas.</p></div></div>
      <p class="notice">No se hacen requests de red, no se siguen enlaces y no se reescriben URLs. Salida renderizada: <strong>${escapeHtml(report.renderedOutput)}</strong>.</p>
-     <div class="grid"><article class="card"><h2>${counts.affiliate}</h2><p>Recomendaciones con enlace afiliado</p></article><article class="card"><h2>${counts.ordinary}</h2><p>Con sólo URL ordinaria</p></article><article class="card"><h2>${counts.none}</h2><p>Sin URL de salida</p></article><article class="card"><h2>${report.errors.length}</h2><p>Errores · ${report.warnings.length} advertencias</p></article></div>
+     <div class="grid"><article class="card"><h2>${counts.affiliate}</h2><p>Recomendaciones con enlace afiliado</p></article><article class="card"><h2>${counts.ordinary}</h2><p>Con sólo URL ordinaria</p></article><article class="card"><h2>${counts["amazon-pending"]}</h2><p>Monetización Amazon pendiente</p></article><article class="card"><h2>${counts.none}</h2><p>Sin URL de salida</p></article><article class="card"><h2>${report.errors.length}</h2><p>Errores · ${report.warnings.length} advertencias</p></article></div>
      <h2>Cobertura publicada</h2>
      <div class="grid">${coverage || '<p class="notice">No hay recomendaciones publicadas.</p>'}</div>
      <h2>Hallazgos</h2>
@@ -2163,12 +2164,16 @@ function recommendationSelectionSection(
           origin.guideDraftId === draft.id &&
           origin.recommendationSlotId === recommendation.id,
       );
+      const amazonMonetizationPending =
+        Boolean(selected) && isAmazonProduct(selected!) && !productDestination(selected!);
       const state = recommendation.productId
-        ? assignedNeedsFitReview
-          ? "Producto asignado · revisar encaje"
-          : recommendation.editorialStatus === "needs-generation"
-            ? "Listo para generar recomendación"
-            : "Asignado"
+        ? amazonMonetizationPending
+          ? "Producto resuelto · monetización Amazon pendiente"
+          : assignedNeedsFitReview
+            ? "Producto asignado · revisar encaje"
+            : recommendation.editorialStatus === "needs-generation"
+              ? "Listo para generar recomendación"
+              : "Asignado"
         : recommendation.editorialStatus === "ready"
           ? "Editorialmente lista · Product sin resolver"
           : possibleMatch
@@ -2189,7 +2194,10 @@ function recommendationSelectionSection(
             )
             .join("<br>")
         : "—";
-      return `<tr><td>${recommendation.position}. ${escapeHtml(recommendation.slotLabel)}</td><td><span class="status">${escapeHtml(state)}</span><br><span class="muted">${evidence}</span></td><td>${sourcing}</td><td><a href="#slot-${encodeURIComponent(recommendation.id)}">Abrir slot</a>${recommendation.productId && recommendation.editorialStatus === "needs-generation" ? `<br><a href="/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(recommendation.id)}/prompt">Generar recomendación</a>` : ""}</td></tr>`;
+      const monetizationAction = amazonMonetizationPending
+        ? `<br><a href="/products/${encodeURIComponent(selected!.id)}/edit">Agregar link de afiliado</a>`
+        : "";
+      return `<tr><td>${recommendation.position}. ${escapeHtml(recommendation.slotLabel)}</td><td><span class="status">${escapeHtml(state)}</span><br><span class="muted">${evidence}</span></td><td>${sourcing}</td><td><a href="#slot-${encodeURIComponent(recommendation.id)}">Abrir slot</a>${recommendation.productId && recommendation.editorialStatus === "needs-generation" ? `<br><a href="/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(recommendation.id)}/prompt">Generar recomendación</a>` : ""}${monetizationAction}</td></tr>`;
     })
     .join("");
   const recommendations = orderedRecommendations

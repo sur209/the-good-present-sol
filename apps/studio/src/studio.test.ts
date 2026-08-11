@@ -9,7 +9,11 @@ import { promisify } from "node:util";
 
 import { z } from "zod";
 
-import type { Product, ValidatedPublicContent } from "@the-good-present/content-schema";
+import {
+  productDestination,
+  type Product,
+  type ValidatedPublicContent,
+} from "@the-good-present/content-schema";
 
 import {
   MockGuideGenerationProvider,
@@ -2255,6 +2259,14 @@ test("reporta cobertura, tracking, programas, hosts, disclosure y protocolos con
       "product_insulated-tumbler",
       { ...withoutUrls("product_insulated-tumbler"), affiliateUrl: "javascript:alert(1)" },
     ],
+    [
+      "product_shift-tote",
+      {
+        ...withoutUrls("product_shift-tote"),
+        merchant: "Amazon",
+        productUrl: "https://www.amazon.com/dp/D012345678",
+      },
+    ],
   ]);
   const baseRecommendation = base.guides[0]!.recommendations[0]!;
   assert.ok(baseRecommendation.productId);
@@ -2273,6 +2285,7 @@ test("reporta cobertura, tracking, programas, hosts, disclosure y protocolos con
           "product_hand-cream",
           "product_rechargeable-penlight",
           "product_insulated-tumbler",
+          "product_shift-tote",
         ].map((productId, index) => ({
           ...baseRecommendation,
           id: `qa_${index + 1}`,
@@ -2314,9 +2327,19 @@ test("reporta cobertura, tracking, programas, hosts, disclosure y protocolos con
 
   assert.equal(report.coverage.filter((entry) => entry.kind === "affiliate").length, 5);
   assert.equal(report.coverage.filter((entry) => entry.kind === "ordinary").length, 1);
+  assert.equal(report.coverage.filter((entry) => entry.kind === "amazon-pending").length, 1);
   assert.equal(report.coverage.filter((entry) => entry.kind === "none").length, 2);
   assert.ok(report.warnings.length > 0);
   assert.ok(report.errors.length > 0);
+  assert.ok(
+    report.warnings.some(
+      (finding) => finding.productId === "product_shift-tote" && finding.field === "affiliateUrl",
+    ),
+  );
+  assert.equal(
+    report.errors.some((finding) => finding.productId === "product_shift-tote"),
+    false,
+  );
   assert.ok(report.warnings.every((finding) => finding.severity === "warning"));
   assert.ok(report.errors.every((finding) => finding.severity === "error"));
   assert.ok(
@@ -3087,6 +3110,58 @@ test("resume ocho slots con matching I.0 y sourcing sin tomar decisiones editori
   assert.ok(validateGuideDraft(unchangedDraft, content).errors.length > 0);
 });
 
+test("muestra la brecha de monetización Amazon y la acción existente sin desresolver el Product", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-amazon-pending-studio-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+
+  await Promise.all(
+    ["products", "guides", "clusters"].map((directory) =>
+      mkdir(join(repository, "content", directory), { recursive: true }),
+    ),
+  );
+  const catalog = new ProductCatalog(repository);
+  const product = await catalog.save({
+    schemaVersion: 1,
+    id: "product_amazon-pending-fixture",
+    name: "Amazon pending fixture",
+    merchant: "Amazon",
+    productUrl: "https://www.amazon.com/dp/B012345678",
+    shortDescription: "A test product without an affiliate destination.",
+    status: "active",
+  });
+
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const draft = await draftStore.save(
+    guideDraftSchema.parse({
+      ...createGuideDraft("guide_amazon-pending"),
+      status: "selecting-products",
+      recommendations: [
+        {
+          id: "slot_amazon-pending",
+          position: 1,
+          slotLabel: product.name,
+          productId: product.id,
+          editorialStatus: "ready",
+        },
+      ],
+    }),
+  );
+  const server = createStudioServer(draftStore, catalog);
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(() => server.close());
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+
+  const html = await (
+    await fetch(`http://${STUDIO_HOST}:${address.port}/drafts/${draft.id}`)
+  ).text();
+  assert.match(html, /Producto resuelto · monetización Amazon pendiente/);
+  assert.match(html, /Agregar link de afiliado/);
+  assert.match(html, new RegExp(`/products/${product.id}/edit`));
+  assert.match(html, new RegExp(product.name));
+});
+
 test("mantiene el ciclo de vida y los IDs exactos de una solicitud de sourcing", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-product-sourcing-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
@@ -3511,6 +3586,29 @@ test("renderiza sólo destinos del catálogo y distingue enlaces afiliados", asy
     ...ordinaryWithoutAffiliate,
     productUrl: "https://merchant.test/badge-reel",
   });
+  const amazonAffiliateProduct = catalog.get("product_shift-tote");
+  const {
+    affiliateUrl: _existingAmazonAffiliateUrl,
+    productUrl: _existingAmazonProductUrl,
+    ...amazonAffiliateWithoutLinks
+  } = amazonAffiliateProduct;
+  await catalog.save({
+    ...amazonAffiliateWithoutLinks,
+    merchant: "Amazon",
+    productUrl: "https://www.amazon.com/dp/B012345678",
+    affiliateUrl: "https://www.amazon.com/dp/B012345678?tag=thegoodpresent-20",
+  });
+  const amazonPendingProduct = catalog.get("product_compression-socks");
+  const {
+    affiliateUrl: _existingPendingAffiliateUrl,
+    productUrl: _existingPendingProductUrl,
+    ...amazonPendingWithoutLinks
+  } = amazonPendingProduct;
+  await catalog.save({
+    ...amazonPendingWithoutLinks,
+    merchant: "Amazon",
+    productUrl: "https://www.amazon.com/dp/C012345678",
+  });
   const unavailable = catalog.get("product_sleep-mask");
   const {
     affiliateUrl: _unavailableAffiliateUrl,
@@ -3553,6 +3651,17 @@ test("renderiza sólo destinos del catálogo y distingue enlaces afiliados", asy
   assert.match(ordinaryCard, /rel="nofollow noopener"/);
   assert.doesNotMatch(ordinaryCard, /sponsored/);
 
+  const amazonAffiliateCard = card(graduation, "Structured Shift Tote");
+  assert.match(
+    amazonAffiliateCard,
+    /href="https:\/\/www\.amazon\.com\/dp\/B012345678\?tag=thegoodpresent-20"/,
+  );
+  assert.match(amazonAffiliateCard, /rel="sponsored nofollow noopener"/);
+
+  const amazonPendingCard = card(practical, "Everyday Compression Socks");
+  assert.doesNotMatch(amazonPendingCard, /href=/);
+  assert.match(amazonPendingCard, /Why it fits/);
+
   const unavailableCard = card(practical, "Blackout Sleep Mask");
   assert.doesNotMatch(unavailableCard, /href=/);
 
@@ -3567,6 +3676,48 @@ test("renderiza sólo destinos del catálogo y distingue enlaces afiliados", asy
     )
   ).join("\n");
   assert.doesNotMatch(staticHtml, /amazon-associates|storeOrAssociateId|allowedTrackingIds/);
+});
+
+test("quitar un afiliado Amazon conserva la identidad del Product y la recomendación", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-amazon-identity-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+
+  const catalog = new ProductCatalog(repository);
+  const original = catalog.get("product_compression-socks");
+  const {
+    affiliateUrl: _originalAffiliateUrl,
+    productUrl: _originalProductUrl,
+    ...withoutLinks
+  } = original;
+  await catalog.save({
+    ...withoutLinks,
+    merchant: "Amazon",
+    productUrl: "https://www.amazon.com/dp/E012345678",
+    affiliateUrl: "https://www.amazon.com/dp/E012345678?tag=thegoodpresent-20",
+  });
+
+  const before = catalog.read();
+  const beforeGuide = before.guides.find((guide) => guide.id === "guide_nurse-practical")!;
+  const beforeRecommendation = beforeGuide.recommendations.find(
+    ({ productId }) => productId === original.id,
+  );
+  assert.ok(beforeRecommendation);
+
+  const withAffiliate = catalog.get(original.id);
+  const { affiliateUrl: _removedAffiliateUrl, ...withoutAffiliate } = withAffiliate;
+  await catalog.save(withoutAffiliate);
+
+  const after = catalog.read();
+  const afterProduct = after.products.find(({ id }) => id === original.id);
+  const afterGuide = after.guides.find((guide) => guide.id === "guide_nurse-practical")!;
+  const afterRecommendation = afterGuide.recommendations.find(
+    ({ id }) => id === beforeRecommendation.id,
+  );
+  assert.ok(afterProduct);
+  assert.equal(afterProduct.id, original.id);
+  assert.equal(productDestination(afterProduct), undefined);
+  assert.equal(afterRecommendation?.productId, original.id);
 });
 
 test("renderiza disclosure en guías con afiliados y lo omite sin enlaces afiliados", async (context) => {
