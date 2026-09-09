@@ -493,7 +493,42 @@ export function updateRecommendationEditorialCopy(
 
 export interface GuideDraftValidation {
   errors: string[];
+  readiness: GuideDraftReadiness;
   route?: string;
+}
+
+export interface GuideDraftReadiness {
+  recommendationCount: number;
+  editorialReadyCount: number;
+  productResolvedCount: number;
+  productPendingCount: number;
+  editorialComplete: boolean;
+  productComplete: boolean;
+}
+
+export function recommendationIsEditoriallyReady(
+  recommendation: GuideDraft["recommendations"][number],
+): boolean {
+  return Boolean(
+    recommendation.editorialStatus === "ready" &&
+    recommendation.editorialDescription &&
+    recommendation.whyItFits &&
+    (recommendation.productId || recommendation.selectionGuidance || recommendation.considerations),
+  );
+}
+
+export function guideDraftReadiness(draft: GuideDraft): GuideDraftReadiness {
+  const recommendationCount = draft.recommendations.length;
+  const editorialReadyCount = draft.recommendations.filter(recommendationIsEditoriallyReady).length;
+  const productResolvedCount = draft.recommendations.filter(({ productId }) => productId).length;
+  return {
+    recommendationCount,
+    editorialReadyCount,
+    productResolvedCount,
+    productPendingCount: recommendationCount - productResolvedCount,
+    editorialComplete: recommendationCount > 0 && editorialReadyCount === recommendationCount,
+    productComplete: recommendationCount > 0 && productResolvedCount === recommendationCount,
+  };
 }
 
 export function validateGuideDraft(
@@ -501,6 +536,7 @@ export function validateGuideDraft(
   content: ValidatedPublicContent,
 ): GuideDraftValidation {
   const errors: string[] = [];
+  const readiness = guideDraftReadiness(draft);
   for (const [field, label] of [
     ["clusterId", "Cluster"],
     ["slug", "Slug"],
@@ -576,7 +612,7 @@ export function validateGuideDraft(
     }
   }
 
-  return { errors, ...(route ? { route } : {}) };
+  return { errors, readiness, ...(route ? { route } : {}) };
 }
 
 export function reopenGuideDraft(

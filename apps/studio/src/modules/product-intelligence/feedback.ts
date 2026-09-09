@@ -99,6 +99,7 @@ export const editorialFeedbackEventSchema = z
     rationale: nonEmptyText.optional(),
     diagnosticAreas: z.array(z.enum(EDITORIAL_FEEDBACK_DIAGNOSTIC_AREAS)).min(1).optional(),
     discoveryRound: z.number().int().min(1).max(2).optional(),
+    discoveryMode: z.enum(["general", "amazon"]).optional(),
     providerInvocationCount: z.number().int().positive().optional(),
     publicationResolution: z.enum(["product-backed", "idea-only"]).optional(),
   })

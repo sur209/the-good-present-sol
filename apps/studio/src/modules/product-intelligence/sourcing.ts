@@ -16,6 +16,7 @@ export const PRODUCT_SOURCING_REQUEST_STATUSES = [
   "open",
   "partially-fulfilled",
   "fulfilled",
+  "completed-idea-only",
   "held",
   "rejected",
 ] as const;
@@ -32,6 +33,7 @@ export const PRODUCT_SOURCE_CANDIDATE_KINDS = [
   "dataforseo",
 ] as const;
 export const PRODUCT_DISCOVERY_PROVIDERS = ["serpapi", "dataforseo"] as const;
+export const PRODUCT_DISCOVERY_MODES = ["general", "amazon"] as const;
 
 const nonEmptyText = z.string().trim().min(1);
 const textList = z.array(nonEmptyText);
@@ -59,6 +61,8 @@ export const productSourceCandidateSchema = z
     id: sourceCandidateId,
     sourceKind: z.enum(PRODUCT_SOURCE_CANDIDATE_KINDS),
     provider: nonEmptyText,
+    discoveryMode: z.enum(PRODUCT_DISCOVERY_MODES).optional(),
+    brand: nonEmptyText.optional(),
     merchant: nonEmptyText.optional(),
     domain: nonEmptyText.optional(),
     marketplace: nonEmptyText.optional(),
@@ -77,6 +81,8 @@ export const productSourceCandidateSchema = z
     observedPrice: nonEmptyText.optional(),
     observedRating: z.number().nonnegative().optional(),
     observedReviewCount: z.number().int().nonnegative().optional(),
+    observedImageUrl: z.url({ protocol: /^https?$/ }).optional(),
+    providerResultPosition: z.number().int().positive().optional(),
     status: z.enum(PRODUCT_SOURCE_CANDIDATE_STATUSES),
     canonicalProductId: safeId.optional(),
     productSourceId: safeId.optional(),
@@ -85,7 +91,11 @@ export const productSourceCandidateSchema = z
   })
   .superRefine((candidate, context) => {
     const discovered = candidate.sourceKind === "serpapi" || candidate.sourceKind === "dataforseo";
-    if (discovered && (!candidate.query || !candidate.observedAt)) {
+    if (
+      discovered &&
+      candidate.status !== "linked-to-product" &&
+      (!candidate.query || !candidate.observedAt)
+    ) {
       context.addIssue({
         code: "custom",
         path: ["observedAt"],
@@ -132,6 +142,7 @@ export const productSearchPlanSchema = z.strictObject({
 export const productDiscoveryRoundSchema = z.strictObject({
   round: z.number().int().min(1).max(2),
   provider: z.enum(PRODUCT_DISCOVERY_PROVIDERS),
+  discoveryMode: z.enum(PRODUCT_DISCOVERY_MODES).optional(),
   status: z.enum([
     "stored",
     "partial",
@@ -144,6 +155,8 @@ export const productDiscoveryRoundSchema = z.strictObject({
   queries: textList.min(1).max(3),
   providerCalls: z.number().int().nonnegative(),
   storedCandidateCount: z.number().int().nonnegative().max(4),
+  returnedCandidateCount: z.number().int().nonnegative().optional(),
+  reusedCandidateCount: z.number().int().nonnegative().optional(),
   attemptedAt: timestamp,
   failureCode: z.enum(["configuration", "quota", "timeout", "unavailable", "malformed"]).optional(),
 });
@@ -205,6 +218,7 @@ export type ProductSourcingRequest = z.infer<typeof productSourcingRequestSchema
 export type ProductSourcingRequestStatus = ProductSourcingRequest["status"];
 export type ProductSearchPlan = z.infer<typeof productSearchPlanSchema>;
 export type ProductDiscoveryRound = z.infer<typeof productDiscoveryRoundSchema>;
+export type ProductDiscoveryMode = (typeof PRODUCT_DISCOVERY_MODES)[number];
 
 export interface ProductSourcingRequestInput {
   origin: ProductRequirementOrigin;
@@ -222,6 +236,8 @@ export interface ProductSourceCandidateInput {
   id?: string;
   sourceKind: ProductSourceCandidate["sourceKind"];
   provider: string;
+  discoveryMode?: ProductSourceCandidate["discoveryMode"];
+  brand?: string;
   merchant?: string;
   domain?: string;
   marketplace?: string;
@@ -240,6 +256,8 @@ export interface ProductSourceCandidateInput {
   observedPrice?: string;
   observedRating?: number;
   observedReviewCount?: number;
+  observedImageUrl?: string;
+  providerResultPosition?: number;
 }
 
 export interface ProductSourcingOriginContext {
@@ -408,9 +426,10 @@ export function assertProductSourcingOrigin(
 }
 
 const requestTransitions: Record<ProductSourcingRequestStatus, ProductSourcingRequestStatus[]> = {
-  open: ["held", "rejected"],
-  "partially-fulfilled": ["held", "fulfilled", "rejected"],
+  open: ["completed-idea-only", "held", "rejected"],
+  "partially-fulfilled": ["completed-idea-only", "held", "fulfilled", "rejected"],
   fulfilled: [],
+  "completed-idea-only": [],
   held: ["open", "rejected"],
   rejected: [],
 };
@@ -428,6 +447,17 @@ export function transitionProductSourcingRequest(
     status,
     updatedAt: now.toISOString(),
   });
+}
+
+export function completeProductSourcingRequestAsIdeaOnly(
+  request: ProductSourcingRequest,
+  now = new Date(),
+): ProductSourcingRequest {
+  return transitionProductSourcingRequest(request, "completed-idea-only", now);
+}
+
+export function productSourcingRequestIsActive(request: ProductSourcingRequest): boolean {
+  return request.status === "open" || request.status === "partially-fulfilled";
 }
 
 export function selectCanonicalProductForRequest(

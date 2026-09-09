@@ -20,6 +20,10 @@ import {
   mockProductFitEvaluation,
   productFitPromptInputSchema,
 } from "./modules/product-intelligence/fit.ts";
+import {
+  mockProductEditorialCopy,
+  productEditorialCopyPromptInputSchema,
+} from "./modules/product-intelligence/editorial-copy.ts";
 
 export interface ProviderCallMetadata {
   requestId?: string;
@@ -37,7 +41,8 @@ export interface StructuredGenerationRequest<T> {
     | "opportunity-candidates"
     | "opportunity-evaluations"
     | "product-search-plans"
-    | "product-fit-evaluations";
+    | "product-fit-evaluations"
+    | "product-editorial-copy";
   prompt: string;
   input: unknown;
   schema: z.ZodType<T>;
@@ -379,6 +384,11 @@ export class MockGuideGenerationProvider implements GuideGenerationProvider {
   readonly modelId = "mock-editorial-v1";
 
   async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+    if (request.operation === "product-editorial-copy") {
+      return request.schema.parse(
+        mockProductEditorialCopy(productEditorialCopyPromptInputSchema.parse(request.input)),
+      );
+    }
     if (request.operation === "product-fit-evaluations") {
       return request.schema.parse(
         mockProductFitEvaluation(productFitPromptInputSchema.parse(request.input)),

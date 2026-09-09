@@ -43,6 +43,7 @@ import {
   editorialDraftSchema,
   guideDraftSchema,
   guideOutlineSchema,
+  type GuideDraft,
 } from "./drafts.ts";
 import {
   addManualRecommendation,
@@ -51,6 +52,7 @@ import {
   generateFinalGuide,
   generateGuideOutline,
   generateIdeaOnlyRecommendation,
+  guideDraftReadiness,
   moveRecommendation,
   normalizeQuestionnaire,
   regenerateRecommendation,
@@ -113,6 +115,18 @@ import {
   prepareManualProductIntake,
   type ManualProductIntakeInput,
 } from "./modules/product-intelligence/intake.ts";
+import { productEditorialCopyPromptInputSchema } from "./modules/product-intelligence/editorial-copy.ts";
+import {
+  AUTOPILOT_LIMITS,
+  assessAutomaticProductCandidate,
+  chooseAutomaticProductCandidate,
+  resolveRecommendationSlotAutonomously,
+} from "./modules/product-intelligence/autopilot.ts";
+import {
+  GUIDE_AUTOPILOT_MAX_CONCURRENT_SLOTS,
+  completeGuideAutonomously,
+  guideAutopilotOutcomeSchema,
+} from "./modules/product-intelligence/guide-autopilot.ts";
 import { analyzeProductCoverage } from "./modules/product-intelligence/coverage.ts";
 import {
   guideCurationNextAction,
@@ -139,10 +153,12 @@ import {
   PRODUCT_FIT_RANKING_POLICY_V1,
   ProductFitEvaluationStore,
   evaluateProductFitBatch,
+  evaluateProductFitBatchAttempt,
   mockProductFitEvaluation,
   orderProductFitEvaluations,
   prepareProductFitEvaluationPrompt,
   productFitEvaluationBatchSchema,
+  productFitPromptInputSchema,
   resolveProductClassProfile,
   type ProductFitEvaluation,
 } from "./modules/product-intelligence/fit.ts";
@@ -152,6 +168,7 @@ import {
   assertProductSourcingOrigin,
   assignSourcedProductToDraftSlot,
   catalogMatchesForRequest,
+  completeProductSourcingRequestAsIdeaOnly,
   createProductSourcingRequest,
   createProductSourcingRequestForDraftSlot,
   findProductSourcingRequestForDraftSlot,
@@ -164,6 +181,8 @@ import {
   reviewProductSourceCandidates,
   selectCanonicalProductForRequest,
   transitionProductSourcingRequest,
+  type ProductDiscoveryMode,
+  type ProductSourceCandidateInput,
 } from "./modules/product-intelligence/sourcing.ts";
 import {
   ArticleCandidateStore,
@@ -3841,6 +3860,7 @@ test("mapea fixtures SerpAPI al candidato I.2 observado y sanea vacíos, forma, 
   });
   assert.equal(new URL(requestedUrl).searchParams.get("engine"), "google_shopping");
   assert.equal(new URL(requestedUrl).searchParams.get("api_key"), "fixture-key");
+  assert.equal(candidates[0]!.discoveryMode, "general");
   assert.equal(candidates[0]!.sourceKind, "serpapi");
   assert.equal(candidates[0]!.provider, "SerpAPI");
   assert.equal(candidates[0]!.merchant, "Example Merchant");
@@ -3927,6 +3947,443 @@ test("mapea fixtures SerpAPI al candidato I.2 observado y sanea vacíos, forma, 
       }),
     (error) => error instanceof ProductDiscoveryError && error.code === "timeout",
   );
+});
+
+test("usa el modo Amazon oficial de SerpAPI sólo cuando se pide y normaliza evidencia sin crear Product", async () => {
+  const observedAt = "2026-08-11T12:00:00.000Z";
+  const beforeProducts = readPublicContent().products.length;
+  let requestedUrl = "";
+  let calls = 0;
+  const adapter = new SerpApiProductDiscoverySource("fixture-key", 100, async (input) => {
+    calls++;
+    requestedUrl = String(input);
+    return new Response(JSON.stringify(await productDiscoveryFixture("serpapi-amazon-success")), {
+      status: 200,
+    });
+  });
+  const candidates = await adapter.search({
+    query: "large capacity hydration reservoir",
+    candidateLimit: 2,
+    observedAt,
+    discoveryMode: "amazon",
+  });
+
+  const params = new URL(requestedUrl).searchParams;
+  assert.equal(calls, 1);
+  assert.equal(params.get("engine"), "amazon");
+  assert.equal(params.get("k"), "large capacity hydration reservoir");
+  assert.equal(params.get("amazon_domain"), "amazon.com");
+  assert.equal(params.get("language"), "en_US");
+  assert.equal(params.get("q"), null);
+  assert.equal(candidates.length, 2);
+  assert.equal(candidates[0]!.sourceKind, "serpapi");
+  assert.equal(candidates[0]!.provider, "SerpAPI");
+  assert.equal(candidates[0]!.discoveryMode, "amazon");
+  assert.equal(candidates[0]!.marketplace, "amazon.com");
+  assert.equal(candidates[0]!.externalId, "B0ABC12345");
+  assert.equal(
+    candidates[0]!.productUrl,
+    "https://www.amazon.com/Hydration-Reservoir/dp/B0ABC12345/",
+  );
+  assert.equal(candidates[0]!.merchant, undefined);
+  assert.equal(candidates[0]!.brand, "HydraPak");
+  assert.equal(candidates[1]!.brand, undefined);
+  assert.equal(candidates[0]!.observedPrice, "$54.95");
+  assert.equal(candidates[0]!.observedRating, 4.6);
+  assert.equal(candidates[0]!.observedReviewCount, 742);
+  assert.equal(candidates[0]!.providerResultPosition, 1);
+  assert.match(candidates[0]!.observedImageUrl ?? "", /^https:\/\/m\.media-amazon\.com\//);
+  assert.equal(readPublicContent().products.length, beforeProducts);
+
+  const responseAdapter = (payload: unknown, timeoutMs = 100) =>
+    new SerpApiProductDiscoverySource(
+      "fixture-key",
+      timeoutMs,
+      async () => new Response(JSON.stringify(payload), { status: 200 }),
+    );
+  assert.deepEqual(
+    await responseAdapter({ organic_results: [] }).search({
+      query: "empty",
+      candidateLimit: 4,
+      observedAt,
+      discoveryMode: "amazon",
+    }),
+    [],
+  );
+  await assert.rejects(
+    () =>
+      responseAdapter({ organic_results: [{ title: "missing link" }] }).search({
+        query: "malformed",
+        candidateLimit: 4,
+        observedAt,
+        discoveryMode: "amazon",
+      }),
+    (error) => error instanceof ProductDiscoveryError && error.code === "malformed",
+  );
+  await assert.rejects(
+    () =>
+      responseAdapter({ error: "Your account has run out of searches." }).search({
+        query: "quota",
+        candidateLimit: 4,
+        observedAt,
+        discoveryMode: "amazon",
+      }),
+    (error) => error instanceof ProductDiscoveryError && error.code === "quota",
+  );
+  const timeoutFetch: typeof fetch = (_input, init) =>
+    new Promise((_resolve, reject) => {
+      const signal = init?.signal;
+      assert.ok(signal);
+      const fallback = setTimeout(() => reject(new Error("timeout signal did not fire")), 100);
+      signal.addEventListener(
+        "abort",
+        () => {
+          clearTimeout(fallback);
+          reject(signal.reason);
+        },
+        { once: true },
+      );
+    });
+  await assert.rejects(
+    () =>
+      new SerpApiProductDiscoverySource("fixture-key", 5, timeoutFetch).search({
+        query: "timeout",
+        candidateLimit: 4,
+        observedAt,
+        discoveryMode: "amazon",
+      }),
+    (error) => error instanceof ProductDiscoveryError && error.code === "timeout",
+  );
+});
+
+test("acota Amazon a una llamada, deduplica ASIN y no usa DataForSEO ni fallback general", async () => {
+  const now = new Date("2026-08-11T12:00:00.000Z");
+  const request = productSourcingRequestSchema.parse({
+    ...createProductSourcingRequest(
+      {
+        origin: { kind: "guide-draft", guideDraftId: "guide_amazon-discovery" },
+        intendedRole: "Carry water on a demanding assignment.",
+        requiredCategory: "Large-capacity hydration reservoir",
+        audience: "Wildland firefighters",
+        occasion: "First season",
+        budgetContext: "Under $75",
+        searchTerms: ["large capacity hydration reservoir"],
+      },
+      now,
+      "request_amazon-discovery",
+    ),
+    searchPlan: {
+      productClass: "Hydration reservoir",
+      mustHaveAttributes: ["large capacity"],
+      usefulAttributes: ["durable"],
+      exclusions: [],
+      queries: ["large capacity hydration reservoir", "hydration bladder", "water reservoir"],
+      providerId: "mock",
+      promptVersion: "product-search-plan-v1",
+      plannedAt: now.toISOString(),
+    },
+  });
+  let calls = 0;
+  const source = new SerpApiProductDiscoverySource("fixture-key", 100, async () => {
+    calls++;
+    return new Response(JSON.stringify(await productDiscoveryFixture("serpapi-amazon-success")), {
+      status: 200,
+    });
+  });
+  const result = await runProductDiscovery(request, source, {
+    products: [],
+    forceExternal: true,
+    discoveryMode: "amazon",
+    round: 1,
+    now,
+  });
+  assert.equal(calls, 1);
+  assert.equal(result.sourceCandidates.length, 1);
+  assert.equal(result.sourceCandidates[0]!.externalId, "B0ABC12345");
+  assert.equal(result.sourceCandidates[0]!.discoveryMode, "amazon");
+  assert.deepEqual(result.discoveryRounds[0]!.queries, ["large capacity hydration reservoir"]);
+  assert.equal(result.discoveryRounds[0]!.providerCalls, 1);
+  assert.equal(result.discoveryRounds[0]!.storedCandidateCount, 1);
+  assert.equal(result.discoveryRounds[0]!.discoveryMode, "amazon");
+
+  let dataForSeoCalls = 0;
+  const dataForSeo: ProductDiscoverySource = {
+    providerId: "dataforseo",
+    paidUsage: true,
+    supportedModes: ["general"],
+    async search() {
+      dataForSeoCalls++;
+      return [];
+    },
+  };
+  await assert.rejects(
+    () =>
+      runProductDiscovery(request, dataForSeo, {
+        products: [],
+        forceExternal: true,
+        discoveryMode: "amazon",
+        round: 1,
+        now,
+      }),
+    /requires the configured SerpAPI provider/,
+  );
+  assert.equal(dataForSeoCalls, 0);
+
+  let failedCalls = 0;
+  const failedSerp: ProductDiscoverySource = {
+    providerId: "serpapi",
+    paidUsage: true,
+    supportedModes: ["general", "amazon"],
+    async search(input) {
+      failedCalls++;
+      assert.equal(input.discoveryMode, "amazon");
+      throw new ProductDiscoveryError("fixture quota", "quota");
+    },
+  };
+  const failed = await runProductDiscovery(request, failedSerp, {
+    products: [],
+    forceExternal: true,
+    discoveryMode: "amazon",
+    round: 1,
+    now,
+  });
+  assert.equal(failedCalls, 1);
+  assert.equal(failed.discoveryRounds[0]!.status, "failed");
+  assert.equal(failed.discoveryRounds[0]!.failureCode, "quota");
+  assert.deepEqual(failed.sourceCandidates, []);
+});
+
+test("reutiliza candidatos sólo dentro del modo solicitado sin perder candidatos de otro modo", async () => {
+  const now = new Date("2026-08-11T12:00:00.000Z");
+  const observedAt = now.toISOString();
+  const planned = productSourcingRequestSchema.parse({
+    ...createProductSourcingRequest(
+      {
+        origin: { kind: "guide-draft", guideDraftId: "guide_mode-aware-reuse" },
+        intendedRole: "Keep drinks secure during a long shift.",
+        requiredCategory: "Insulated tumbler",
+        audience: "Working nurses",
+        occasion: "Graduation",
+        budgetContext: "Under $50",
+        searchTerms: ["mode-aware query"],
+      },
+      now,
+      "request_mode-aware-reuse",
+    ),
+    searchPlan: {
+      productClass: "Insulated tumbler",
+      mustHaveAttributes: [],
+      usefulAttributes: [],
+      exclusions: [],
+      queries: ["mode-aware query"],
+      providerId: "mock",
+      promptVersion: "product-search-plan-v1",
+      plannedAt: observedAt,
+    },
+  });
+  const candidateForMode = (
+    discoveryMode: ProductDiscoveryMode,
+    index: number,
+  ): ProductSourceCandidateInput => {
+    const externalId = discoveryMode === "amazon" ? `B0MODE000${index}` : `general-${index}`;
+    const productUrl =
+      discoveryMode === "amazon"
+        ? `https://www.amazon.com/dp/${externalId}`
+        : `https://merchant.example/${externalId}`;
+    return {
+      id: `source_candidate_${discoveryMode}-${index}`,
+      sourceKind: "serpapi",
+      provider: "SerpAPI",
+      discoveryMode,
+      marketplace: discoveryMode === "amazon" ? "amazon.com" : "google.com",
+      externalId,
+      sourceUrl: productUrl,
+      productUrl,
+      name: `${discoveryMode} candidate ${index}`,
+      sourceFacts: [],
+      query: "mode-aware query",
+      observedAt,
+    };
+  };
+  const withModeCandidates = (discoveryMode: ProductDiscoveryMode) =>
+    addProductSourceCandidates(
+      planned,
+      Array.from({ length: 4 }, (_, index) => candidateForMode(discoveryMode, index)),
+      now,
+    );
+  const generalCandidates = withModeCandidates("general");
+  const amazonCandidates = withModeCandidates("amazon");
+  const calls: ProductDiscoveryMode[] = [];
+  const source: ProductDiscoverySource = {
+    providerId: "serpapi",
+    paidUsage: true,
+    supportedModes: ["general", "amazon"],
+    async search(input) {
+      const discoveryMode = input.discoveryMode ?? "general";
+      calls.push(discoveryMode);
+      return [candidateForMode(discoveryMode, 9)];
+    },
+  };
+
+  const amazonRun = await runProductDiscovery(generalCandidates, source, {
+    products: [],
+    forceExternal: true,
+    discoveryMode: "amazon",
+    round: 1,
+    now,
+  });
+  assert.deepEqual(calls, ["amazon"]);
+  assert.equal(amazonRun.sourceCandidates.length, 5);
+  assert.ok(
+    generalCandidates.sourceCandidates.every(({ id }) =>
+      amazonRun.sourceCandidates.some((candidate) => candidate.id === id),
+    ),
+  );
+  assert.equal(amazonRun.discoveryRounds[0]!.discoveryMode, "amazon");
+  assert.equal(amazonRun.discoveryRounds[0]!.providerCalls, 1);
+  assert.equal(amazonRun.discoveryRounds[0]!.storedCandidateCount, 1);
+
+  calls.length = 0;
+  const generalRun = await runProductDiscovery(amazonCandidates, source, {
+    products: [],
+    forceExternal: true,
+    discoveryMode: "general",
+    round: 1,
+    now,
+  });
+  assert.deepEqual(calls, ["general"]);
+  assert.equal(generalRun.sourceCandidates.length, 5);
+  assert.ok(
+    amazonCandidates.sourceCandidates.every(({ id }) =>
+      generalRun.sourceCandidates.some((candidate) => candidate.id === id),
+    ),
+  );
+  assert.equal(generalRun.discoveryRounds[0]!.discoveryMode, "general");
+  assert.equal(generalRun.discoveryRounds[0]!.providerCalls, 1);
+
+  calls.length = 0;
+  const sameModeBound = await runProductDiscovery(amazonCandidates, source, {
+    products: [],
+    forceExternal: true,
+    discoveryMode: "amazon",
+    round: 1,
+    now,
+  });
+  assert.deepEqual(calls, []);
+  assert.equal(sameModeBound.discoveryRounds[0]!.status, "reused-candidates");
+  assert.equal(sameModeBound.sourceCandidates.length, 4);
+
+  const compatibleRecent = productSourcingRequestSchema.parse({
+    ...amazonCandidates,
+    id: "request_mode-aware-compatible",
+    origin: { kind: "guide-draft", guideDraftId: "guide_mode-aware-compatible" },
+  });
+  const sameModeReuse = await runProductDiscovery(planned, source, {
+    products: [],
+    allRequests: [compatibleRecent],
+    discoveryMode: "amazon",
+    round: 1,
+    now,
+  });
+  assert.deepEqual(calls, []);
+  assert.equal(sameModeReuse.discoveryRounds[0]!.status, "reused-candidates");
+  assert.equal(sameModeReuse.sourceCandidates.length, 4);
+
+  const incompatibleRecent = productSourcingRequestSchema.parse({
+    ...compatibleRecent,
+    id: "request_mode-aware-incompatible",
+    origin: { kind: "guide-draft", guideDraftId: "guide_mode-aware-incompatible" },
+    requiredCategory: "Electrolyte tablets",
+    searchPlan: { ...compatibleRecent.searchPlan!, productClass: "Electrolyte tablets" },
+  });
+  calls.length = 0;
+  const incompatibleReuseBlocked = await runProductDiscovery(planned, source, {
+    products: [],
+    allRequests: [incompatibleRecent],
+    discoveryMode: "amazon",
+    round: 1,
+    now,
+  });
+  assert.deepEqual(calls, ["amazon"]);
+  assert.equal(incompatibleReuseBlocked.discoveryRounds[0]!.status, "stored");
+
+  calls.length = 0;
+  const catalogProduct = readPublicContent().products[0]!;
+  const catalogBypassed = await runProductDiscovery(planned, source, {
+    products: [catalogProduct],
+    benchmarkProductIds: [catalogProduct.id],
+    forceExternal: true,
+    discoveryMode: "amazon",
+    round: 1,
+    now,
+  });
+  assert.deepEqual(calls, ["amazon"]);
+  assert.equal(catalogBypassed.discoveryRounds[0]!.providerCalls, 1);
+
+  calls.length = 0;
+  const recentBeforeFreshDiscovery = await runProductDiscovery(planned, source, {
+    products: [catalogProduct],
+    allRequests: [compatibleRecent],
+    skipCatalogReuse: true,
+    discoveryMode: "amazon",
+    round: 1,
+    now,
+  });
+  assert.deepEqual(calls, []);
+  assert.equal(recentBeforeFreshDiscovery.discoveryRounds[0]!.status, "reused-candidates");
+
+  const existingAmazon = addProductSourceCandidates(planned, [candidateForMode("amazon", 0)], now);
+  const beforeProducts = readPublicContent().products.length;
+  let duplicateCalls = 0;
+  const duplicate = await runProductDiscovery(
+    existingAmazon,
+    {
+      ...source,
+      async search() {
+        duplicateCalls++;
+        return [candidateForMode("amazon", 0)];
+      },
+    },
+    { products: [], forceExternal: true, discoveryMode: "amazon", round: 1, now },
+  );
+  assert.equal(duplicateCalls, 1);
+  assert.equal(duplicate.sourceCandidates.length, 1);
+  assert.equal(duplicate.discoveryRounds[0]!.storedCandidateCount, 0);
+  assert.equal(readPublicContent().products.length, beforeProducts);
+
+  const empty = await runProductDiscovery(
+    planned,
+    {
+      ...source,
+      async search(input) {
+        assert.equal(input.discoveryMode, "amazon");
+        return [];
+      },
+    },
+    { products: [], forceExternal: true, discoveryMode: "amazon", round: 1, now },
+  );
+  assert.equal(empty.discoveryRounds[0]!.status, "empty");
+  assert.equal(empty.discoveryRounds[0]!.providerCalls, 1);
+  assert.equal(empty.discoveryRounds[0]!.storedCandidateCount, 0);
+  assert.deepEqual(empty.sourceCandidates, []);
+
+  for (const code of ["timeout", "quota", "malformed"] as const) {
+    const failed = await runProductDiscovery(
+      planned,
+      {
+        ...source,
+        async search(input) {
+          assert.equal(input.discoveryMode, "amazon");
+          throw new ProductDiscoveryError(`fixture ${code}`, code);
+        },
+      },
+      { products: [], forceExternal: true, discoveryMode: "amazon", round: 1, now },
+    );
+    assert.equal(failed.discoveryRounds[0]!.status, "failed");
+    assert.equal(failed.discoveryRounds[0]!.discoveryMode, "amazon");
+    assert.equal(failed.discoveryRounds[0]!.providerCalls, 1);
+    assert.equal(failed.discoveryRounds[0]!.failureCode, code);
+  }
 });
 
 test("mantiene DataForSEO apagado por defecto y exige selección, enablement, policy y Basic auth", async () => {
@@ -4463,6 +4920,432 @@ test("mantiene URLs de Google Shopping como evidencia no pública durante la rev
   );
   assert.equal(requestStore.get(saved.id).sourceCandidates[0]!.status, "linked-to-product");
   assert.deepEqual(requestStore.get(saved.id).approvedProductIds, []);
+});
+
+test("P.1 prellena sólo evidencia semánticamente segura de candidatos Amazon", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-amazon-prefill-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const beforeCount = catalog.read().products.length;
+  const requestStore = new ProductSourcingRequestStore(repository);
+  const observedAt = "2026-08-11T12:00:00.000Z";
+  const saved = await requestStore.save(
+    addProductSourceCandidates(
+      createProductSourcingRequest(
+        {
+          origin: { kind: "guide-draft", guideDraftId: "guide_amazon-prefill" },
+          intendedRole: "Carry water on a demanding assignment.",
+          requiredCategory: "Hydration reservoir",
+          audience: "Wildland firefighters",
+          occasion: "First season",
+          budgetContext: "Under $75",
+          searchTerms: ["hydration reservoir"],
+        },
+        new Date(observedAt),
+        "request_amazon-prefill",
+      ),
+      [
+        {
+          id: "source_candidate_amazon-brand-prefill",
+          sourceKind: "serpapi",
+          provider: "SerpAPI",
+          discoveryMode: "amazon",
+          brand: "HydraPak",
+          marketplace: "amazon.com",
+          externalId: "B0ABC12345",
+          sourceUrl: "https://www.amazon.com/Hydration-Reservoir/dp/B0ABC12345/ref=sr_1_1",
+          productUrl: "https://www.amazon.com/Hydration-Reservoir/dp/B0ABC12345/",
+          name: "Large-capacity hydration reservoir",
+          sourceFacts: ["Observed price: $54.95", "Observed rating: 4.6"],
+          query: "large capacity hydration reservoir",
+          observedAt,
+          observedPrice: "$54.95",
+          observedRating: 4.6,
+          observedReviewCount: 742,
+          observedImageUrl: "https://m.media-amazon.com/images/I/example._AC_UL320_.jpg",
+          providerResultPosition: 1,
+        },
+        {
+          id: "source_candidate_amazon-merchant-prefill",
+          sourceKind: "serpapi",
+          provider: "SerpAPI",
+          discoveryMode: "amazon",
+          merchant: "Explicit observed merchant",
+          marketplace: "amazon.com",
+          externalId: "B0DEF12345",
+          sourceUrl: "https://www.amazon.com/dp/B0DEF12345/ref=sr_1_2",
+          productUrl: "https://www.amazon.com/dp/B0DEF12345/",
+          name: "Merchant-evidenced reservoir",
+          sourceFacts: [],
+          query: "hydration reservoir",
+          observedAt,
+        },
+        {
+          id: "source_candidate_amazon-url-prefill",
+          sourceKind: "manual",
+          provider: "Manual",
+          sourceUrl: "https://www.amazon.com/dp/B08KBWHZPM/ref=example",
+          productUrl: "https://www.amazon.com/dp/B08KBWHZPM/",
+          name: "Amazon URL candidate",
+          sourceFacts: [],
+        },
+        {
+          id: "source_candidate_amazon-asin-prefill",
+          sourceKind: "manual",
+          provider: "Manual",
+          marketplace: "amazon.com",
+          externalId: "B0GHI12345",
+          name: "Amazon ASIN candidate",
+          sourceFacts: [],
+        },
+        {
+          id: "source_candidate_non-amazon-prefill",
+          sourceKind: "manual",
+          provider: "Manual",
+          sourceUrl: "https://merchant.example/products/reservoir",
+          productUrl: "https://merchant.example/products/reservoir",
+          name: "Non-Amazon candidate",
+          sourceFacts: [],
+        },
+      ],
+      new Date(observedAt),
+    ),
+  );
+  const server = createStudioServer(
+    new DraftStore(join(repository, "drafts")),
+    catalog,
+    new MockGuideGenerationProvider(),
+    new Publisher(repository),
+    new ProductSourceStore(repository),
+  );
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(() => server.close());
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+
+  const brandHtml = await (
+    await fetch(
+      `${origin}/products/intake?requestId=${saved.id}&candidateId=source_candidate_amazon-brand-prefill`,
+    )
+  ).text();
+  assert.match(brandHtml, /name="name" required value="Large-capacity hydration reservoir"/);
+  assert.match(brandHtml, /name="brand" value="HydraPak"/);
+  assert.match(brandHtml, /name="merchant" required value="Amazon"/);
+  assert.match(brandHtml, /name="asin" value="B0ABC12345"/);
+  assert.match(
+    brandHtml,
+    /name="productUrl" value="https:\/\/www\.amazon\.com\/Hydration-Reservoir\/dp\/B0ABC12345\/"/,
+  );
+  assert.match(brandHtml, /Precio observado: \$54\.95/);
+  assert.match(brandHtml, /Rating observado: 4\.6/);
+  assert.match(brandHtml, /Reseñas observadas: 742/);
+  assert.match(brandHtml, /Imagen observada, sin derechos verificados/);
+  assert.match(brandHtml, /<summary>Trazabilidad interna<\/summary>/);
+
+  const merchantHtml = await (
+    await fetch(
+      `${origin}/products/intake?requestId=${saved.id}&candidateId=source_candidate_amazon-merchant-prefill`,
+    )
+  ).text();
+  assert.match(merchantHtml, /name="brand" value=""/);
+  assert.match(merchantHtml, /name="merchant" required value="Explicit observed merchant"/);
+
+  const urlHtml = await (
+    await fetch(
+      `${origin}/products/intake?requestId=${saved.id}&candidateId=source_candidate_amazon-url-prefill`,
+    )
+  ).text();
+  assert.match(urlHtml, /name="brand" value=""/);
+  assert.match(urlHtml, /name="merchant" required value="Amazon"/);
+  assert.match(urlHtml, /name="asin" value="B08KBWHZPM"/);
+  assert.match(urlHtml, /name="affiliateUrl" value=""/);
+
+  const asinHtml = await (
+    await fetch(
+      `${origin}/products/intake?requestId=${saved.id}&candidateId=source_candidate_amazon-asin-prefill`,
+    )
+  ).text();
+  assert.match(asinHtml, /name="merchant" required value="Amazon"/);
+  assert.match(asinHtml, /name="asin" value="B0GHI12345"/);
+
+  const nonAmazonHtml = await (
+    await fetch(
+      `${origin}/products/intake?requestId=${saved.id}&candidateId=source_candidate_non-amazon-prefill`,
+    )
+  ).text();
+  assert.match(nonAmazonHtml, /name="merchant" required value=""/);
+
+  const unconfirmed = await fetch(`${origin}/products/intake`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      requestId: saved.id,
+      candidateId: "source_candidate_amazon-url-prefill",
+      productUrl: "https://www.amazon.com/dp/B08KBWHZPM/",
+      asin: "B08KBWHZPM",
+      name: "Amazon URL candidate",
+      merchant: "Amazon",
+      shortDescription: "An editor-authored description for the candidate under review.",
+      status: "active",
+      confirm: "yes",
+    }),
+  });
+  assert.equal(unconfirmed.status, 400);
+  assert.match(await unconfirmed.text(), /confirmIdentity/);
+  assert.equal(catalog.read().products.length, beforeCount);
+});
+
+test("P.1 genera un borrador editorial aislado y conserva el flujo manual ante fallos", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-editorial-copy-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourceStore = new ProductSourceStore(repository);
+  const draft = await draftStore.save(
+    guideDraftSchema.parse({
+      ...createGuideDraft("guide_editorial-copy"),
+      status: "selecting-products",
+      questionnaire: {
+        giftCount: 8,
+        recipient: "Wildland firefighters",
+        occasion: "First season",
+        budget: "Under $25",
+      },
+      recommendations: [
+        {
+          id: "slot_editorial-copy",
+          position: 1,
+          slotLabel: "Electrolyte Tablets or Powder",
+          slotIntent: "Offer a compact hydration option for demanding workdays.",
+          searchTerms: ["electrolyte tablets"],
+          editorialStatus: "unassigned",
+        },
+      ],
+    }),
+  );
+  const requestStore = new ProductSourcingRequestStore(repository);
+  const observedAt = "2026-08-11T12:00:00.000Z";
+  const saved = await requestStore.save(
+    addProductSourceCandidates(
+      createProductSourcingRequest(
+        {
+          origin: {
+            kind: "recommendation-slot",
+            guideDraftId: draft.id,
+            recommendationSlotId: "slot_editorial-copy",
+          },
+          intendedRole: "Offer a compact hydration option for demanding workdays.",
+          requiredCategory: "Electrolyte tablets or powder",
+          audience: "Wildland firefighters",
+          occasion: "First season",
+          budgetContext: "Under $25",
+          mustHaveVerifiedFacts: ["Portable format"],
+          exclusions: ["Unsupported medical claims"],
+          searchTerms: ["electrolyte tablets"],
+        },
+        new Date(observedAt),
+        "request_editorial-copy",
+      ),
+      [
+        {
+          id: "source_candidate_editorial-copy",
+          sourceKind: "serpapi",
+          provider: "SerpAPI",
+          discoveryMode: "amazon",
+          marketplace: "amazon.com",
+          externalId: "B08KBWHZPM",
+          sourceUrl: "https://www.amazon.com/dp/B08KBWHZPM/ref=sr_1_1",
+          productUrl: "https://www.amazon.com/dp/B08KBWHZPM/",
+          name: "Fluid Tactical Effervescent Electrolyte Tablets Variety Pack",
+          sourceFacts: [
+            "Observed form: effervescent electrolyte tablets",
+            "Observed price: $19.99",
+            "Observed rating: 4.2 from 497 reviews",
+          ],
+          query: "electrolyte tablets",
+          observedAt,
+          observedPrice: "$19.99",
+          observedRating: 4.2,
+          observedReviewCount: 497,
+        },
+      ],
+      new Date(observedAt),
+    ),
+  );
+  const candidate = saved.sourceCandidates[0]!;
+  const beforeProducts = structuredClone(catalog.read().products);
+  const beforeRequest = structuredClone(saved);
+  const beforeDraft = structuredClone(await draftStore.read(draft.id));
+  const providerRequests: StructuredGenerationRequest<unknown>[] = [];
+  let providerOutcome: "valid" | "timeout" | "malformed" = "valid";
+  const provider: GuideGenerationProvider = {
+    providerId: "editorial-copy-fixture",
+    async generateStructured<T>(generationRequest: StructuredGenerationRequest<T>): Promise<T> {
+      providerRequests.push(generationRequest as StructuredGenerationRequest<unknown>);
+      if (providerOutcome === "timeout") {
+        throw new ProviderError(
+          "El proveedor tardó demasiado en responder. Probá de nuevo.",
+          "timeout",
+        );
+      }
+      if (providerOutcome === "malformed") return {} as T;
+      return generationRequest.schema.parse({
+        shortDescription:
+          "Effervescent electrolyte tablets presented as a compact hydration option for long, demanding workdays.",
+      });
+    },
+  };
+  let discoveryCalls = 0;
+  const discoverySource: ProductDiscoverySource = {
+    providerId: "serpapi",
+    paidUsage: true,
+    async search() {
+      discoveryCalls++;
+      return [];
+    },
+  };
+  const server = createStudioServer(
+    draftStore,
+    catalog,
+    provider,
+    new Publisher(repository),
+    sourceStore,
+    undefined,
+    [],
+    undefined,
+    undefined,
+    discoverySource,
+  );
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(() => server.close());
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+  const reviewPath = `/products/intake?requestId=${saved.id}&candidateId=${candidate.id}`;
+
+  const initialHtml = await (await fetch(`${origin}${reviewPath}`)).text();
+  assert.match(initialHtml, /formaction="\/products\/intake\/editorial-copy"/);
+  assert.match(initialHtml, /Generar descripción editorial/);
+  assert.match(initialHtml, /name="shortDescription" rows="3" required><\/textarea>/);
+  assert.equal(providerRequests.length, 0, "opening P.1 must not generate copy");
+  assert.equal(discoveryCalls, 0);
+
+  const generationForm = new URLSearchParams({
+    returnTo: `/drafts/${draft.id}/curation`,
+    requestId: saved.id,
+    candidateId: candidate.id,
+    productUrl: candidate.productUrl!,
+    asin: candidate.externalId!,
+    name: candidate.name,
+    merchant: "Amazon",
+    shortDescription: "Existing editor text submitted through the explicit generation action.",
+    sourceFacts: candidate.sourceFacts.join("\n"),
+    status: "active",
+    discoverySourceKind: "serpapi",
+    discoveryProvider: candidate.provider,
+    discoveryObservedAt: observedAt,
+    discoveryMarketplace: candidate.marketplace!,
+    discoveryExternalId: candidate.externalId!,
+    discoverySourceUrl: candidate.sourceUrl!,
+    confirm: "yes",
+    confirmDescription: "yes",
+  });
+  const generatedResponse = await fetch(`${origin}/products/intake/editorial-copy`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: generationForm,
+  });
+  assert.equal(generatedResponse.status, 200);
+  const generatedHtml = await generatedResponse.text();
+  assert.equal(providerRequests.length, 1, "one explicit action makes one AI call");
+  assert.equal(providerRequests[0]!.operation, "product-editorial-copy");
+  const providerInput = productEditorialCopyPromptInputSchema.parse(providerRequests[0]!.input);
+  assert.equal(providerInput.observedProduct.title, candidate.name);
+  assert.equal(providerInput.observedProduct.merchant, "Amazon");
+  assert.deepEqual(providerInput.observedProduct.sourceFacts, [candidate.sourceFacts[0]]);
+  assert.deepEqual(providerInput.editorialContext.origin, saved.origin);
+  assert.equal(providerInput.editorialContext.productClass, saved.requiredCategory);
+  assert.equal(providerInput.editorialContext.intendedRole, saved.intendedRole);
+  assert.equal(providerInput.editorialContext.audience, saved.audience);
+  assert.equal(providerInput.editorialContext.occasion, saved.occasion);
+  assert.equal(providerInput.editorialContext.budgetContext, saved.budgetContext);
+  assert.deepEqual(
+    providerInput.editorialContext.mustHaveRequirements,
+    saved.mustHaveVerifiedFacts,
+  );
+  assert.deepEqual(providerInput.editorialContext.exclusions, saved.exclusions);
+  assert.match(providerRequests[0]!.prompt, /do not fetch them/i);
+  assert.doesNotMatch(providerRequests[0]!.prompt, /\$19\.99|4\.2 from 497 reviews/);
+  assert.match(
+    generatedHtml,
+    /Effervescent electrolyte tablets presented as a compact hydration option/,
+  );
+  assert.match(generatedHtml, /Borrador generado/);
+  assert.doesNotMatch(
+    generatedHtml,
+    /name="confirmDescription" value="yes" checked/,
+    "generation must not preserve or satisfy editorial confirmation",
+  );
+  assert.match(
+    generatedHtml,
+    /name="verifiedFacts" rows="4"><\/textarea>/,
+    "observed and generated text must not become verified facts",
+  );
+  assert.equal(discoveryCalls, 0, "copy generation must not run product discovery");
+  assert.deepEqual(catalog.read().products, beforeProducts);
+  assert.deepEqual(requestStore.get(saved.id), beforeRequest);
+  assert.deepEqual(await draftStore.read(draft.id), beforeDraft);
+  assert.deepEqual(sourceStore.list(catalog.read().products), []);
+
+  const editedForm = new URLSearchParams(generationForm);
+  editedForm.set("shortDescription", "Editor-adjusted copy remains fully editable.");
+  editedForm.delete("confirm");
+  editedForm.delete("confirmDescription");
+  const editedResponse = await fetch(`${origin}/products/intake`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: editedForm,
+  });
+  assert.equal(editedResponse.status, 200);
+  assert.match(await editedResponse.text(), /Editor-adjusted copy remains fully editable\./);
+  assert.equal(providerRequests.length, 1, "manual editing must not call AI");
+  assert.deepEqual(catalog.read().products, beforeProducts);
+
+  providerOutcome = "timeout";
+  generationForm.set("shortDescription", "Keep this editor text after a provider failure.");
+  const failedResponse = await fetch(`${origin}/products/intake/editorial-copy`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: generationForm,
+  });
+  assert.equal(failedResponse.status, 502);
+  const failedHtml = await failedResponse.text();
+  assert.equal(providerRequests.length, 2, "provider failure must not trigger a retry");
+  assert.match(failedHtml, /Keep this editor text after a provider failure\./);
+  assert.match(failedHtml, /El proveedor tardó demasiado/);
+  assert.match(failedHtml, /Generar descripción editorial/);
+
+  providerOutcome = "malformed";
+  generationForm.set("shortDescription", "Keep this editor text after malformed output.");
+  const malformedResponse = await fetch(`${origin}/products/intake/editorial-copy`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: generationForm,
+  });
+  assert.equal(malformedResponse.status, 502);
+  const malformedHtml = await malformedResponse.text();
+  assert.equal(providerRequests.length, 3, "invalid output must not trigger a retry");
+  assert.match(malformedHtml, /Keep this editor text after malformed output\./);
+  assert.match(malformedHtml, /no cumple el esquema de descripción editorial/);
+  assert.equal(discoveryCalls, 0);
+  assert.deepEqual(catalog.read().products, beforeProducts);
+  assert.deepEqual(requestStore.get(saved.id), beforeRequest);
+  assert.deepEqual(await draftStore.read(draft.id), beforeDraft);
 });
 
 test("resuelve una URL manual como candidato, usa P.1/P.0 y vuelve al mismo I.2", async (context) => {
@@ -5576,6 +6459,14 @@ test("separa la preparación editorial de la resolución de Product sin cambiar 
   assert.equal(unresolved.id, slot.id);
   assert.equal(unresolved.productId, undefined);
   assert.equal(unresolved.editorialStatus, "ready");
+  assert.deepEqual(guideDraftReadiness(readyIdea), {
+    recommendationCount: readyIdea.recommendations.length,
+    editorialReadyCount: 1,
+    productResolvedCount: 0,
+    productPendingCount: readyIdea.recommendations.length,
+    editorialComplete: false,
+    productComplete: false,
+  });
 
   const resolved = selectRecommendationProduct(
     readyIdea,
@@ -5734,11 +6625,14 @@ test("cura slots sin resolver en lote, hereda contexto y crea o reutiliza I.2", 
     },
   };
   let discoveryCalls = 0;
+  const discoveryModes: string[] = [];
   const discoverySource: ProductDiscoverySource = {
     providerId: "serpapi",
     paidUsage: true,
+    supportedModes: ["general", "amazon"],
     async search(input) {
       discoveryCalls++;
+      discoveryModes.push(input.discoveryMode ?? "general");
       return [
         {
           sourceKind: "serpapi",
@@ -5777,7 +6671,7 @@ test("cura slots sin resolver en lote, hereda contexto y crea o reutiliza I.2", 
   assert.match(initialHtml, /Siguiente acción recomendada/);
   assert.match(initialHtml, /IDs y trazabilidad/);
   assert.match(initialHtml, /Pegar URL/);
-  assert.match(initialHtml, /Mantener como idea/);
+  assert.match(initialHtml, /Editar guía de selección/);
   assert.match(initialHtml, /DataForSEO sólo existe cuando fue elegido y habilitado/);
 
   const prepared = await fetch(`${origin}/drafts/${draft.id}/curation/prepare`, {
@@ -5788,6 +6682,7 @@ test("cura slots sin resolver en lote, hereda contexto y crea o reutiliza I.2", 
   });
   assert.equal(prepared.status, 303);
   assert.equal(searchPlanCalls, 1);
+  assert.equal(discoveryCalls, 0, "preparing or opening the board must not run discovery");
   const sourcingStore = new ProductSourcingRequestStore(repository);
   let requests = sourcingStore.list();
   assert.equal(requests.length, 2);
@@ -5809,6 +6704,12 @@ test("cura slots sin resolver en lote, hereda contexto y crea o reutiliza I.2", 
     ),
     false,
   );
+  const preparedHtml = await (await fetch(`${origin}/drafts/${draft.id}/curation`)).text();
+  assert.match(preparedHtml, /Buscar productos/);
+  assert.match(preparedHtml, /Buscar en Amazon/);
+  assert.match(preparedHtml, /name="discoveryMode" value="general"/);
+  assert.match(preparedHtml, /name="discoveryMode" value="amazon"/);
+  assert.equal(discoveryCalls, 0, "rendering explicit actions must not call either mode");
 
   const forcedDiscovery = await fetch(`${origin}/drafts/${draft.id}/curation/discover`, {
     method: "POST",
@@ -5818,10 +6719,16 @@ test("cura slots sin resolver en lote, hereda contexto y crea o reutiliza I.2", 
   });
   assert.equal(forcedDiscovery.status, 303);
   assert.ok(discoveryCalls > 0, "the explicit curation action must override weak catalog reuse");
+  assert.ok(discoveryModes.every((mode) => mode === "general"));
   assert.equal(
     findProductSourcingRequestForDraftSlot(sourcingStore.list(), draft.id, "slot_bulk-catalog")!
       .discoveryRounds[0]!.providerCalls,
     discoveryCalls,
+  );
+  const outcomeHtml = await (await fetch(`${origin}/drafts/${draft.id}/curation`)).text();
+  assert.match(
+    outcomeHtml,
+    /Último descubrimiento:<\/strong> General · \d+ búsquedas? · \d+ candidatos?/,
   );
 
   const externalRequest = findProductSourcingRequestForDraftSlot(
@@ -5829,20 +6736,36 @@ test("cura slots sin resolver en lote, hereda contexto y crea o reutiliza I.2", 
     draft.id,
     "slot_bulk-external",
   )!;
+  const externalWithCandidate = addProductSourceCandidates(externalRequest, [
+    {
+      sourceKind: "serpapi",
+      provider: "SerpAPI",
+      name: "Observed external candidate",
+      sourceUrl: "https://merchant.example/observed",
+      sourceFacts: ["Observed description: internal discovery evidence"],
+      query: externalRequest.searchPlan!.queries[0]!,
+      observedAt: "2026-08-11T12:00:00.000Z",
+    },
+  ]);
   await sourcingStore.save(
-    addProductSourceCandidates(externalRequest, [
-      {
-        sourceKind: "serpapi",
-        provider: "SerpAPI",
-        name: "Observed external candidate",
-        sourceUrl: "https://merchant.example/observed",
-        sourceFacts: ["Observed description: internal discovery evidence"],
-        query: externalRequest.searchPlan!.queries[0]!,
-        observedAt: "2026-08-11T12:00:00.000Z",
-      },
-    ]),
+    productSourcingRequestSchema.parse({
+      ...externalWithCandidate,
+      discoveryRounds: [
+        {
+          round: 1,
+          provider: "serpapi",
+          discoveryMode: "amazon",
+          status: "empty",
+          queries: [externalRequest.searchPlan!.queries[0]!],
+          providerCalls: 1,
+          storedCandidateCount: 0,
+          attemptedAt: "2026-08-11T12:00:00.000Z",
+        },
+      ],
+    }),
   );
   const boardHtml = await (await fetch(`${origin}/drafts/${draft.id}/curation`)).text();
+  assert.match(boardHtml, /Último descubrimiento:<\/strong> Amazon · 1 búsqueda · sin resultados/);
   for (const action of [
     "Usar Product existente",
     "Revisar este candidato",
@@ -6188,7 +7111,11 @@ test("publica y renderiza una idea sin Product ni CTA, conservando QA e I.0", as
   assert.equal(unresolvedDraft.id, original.id);
   assert.equal(unresolvedDraft.productId, undefined);
   assert.equal(unresolvedDraft.editorialStatus, "ready");
-  assert.deepEqual(validateGuideDraft(draft, content).errors, []);
+  const validation = validateGuideDraft(draft, content);
+  assert.deepEqual(validation.errors, []);
+  assert.equal(validation.readiness.editorialComplete, true);
+  assert.equal(validation.readiness.productComplete, false);
+  assert.equal(validation.readiness.productPendingCount, 1);
 
   await publisher.publishGuide(draft, new Date("2026-08-11T12:00:00.000Z"));
   const published = publisher.read();
@@ -6197,6 +7124,7 @@ test("publica y renderiza una idea sin Product ni CTA, conservando QA e I.0", as
   assert.equal(publicIdea.id, original.id);
   assert.equal(publicIdea.productResolution, "unresolved");
   assert.equal(publicIdea.productId, undefined);
+  assert.doesNotMatch(JSON.stringify(publicIdea), /autopilot|deferred|pending/i);
 
   const intelligence = analyzeProductCoverage(published);
   assert.ok(
@@ -6791,6 +7719,8 @@ test("mantiene dimensiones independientes de encaje y regalo sin total opaco", (
     [{ request, candidateId: "source_candidate_fit-dimensions" }],
     { content: readPublicContent() },
   );
+  assert.match(prepared.prompt, /"editorialFunctionalFit"/);
+  assert.match(prepared.prompt, /copy the exact requestId/);
   const output = mockProductFitEvaluation(prepared.input);
   const evaluation = output.evaluations[0]!;
   assert.deepEqual(Object.keys(evaluation.editorialFunctionalFit), [
@@ -7062,6 +7992,7 @@ test("persiste eventos editoriales con referencias estables y valida razones", a
       candidateId: "source_candidate_feedback-example",
       provider: "SerpAPI",
       candidateSourceKind: "serpapi",
+      discoveryMode: "amazon",
       productClassProfile: { classId: "insulated-drinkware", version: 1 },
       rankingPolicyVersion: "product-fit-ranking-v1",
       reason: "wrong-product-class",
@@ -7075,6 +8006,7 @@ test("persiste eventos editoriales con referencias estables y valida razones", a
   assert.equal(event.requestId, "request_feedback-example");
   assert.equal(event.productClassProfile?.version, 1);
   assert.equal(event.rankingPolicyVersion, "product-fit-ranking-v1");
+  assert.equal(event.discoveryMode, "amazon");
   assert.equal(
     editorialFeedbackEventSchema.safeParse({ ...event, reason: "not-a-reason" }).success,
     false,
@@ -7209,4 +8141,1777 @@ test("resume decisiones editoriales con denominadores visibles y sin llamadas de
     benchmarkId: "benchmark_feedback-example",
   });
   assert.equal(retired.eventType, "benchmark-retired");
+});
+
+function strongAutopilotProvider(
+  onOperation?: (operation: StructuredGenerationRequest<unknown>["operation"]) => void,
+): GuideGenerationProvider {
+  const mock = new MockGuideGenerationProvider();
+  return {
+    providerId: "autopilot-fixture",
+    modelId: "autopilot-fixture-v1",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      onOperation?.(request.operation);
+      if (request.operation !== "product-fit-evaluations") {
+        return mock.generateStructured(request);
+      }
+      const input = productFitPromptInputSchema.parse(request.input);
+      const batch = mockProductFitEvaluation(input);
+      for (const evaluation of batch.evaluations) {
+        const positive = (rationale: string) => ({ assessment: "positive" as const, rationale });
+        evaluation.editorialFunctionalFit.productClassMatch = positive("Exact class evidence.");
+        evaluation.editorialFunctionalFit.slotSpecificity = positive("Exact slot purpose.");
+        evaluation.editorialFunctionalFit.guideRelevance = positive("Relevant to the Guide.");
+        evaluation.consumerGiftValue.practicalUsefulness = positive("Credible practical use.");
+        evaluation.consumerGiftValue.giftDesirability = positive("Defensible gift value.");
+        evaluation.evidenceOperations.evidenceQuality = positive("Identity evidence is complete.");
+        evaluation.collectionQuality.inGuideDistinctiveness = positive("No in-Guide duplicate.");
+      }
+      return request.schema.parse(batch);
+    },
+  };
+}
+
+function autopilotDraft(id: string, slotId: string, slotLabel = "Hydration reservoir"): GuideDraft {
+  const content = readPublicContent();
+  return guideDraftSchema.parse({
+    ...createGuideDraft(id, new Date("2026-09-06T12:00:00.000Z")),
+    status: "selecting-products",
+    clusterId: content.clusters[0]!.id,
+    slug: id.replace(/^guide_/, "").replaceAll("_", "-"),
+    primaryAxis: "recipient",
+    primaryIntent: "Choose a useful gift for a demanding work routine.",
+    questionnaire: {
+      giftCount: 3,
+      recipient: "A field professional",
+      occasion: "Career milestone",
+      budget: "Under $75",
+    },
+    recommendations: [
+      {
+        id: slotId,
+        position: 1,
+        slotLabel,
+        slotIntent: `Choose a practical ${slotLabel.toLocaleLowerCase("en-US")}.`,
+        searchTerms: [slotLabel.toLocaleLowerCase("en-US")],
+        editorialStatus: "needs-generation",
+      },
+    ],
+  });
+}
+
+function autopilotRequest(
+  draft: GuideDraft,
+  candidateIds: readonly string[] = ["source_candidate_autopilot"],
+  now = new Date("2026-09-06T12:00:00.000Z"),
+  slotId = draft.recommendations[0]!.id,
+) {
+  const slot = draft.recommendations.find(({ id }) => id === slotId)!;
+  const request = createProductSourcingRequest(
+    {
+      origin: {
+        kind: "recommendation-slot",
+        guideDraftId: draft.id,
+        recommendationSlotId: slot.id,
+      },
+      intendedRole: slot.slotIntent!,
+      requiredCategory: slot.slotLabel,
+      audience: "A field professional",
+      occasion: "Career milestone",
+      budgetContext: "Under $75",
+      mustHaveVerifiedFacts: [],
+      exclusions: [],
+      searchTerms: [slot.slotLabel.toLocaleLowerCase("en-US")],
+    },
+    now,
+    `request_${draft.id.replace(/^guide_/, "")}${slotId === draft.recommendations[0]!.id ? "" : `_${slotId.replace(/^slot_/, "")}`}`,
+  );
+  const candidates = candidateIds.map((id, index) => {
+    const asin = `B0AUTO${String(index + 1).padStart(4, "0")}`;
+    return {
+      id,
+      sourceKind: "serpapi" as const,
+      provider: "SerpAPI",
+      discoveryMode: "amazon" as const,
+      brand: "Field Brand",
+      merchant: "Amazon",
+      marketplace: "amazon.com",
+      externalId: asin,
+      sourceUrl: `https://www.amazon.com/dp/${asin}/ref=sr_1_${index + 1}`,
+      productUrl: `https://www.amazon.com/dp/${asin}`,
+      name: `${slot.slotLabel} ${index + 1}`,
+      sourceFacts: [`Observed class: ${slot.slotLabel}`, `Observed ASIN: ${asin}`],
+      query: slot.slotLabel,
+      observedAt: now.toISOString(),
+    };
+  });
+  const withCandidates = candidates.length
+    ? addProductSourceCandidates(request, candidates, now)
+    : request;
+  return productSourcingRequestSchema.parse({
+    ...withCandidates,
+    searchPlan: {
+      productClass: slot.slotLabel,
+      mustHaveAttributes: [],
+      usefulAttributes: [slot.slotIntent!],
+      exclusions: [],
+      queries: [slot.slotLabel, `${slot.slotLabel} field use`],
+      providerId: "fixture",
+      promptVersion: "product-search-plan-v1",
+      plannedAt: now.toISOString(),
+    },
+  });
+}
+
+test("clasifica resultados P.2 por candidate ID sin perder evaluaciones válidas", async () => {
+  const draft = autopilotDraft("guide_autopilot-p2-parse", "slot_autopilot-p2-parse");
+  const candidateIds = [
+    "source_candidate_parse-valid-one",
+    "source_candidate_parse-valid-two",
+    "source_candidate_parse-invalid",
+    "source_candidate_parse-duplicate",
+  ] as const;
+  const request = autopilotRequest(draft, candidateIds);
+  const mock = new MockGuideGenerationProvider();
+  const provider: GuideGenerationProvider = {
+    providerId: "partial-parser-fixture",
+    async generateStructured<T>(generation: StructuredGenerationRequest<T>): Promise<T> {
+      const batch = mockProductFitEvaluation(productFitPromptInputSchema.parse(generation.input));
+      const byId = new Map(
+        batch.evaluations.map((evaluation) => [evaluation.candidateId, evaluation]),
+      );
+      return generation.schema.parse({
+        batchSynthesis: batch.batchSynthesis,
+        evaluations: [
+          byId.get(candidateIds[1]),
+          byId.get(candidateIds[0]),
+          { ...byId.get(candidateIds[2]), consumerGiftValue: {} },
+          byId.get(candidateIds[3]),
+          byId.get(candidateIds[3]),
+        ],
+      });
+    },
+  };
+
+  const attempt = await evaluateProductFitBatchAttempt(
+    request.sourceCandidates.map(({ id }) => ({ request, candidateId: id })),
+    { content: readPublicContent(), drafts: [draft], provider },
+  );
+
+  assert.deepEqual(
+    attempt.session?.aiInterpretation.evaluations.map(({ candidateId }) => candidateId),
+    [candidateIds[0], candidateIds[1]],
+  );
+  assert.deepEqual(attempt.failures, [
+    {
+      requestId: request.id,
+      candidateId: candidateIds[2],
+      code: "schema-invalid-result",
+    },
+    {
+      requestId: request.id,
+      candidateId: candidateIds[3],
+      code: "malformed-result",
+    },
+  ]);
+  assert.equal(attempt.malformedResultCount, 0);
+  await assert.rejects(
+    evaluateProductFitBatch(
+      request.sourceCandidates.map(({ id }) => ({ request, candidateId: id })),
+      { content: readPublicContent(), drafts: [draft], provider },
+    ),
+    (error) => error instanceof ProviderError && error.code === "invalid-schema",
+  );
+});
+
+test("Autopilot aplica un gate P.2 conservador, resuelve un ganador claro y rechaza overlap, exclusiones, duplicados y empates", async () => {
+  const draft = autopilotDraft("guide_autopilot-gate", "slot_autopilot-gate");
+  const request = autopilotRequest(draft, [
+    "source_candidate_autopilot-one",
+    "source_candidate_autopilot-two",
+  ]);
+  const provider = strongAutopilotProvider();
+  const session = await evaluateProductFitBatch(
+    request.sourceCandidates.map(({ id }) => ({ request, candidateId: id })),
+    { content: readPublicContent(), drafts: [draft], provider },
+  );
+  const [first, second] = session.aiInterpretation.evaluations;
+  assert.ok(first && second);
+  assert.equal(
+    assessAutomaticProductCandidate(
+      request,
+      request.sourceCandidates[0]!,
+      first,
+      readPublicContent(),
+    ).accepted,
+    true,
+  );
+
+  const wrongClass = structuredClone(first) as ProductFitEvaluation;
+  wrongClass.editorialFunctionalFit.productClassMatch = {
+    assessment: "negative",
+    rationale: "Token overlap points to the wrong Product class.",
+  };
+  assert.equal(
+    assessAutomaticProductCandidate(
+      request,
+      request.sourceCandidates[0]!,
+      wrongClass,
+      readPublicContent(),
+    ).accepted,
+    false,
+  );
+
+  const duplicate = structuredClone(first) as ProductFitEvaluation;
+  duplicate.collectionQuality.inGuideDistinctiveness = {
+    assessment: "negative",
+    rationale: "The Product already occupies another slot.",
+  };
+  assert.equal(
+    assessAutomaticProductCandidate(
+      request,
+      request.sourceCandidates[0]!,
+      duplicate,
+      readPublicContent(),
+    ).accepted,
+    false,
+  );
+
+  const excludedRequest = productSourcingRequestSchema.parse({
+    ...request,
+    exclusions: ["Observed class: Hydration reservoir"],
+  });
+  assert.equal(
+    assessAutomaticProductCandidate(
+      excludedRequest,
+      excludedRequest.sourceCandidates[0]!,
+      first,
+      readPublicContent(),
+    ).accepted,
+    false,
+  );
+
+  assert.equal(
+    chooseAutomaticProductCandidate(request, [first, second], readPublicContent()).candidate,
+    undefined,
+    "equal candidates must become idea-only rather than a stable-ID tie-break selection",
+  );
+  second.collectionQuality.inGuideDistinctiveness = {
+    assessment: "neutral",
+    rationale: "No distinctiveness advantage is established.",
+  };
+  assert.equal(
+    chooseAutomaticProductCandidate(request, [first, second], readPublicContent()).candidate?.id,
+    first.candidateId,
+  );
+});
+
+test("Autopilot crea Product y provenance una vez, cumple I.2, asigna el slot exacto y deja Amazon sin CTA", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-autopilot-product-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const fitStore = new ProductFitEvaluationStore(repository);
+  const draft = await draftStore.save(
+    autopilotDraft("guide_autopilot-product", "slot_autopilot-product"),
+  );
+  await sourcingStore.save(autopilotRequest(draft, ["source_candidate_autopilot-product"]));
+  let productExistedBeforeCopy = false;
+  const provider = strongAutopilotProvider((operation) => {
+    if (operation === "product-editorial-copy") {
+      productExistedBeforeCopy = catalog
+        .read()
+        .products.some(({ name }) => name === "Hydration reservoir 1");
+    }
+  });
+  const beforeProductCount = catalog.read().products.length;
+  const result = await resolveRecommendationSlotAutonomously(
+    draft,
+    "slot_autopilot-product",
+    { draftStore, catalog, sourcingStore, sourceStore, fitStore, provider },
+    { now: new Date("2026-09-06T13:00:00.000Z") },
+  );
+
+  assert.equal(result.status, "resolved-product");
+  assert.equal(result.reasonCode, "product-selected");
+  assert.equal(result.resolutionStrategy, "existing-candidate");
+  assert.equal(result.executionEvidence.amazonDiscoveryAttempted, false);
+  assert.equal(result.executionEvidence.providerCallCount, 0);
+  assert.equal(result.executionEvidence.candidatesEvaluated, 1);
+  assert.equal(
+    result.executionEvidence.bestCandidate?.candidateId,
+    "source_candidate_autopilot-product",
+  );
+  assert.deepEqual(result.executionEvidence.bestCandidate?.p2GateFailures, []);
+  assert.equal(result.affiliateDestinationStatus, "affiliate-destination-missing");
+  assert.equal(productExistedBeforeCopy, true, "Product copy runs only after canonical creation");
+  assert.equal(catalog.read().products.length, beforeProductCount + 1);
+  const product = catalog.get(result.productId!);
+  assert.equal(product.affiliateUrl, undefined);
+  assert.equal(productDestination(product), undefined);
+  assert.deepEqual(product.verifiedFacts ?? [], []);
+  assert.equal(sourceStore.forProduct(product.id, catalog.read().products).length, 1);
+  const fulfilled = sourcingStore.get(result.sourcingRequestId);
+  assert.equal(fulfilled.status, "fulfilled");
+  assert.deepEqual(fulfilled.approvedProductIds, [product.id]);
+  const completedDraft = await draftStore.read(draft.id);
+  assert.equal(completedDraft.draftType, "gift-guide");
+  assert.equal(completedDraft.recommendations[0]!.id, "slot_autopilot-product");
+  assert.equal(completedDraft.recommendations[0]!.productId, product.id);
+  assert.equal(completedDraft.recommendations[0]!.editorialStatus, "ready");
+  assert.equal(
+    catalog.read().guides.some(({ id }) => id === draft.id),
+    false,
+    "no publication",
+  );
+
+  const reuseDraft = await draftStore.save(
+    autopilotDraft(
+      "guide_autopilot-reuse",
+      "slot_autopilot-reuse",
+      "Hydration reservoir for smoke-jumper packs",
+    ),
+  );
+  await sourcingStore.save(autopilotRequest(reuseDraft, []));
+  const reused = await resolveRecommendationSlotAutonomously(
+    reuseDraft,
+    "slot_autopilot-reuse",
+    { draftStore, catalog, sourcingStore, sourceStore, fitStore, provider },
+    { now: new Date("2026-09-06T13:30:00.000Z") },
+  );
+  assert.equal(reused.status, "resolved-product");
+  assert.equal(reused.resolutionStrategy, "catalog-reuse");
+  assert.equal(reused.reasonCode, "product-selected");
+  assert.ok(reused.executionEvidence.catalogCandidatesConsidered > 0);
+  assert.equal(reused.productId, product.id);
+  assert.equal(catalog.read().products.length, beforeProductCount + 1);
+  assert.equal(sourceStore.forProduct(product.id, catalog.read().products).length, 1);
+  const freshReuseInput = fitStore
+    .list()
+    .flatMap(({ input }) => input.candidates)
+    .find(({ requestId }) => requestId === reused.sourcingRequestId);
+  assert.equal(
+    freshReuseInput?.requestContext.requiredCategory,
+    "Hydration reservoir for smoke-jumper packs",
+  );
+  assert.equal(freshReuseInput?.canonicalProductEvidence?.productId, product.id);
+  const reusedCandidate = sourcingStore
+    .get(reused.sourcingRequestId)
+    .sourceCandidates.find(({ canonicalProductId }) => canonicalProductId === product.id);
+  assert.equal(
+    reusedCandidate?.query,
+    undefined,
+    "catalog reuse must not invent a discovery query",
+  );
+});
+
+test("Autopilot mantiene discovery y P.2 en el slot exacto y rechaza overlap de otra clase", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-autopilot-slot-scope-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const fitStore = new ProductFitEvaluationStore(repository);
+  const draft = await draftStore.save(
+    autopilotDraft("guide_autopilot-neck-scope", "slot_autopilot-neck-scope", "UPF Neck Gaiter"),
+  );
+  const targetRequest = autopilotRequest(draft, []);
+  await sourcingStore.save(targetRequest);
+
+  const electrolyteDraft = autopilotDraft(
+    "guide_autopilot-electrolyte-scope",
+    "slot_autopilot-electrolyte-scope",
+    "Electrolyte Tablets",
+  );
+  const electrolyteRequest = autopilotRequest(electrolyteDraft, [
+    "source_candidate_autopilot-electrolyte-scope",
+  ]);
+  await sourcingStore.save(
+    productSourcingRequestSchema.parse({
+      ...electrolyteRequest,
+      sourceCandidates: electrolyteRequest.sourceCandidates.map((candidate) => ({
+        ...candidate,
+        query: "UPF Neck Gaiter",
+      })),
+      searchPlan: {
+        ...electrolyteRequest.searchPlan!,
+        queries: ["UPF Neck Gaiter"],
+      },
+    }),
+  );
+
+  const discoveryQueries: string[] = [];
+  const discoverySource: ProductDiscoverySource = {
+    providerId: "serpapi",
+    paidUsage: true,
+    supportedModes: ["amazon"],
+    async search(input) {
+      discoveryQueries.push(input.query);
+      assert.match(input.query, /neck gaiter/i);
+      assert.doesNotMatch(input.query, /electrolyte/i);
+      return [
+        {
+          sourceKind: "serpapi",
+          provider: "SerpAPI",
+          discoveryMode: "amazon",
+          marketplace: "amazon.com",
+          externalId: "B0WRONG001",
+          sourceUrl: "https://www.amazon.com/dp/B0WRONG001",
+          productUrl: "https://www.amazon.com/dp/B0WRONG001",
+          name: "Cooling electrolyte tablets for hot outdoor work",
+          sourceFacts: ["Observed form: electrolyte tablets"],
+          query: input.query,
+          observedAt: input.observedAt,
+        },
+        {
+          sourceKind: "serpapi",
+          provider: "SerpAPI",
+          discoveryMode: "amazon",
+          marketplace: "amazon.com",
+          externalId: "B0GAITER01",
+          sourceUrl: "https://www.amazon.com/dp/B0GAITER01",
+          productUrl: "https://www.amazon.com/dp/B0GAITER01",
+          name: "UPF neck gaiter for sun and dust protection",
+          sourceFacts: ["Observed form: neck gaiter", "Observed claim: UPF sun protection"],
+          query: input.query,
+          observedAt: input.observedAt,
+        },
+      ];
+    },
+  };
+  const baseProvider = strongAutopilotProvider();
+  let p2Calls = 0;
+  const provider: GuideGenerationProvider = {
+    providerId: "slot-scope-fixture",
+    modelId: "slot-scope-fixture-v1",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      if (request.operation !== "product-fit-evaluations") {
+        return baseProvider.generateStructured(request);
+      }
+      p2Calls++;
+      assert.match(request.prompt, /"editorialFunctionalFit"/);
+      const input = productFitPromptInputSchema.parse(request.input);
+      for (const candidate of input.candidates) {
+        assert.equal(candidate.requestId, targetRequest.id);
+        assert.equal(candidate.requestContext.requiredCategory, "UPF Neck Gaiter");
+        assert.equal(candidate.requestContext.plannedProductClass, "UPF Neck Gaiter");
+        assert.equal(candidate.requestContext.intendedRole, draft.recommendations[0]!.slotIntent);
+        assert.equal(candidate.productClassProfile.classId, "generic");
+      }
+      const batch = productFitEvaluationBatchSchema.parse(
+        await baseProvider.generateStructured(request),
+      );
+      const wrong = batch.evaluations.find((evaluation) => {
+        const observed = input.candidates.find(
+          ({ candidateId }) => candidateId === evaluation.candidateId,
+        );
+        return observed?.providerObservedEvidence.name.includes("electrolyte");
+      });
+      assert.ok(wrong);
+      wrong.editorialFunctionalFit.productClassMatch = {
+        assessment: "negative",
+        rationale: "Electrolyte tablets are not a neck-gaiter Product class.",
+      };
+      return request.schema.parse(batch);
+    },
+  };
+
+  const result = await resolveRecommendationSlotAutonomously(
+    draft,
+    "slot_autopilot-neck-scope",
+    { draftStore, catalog, sourcingStore, sourceStore, fitStore, provider, discoverySource },
+    { now: new Date("2026-09-06T13:45:00.000Z") },
+  );
+
+  assert.equal(result.status, "resolved-product");
+  assert.equal(result.reasonCode, "product-selected");
+  assert.equal(result.resolutionStrategy, "amazon-discovery");
+  assert.equal(discoveryQueries.length, 1);
+  assert.equal(p2Calls, 1);
+  assert.equal(result.executionEvidence.candidatesEvaluated, 2);
+  assert.match(result.executionEvidence.bestCandidate!.name, /neck gaiter/i);
+  const scoped = sourcingStore.get(result.sourcingRequestId);
+  assert.equal(scoped.origin.kind, "recommendation-slot");
+  assert.ok(
+    scoped.sourceCandidates.every(
+      ({ id }) => id !== "source_candidate_autopilot-electrolyte-scope",
+    ),
+  );
+  assert.equal(result.discoveryAttempts[0]!.status, "stored");
+  assert.equal(result.discoveryAttempts[0]!.providerCalls, 1);
+});
+
+test("Autopilot conserva tres evaluaciones y recupera sólo el cuarto candidato faltante", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-autopilot-p2-recovery-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const fitStore = new ProductFitEvaluationStore(repository);
+  const draft = await draftStore.save(
+    autopilotDraft("guide_autopilot-p2-recovery", "slot_autopilot-p2-recovery", "UPF Neck Gaiter"),
+  );
+  const candidateIds = [
+    "source_candidate_partial-one",
+    "source_candidate_partial-two",
+    "source_candidate_partial-three",
+    "source_candidate_partial-recovered",
+  ] as const;
+  await sourcingStore.save(autopilotRequest(draft, candidateIds));
+
+  const strong = strongAutopilotProvider();
+  const p2Inputs: Array<z.infer<typeof productFitPromptInputSchema>> = [];
+  const provider: GuideGenerationProvider = {
+    providerId: "partial-recovery-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      if (request.operation !== "product-fit-evaluations") {
+        return strong.generateStructured(request);
+      }
+      const input = productFitPromptInputSchema.parse(request.input);
+      p2Inputs.push(input);
+      const batch = productFitEvaluationBatchSchema.parse(await strong.generateStructured(request));
+      if (p2Inputs.length === 1) {
+        batch.evaluations = batch.evaluations
+          .filter(({ candidateId }) => candidateId !== candidateIds[3])
+          .reverse();
+        for (const evaluation of batch.evaluations) {
+          evaluation.editorialFunctionalFit.productClassMatch = {
+            assessment: "negative",
+            rationale: "Fixture candidates deliberately fail the Product class gate.",
+          };
+        }
+      }
+      return request.schema.parse(batch);
+    },
+  };
+
+  const result = await resolveRecommendationSlotAutonomously(draft, "slot_autopilot-p2-recovery", {
+    draftStore,
+    catalog,
+    sourcingStore,
+    sourceStore,
+    fitStore,
+    provider,
+  });
+
+  assert.equal(result.status, "resolved-product");
+  assert.equal(result.reasonCode, "product-selected");
+  assert.equal(result.candidateId, candidateIds[3]);
+  assert.deepEqual(
+    p2Inputs.map(({ candidates }) => candidates.map(({ candidateId }) => candidateId)),
+    [[...candidateIds], [candidateIds[3]]],
+  );
+  assert.deepEqual(
+    p2Inputs[1]!.candidates[0]!.requestContext,
+    p2Inputs[0]!.candidates[3]!.requestContext,
+  );
+  assert.deepEqual(
+    p2Inputs[1]!.candidates[0]!.productClassProfile,
+    p2Inputs[0]!.candidates[3]!.productClassProfile,
+  );
+  assert.equal(result.executionEvidence.candidatesEvaluated, 4);
+  assert.equal(result.executionEvidence.p2ProviderCallCount, 2);
+  assert.equal(result.executionEvidence.p2RecoveryAttempted, true);
+  assert.equal(result.executionEvidence.candidatesRecovered, 1);
+  assert.deepEqual(result.executionEvidence.p2Attempts, [
+    {
+      kind: "primary",
+      candidatesSent: 4,
+      candidatesEvaluated: 3,
+      candidatesFailed: 1,
+      unmappedMalformedResults: 0,
+      candidateResults: candidateIds.map((candidateId) => ({
+        candidateId,
+        status: candidateId === candidateIds[3] ? "missing-result" : "valid",
+      })),
+    },
+    {
+      kind: "recovery",
+      candidatesSent: 1,
+      candidatesEvaluated: 1,
+      candidatesFailed: 0,
+      unmappedMalformedResults: 0,
+      candidateResults: [{ candidateId: candidateIds[3], status: "valid" }],
+    },
+  ]);
+  assert.deepEqual(result.executionEvidence.candidateEvaluationFailures, []);
+  assert.ok(!result.warnings.includes("candidate-evaluation-partial-failure"));
+  assert.deepEqual(
+    new Set(
+      fitStore
+        .list()
+        .flatMap(({ aiInterpretation }) =>
+          aiInterpretation.evaluations.map(({ candidateId }) => candidateId),
+        ),
+    ),
+    new Set(candidateIds),
+  );
+});
+
+test("Autopilot conserva evaluaciones válidas cuando falla la recuperación parcial", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-autopilot-p2-partial-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const fitStore = new ProductFitEvaluationStore(repository);
+  const draft = await draftStore.save(
+    autopilotDraft("guide_autopilot-p2-partial", "slot_autopilot-p2-partial", "UPF Neck Gaiter"),
+  );
+  const candidateIds = [
+    "source_candidate_partial-fail-one",
+    "source_candidate_partial-fail-two",
+    "source_candidate_partial-fail-three",
+    "source_candidate_partial-fail-four",
+  ] as const;
+  await sourcingStore.save(autopilotRequest(draft, candidateIds));
+
+  const mock = new MockGuideGenerationProvider();
+  let p2Calls = 0;
+  const provider: GuideGenerationProvider = {
+    providerId: "partial-failure-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      if (request.operation !== "product-fit-evaluations") {
+        return mock.generateStructured(request);
+      }
+      p2Calls++;
+      if (p2Calls === 2) throw new ProviderError("Fixture recovery timeout.", "timeout");
+      const batch = mockProductFitEvaluation(productFitPromptInputSchema.parse(request.input));
+      batch.evaluations = batch.evaluations.slice(0, 3).reverse();
+      return request.schema.parse(batch);
+    },
+  };
+
+  const result = await resolveRecommendationSlotAutonomously(draft, "slot_autopilot-p2-partial", {
+    draftStore,
+    catalog,
+    sourcingStore,
+    sourceStore,
+    fitStore,
+    provider,
+  });
+
+  assert.equal(result.status, "resolved-idea-only");
+  assert.equal(result.reasonCode, "no-candidate-passed-product-gate");
+  assert.equal(result.executionEvidence.candidatesEvaluated, 3);
+  assert.equal(result.executionEvidence.p2ProviderCallCount, 2);
+  assert.equal(result.executionEvidence.p2RecoveryAttempted, true);
+  assert.equal(result.executionEvidence.candidatesRecovered, 0);
+  assert.deepEqual(result.executionEvidence.p2Attempts, [
+    {
+      kind: "primary",
+      candidatesSent: 4,
+      candidatesEvaluated: 3,
+      candidatesFailed: 1,
+      unmappedMalformedResults: 0,
+      candidateResults: candidateIds.map((candidateId) => ({
+        candidateId,
+        status: candidateId === candidateIds[3] ? "missing-result" : "valid",
+      })),
+    },
+    {
+      kind: "recovery",
+      candidatesSent: 1,
+      candidatesEvaluated: 0,
+      candidatesFailed: 1,
+      unmappedMalformedResults: 0,
+      candidateResults: [{ candidateId: candidateIds[3], status: "provider-failure" }],
+    },
+  ]);
+  assert.deepEqual(result.executionEvidence.candidateEvaluationFailures, [
+    {
+      candidateId: candidateIds[3],
+      name: "UPF Neck Gaiter 4",
+      reasonCode: "provider-failure",
+    },
+  ]);
+  assert.ok(result.warnings.includes("candidate-evaluation-partial-failure"));
+  assert.ok(!result.warnings.includes("candidate-evaluation-failed"));
+  assert.notEqual(result.executionEvidence.bestCandidate?.candidateId, candidateIds[3]);
+  assert.equal(
+    fitStore.list().flatMap(({ aiInterpretation }) => aiInterpretation.evaluations).length,
+    3,
+  );
+});
+
+test("Autopilot usa falla de infraestructura sólo con cero evaluaciones tras la recuperación", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-autopilot-p2-zero-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const fitStore = new ProductFitEvaluationStore(repository);
+  const draft = await draftStore.save(
+    autopilotDraft("guide_autopilot-p2-zero", "slot_autopilot-p2-zero", "UPF Neck Gaiter"),
+  );
+  const missingCandidateId = "source_candidate_zero-valid";
+  await sourcingStore.save(autopilotRequest(draft, [missingCandidateId]));
+
+  const mock = new MockGuideGenerationProvider();
+  let p2Calls = 0;
+  const provider: GuideGenerationProvider = {
+    providerId: "zero-valid-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      if (request.operation !== "product-fit-evaluations") {
+        return mock.generateStructured(request);
+      }
+      p2Calls++;
+      if (p2Calls === 2) throw new ProviderError("Fixture provider failure.", "network");
+      return request.schema.parse({
+        batchSynthesis: "The fixture deliberately omits the selected candidate.",
+        evaluations: [],
+      });
+    },
+  };
+
+  const result = await resolveRecommendationSlotAutonomously(draft, "slot_autopilot-p2-zero", {
+    draftStore,
+    catalog,
+    sourcingStore,
+    sourceStore,
+    fitStore,
+    provider,
+  });
+
+  assert.equal(result.status, "resolved-idea-only");
+  assert.equal(result.reasonCode, "evaluation-infrastructure-failed");
+  assert.equal(result.executionEvidence.candidatesEvaluated, 0);
+  assert.equal(result.executionEvidence.p2ProviderCallCount, 2);
+  assert.equal(result.executionEvidence.bestCandidate, undefined);
+  assert.deepEqual(result.executionEvidence.p2Attempts, [
+    {
+      kind: "primary",
+      candidatesSent: 1,
+      candidatesEvaluated: 0,
+      candidatesFailed: 1,
+      unmappedMalformedResults: 0,
+      candidateResults: [{ candidateId: missingCandidateId, status: "missing-result" }],
+    },
+    {
+      kind: "recovery",
+      candidatesSent: 1,
+      candidatesEvaluated: 0,
+      candidatesFailed: 1,
+      unmappedMalformedResults: 0,
+      candidateResults: [{ candidateId: missingCandidateId, status: "provider-failure" }],
+    },
+  ]);
+  assert.deepEqual(result.executionEvidence.candidateEvaluationFailures, [
+    {
+      candidateId: missingCandidateId,
+      name: "UPF Neck Gaiter 1",
+      reasonCode: "provider-failure",
+    },
+  ]);
+  assert.ok(result.warnings.includes("candidate-evaluation-failed"));
+  assert.ok(!result.warnings.includes("candidate-evaluation-partial-failure"));
+  assert.deepEqual(fitStore.list(), []);
+});
+
+test("Autopilot acota P.2 a tres etapas normales y una sola recuperación", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-autopilot-p2-bound-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const fitStore = new ProductFitEvaluationStore(repository);
+  const draft = await draftStore.save(
+    autopilotDraft("guide_autopilot-p2-bound", "slot_autopilot-p2-bound", "UPF Neck Gaiter"),
+  );
+  await sourcingStore.save(autopilotRequest(draft, ["source_candidate_p2-bound-initial"]));
+
+  const mock = new MockGuideGenerationProvider();
+  let p2Calls = 0;
+  const provider: GuideGenerationProvider = {
+    providerId: "p2-bound-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      if (request.operation !== "product-fit-evaluations") {
+        return mock.generateStructured(request);
+      }
+      p2Calls++;
+      if (p2Calls === 1) {
+        return request.schema.parse({
+          batchSynthesis: "The initial candidate is deliberately omitted.",
+          evaluations: [],
+        });
+      }
+      if (p2Calls === 2) throw new ProviderError("Fixture recovery failure.", "network");
+      return request.schema.parse(
+        mockProductFitEvaluation(productFitPromptInputSchema.parse(request.input)),
+      );
+    },
+  };
+  let discoveryCalls = 0;
+  const discoverySource: ProductDiscoverySource = {
+    providerId: "serpapi",
+    paidUsage: true,
+    supportedModes: ["amazon"],
+    async search(input) {
+      discoveryCalls++;
+      const asin = `B0BOUND${String(discoveryCalls).padStart(3, "0")}`;
+      return [
+        {
+          sourceKind: "serpapi",
+          provider: "SerpAPI",
+          discoveryMode: "amazon",
+          marketplace: "amazon.com",
+          externalId: asin,
+          sourceUrl: `https://www.amazon.com/dp/${asin}`,
+          productUrl: `https://www.amazon.com/dp/${asin}`,
+          name: `UPF neck gaiter bound fixture ${discoveryCalls}`,
+          sourceFacts: ["Observed class: neck gaiter"],
+          query: input.query,
+          observedAt: input.observedAt,
+        },
+      ];
+    },
+  };
+
+  const result = await resolveRecommendationSlotAutonomously(draft, "slot_autopilot-p2-bound", {
+    draftStore,
+    catalog,
+    sourcingStore,
+    sourceStore,
+    fitStore,
+    provider,
+    discoverySource,
+  });
+
+  assert.equal(result.status, "resolved-idea-only");
+  assert.equal(result.reasonCode, "no-candidate-passed-product-gate");
+  assert.equal(discoveryCalls, AUTOPILOT_LIMITS.maxDiscoveryCalls);
+  assert.equal(p2Calls, AUTOPILOT_LIMITS.maxP2ProviderCalls);
+  assert.equal(
+    result.executionEvidence.p2Attempts.filter(({ kind }) => kind === "recovery").length,
+    AUTOPILOT_LIMITS.maxP2RecoveryCalls,
+  );
+  assert.deepEqual(
+    result.executionEvidence.p2Attempts.map(({ kind }) => kind),
+    ["primary", "recovery", "primary", "primary"],
+  );
+});
+
+test("Autopilot explica los fallos P.2 tras dos consultas Amazon y termina idea-only sin datos comerciales", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-autopilot-idea-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const fitStore = new ProductFitEvaluationStore(repository);
+  const draft = await draftStore.save(
+    autopilotDraft("guide_autopilot-idea", "slot_autopilot-idea", "UPF neck gaiter"),
+  );
+  const empty = autopilotRequest(draft, []);
+  await sourcingStore.save(empty);
+  const queries: string[] = [];
+  const discoverySource: ProductDiscoverySource = {
+    providerId: "serpapi",
+    paidUsage: true,
+    supportedModes: ["amazon"],
+    async search(input) {
+      queries.push(input.query);
+      const asin = `B0WEAK${String(queries.length).padStart(4, "0")}`;
+      return [
+        {
+          sourceKind: "serpapi",
+          provider: "SerpAPI",
+          discoveryMode: "amazon",
+          merchant: "Amazon",
+          marketplace: "amazon.com",
+          externalId: asin,
+          sourceUrl: `https://www.amazon.com/dp/${asin}/ref=search`,
+          productUrl: `https://www.amazon.com/dp/${asin}`,
+          name: `Electrolyte tablets overlap fixture ${queries.length}`,
+          sourceFacts: ["Observed class: electrolyte tablets"],
+          query: input.query,
+          observedAt: input.observedAt,
+        },
+      ];
+    },
+  };
+  const beforeProducts = catalog.read().products.length;
+  const result = await resolveRecommendationSlotAutonomously(
+    draft,
+    "slot_autopilot-idea",
+    {
+      draftStore,
+      catalog,
+      sourcingStore,
+      sourceStore,
+      fitStore,
+      provider: new MockGuideGenerationProvider(),
+      discoverySource,
+    },
+    { now: new Date("2026-09-06T14:00:00.000Z") },
+  );
+
+  assert.equal(result.status, "resolved-idea-only");
+  assert.equal(result.reasonCode, "no-candidate-passed-product-gate");
+  assert.equal(queries.length, AUTOPILOT_LIMITS.maxDiscoveryCalls);
+  assert.notEqual(queries[0], queries[1], "the final attempt uses a bounded refinement");
+  assert.equal(result.discoveryAttempts.length, 2);
+  assert.equal(
+    result.executionEvidence.catalogCandidatesConsidered,
+    catalogMatchesForRequest(empty, catalog.read().products, AUTOPILOT_LIMITS.maxCatalogCandidates)
+      .length,
+  );
+  assert.equal(result.executionEvidence.recentSourceCandidatesConsidered, 0);
+  assert.equal(result.executionEvidence.amazonDiscoveryAttempted, true);
+  assert.equal(result.executionEvidence.providerCallCount, 2);
+  assert.equal(result.executionEvidence.candidatesReturned, 2);
+  assert.equal(result.executionEvidence.candidatesEvaluated, 2);
+  assert.equal(result.executionEvidence.searchRefinementAttempted, true);
+  assert.ok(result.executionEvidence.bestCandidate);
+  assert.ok(result.executionEvidence.bestCandidate.p2GateFailures.length > 0);
+  assert.equal(
+    result.discoveryAttempts.reduce((sum, attempt) => sum + attempt.providerCalls, 0),
+    2,
+  );
+  assert.equal(catalog.read().products.length, beforeProducts);
+  assert.equal(sourcingStore.get(result.sourcingRequestId).status, "completed-idea-only");
+  const completed = await draftStore.read(draft.id);
+  assert.equal(completed.draftType, "gift-guide");
+  const slot = completed.recommendations[0]!;
+  assert.equal(slot.id, "slot_autopilot-idea");
+  assert.equal(slot.productId, undefined);
+  assert.equal(slot.editorialStatus, "ready");
+  assert.doesNotMatch(JSON.stringify(slot), /Amazon|ASIN|Electrolyte|\$|https?:\/\//i);
+});
+
+test("Autopilot puede reintentar un Product pendiente sin recrear el slot", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-autopilot-retry-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const fitStore = new ProductFitEvaluationStore(repository);
+  const draft = await draftStore.save(
+    autopilotDraft("guide_autopilot-retry", "slot_autopilot-retry", "Insulated tumbler"),
+  );
+  const firstRequest = await sourcingStore.save(
+    autopilotRequest(draft, ["source_candidate_autopilot-retry"]),
+  );
+
+  const fallback = await resolveRecommendationSlotAutonomously(
+    draft,
+    "slot_autopilot-retry",
+    {
+      draftStore,
+      catalog,
+      sourcingStore,
+      sourceStore,
+      fitStore,
+      provider: new MockGuideGenerationProvider(),
+    },
+    { now: new Date("2026-09-06T15:00:00.000Z") },
+  );
+  assert.equal(fallback.status, "resolved-idea-only");
+  const pendingDraft = guideDraftSchema.parse(await draftStore.read(draft.id));
+  const pendingSlot = pendingDraft.recommendations[0]!;
+  assert.equal(pendingSlot.editorialStatus, "ready");
+  assert.equal(pendingSlot.productId, undefined);
+  assert.equal(guideDraftReadiness(pendingDraft).editorialComplete, true);
+  assert.equal(guideDraftReadiness(pendingDraft).productComplete, false);
+
+  const retryDiscovery: ProductDiscoverySource = {
+    providerId: "serpapi",
+    paidUsage: true,
+    supportedModes: ["amazon"],
+    async search(input) {
+      return [
+        {
+          sourceKind: "serpapi",
+          provider: "SerpAPI",
+          discoveryMode: "amazon",
+          merchant: "Amazon",
+          marketplace: "amazon.com",
+          externalId: "B0RETRY001",
+          sourceUrl: "https://www.amazon.com/dp/B0RETRY001",
+          productUrl: "https://www.amazon.com/dp/B0RETRY001",
+          name: "Insulated tumbler retry fixture",
+          sourceFacts: ["Observed class: insulated tumbler"],
+          query: input.query,
+          observedAt: input.observedAt,
+        },
+      ];
+    },
+  };
+  const retry = await resolveRecommendationSlotAutonomously(
+    pendingDraft,
+    pendingSlot.id,
+    {
+      draftStore,
+      catalog,
+      sourcingStore,
+      sourceStore,
+      fitStore,
+      provider: strongAutopilotProvider(),
+      discoverySource: retryDiscovery,
+    },
+    { now: new Date("2026-09-06T16:00:00.000Z") },
+  );
+  assert.equal(retry.status, "resolved-product");
+  assert.notEqual(retry.sourcingRequestId, firstRequest.id);
+  assert.equal(sourcingStore.get(firstRequest.id).status, "completed-idea-only");
+  assert.equal(sourcingStore.get(retry.sourcingRequestId).status, "fulfilled");
+  const resolvedDraft = guideDraftSchema.parse(await draftStore.read(draft.id));
+  const resolvedSlot = resolvedDraft.recommendations[0]!;
+  assert.equal(resolvedDraft.id, pendingDraft.id);
+  assert.equal(resolvedSlot.id, pendingSlot.id);
+  assert.equal(resolvedSlot.position, pendingSlot.position);
+  assert.equal(resolvedSlot.slotIntent, pendingSlot.slotIntent);
+  assert.ok(resolvedSlot.productId);
+  assert.equal(resolvedSlot.editorialStatus, "ready");
+});
+
+test("un Product pendiente admite backfill de catálogo y P.1 sin cambiar la identidad", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-product-pending-backfill-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const makePendingDraft = async (id: string, slotId: string) => {
+    const base = autopilotDraft(id, slotId, "Insulated tumbler");
+    const ready = updateRecommendationEditorialCopy(
+      base,
+      slotId,
+      {
+        heading: "A practical hydration upgrade",
+        editorialDescription: "Choose a durable format that fits the recipient's daily routine.",
+        whyItFits: "It is useful even before a specific Product is selected.",
+        selectionGuidance: "Compare capacity, care, and portability.",
+      },
+      true,
+    );
+    await draftStore.save(ready);
+    const request = autopilotRequest(ready, []);
+    await sourcingStore.save(
+      completeProductSourcingRequestAsIdeaOnly(request, new Date("2026-09-06T17:00:00.000Z")),
+    );
+    return { draft: ready, request };
+  };
+  const catalogPending = await makePendingDraft("guide_catalog-backfill", "slot_catalog-backfill");
+  const p1Pending = await makePendingDraft("guide_p1-backfill", "slot_p1-backfill");
+  const server = createStudioServer(
+    draftStore,
+    catalog,
+    new MockGuideGenerationProvider(),
+    new Publisher(repository),
+    sourceStore,
+  );
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(() => server.close());
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+
+  const curationHtml = await (
+    await fetch(`${origin}/drafts/${catalogPending.draft.id}/curation`)
+  ).text();
+  assert.match(curationHtml, /Editorialmente lista · Product pendiente/);
+  assert.match(curationHtml, /Resolver automáticamente/);
+  assert.match(curationHtml, /Usar Product existente/);
+  assert.match(curationHtml, /Pegar URL/);
+  assert.doesNotMatch(curationHtml, /Sourcing integrado: completed-idea-only/);
+
+  const catalogProduct = catalog.get("product_insulated-tumbler");
+  const catalogResponse = await fetch(
+    `${origin}/drafts/${catalogPending.draft.id}/curation/use-product`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        slotId: "slot_catalog-backfill",
+        productId: catalogProduct.id,
+      }),
+      redirect: "manual",
+    },
+  );
+  assert.equal(catalogResponse.status, 303);
+  const catalogBackfilled = guideDraftSchema.parse(await draftStore.read(catalogPending.draft.id));
+  const catalogSlot = catalogBackfilled.recommendations[0]!;
+  assert.equal(catalogSlot.id, "slot_catalog-backfill");
+  assert.equal(catalogSlot.position, 1);
+  assert.equal(catalogSlot.slotIntent, catalogPending.draft.recommendations[0]!.slotIntent);
+  assert.equal(catalogSlot.productId, catalogProduct.id);
+  assert.equal(catalogSlot.editorialStatus, "needs-review");
+  assert.equal(sourcingStore.get(catalogPending.request.id).status, "completed-idea-only");
+  const catalogFollowUp = findProductSourcingRequestForDraftSlot(
+    sourcingStore.list(),
+    catalogPending.draft.id,
+    catalogSlot.id,
+  )!;
+  assert.notEqual(catalogFollowUp.id, catalogPending.request.id);
+  assert.equal(catalogFollowUp.status, "fulfilled");
+
+  const asin = "R123456789";
+  const urlResponse = await fetch(
+    `${origin}/drafts/${p1Pending.draft.id}/recommendations/slot_p1-backfill/resolve-url`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ url: `https://www.amazon.com/dp/${asin}` }),
+      redirect: "manual",
+    },
+  );
+  assert.equal(urlResponse.status, 303);
+  assert.match(urlResponse.headers.get("location")!, /^\/products\/intake\?/);
+  const p1Request = findProductSourcingRequestForDraftSlot(
+    sourcingStore.list(),
+    p1Pending.draft.id,
+    "slot_p1-backfill",
+  )!;
+  assert.notEqual(p1Request.id, p1Pending.request.id);
+  assert.equal(p1Request.status, "open");
+  const candidate = p1Request.sourceCandidates[0]!;
+  const input = manualProductIntakeInput({
+    productUrl: `https://www.amazon.com/dp/${asin}`,
+    asin,
+    name: "P.1 backfill tumbler",
+  });
+  const intakeResponse = await fetch(`${origin}/products/intake`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: manualProductIntakeForm(input, {
+      requestId: p1Request.id,
+      candidateId: candidate.id,
+      confirmIdentity: "yes",
+      confirmProvenance: "yes",
+      confirmFacts: "yes",
+      confirmDescription: "yes",
+      confirm: "yes",
+    }),
+    redirect: "manual",
+  });
+  assert.equal(intakeResponse.status, 303);
+  const p1Product = catalog.read().products.find(({ name }) => name === input.name)!;
+  assert.ok(p1Product);
+  const fulfillResponse = await fetch(`${origin}/product-sourcing/${p1Request.id}/products`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ productId: p1Product.id, fulfillmentStatus: "fulfilled" }),
+    redirect: "manual",
+  });
+  assert.equal(fulfillResponse.status, 303);
+  const assignResponse = await fetch(`${origin}/product-sourcing/${p1Request.id}/assign`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ productId: p1Product.id }),
+    redirect: "manual",
+  });
+  assert.equal(assignResponse.status, 303);
+  const p1Backfilled = guideDraftSchema.parse(await draftStore.read(p1Pending.draft.id));
+  const p1Slot = p1Backfilled.recommendations[0]!;
+  assert.equal(p1Backfilled.id, p1Pending.draft.id);
+  assert.equal(p1Slot.id, "slot_p1-backfill");
+  assert.equal(p1Slot.position, 1);
+  assert.equal(p1Slot.slotIntent, p1Pending.draft.recommendations[0]!.slotIntent);
+  assert.equal(p1Slot.productId, p1Product.id);
+  assert.equal(p1Slot.editorialStatus, "needs-review");
+  assert.equal(sourcingStore.get(p1Pending.request.id).status, "completed-idea-only");
+});
+
+test("Autopilot explica un timeout del proveedor antes de completar idea-only", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-autopilot-timeout-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const fitStore = new ProductFitEvaluationStore(repository);
+  const draft = await draftStore.save(
+    autopilotDraft("guide_autopilot-timeout", "slot_autopilot-timeout", "Trail radio"),
+  );
+  await sourcingStore.save(autopilotRequest(draft, []));
+  let providerCalls = 0;
+  const discoverySource: ProductDiscoverySource = {
+    providerId: "serpapi",
+    paidUsage: true,
+    supportedModes: ["amazon"],
+    async search() {
+      providerCalls++;
+      throw new ProductDiscoveryError("fixture timeout", "timeout");
+    },
+  };
+
+  const result = await resolveRecommendationSlotAutonomously(
+    draft,
+    "slot_autopilot-timeout",
+    {
+      draftStore,
+      catalog,
+      sourcingStore,
+      sourceStore,
+      fitStore,
+      provider: new MockGuideGenerationProvider(),
+      discoverySource,
+    },
+    { now: new Date("2026-09-06T14:30:00.000Z") },
+  );
+
+  assert.equal(result.status, "resolved-idea-only");
+  assert.equal(result.reasonCode, "amazon-provider-timeout");
+  assert.match(result.reasonExplanation, /tiempo de espera/i);
+  assert.equal(providerCalls, AUTOPILOT_LIMITS.maxDiscoveryCalls);
+  assert.equal(result.executionEvidence.amazonDiscoveryAttempted, true);
+  assert.equal(result.executionEvidence.providerCallCount, providerCalls);
+  assert.equal(result.executionEvidence.candidatesReturned, 0);
+  assert.equal(result.executionEvidence.searchRefinementAttempted, true);
+});
+
+test("Autopilot no salta Amazon ante una falla P.2 y la UI explica cero candidatos sin listas vacías", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-autopilot-failure-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const fitStore = new ProductFitEvaluationStore(repository);
+  const draft = await draftStore.save(
+    autopilotDraft("guide_autopilot-failure", "slot_autopilot-failure"),
+  );
+  await sourcingStore.save(autopilotRequest(draft, ["source_candidate_autopilot-failure"]));
+  const mock = new MockGuideGenerationProvider();
+  const provider: GuideGenerationProvider = {
+    providerId: "autopilot-evaluation-failure",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      if (request.operation === "product-fit-evaluations") throw new Error("fixture failure");
+      return mock.generateStructured(request);
+    },
+  };
+  let requiredDiscoveryCalls = 0;
+  const requiredDiscoverySource: ProductDiscoverySource = {
+    providerId: "serpapi",
+    paidUsage: true,
+    supportedModes: ["amazon"],
+    async search() {
+      requiredDiscoveryCalls++;
+      return [];
+    },
+  };
+  const result = await resolveRecommendationSlotAutonomously(draft, "slot_autopilot-failure", {
+    draftStore,
+    catalog,
+    sourcingStore,
+    sourceStore,
+    fitStore,
+    provider,
+    discoverySource: requiredDiscoverySource,
+  });
+  assert.equal(result.status, "resolved-idea-only");
+  assert.equal(result.reasonCode, "evaluation-infrastructure-failed");
+  assert.ok(result.warnings.includes("candidate-evaluation-failed"));
+  assert.equal(result.executionEvidence.candidatesEvaluated, 0);
+  assert.equal(result.executionEvidence.bestCandidate, undefined);
+  assert.equal(
+    requiredDiscoveryCalls,
+    AUTOPILOT_LIMITS.maxDiscoveryCalls,
+    "P.2 failure cannot skip the bounded Amazon path",
+  );
+  assert.equal(result.executionEvidence.amazonDiscoveryAttempted, true);
+
+  const uiDraft = await draftStore.save(autopilotDraft("guide_autopilot-ui", "slot_autopilot-ui"));
+  let emptyProviderCalls = 0;
+  const emptyDiscoverySource: ProductDiscoverySource = {
+    providerId: "serpapi",
+    paidUsage: true,
+    supportedModes: ["amazon"],
+    async search() {
+      emptyProviderCalls++;
+      return [];
+    },
+  };
+  const server = createStudioServer(
+    draftStore,
+    catalog,
+    new MockGuideGenerationProvider(),
+    new Publisher(repository),
+    sourceStore,
+    undefined,
+    [],
+    undefined,
+    undefined,
+    emptyDiscoverySource,
+  );
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(() => server.close());
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+  const curation = await (await fetch(`${origin}/drafts/${uiDraft.id}/curation`)).text();
+  assert.match(curation, /Resolver automáticamente/);
+  const response = await fetch(
+    `${origin}/drafts/${uiDraft.id}/recommendations/slot_autopilot-ui/autopilot`,
+    { method: "POST" },
+  );
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.equal(emptyProviderCalls, AUTOPILOT_LIMITS.maxDiscoveryCalls);
+  assert.match(html, /Editorialmente lista · Product pendiente/);
+  assert.match(html, /podés agregar el Product ahora o más adelante/);
+  assert.match(html, /amazon-no-candidates/);
+  assert.match(html, /Evidencia compacta de ejecución/);
+  assert.match(html, /Llamadas P\.2/);
+  assert.match(html, /Recuperación P\.2/);
+  assert.match(html, /<li>no-evaluable-candidate<\/li>/);
+  assert.doesNotMatch(html, /Mejor candidato/);
+  assert.doesNotMatch(html, /Evaluaciones no recuperadas/);
+  assert.doesNotMatch(html, /Advertencias no bloqueantes/);
+  assert.doesNotMatch(html, /<ul>\s*<\/ul>/);
+});
+
+test("Guide Autopilot preserva una guía resuelta, omite sourcing y muestra un resumen compacto", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-guide-autopilot-ready-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourceStore = new ProductSourceStore(repository);
+  const providerOperations: string[] = [];
+  const provider = strongAutopilotProvider((operation) => providerOperations.push(operation));
+  const complete = await generateFinalGuide(
+    await selectedGuideDraft("guide_guide-autopilot-ready"),
+    catalog.read(),
+    new MockGuideGenerationProvider(),
+  );
+  const productWithoutDestination = catalog.get(complete.recommendations[0]!.productId!);
+  const {
+    productUrl: _productUrl,
+    affiliateUrl: _affiliateUrl,
+    ...withoutDestination
+  } = productWithoutDestination;
+  await catalog.save(withoutDestination);
+  const saved = await draftStore.save(complete);
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  const fitStore = new ProductFitEvaluationStore(repository);
+
+  const result = await completeGuideAutonomously(saved, {
+    draftStore,
+    catalog,
+    sourcingStore,
+    sourceStore,
+    fitStore,
+    provider,
+  });
+
+  assert.equal(result.status, "completed");
+  assert.equal(result.reasonCode, "guide-completed");
+  assert.equal(result.counts.totalRecommendations, 3);
+  assert.equal(result.counts.editorialReady, 3);
+  assert.equal(result.counts.productResolved, 3);
+  assert.equal(result.counts.productPending, 0);
+  assert.ok(result.counts.affiliatePending >= 1, "missing affiliate coverage cannot block success");
+  assert.equal(result.execution.amazonDiscoveryCalls, 0);
+  assert.equal(result.execution.p2Calls, 0);
+  assert.equal(result.execution.editorialGenerations, 0);
+  assert.equal(result.execution.peakConcurrentSlots, 1);
+  assert.equal(providerOperations.length, 0);
+  assert.equal(sourcingStore.list().length, 0);
+  assert.deepEqual(await draftStore.read(saved.id), saved);
+  assert.ok(
+    result.slots.every(
+      ({ action, status }) =>
+        action === "preserved-ready-product-slot" && status === "product-resolved",
+    ),
+  );
+  guideAutopilotOutcomeSchema.parse(result);
+
+  const publicGuide = guideDraftToPublic(saved, catalog.read());
+  assert.doesNotMatch(
+    JSON.stringify(publicGuide),
+    /singleSlotResult|sourcingRequestId|reasonCode|amazonDiscoveryCalls/i,
+  );
+
+  const server = createStudioServer(
+    draftStore,
+    catalog,
+    provider,
+    new Publisher(repository),
+    sourceStore,
+  );
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(() => server.close());
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+  const curation = await (await fetch(`${origin}/drafts/${saved.id}/curation`)).text();
+  assert.match(curation, /Completar guía automáticamente/);
+  assert.match(curation, new RegExp(`/drafts/${saved.id}/autopilot`));
+  assert.match(curation, /Regeneración enfocada/);
+  assert.match(curation, /Buscar alternativas/);
+  const response = await fetch(`${origin}/drafts/${saved.id}/autopilot`, { method: "POST" });
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /Guía completada automáticamente/);
+  assert.match(html, /3\/3 editorialmente listas/);
+  assert.match(html, /3 Products resueltos/);
+  assert.doesNotMatch(html, /Advertencias no bloqueantes/);
+  assert.doesNotMatch(html, /<ul>\s*<\/ul>/);
+});
+
+test("Guide Autopilot completa una guía mixta y converge sin sobrescribir copy manual", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-guide-autopilot-mixed-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const fitStore = new ProductFitEvaluationStore(repository);
+  const now = new Date("2026-09-07T12:00:00.000Z");
+  const base = await generateFinalGuide(
+    await selectedGuideDraft("guide_guide-autopilot-mixed", 4),
+    catalog.read(),
+    new MockGuideGenerationProvider(),
+    now,
+  );
+  const [preservedProduct, productCopy, preservedIdea, unresolved] = base.recommendations;
+  const draft = await draftStore.save(
+    guideDraftSchema.parse({
+      ...base,
+      recommendations: [
+        {
+          ...preservedProduct!,
+          heading: "Manual Product heading",
+          editorialDescription: "Manual Product description that must remain byte-for-byte.",
+          whyItFits: "Manual Product rationale that must remain byte-for-byte.",
+        },
+        {
+          ...productCopy!,
+          heading: "Stale Product heading",
+          editorialStatus: "needs-review",
+        },
+        {
+          id: preservedIdea!.id,
+          position: preservedIdea!.position,
+          slotLabel: "Guide Autopilot Pending Idea",
+          slotIntent: "Keep this useful while Product enrichment remains pending.",
+          searchTerms: ["pending guide idea"],
+          heading: "Manual generic heading",
+          editorialDescription: "Manual generic description with no Product-specific claims.",
+          whyItFits: "Manual generic rationale remains useful without a Product.",
+          selectionGuidance: "Compare fit, care, and everyday usefulness.",
+          considerations: "Confirm personal preferences before choosing.",
+          editorialStatus: "ready",
+        },
+        {
+          id: unresolved!.id,
+          position: unresolved!.position,
+          slotLabel: "Guide Autopilot Strong Unique Item",
+          slotIntent: "Resolve one trustworthy and distinct Product.",
+          searchTerms: ["guide autopilot strong unique item"],
+          editorialStatus: "needs-generation",
+        },
+      ],
+    }),
+    now,
+  );
+  const weakRequest = productSourcingRequestSchema.parse({
+    ...autopilotRequest(draft, ["source_candidate_guide-autopilot-weak"], now, preservedIdea!.id),
+    mustHaveVerifiedFacts: ["A deliberately unavailable verified fact"],
+  });
+  const strongRequest = autopilotRequest(
+    draft,
+    ["source_candidate_guide-autopilot-strong"],
+    now,
+    unresolved!.id,
+  );
+  await sourcingStore.save(weakRequest);
+  await sourcingStore.save(strongRequest);
+  const providerOperations: string[] = [];
+  const strongProvider = strongAutopilotProvider();
+  const ordinaryProvider = new MockGuideGenerationProvider();
+  const provider: GuideGenerationProvider = {
+    providerId: "guide-autopilot-selective-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      providerOperations.push(request.operation);
+      if (request.operation === "product-fit-evaluations") {
+        const input = productFitPromptInputSchema.parse(request.input);
+        if (input.candidates.every(({ requestId }) => requestId !== strongRequest.id)) {
+          return ordinaryProvider.generateStructured(request);
+        }
+      }
+      return strongProvider.generateStructured(request);
+    },
+  };
+
+  const first = await completeGuideAutonomously(
+    draft,
+    { draftStore, catalog, sourcingStore, sourceStore, fitStore, provider },
+    { now },
+  );
+  const completed = guideDraftSchema.parse(await draftStore.read(draft.id));
+  const completedById = new Map(completed.recommendations.map((slot) => [slot.id, slot]));
+
+  assert.equal(first.status, "completed", JSON.stringify(first));
+  assert.deepEqual(first.counts, {
+    totalRecommendations: 4,
+    editorialReady: 4,
+    productResolved: 3,
+    productPending: 1,
+    affiliateReady: first.counts.affiliateReady,
+    affiliatePending: 3 - first.counts.affiliateReady,
+    genericRecommendations: 1,
+    slotsWithWarnings: 0,
+  });
+  assert.equal(first.execution.productPendingFallbacks, 1);
+  assert.equal(first.execution.productsCreated + first.execution.productsReused, 1);
+  assert.ok(first.execution.editorialGenerations >= 2);
+  assert.equal(first.execution.amazonDiscoveryCalls, 0);
+  assert.equal(first.execution.maxConcurrentSlots, GUIDE_AUTOPILOT_MAX_CONCURRENT_SLOTS);
+  assert.equal(completedById.get(preservedProduct!.id)!.heading, "Manual Product heading");
+  assert.equal(
+    completedById.get(preservedProduct!.id)!.editorialDescription,
+    "Manual Product description that must remain byte-for-byte.",
+  );
+  assert.notEqual(completedById.get(productCopy!.id)!.heading, "Stale Product heading");
+  assert.equal(completedById.get(productCopy!.id)!.editorialStatus, "ready");
+  assert.equal(completedById.get(preservedIdea!.id)!.heading, "Manual generic heading");
+  assert.equal(completedById.get(preservedIdea!.id)!.productId, undefined);
+  assert.doesNotMatch(
+    JSON.stringify(completedById.get(preservedIdea!.id)),
+    /Field Brand|Amazon|Guide Autopilot Pending Idea 1/i,
+  );
+  assert.ok(completedById.get(unresolved!.id)!.productId);
+  assert.equal(completedById.get(unresolved!.id)!.editorialStatus, "ready");
+  assert.equal(
+    providerOperations.filter((operation) => operation === "idea-recommendation").length,
+    0,
+    "ready generic copy must be preserved while Product enrichment is retried",
+  );
+  assert.equal(
+    providerOperations.filter((operation) => operation === "single-recommendation").length,
+    2,
+    "only Product-backed copy needing work and the newly assigned Product are generated",
+  );
+  assert.equal(
+    first.slots.find(({ slotId }) => slotId === preservedIdea!.id)!.singleSlotResult?.status,
+    "resolved-idea-only",
+  );
+  assert.equal(
+    first.slots.find(({ slotId }) => slotId === unresolved!.id)!.singleSlotResult?.status,
+    "resolved-product",
+  );
+
+  const productCount = catalog.read().products.length;
+  const sourceCount = sourceStore.list(catalog.read().products).length;
+  const requestCount = sourcingStore.list().length;
+  providerOperations.length = 0;
+  const second = await completeGuideAutonomously(
+    completed,
+    { draftStore, catalog, sourcingStore, sourceStore, fitStore, provider },
+    { now: new Date("2026-09-08T12:00:00.000Z") },
+  );
+  const converged = guideDraftSchema.parse(await draftStore.read(draft.id));
+
+  assert.equal(second.status, "completed");
+  assert.deepEqual(second.counts, first.counts);
+  assert.deepEqual(
+    converged.recommendations.map(({ id, productId, heading, editorialDescription }) => ({
+      id,
+      productId,
+      heading,
+      editorialDescription,
+    })),
+    completed.recommendations.map(({ id, productId, heading, editorialDescription }) => ({
+      id,
+      productId,
+      heading,
+      editorialDescription,
+    })),
+  );
+  assert.equal(catalog.read().products.length, productCount);
+  assert.equal(sourceStore.list(catalog.read().products).length, sourceCount);
+  assert.equal(
+    sourcingStore.list().length,
+    requestCount + 1,
+    "the Product-pending slot gets one explicit new retry, not duplicate concurrent requests",
+  );
+  assert.deepEqual(providerOperations, ["product-search-plans", "product-fit-evaluations"]);
+  assert.ok(
+    providerOperations.every((operation) =>
+      ["product-search-plans", "product-fit-evaluations"].includes(operation),
+    ),
+    "the retry may enrich Product evidence but must not regenerate ready copy",
+  );
+  assert.equal(second.execution.editorialGenerations, 0);
+  guideDraftToPublic(converged, catalog.read());
+});
+
+test("Guide Autopilot aisla fallas P.2, limita llamadas y acepta que todos los slots queden como idea", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-guide-autopilot-failures-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const fitStore = new ProductFitEvaluationStore(repository);
+  const now = new Date("2026-09-08T15:00:00.000Z");
+  const draft = await draftStore.save(
+    guideDraftSchema.parse({
+      ...autopilotDraft(
+        "guide_guide-autopilot-failures",
+        "slot_guide-autopilot-provider-failure",
+        "Guide Autopilot Provider Failure Item",
+      ),
+      recommendations: [
+        {
+          id: "slot_guide-autopilot-provider-failure",
+          position: 1,
+          slotLabel: "Guide Autopilot Provider Failure Item",
+          slotIntent: "Fall back safely after a P.2 provider failure.",
+          searchTerms: ["provider failure item"],
+          editorialStatus: "needs-generation",
+        },
+        {
+          id: "slot_guide-autopilot-following-success",
+          position: 2,
+          slotLabel: "Guide Autopilot Following Success Item",
+          slotIntent: "Resolve after the preceding slot fails.",
+          searchTerms: ["following success item"],
+          editorialStatus: "needs-generation",
+        },
+      ],
+    }),
+    now,
+  );
+  const failedRequest = autopilotRequest(
+    draft,
+    ["source_candidate_guide-provider-failure"],
+    now,
+    "slot_guide-autopilot-provider-failure",
+  );
+  const successfulRequest = autopilotRequest(
+    draft,
+    ["source_candidate_guide-following-success"],
+    now,
+    "slot_guide-autopilot-following-success",
+  );
+  await sourcingStore.save(failedRequest);
+  await sourcingStore.save(successfulRequest);
+  const strong = strongAutopilotProvider();
+  let activeProviderCalls = 0;
+  let peakProviderCalls = 0;
+  let p2Calls = 0;
+  const provider: GuideGenerationProvider = {
+    providerId: "guide-autopilot-isolation-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      activeProviderCalls++;
+      peakProviderCalls = Math.max(peakProviderCalls, activeProviderCalls);
+      try {
+        if (request.operation === "product-fit-evaluations") {
+          p2Calls++;
+          const input = productFitPromptInputSchema.parse(request.input);
+          if (input.candidates[0]!.requestId === failedRequest.id) {
+            throw new ProviderError("fixture P.2 timeout", "timeout");
+          }
+        }
+        return await strong.generateStructured(request);
+      } finally {
+        activeProviderCalls--;
+      }
+    },
+  };
+
+  const isolated = await completeGuideAutonomously(
+    draft,
+    { draftStore, catalog, sourcingStore, sourceStore, fitStore, provider },
+    { now },
+  );
+  const isolatedDraft = guideDraftSchema.parse(await draftStore.read(draft.id));
+
+  assert.equal(isolated.status, "completed-with-warnings");
+  assert.equal(isolated.counts.editorialReady, 2);
+  assert.equal(isolated.counts.productResolved, 1);
+  assert.equal(isolated.counts.productPending, 1);
+  assert.equal(isolated.counts.slotsWithWarnings, 1, JSON.stringify(isolated));
+  assert.ok(
+    isolated.warnings.some((warning) => warning.includes("evaluation-infrastructure-failed")),
+  );
+  assert.equal(
+    isolated.slots.find(({ slotId }) => slotId === "slot_guide-autopilot-provider-failure")!.status,
+    "product-pending",
+  );
+  assert.equal(
+    isolated.slots.find(({ slotId }) => slotId === "slot_guide-autopilot-following-success")!
+      .status,
+    "product-resolved",
+  );
+  assert.ok(
+    isolatedDraft.recommendations.every(({ editorialStatus }) => editorialStatus === "ready"),
+  );
+  assert.ok(p2Calls <= 2 * AUTOPILOT_LIMITS.maxP2ProviderCalls);
+  assert.equal(peakProviderCalls, 1);
+  assert.equal(isolated.execution.peakConcurrentSlots, 1);
+
+  const allFallbackDraft = await draftStore.save(
+    guideDraftSchema.parse({
+      ...draft,
+      id: "guide_guide-autopilot-all-fallback",
+      slug: "guide-autopilot-all-fallback",
+      recommendations: draft.recommendations.map((slot, index) => ({
+        ...slot,
+        id: `slot_guide-autopilot-all-fallback-${index + 1}`,
+        productId: undefined,
+        heading: undefined,
+        editorialDescription: undefined,
+        whyItFits: undefined,
+        selectionGuidance: undefined,
+        considerations: undefined,
+        editorialStatus: "needs-generation" as const,
+      })),
+    }),
+    now,
+  );
+  for (const slot of allFallbackDraft.recommendations) {
+    await sourcingStore.save(
+      productSourcingRequestSchema.parse({
+        ...autopilotRequest(
+          allFallbackDraft,
+          [`source_candidate_${slot.id.replace(/^slot_/, "")}`],
+          now,
+          slot.id,
+        ),
+        mustHaveVerifiedFacts: ["A deliberately unavailable verified fact"],
+      }),
+    );
+  }
+  const allFallback = await completeGuideAutonomously(
+    allFallbackDraft,
+    { draftStore, catalog, sourcingStore, sourceStore, fitStore, provider: strong },
+    { now },
+  );
+
+  assert.equal(allFallback.status, "completed");
+  assert.equal(allFallback.counts.editorialReady, 2);
+  assert.equal(allFallback.counts.productResolved, 0);
+  assert.equal(allFallback.counts.productPending, 2);
+  assert.equal(allFallback.counts.genericRecommendations, 2);
+  assert.equal(allFallback.execution.productPendingFallbacks, 2);
+  assert.ok(allFallback.slots.every(({ status }) => status === "product-pending"));
 });

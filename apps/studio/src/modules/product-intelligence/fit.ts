@@ -5,7 +5,11 @@ import { relative, resolve } from "node:path";
 import type { Product, ValidatedPublicContent } from "@the-good-present/content-schema";
 import { z } from "zod";
 
-import type { GuideGenerationProvider, ProviderCallMetadata } from "../../ai-provider.ts";
+import {
+  ProviderError,
+  type GuideGenerationProvider,
+  type ProviderCallMetadata,
+} from "../../ai-provider.ts";
 import type { GuideDraft } from "../../drafts.ts";
 import { atomicWriteJson, REPOSITORY_ROOT } from "../../repository.ts";
 import type { EditorialBenchmark } from "./benchmarks.ts";
@@ -226,6 +230,21 @@ export const productFitEvaluationBatchSchema = z.strictObject({
 export type ProductFitEvaluation = z.infer<typeof productFitEvaluationSchema>;
 export type ProductFitEvaluationBatch = z.infer<typeof productFitEvaluationBatchSchema>;
 
+export const PRODUCT_FIT_EVALUATION_FAILURE_CODES = [
+  "missing-result",
+  "malformed-result",
+  "schema-invalid-result",
+  "provider-failure",
+] as const;
+
+export type ProductFitEvaluationFailureCode = (typeof PRODUCT_FIT_EVALUATION_FAILURE_CODES)[number];
+
+export interface ProductFitEvaluationFailure {
+  requestId: string;
+  candidateId: string;
+  code: ProductFitEvaluationFailureCode;
+}
+
 const compactProfileSchema = productClassProfileSchema.pick({
   classId: true,
   importantAttributes: true,
@@ -312,6 +331,66 @@ export const productFitPromptInputSchema = z.strictObject({
 });
 
 export type ProductFitPromptInput = z.infer<typeof productFitPromptInputSchema>;
+
+const responseDimensionExample = {
+  assessment: "positive | neutral | negative | unknown",
+  rationale: "...",
+};
+
+const productFitResponseShapeExample = {
+  batchSynthesis: "...",
+  evaluations: [
+    {
+      requestId: "copy the exact requestId",
+      candidateId: "copy the exact candidateId",
+      interpretedProductClass: "...",
+      editorialFunctionalFit: Object.fromEntries(
+        [
+          "productClassMatch",
+          "slotSpecificity",
+          "guideRelevance",
+          "recipientFit",
+          "contextFit",
+          "budgetCompatibility",
+        ].map((key) => [key, responseDimensionExample]),
+      ),
+      consumerGiftValue: Object.fromEntries(
+        [
+          "practicalUsefulness",
+          "giftDesirability",
+          "giftabilityPresentation",
+          "easeOfChoosingCorrectly",
+          "compatibilitySelectionRisk",
+          "perceivedValue",
+          "emotionalRelevanceMemorability",
+        ].map((key) => [key, responseDimensionExample]),
+      ),
+      evidenceOperations: Object.fromEntries(
+        [
+          "evidenceQuality",
+          "maintenanceRisk",
+          "commercialSuitability",
+          "existingCatalogReuseOpportunity",
+        ].map((key) => [key, responseDimensionExample]),
+      ),
+      collectionQuality: Object.fromEntries(
+        [
+          "inGuideDistinctiveness",
+          "redundancyWithCurrentSelections",
+          "repeatedProductClass",
+          "repeatedFunctionalRole",
+        ].map((key) => [key, responseDimensionExample]),
+      ),
+      missingEvidence: ["..."],
+      diagnosticSummary: {
+        providerResultQuality: "...",
+        searchPlanOrClassRisk: "...",
+        profileCoverage: "...",
+        fitConfidence: "...",
+      },
+    },
+  ],
+};
 
 export interface ProductFitSelection {
   request: ProductSourcingRequest;
@@ -515,6 +594,9 @@ Evaluate: product class match; slot specificity; Guide relevance; recipient fit;
 diagnosticSummary must make later diagnosis possible: provider result quality, possible SearchPlan/class mismatch, specific-profile versus generic-fallback coverage, and confidence in this fit interpretation. missingEvidence lists facts still requiring observation or editor verification.
 
 Return exactly one JSON object matching the supplied strict response schema, one evaluation for every requestId/candidateId pair and no additional fields.
+
+Use exactly this response shape. Repeat the evaluation object once for every input pair, copy each pair's IDs exactly, and replace every placeholder. For assessment, choose exactly one listed enum value rather than copying the pipe-separated example:
+${JSON.stringify(productFitResponseShapeExample, null, 2)}
 
 Evaluation input:
 ${JSON.stringify(input, null, 2)}`;
@@ -750,73 +832,175 @@ function usefulUsage(metadata: ProviderCallMetadata | undefined) {
   return Object.values(usage).some((value) => value !== undefined) ? usage : undefined;
 }
 
+const productFitEvaluationTransportSchema = z
+  .object({
+    batchSynthesis: z.unknown().optional(),
+    evaluations: z.array(z.unknown()).max(40).optional(),
+  })
+  .passthrough();
+
+const looseEvaluationIdentitySchema = z.object({ candidateId: z.string() }).passthrough();
+
+export interface ProductFitEvaluationAttempt {
+  session?: ProductFitEvaluationSession;
+  failures: ProductFitEvaluationFailure[];
+  malformedResultCount: number;
+  providerError?: unknown;
+}
+
+function failureCodeForProviderError(error: unknown): ProductFitEvaluationFailureCode {
+  if (!(error instanceof ProviderError)) return "provider-failure";
+  if (error.code === "invalid-schema") return "schema-invalid-result";
+  if (
+    error.code === "empty-response" ||
+    error.code === "invalid-json" ||
+    error.code === "invalid-response" ||
+    error.code === "truncated"
+  ) {
+    return "malformed-result";
+  }
+  return "provider-failure";
+}
+
+export async function evaluateProductFitBatchAttempt(
+  selections: readonly ProductFitSelection[],
+  context: PrepareProductFitContext & { provider: GuideGenerationProvider; now?: Date },
+): Promise<ProductFitEvaluationAttempt> {
+  const prepared = prepareProductFitEvaluationPrompt(selections, context);
+  let response: z.infer<typeof productFitEvaluationTransportSchema>;
+  try {
+    response = await context.provider.generateStructured({
+      operation: "product-fit-evaluations",
+      prompt: prepared.prompt,
+      input: prepared.input,
+      schema: productFitEvaluationTransportSchema,
+    });
+  } catch (providerError) {
+    const code = failureCodeForProviderError(providerError);
+    return {
+      failures: prepared.input.candidates.map((candidate) => ({
+        requestId: candidate.requestId,
+        candidateId: candidate.candidateId,
+        code,
+      })),
+      malformedResultCount: 0,
+      providerError,
+    };
+  }
+
+  const expectedCandidateIds = new Set(
+    prepared.input.candidates.map((candidate) => candidate.candidateId),
+  );
+  const rawEvaluations = Array.isArray(response.evaluations) ? response.evaluations : [];
+  const byCandidateId = new Map<string, unknown[]>();
+  let malformedResultCount = Array.isArray(response.evaluations) ? 0 : 1;
+  for (const raw of rawEvaluations) {
+    const identity = looseEvaluationIdentitySchema.safeParse(raw);
+    if (!identity.success || !expectedCandidateIds.has(identity.data.candidateId)) {
+      malformedResultCount++;
+      continue;
+    }
+    const grouped = byCandidateId.get(identity.data.candidateId) ?? [];
+    grouped.push(raw);
+    byCandidateId.set(identity.data.candidateId, grouped);
+  }
+
+  const evaluations: ProductFitEvaluation[] = [];
+  const failures: ProductFitEvaluationFailure[] = [];
+  for (const expected of prepared.input.candidates) {
+    const raw = byCandidateId.get(expected.candidateId) ?? [];
+    if (!raw.length) {
+      failures.push({
+        requestId: expected.requestId,
+        candidateId: expected.candidateId,
+        code: "missing-result",
+      });
+      continue;
+    }
+    if (raw.length !== 1) {
+      failures.push({
+        requestId: expected.requestId,
+        candidateId: expected.candidateId,
+        code: "malformed-result",
+      });
+      continue;
+    }
+    const parsed = productFitEvaluationSchema.safeParse(raw[0]);
+    if (!parsed.success || parsed.data.requestId !== expected.requestId) {
+      failures.push({
+        requestId: expected.requestId,
+        candidateId: expected.candidateId,
+        code: "schema-invalid-result",
+      });
+      continue;
+    }
+    evaluations.push(parsed.data);
+  }
+
+  const synthesis = nonEmptyText.safeParse(response.batchSynthesis);
+  if (!synthesis.success) malformedResultCount++;
+  if (!evaluations.length) return { failures, malformedResultCount };
+
+  const validKeys = new Set(
+    evaluations.map((evaluation) => evaluation.requestId + ":" + evaluation.candidateId),
+  );
+  const input = productFitPromptInputSchema.parse({
+    candidates: prepared.input.candidates.filter((candidate) =>
+      validKeys.has(candidate.requestId + ":" + candidate.candidateId),
+    ),
+  });
+  const aiInterpretation = productFitEvaluationBatchSchema.parse({
+    batchSynthesis: synthesis.success
+      ? synthesis.data
+      : "Valid candidate evaluations preserved from a partial provider response.",
+    evaluations,
+  });
+  const ordered = orderProductFitEvaluations(aiInterpretation.evaluations);
+  const providerUsage = usefulUsage(context.provider.lastCallMetadata);
+  return {
+    session: productFitEvaluationSessionSchema.parse({
+      schemaVersion: 1,
+      recordType: "product-fit-evaluation",
+      id: `fit_evaluation_${randomUUID()}`,
+      candidateRefs: input.candidates.map((candidate) => ({
+        requestId: candidate.requestId,
+        candidateId: candidate.candidateId,
+      })),
+      input,
+      aiInterpretation,
+      ordering: ordered.map((evaluation) => ({
+        requestId: evaluation.requestId,
+        candidateId: evaluation.candidateId,
+        signals: productFitOrderingSignals(evaluation),
+      })),
+      providerId: context.provider.providerId,
+      ...(context.provider.modelId ? { modelId: context.provider.modelId } : {}),
+      providerCallCount: 1,
+      candidateCount: input.candidates.length,
+      ...(providerUsage ? { providerUsage } : {}),
+      promptVersion: prepared.version,
+      rankingPolicyVersion: PRODUCT_FIT_RANKING_POLICY_VERSION,
+      prompt: prepared.prompt,
+      evaluatedAt: (context.now ?? new Date()).toISOString(),
+    }),
+    failures,
+    malformedResultCount,
+  };
+}
+
 export async function evaluateProductFitBatch(
   selections: readonly ProductFitSelection[],
   context: PrepareProductFitContext & { provider: GuideGenerationProvider; now?: Date },
 ): Promise<ProductFitEvaluationSession> {
-  const prepared = prepareProductFitEvaluationPrompt(selections, context);
-  const expectedKeys = new Set(
-    prepared.input.candidates.map(
-      ({ requestId: request, candidateId: candidate }) => `${request}:${candidate}`,
-    ),
-  );
-  const exactSchema = productFitEvaluationBatchSchema.superRefine((batch, validation) => {
-    const keys = batch.evaluations.map(
-      ({ requestId: request, candidateId: candidate }) => `${request}:${candidate}`,
+  const attempt = await evaluateProductFitBatchAttempt(selections, context);
+  if (attempt.providerError) throw attempt.providerError;
+  if (attempt.failures.length || attempt.malformedResultCount || !attempt.session) {
+    throw new ProviderError(
+      "La respuesta del proveedor no evaluó cada candidato exactamente una vez.",
+      "invalid-schema",
     );
-    if (
-      keys.length !== expectedKeys.size ||
-      new Set(keys).size !== keys.length ||
-      keys.some((key) => !expectedKeys.has(key))
-    ) {
-      validation.addIssue({
-        code: "custom",
-        path: ["evaluations"],
-        message: "The provider must evaluate every selected request/candidate pair exactly once.",
-      });
-    }
-  });
-  const aiInterpretation = exactSchema.parse(
-    await context.provider.generateStructured({
-      operation: "product-fit-evaluations",
-      prompt: prepared.prompt,
-      input: prepared.input,
-      schema: exactSchema,
-    }),
-  );
-  const ordered = orderProductFitEvaluations(aiInterpretation.evaluations);
-  const providerUsage = usefulUsage(context.provider.lastCallMetadata);
-  return productFitEvaluationSessionSchema.parse({
-    schemaVersion: 1,
-    recordType: "product-fit-evaluation",
-    id: `fit_evaluation_${randomUUID()}`,
-    candidateRefs: prepared.input.candidates.map(
-      ({ requestId: request, candidateId: candidate }) => ({
-        requestId: request,
-        candidateId: candidate,
-      }),
-    ),
-    input: prepared.input,
-    aiInterpretation,
-    ordering: ordered.map(({ requestId: request, candidateId: candidate, ...evaluation }) => ({
-      requestId: request,
-      candidateId: candidate,
-      signals: productFitOrderingSignals({
-        requestId: request,
-        candidateId: candidate,
-        ...evaluation,
-      }),
-    })),
-    providerId: context.provider.providerId,
-    ...(context.provider.modelId ? { modelId: context.provider.modelId } : {}),
-    providerCallCount: 1,
-    candidateCount: prepared.input.candidates.length,
-    ...(providerUsage ? { providerUsage } : {}),
-    promptVersion: prepared.version,
-    rankingPolicyVersion: PRODUCT_FIT_RANKING_POLICY_VERSION,
-    prompt: prepared.prompt,
-    evaluatedAt: (context.now ?? new Date()).toISOString(),
-  });
+  }
+  return attempt.session;
 }
 
 function validationMessage(error: z.ZodError): string {

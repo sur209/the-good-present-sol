@@ -82,7 +82,10 @@ import {
 import { validateAffiliateOperations } from "./modules/affiliate-operations/validation.ts";
 import {
   createAmazonProductSourceRecord,
+  extractAmazonAsin,
   isApprovedAmazonUsHost,
+  normalizeAmazonAsin,
+  normalizeAmazonUrl,
   readAmazonUsAffiliateProgram,
   validateAmazonAffiliateIntake,
   type AmazonAffiliateIntakeValidation,
@@ -101,6 +104,7 @@ import {
   DEFAULT_PRODUCT_DISCOVERY_LIMITS,
   createProductDiscoverySource,
   generateProductSearchPlans,
+  productDiscoverySourceSupportsMode,
   runProductDiscovery,
   updateProductSearchPlan,
   type ProductDiscoverySource,
@@ -117,6 +121,15 @@ import {
   type ProductCoverageAnalysis,
   type ProductEvidence,
 } from "./modules/product-intelligence/coverage.ts";
+import { generateProductEditorialCopy } from "./modules/product-intelligence/editorial-copy.ts";
+import {
+  resolveRecommendationSlotAutonomously,
+  type AutopilotResolutionOutcome,
+} from "./modules/product-intelligence/autopilot.ts";
+import {
+  completeGuideAutonomously,
+  type GuideAutopilotOutcome,
+} from "./modules/product-intelligence/guide-autopilot.ts";
 import {
   inspectManualProductUrl,
   manualUrlCandidateInput,
@@ -163,11 +176,13 @@ import {
   linkProductSourceCandidate,
   productRequirementOriginSchema,
   productSourcingPrefillForDraftSlot,
+  productSourcingRequestIsActive,
   productSourcingReturnPath,
   reviewProductSourceCandidates,
   selectCanonicalProductForRequest,
   transitionProductSourcingRequest,
   type ProductRequirementOrigin,
+  type ProductDiscoveryMode,
   type ProductSourceCandidate,
   type ProductSourcingRequest,
   type ProductSourcingRequestInput,
@@ -612,7 +627,7 @@ async function ensureDraftSlotSourcingRequest(
     if (existing.status === "held") {
       return sourcingStore.save(transitionProductSourcingRequest(existing, "open"));
     }
-    if (existing.status !== "fulfilled") return existing;
+    if (productSourcingRequestIsActive(existing)) return existing;
   }
   return sourcingStore.save(
     createProductSourcingRequestForDraftSlot(
@@ -655,6 +670,47 @@ function feedbackReasonValue(form: URLSearchParams): EditorialFeedbackReason | u
   return value as EditorialFeedbackReason;
 }
 
+function discoveryModeValue(form: URLSearchParams): ProductDiscoveryMode {
+  const value = optionalValue(form, "discoveryMode") ?? "general";
+  if (value !== "general" && value !== "amazon") {
+    throw new TypeError("El modo de descubrimiento no es válido.");
+  }
+  return value;
+}
+
+function discoveryRoundSummary(request: ProductSourcingRequest | undefined): string {
+  const round = request?.discoveryRounds.at(-1);
+  if (!round) return "";
+  const parts = [round.discoveryMode === "amazon" ? "Amazon" : "General"];
+  if (round.providerCalls) {
+    parts.push(`${round.providerCalls} ${round.providerCalls === 1 ? "búsqueda" : "búsquedas"}`);
+  }
+  if (round.storedCandidateCount) {
+    parts.push(
+      `${round.storedCandidateCount} ${round.storedCandidateCount === 1 ? "candidato" : "candidatos"}`,
+    );
+  }
+  const outcome = round.failureCode
+    ? {
+        configuration: "configuración incompleta",
+        quota: "cuota agotada",
+        timeout: "timeout",
+        unavailable: "proveedor no disponible",
+        malformed: "respuesta inválida",
+      }[round.failureCode]
+    : {
+        empty: "sin resultados",
+        "reused-catalog": "catálogo reutilizado",
+        "reused-candidates": "candidatos compatibles reutilizados",
+        "skipped-resolved": "slot ya resuelto",
+        failed: "falló",
+        stored: undefined,
+        partial: undefined,
+      }[round.status];
+  if (outcome) parts.push(outcome);
+  return `<p class="notice"><strong>Último descubrimiento:</strong> ${parts.join(" · ")}</p>`;
+}
+
 function automaticDiscoveryWasInsufficient(request: ProductSourcingRequest): boolean {
   const attempted = request.discoveryRounds.some(({ providerCalls }) => providerCalls > 0);
   const viableAutomaticCandidate = request.sourceCandidates.some(
@@ -679,6 +735,7 @@ async function recordNewCandidateReviewEvents(
       candidateId: candidate.id,
       provider: candidate.provider,
       candidateSourceKind: candidate.sourceKind,
+      ...(candidate.discoveryMode ? { discoveryMode: candidate.discoveryMode } : {}),
       ...feedbackContext(after),
     });
   }
@@ -710,6 +767,7 @@ async function recordCandidateReviewEvents(
       candidateId: candidate.id,
       provider: candidate.provider,
       candidateSourceKind: candidate.sourceKind,
+      ...(candidate.discoveryMode ? { discoveryMode: candidate.discoveryMode } : {}),
       ...(reason ? { reason } : {}),
       ...feedbackContext(after),
     });
@@ -1014,36 +1072,72 @@ interface ManualProductCandidateReview {
   requestId: string;
   candidateId: string;
   candidate: ProductSourceCandidate;
+  request: ProductSourcingRequest;
+}
+
+interface EditorialCopyPageState {
+  input: ManualProductIntakeInput;
+  outcome: "generated" | "failed";
+  message: string;
+}
+
+function candidateProductUrl(candidate: ProductSourceCandidate): string | undefined {
+  for (const url of [candidate.originalProductUrl, candidate.productUrl]) {
+    if (!url || isGoogleShoppingIntermediaryUrl(url)) continue;
+    if (!isApprovedAmazonUsHost(url)) return url;
+    const urlAsin = extractAmazonAsin(url);
+    const expectedAsin = candidate.externalId
+      ? normalizeAmazonAsin(candidate.externalId)
+      : undefined;
+    if (urlAsin && (!expectedAsin || expectedAsin === urlAsin)) return normalizeAmazonUrl(url);
+  }
+  if (candidate.sourceUrl && isApprovedAmazonUsHost(candidate.sourceUrl)) {
+    const sourceAsin = extractAmazonAsin(candidate.sourceUrl);
+    const expectedAsin = candidate.externalId
+      ? normalizeAmazonAsin(candidate.externalId)
+      : undefined;
+    if (sourceAsin && (!expectedAsin || expectedAsin === sourceAsin)) {
+      return normalizeAmazonUrl(candidate.sourceUrl);
+    }
+  }
+  return undefined;
+}
+
+function candidateAmazonAsin(
+  candidate: ProductSourceCandidate,
+  productUrl: string | undefined,
+): string | undefined {
+  const explicit =
+    candidate.marketplace?.toLocaleLowerCase("en-US") === "amazon.com" && candidate.externalId
+      ? normalizeAmazonAsin(candidate.externalId)
+      : undefined;
+  return (
+    explicit ?? extractAmazonAsin(productUrl ?? "") ?? extractAmazonAsin(candidate.sourceUrl ?? "")
+  );
 }
 
 function manualProductIntakeFromCandidate(
   candidate: ProductSourceCandidate,
 ): ManualProductIntakeInput {
-  const productUrl = [candidate.originalProductUrl, candidate.productUrl].find(
-    (url) => !isGoogleShoppingIntermediaryUrl(url),
-  );
-  let merchant =
-    candidate.merchant ?? (/Amazon/i.test(candidate.provider) ? "Amazon" : candidate.provider);
-  if (
-    (merchant === "Manual" || merchant === "SerpAPI" || merchant === "DataForSEO") &&
-    candidate.sourceUrl
-  ) {
-    try {
-      merchant = new URL(candidate.sourceUrl).hostname;
-    } catch {
-      merchant = "";
-    }
-  }
+  const productUrl = candidateProductUrl(candidate);
+  const asin = candidateAmazonAsin(candidate, productUrl);
+  const amazonOrigin =
+    candidate.discoveryMode === "amazon" ||
+    (asin !== undefined &&
+      (candidate.marketplace?.toLocaleLowerCase("en-US") === "amazon.com" ||
+        Boolean(productUrl && isApprovedAmazonUsHost(productUrl)) ||
+        Boolean(candidate.sourceUrl && isApprovedAmazonUsHost(candidate.sourceUrl)))) ||
+    /^Amazon(?: Associates| Creators API)?$/i.test(candidate.provider);
+  const merchant = candidate.merchant ?? (amazonOrigin ? "Amazon" : "");
   return {
     ...(productUrl ? { productUrl } : {}),
     ...(candidate.originalAffiliateUrl || candidate.affiliateUrl
       ? { affiliateUrl: candidate.originalAffiliateUrl ?? candidate.affiliateUrl }
       : {}),
-    ...(candidate.externalId && candidate.marketplace === "amazon.com"
-      ? { asin: candidate.externalId }
-      : {}),
+    ...(asin ? { asin } : {}),
     ...(candidate.trackingId ? { trackingId: candidate.trackingId } : {}),
     name: candidate.name,
+    ...(candidate.brand ? { brand: candidate.brand } : {}),
     merchant,
     shortDescription: "",
     sourceFacts: [...candidate.sourceFacts],
@@ -1067,15 +1161,28 @@ function manualProductIntakeFromCandidate(
 
 function candidateReviewChecks(review?: ManualProductCandidateReview): string {
   if (!review) return "";
+  const observedAsin = candidateAmazonAsin(review.candidate, candidateProductUrl(review.candidate));
   const evidence = [
     `Proveedor: ${review.candidate.provider}`,
+    review.candidate.discoveryMode === "amazon" ? "Origen de búsqueda: Amazon" : undefined,
     `Título observado: ${review.candidate.name}`,
+    review.candidate.brand ? `Marca observada: ${review.candidate.brand}` : undefined,
     review.candidate.merchant ? `Comercio observado: ${review.candidate.merchant}` : undefined,
+    observedAsin ? `ASIN observado: ${observedAsin}` : undefined,
     review.candidate.observedPrice
       ? `Precio observado: ${review.candidate.observedPrice}`
       : undefined,
+    review.candidate.observedRating !== undefined
+      ? `Rating observado: ${review.candidate.observedRating}`
+      : undefined,
+    review.candidate.observedReviewCount !== undefined
+      ? `Reseñas observadas: ${review.candidate.observedReviewCount}`
+      : undefined,
+    review.candidate.providerResultPosition !== undefined
+      ? `Posición observada: ${review.candidate.providerResultPosition}`
+      : undefined,
   ].flatMap((item) => (item ? [`<li>${escapeHtml(item)}</li>`] : []));
-  const observed = `<section class="card"><h2>Evidencia observada</h2><p class="muted">Estos datos siguen siendo evidencia no pública hasta que el editor confirme la identidad del Product.</p><ul>${evidence.join("")}</ul>${review.candidate.sourceUrl ? `<p class="muted">URL de descubrimiento no pública: <code>${escapeHtml(review.candidate.sourceUrl)}</code></p>` : ""}</section>`;
+  const observed = `<section class="card"><h2>Evidencia observada</h2><p class="muted">Estos datos siguen siendo evidencia no pública hasta que el editor confirme la identidad del Product.</p><ul>${evidence.join("")}</ul>${review.candidate.observedImageUrl ? `<p>Imagen observada, sin derechos verificados: <a href="${escapeHtml(review.candidate.observedImageUrl)}">ver referencia del proveedor</a></p>` : ""}${review.candidate.sourceUrl ? `<p class="muted">URL de descubrimiento no pública: <code>${escapeHtml(review.candidate.sourceUrl)}</code></p>` : ""}</section>`;
   const warnings = review.candidate.urlWarnings?.length
     ? `<div class="notice"><strong>Advertencias de URL</strong><ul>${review.candidate.urlWarnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul></div>`
     : "";
@@ -1086,8 +1193,10 @@ function manualProductIntakePage(
   preview?: ManualProductIntakePreview,
   returnTo?: string,
   review?: ManualProductCandidateReview,
+  editorialCopy?: EditorialCopyPageState,
 ): string {
   const input =
+    editorialCopy?.input ??
     preview?.input ??
     (review ? manualProductIntakeFromCandidate(review.candidate) : emptyManualProductIntake());
   const errors = preview?.errors ?? [];
@@ -1102,6 +1211,9 @@ function manualProductIntakePage(
     : "";
   const duplicateHtml = preview?.duplicates.length
     ? `<div class="error"><strong>Posibles duplicados</strong><ul>${preview.duplicates.map((duplicate) => `<li>${escapeHtml(duplicate.kind)} · ${escapeHtml(duplicate.productId)}${duplicate.sourceId ? ` · ${escapeHtml(duplicate.sourceId)}` : ""}: ${escapeHtml(duplicate.reason)}</li>`).join("")}</ul></div>`
+    : "";
+  const editorialCopyHtml = editorialCopy
+    ? `<p class="${editorialCopy.outcome === "failed" ? "error" : "notice"}">${escapeHtml(editorialCopy.message)}</p>`
     : "";
   const statusOptions = ["active", "inactive"]
     .map(
@@ -1138,7 +1250,7 @@ function manualProductIntakePage(
     review ? "Revision P.1 del candidato" : "Ingreso manual de producto",
     `<p><a href="/products">← Catálogo</a></p>
      <h1>${review ? "Revision P.1 del candidato" : "Ingreso manual de producto"}</h1>
-     ${review ? `<p>Solicitud I.2: <code>${escapeHtml(review.requestId)}</code> - candidato <code>${escapeHtml(review.candidateId)}</code>. Esta revision volvera al mismo requisito y no cumple ni asigna el slot automaticamente.</p>` : ""}
+     ${review ? `<p>Esta revisión volverá al mismo requisito y no cumple ni asigna el slot automáticamente.</p><details><summary>Trazabilidad interna</summary><p>Solicitud I.2: <code>${escapeHtml(review.requestId)}</code> · candidato <code>${escapeHtml(review.candidateId)}</code>.</p></details>` : ""}
      <p class="notice">Este flujo acepta sólo información pegada y verificada por el editor. No visita Amazon, no raspa páginas, no descarga imágenes y no genera URLs afiliadas.</p>
      ${errorHtml}${warningHtml}${duplicateHtml}
      <form method="post" action="/products/intake" class="card">
@@ -1158,12 +1270,13 @@ function manualProductIntakePage(
        <section>
          <h2>Copy editorial original</h2>
          <p class="muted">Esta copia la escribe el editor. No se copia automáticamente ninguna descripción del comerciante.</p>
+         ${editorialCopyHtml}
          <div class="grid">
            <label>Nombre<input name="name" required value="${value(input.name)}"></label>
            <label>Marca (opcional)<input name="brand" value="${value(input.brand)}"></label>
            <label>Comercio<input name="merchant" required value="${value(input.merchant)}"></label>
            <label>Estado<select name="status">${statusOptions}</select></label>
-           <label class="wide">Descripción breve original<textarea name="shortDescription" rows="3" required>${value(input.shortDescription)}</textarea></label>
+           <div class="wide"><label>Descripción breve original<textarea name="shortDescription" rows="3" required>${value(input.shortDescription)}</textarea></label>${review ? '<div class="actions"><button type="submit" formaction="/products/intake/editorial-copy" formnovalidate>Generar descripción editorial</button><span class="muted">Genera un borrador editable para revisar. Si ya hay texto, esta acción lo reemplaza; todavía debes confirmarlo.</span></div>' : ""}</div>
            <label class="wide">Datos verificados seleccionados (uno por línea)<textarea name="verifiedFacts" rows="4">${listText(input.verifiedFacts, "\n")}</textarea></label>
            <label class="wide"><input type="checkbox" name="verifiedFactsConfirmed" value="yes"${input.verifiedFactsConfirmed ? " checked" : ""}> Afirmo que cada dato verificado seleccionado está respaldado por los hechos ingresados de la fuente.</label>
            <label>Etiqueta de precio revisada, no precio vivo<input name="priceLabel" value="${value(input.priceLabel)}" placeholder="Menos de $25"></label>
@@ -1607,7 +1720,7 @@ const guideCurationActionLabels: Record<GuideCurationNextAction, string> = {
   "prepare-search": "Preparar la búsqueda con el contexto heredado",
   "run-discovery": "Buscar otros con el proveedor configurado",
   "generate-idea-copy": "Generar guía de selección y mantener como idea",
-  "keep-as-idea": "Mantener como idea y continuar a publicación",
+  "keep-as-idea": "Sin acción editorial; el Product puede agregarse más adelante",
   "review-product-copy": "Revisar o regenerar sólo esta recomendación",
   "add-affiliate-destination": "Completar el destino del Product",
   "fully-ready": "Sin acción pendiente",
@@ -1630,13 +1743,13 @@ function guideCurationPage(
   );
   const progress = guideCurationProgress(draft, content, requests);
   const progressItems: [string, number][] = [
-    ["idea lista / Product sin resolver", progress.ideaReadyProductUnresolved],
+    ["editorialmente lista / Product pendiente", progress.ideaReadyProductUnresolved],
     ["candidato por revisar", progress.candidateReview],
     ["Product resuelto", progress.productResolved],
     ["copia de Product por revisar", progress.productCopyNeedsReview],
     ["destino afiliado faltante", progress.affiliateDestinationMissing],
     ["completamente lista", progress.fullyReady],
-    ["idea-only publicada", progress.publishedIdeaOnly],
+    ["publicada / Product pendiente", progress.publishedIdeaOnly],
   ];
   const unresolved = draft.recommendations.filter(({ productId }) => !productId);
   const selection = unresolved.length
@@ -1714,7 +1827,7 @@ function guideCurationPage(
       const resolutionState = selected
         ? `Product resuelto · ${slot.editorialStatus === "ready" ? "copia lista" : "copia necesita revisión"}`
         : slot.editorialStatus === "ready"
-          ? "Idea lista · Product sin resolver"
+          ? "Editorialmente lista · Product pendiente"
           : "Idea y Product sin resolver";
       const productClass = request?.searchPlan?.productClass ?? slot.slotLabel;
       const alternativeRequest = Boolean(
@@ -1723,27 +1836,28 @@ function guideCurationPage(
         (request.status === "open" || request.status === "partially-fulfilled") &&
         !request.approvedProductIds.length,
       );
-      const discoveryAction =
+      const discoveryActions =
         request?.searchPlan &&
         discoverySource &&
         request.discoveryRounds.length < DEFAULT_PRODUCT_DISCOVERY_LIMITS.maxRounds &&
         (!slot.productId || alternativeRequest)
-          ? `<form method="post" action="/drafts/${encodeURIComponent(draft.id)}/curation/discover"><input type="hidden" name="slotId" value="${escapeHtml(slot.id)}"><input type="hidden" name="forceExternal" value="yes">${alternativeRequest ? '<input type="hidden" name="includeResolved" value="yes">' : ""}<button type="submit">Buscar otros con ${escapeHtml(discoverySource.providerId)} · uso pago</button></form>`
+          ? `<form method="post" action="/drafts/${encodeURIComponent(draft.id)}/curation/discover"><input type="hidden" name="slotId" value="${escapeHtml(slot.id)}"><input type="hidden" name="forceExternal" value="yes"><input type="hidden" name="discoveryMode" value="general">${alternativeRequest ? '<input type="hidden" name="includeResolved" value="yes">' : ""}<button type="submit">Buscar productos</button></form>${productDiscoverySourceSupportsMode(discoverySource, "amazon") ? `<form method="post" action="/drafts/${encodeURIComponent(draft.id)}/curation/discover"><input type="hidden" name="slotId" value="${escapeHtml(slot.id)}"><input type="hidden" name="forceExternal" value="yes"><input type="hidden" name="discoveryMode" value="amazon">${alternativeRequest ? '<input type="hidden" name="includeResolved" value="yes">' : ""}<button type="submit">Buscar en Amazon</button></form>` : ""}`
           : "";
       const planEditor = request?.searchPlan
         ? `<details><summary>Editar plan de búsqueda</summary><form method="post" action="/product-sourcing/${encodeURIComponent(request.id)}/plan" class="card"><input type="hidden" name="returnTo" value="/drafts/${escapeHtml(draft.id)}/curation"><label>Product class<input name="productClass" value="${value(request.searchPlan.productClass)}" required></label><label>Must-have · uno por línea<textarea name="mustHaveAttributes">${listText(request.searchPlan.mustHaveAttributes, "\n")}</textarea></label><label>Useful · uno por línea<textarea name="usefulAttributes">${listText(request.searchPlan.usefulAttributes, "\n")}</textarea></label><label>Exclusiones · una por línea<textarea name="exclusions">${listText(request.searchPlan.exclusions, "\n")}</textarea></label><label>Consultas · una por línea<textarea name="queries" required>${listText(request.searchPlan.queries, "\n")}</textarea></label><button type="submit">Guardar plan</button></form></details>`
         : "";
       const unresolvedActions = !slot.productId
-        ? `<div class="actions"><form method="post" action="/drafts/${encodeURIComponent(draft.id)}/curation/prepare"><input type="hidden" name="slotId" value="${escapeHtml(slot.id)}"><button type="submit">Preparar sólo este slot</button></form>${discoveryAction}<a class="button" href="/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(slot.id)}/idea-prompt">Mantener como idea</a></div><form method="post" action="/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(slot.id)}/resolve-url" class="card"><input type="hidden" name="returnTo" value="/drafts/${escapeHtml(draft.id)}/curation"><label>Pegar URL<input type="url" name="url" required placeholder="https://..."></label><button type="submit">Pegar URL</button></form>`
-        : `<div class="actions"><a href="/drafts/${encodeURIComponent(draft.id)}#slot-${encodeURIComponent(slot.id)}">Revisión manual</a><a href="/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(slot.id)}/prompt">Regeneración enfocada</a><form method="post" action="/drafts/${encodeURIComponent(draft.id)}/curation/prepare"><input type="hidden" name="slotId" value="${escapeHtml(slot.id)}"><input type="hidden" name="includeResolved" value="yes"><button type="submit">Buscar alternativas</button></form>${discoveryAction}</div>`;
+        ? `<div class="actions"><form method="post" action="/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(slot.id)}/autopilot"><button type="submit">Resolver automáticamente</button></form><form method="post" action="/drafts/${encodeURIComponent(draft.id)}/curation/prepare"><input type="hidden" name="slotId" value="${escapeHtml(slot.id)}"><button type="submit">Preparar sólo este slot</button></form>${discoveryActions}<a class="button" href="/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(slot.id)}/idea-prompt">Editar guía de selección</a></div><form method="post" action="/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(slot.id)}/resolve-url" class="card"><input type="hidden" name="returnTo" value="/drafts/${escapeHtml(draft.id)}/curation"><label>Pegar URL<input type="url" name="url" required placeholder="https://..."></label><button type="submit">Pegar URL</button></form>`
+        : `<div class="actions"><a href="/drafts/${encodeURIComponent(draft.id)}#slot-${encodeURIComponent(slot.id)}">Revisión manual</a><a href="/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(slot.id)}/prompt">Regeneración enfocada</a><form method="post" action="/drafts/${encodeURIComponent(draft.id)}/curation/prepare"><input type="hidden" name="slotId" value="${escapeHtml(slot.id)}"><input type="hidden" name="includeResolved" value="yes"><button type="submit">Buscar alternativas</button></form>${discoveryActions}</div>`;
       return `<section class="card"><div class="actions"><div><p class="muted">Recomendación ${slot.position}</p><h2>${escapeHtml(slot.heading ?? slot.slotLabel)}</h2></div><span class="status">${escapeHtml(resolutionState)}</span></div>
         <p><strong>Propósito:</strong> ${escapeHtml(slot.slotIntent ?? slot.slotLabel)}</p><p><strong>Product class:</strong> ${escapeHtml(productClass)}</p>
-        ${request ? `<p class="muted">Sourcing integrado: ${escapeHtml(request.status)}${request.searchPlan ? ` · plan listo · ${request.sourceCandidates.length} candidato(s)` : ""}</p>` : ""}
+        ${request ? `<p class="muted">Sourcing integrado: ${request.status === "completed-idea-only" ? "intento automático completo · Product pendiente" : escapeHtml(request.status)}${request.searchPlan ? ` · plan listo · ${request.sourceCandidates.length} candidato(s)` : ""}</p>` : ""}
         <p class="notice"><strong>Siguiente acción recomendada:</strong> ${escapeHtml(guideCurationActionLabels[action])}</p>
+        ${discoveryRoundSummary(request)}
         ${selected ? `<article class="card"><h3>${escapeHtml(selected.name)}</h3><p>${escapeHtml(selected.shortDescription)}</p></article>` : ""}
         ${catalogCards ? `<h3>Candidatos del catálogo</h3><div class="grid">${catalogCards}</div>` : ""}
         ${externalCards ? `<h3>Candidatos externos</h3><div class="grid">${externalCards}</div>` : ""}
-        ${!selected && !catalogCards && !externalCards ? '<p class="muted">Todavía no hay una shortlist. La idea puede seguir siendo publicable sin Product cuando su copia esté lista.</p>' : ""}
+        ${!selected && !catalogCards && !externalCards ? '<p class="muted">Todavía no hay una shortlist. La recomendación puede quedar editorialmente lista y publicarse sin Product ni CTA.</p>' : ""}
         ${unresolvedActions}${planEditor}
         <details><summary>IDs y trazabilidad</summary><p><code>${escapeHtml(draft.id)}</code> · <code>${escapeHtml(slot.id)}</code>${request ? ` · <code>${escapeHtml(request.id)}</code>` : ""}</p></details>
       </section>`;
@@ -1753,7 +1867,8 @@ function guideCurationPage(
     `Curación · ${draftName(draft)}`,
     `<p><a href="/drafts/${encodeURIComponent(draft.id)}">← Volver a la guía</a></p><div class="actions"><div><h1>Curación de la guía</h1><p>Elegí Products; los diagnósticos completos quedan en detalles.</p></div><a class="button" href="/drafts/${encodeURIComponent(draft.id)}/preview">Vista previa</a></div>
     <section class="card"><h2>Progreso</h2><div class="actions">${progressItems.map(([label, count]) => `<span class="status">${count} ${escapeHtml(label)}</span>`).join("")}</div></section>
-    ${selection}<p class="notice">Orden de resolución: catálogo y referencias editoriales; candidatos recientes; ${discoverySource ? escapeHtml(discoverySource.providerId) : "proveedor externo desactivado"}; URL manual; o idea-only. DataForSEO sólo existe cuando fue elegido y habilitado explícitamente. Nunca hay fallback pago oculto ni selección automática.</p>
+    <section class="card"><h2>Autopilot de guía</h2><p>Completa el copy pendiente y busca Products confiables para cada slot sin bloquear la guía cuando un Product queda pendiente.</p><form method="post" action="/drafts/${encodeURIComponent(draft.id)}/autopilot"><button type="submit">Completar guía automáticamente</button></form></section>
+    ${selection}<p class="notice">Autopilot asigna un Product sólo cuando supera el gate P.2; ante duda deja la recomendación editorialmente lista y el Product pendiente. Podés enriquecerla ahora o más adelante. ${discoverySource ? `${escapeHtml(discoverySource.providerId)} · uso pago acotado por ejecución.` : "Proveedor externo desactivado."} DataForSEO sólo existe cuando fue elegido y habilitado explícitamente; nunca se usa como fallback oculto.</p>
     ${cards}`,
   );
 }
@@ -1897,12 +2012,12 @@ function productSourcingDetailPage(
   const discoveryHistory = request.discoveryRounds
     .map(
       (round) =>
-        `<li>Ronda ${round.round} · ${escapeHtml(round.provider)} · ${escapeHtml(round.status)} · ${round.providerCalls} llamada(s) · ${round.storedCandidateCount} candidato(s) guardado(s)${round.failureCode ? ` · ${escapeHtml(round.failureCode)}` : ""}</li>`,
+        `<li>Ronda ${round.round} · ${round.discoveryMode === "amazon" ? "Amazon" : "general"} · ${escapeHtml(round.provider)} · ${escapeHtml(round.status)} · ${round.providerCalls} llamada(s) · ${round.storedCandidateCount} candidato(s) guardado(s)${round.failureCode ? ` · ${escapeHtml(round.failureCode)}` : ""}</li>`,
     )
     .join("");
   const nextRound = request.discoveryRounds.length + 1;
   const discoveryControls = request.searchPlan
-    ? `<section class="card wide"><h2>SearchPlan y descubrimiento acotado</h2><dl><dt>Product class</dt><dd>${escapeHtml(request.searchPlan.productClass)}</dd><dt>Must-have</dt><dd>${escapeHtml(request.searchPlan.mustHaveAttributes.join(", ") || "—")}</dd><dt>Useful</dt><dd>${escapeHtml(request.searchPlan.usefulAttributes.join(", ") || "—")}</dd><dt>Exclusiones</dt><dd>${escapeHtml(request.searchPlan.exclusions.join(", ") || "—")}</dd><dt>Consultas</dt><dd>${escapeHtml(request.searchPlan.queries.join(" · "))}</dd></dl>${discoveryHistory ? `<ol>${discoveryHistory}</ol>` : ""}${activeRequest && discoverySource && nextRound <= DEFAULT_PRODUCT_DISCOVERY_LIMITS.maxRounds ? `<form method="post" action="/product-sourcing/${encodeURIComponent(request.id)}/discover"><input type="hidden" name="round" value="${nextRound}"><p>Proveedor pago seleccionado: <strong>${escapeHtml(discoverySource.providerId)}</strong>. Máximo ${DEFAULT_PRODUCT_DISCOVERY_LIMITS.maxQueriesPerSlot} consultas y ${DEFAULT_PRODUCT_DISCOVERY_LIMITS.maxStoredCandidatesPerSlot} candidatos externos guardados por slot.</p><label><input type="checkbox" name="forceExternal" value="yes"> Usar llamadas externas aunque haya coincidencias compatibles en catálogo o candidatos recientes.</label><button type="submit">${nextRound === 1 ? "Ejecutar primera ronda" : "Ejecutar segunda ronda explícita"}</button></form>` : activeRequest && !discoverySource ? '<p class="notice">El proveedor externo está desactivado. Catálogo, URL manual e idea-only siguen disponibles.</p>' : ""}</section>`
+    ? `<section class="card wide"><h2>SearchPlan y descubrimiento acotado</h2><dl><dt>Product class</dt><dd>${escapeHtml(request.searchPlan.productClass)}</dd><dt>Must-have</dt><dd>${escapeHtml(request.searchPlan.mustHaveAttributes.join(", ") || "—")}</dd><dt>Useful</dt><dd>${escapeHtml(request.searchPlan.usefulAttributes.join(", ") || "—")}</dd><dt>Exclusiones</dt><dd>${escapeHtml(request.searchPlan.exclusions.join(", ") || "—")}</dd><dt>Consultas</dt><dd>${escapeHtml(request.searchPlan.queries.join(" · "))}</dd></dl>${discoveryHistory ? `<ol>${discoveryHistory}</ol>` : ""}${activeRequest && discoverySource && nextRound <= DEFAULT_PRODUCT_DISCOVERY_LIMITS.maxRounds ? `<p>Proveedor pago seleccionado: <strong>${escapeHtml(discoverySource.providerId)}</strong>. La búsqueda general usa como máximo ${DEFAULT_PRODUCT_DISCOVERY_LIMITS.maxQueriesPerSlot} consultas; Amazon usa una. Se guardan como máximo ${DEFAULT_PRODUCT_DISCOVERY_LIMITS.maxStoredCandidatesPerSlot} candidatos externos por modo y slot.</p><div class="actions"><form method="post" action="/product-sourcing/${encodeURIComponent(request.id)}/discover"><input type="hidden" name="round" value="${nextRound}"><input type="hidden" name="discoveryMode" value="general"><label><input type="checkbox" name="forceExternal" value="yes"> Omitir reutilización compatible.</label><button type="submit">Buscar productos</button></form>${productDiscoverySourceSupportsMode(discoverySource, "amazon") ? `<form method="post" action="/product-sourcing/${encodeURIComponent(request.id)}/discover"><input type="hidden" name="round" value="${nextRound}"><input type="hidden" name="discoveryMode" value="amazon"><input type="hidden" name="forceExternal" value="yes"><button type="submit">Buscar en Amazon</button></form>` : ""}</div>` : activeRequest && !discoverySource ? '<p class="notice">El proveedor externo está desactivado. Catálogo, URL manual e idea-only siguen disponibles.</p>' : ""}</section>`
     : '<section class="notice"><p>Este requisito todavía no tiene SearchPlan. Seleccionalo en la lista de sourcing para planificar uno o varios slots con una sola solicitud editorial.</p></section>';
   const transitions = (
     request.status === "open"
@@ -2955,7 +3070,7 @@ function recommendationSelectionSection(
               ? "Listo para generar recomendación"
               : "Asignado"
         : recommendation.editorialStatus === "ready"
-          ? "Editorialmente lista · Product sin resolver"
+          ? "Editorialmente lista · Product pendiente"
           : possibleMatch
             ? "Posible coincidencia determinista"
             : "Sin coincidencia determinista · sourcing probable";
@@ -3044,12 +3159,12 @@ function recommendationSelectionSection(
       const prefill = productSourcingPrefillForDraftSlot(draft, recommendation, brief);
       const slotPath = guideDraftSlotPath(draft.id, recommendation.id);
       const fastResolution = `<section class="card"><h4>Resolver Product con I.2</h4>
-        ${slotRequests.length ? `<ul>${slotRequests.map((request) => `<li><a href="/product-sourcing/${encodeURIComponent(request.id)}"><code>${escapeHtml(request.id)}</code></a> - ${escapeHtml(request.status)}</li>`).join("")}</ul>` : '<p class="muted">La solicitud I.2 se crea automaticamente al elegir una coincidencia o pegar una URL.</p>'}
+        ${slotRequests.length ? `<ul>${slotRequests.map((request) => `<li><a href="/product-sourcing/${encodeURIComponent(request.id)}"><code>${escapeHtml(request.id)}</code></a> - ${request.status === "completed-idea-only" ? "intento completo · Product pendiente" : escapeHtml(request.status)}</li>`).join("")}</ul>` : '<p class="muted">La solicitud I.2 se crea automaticamente al elegir una coincidencia o pegar una URL.</p>'}
         ${!selected ? `<form method="post" action="${slotPath}/resolve-url" class="card"><label>URL de producto o afiliado<input type="url" name="url" required placeholder="https://..."></label><label>Destino afiliado separado (opcional)<input type="url" name="affiliateUrl" placeholder="https://..."></label><label>Tracking ID conocido (opcional)<input name="trackingId"></label><button type="submit">Pegar URL de producto/afiliado</button></form>` : ""}
         <details><summary>Contexto I.2 heredado automaticamente</summary><div class="grid"><label>Audiencia<input value="${value(prefill.audience)}" readonly></label><label>Ocasion o contexto<input value="${value(prefill.occasion)}" readonly></label><label>Presupuesto<input value="${value(prefill.budgetContext)}" readonly></label><label class="wide">Exclusiones<textarea rows="2" readonly>${listText(prefill.exclusions, "\n")}</textarea></label><label class="wide">Terminos de busqueda<input value="${listText(prefill.searchTerms)}" readonly></label></div></details>
       </section>`;
       return `<article class="card" id="slot-${escapeHtml(recommendation.id)}">
-        <div class="actions"><h3>${recommendation.position}. ${escapeHtml(recommendation.slotLabel)}</h3><span class="status">${escapeHtml(recommendation.editorialStatus)} · ${selected ? "Product resuelto" : "Product sin resolver"}</span></div>
+        <div class="actions"><h3>${recommendation.position}. ${escapeHtml(recommendation.slotLabel)}</h3><span class="status">${escapeHtml(recommendation.editorialStatus)} · ${selected ? "Product resuelto" : "Product pendiente"}</span></div>
         ${recommendation.slotIntent ? `<p>${escapeHtml(recommendation.slotIntent)}</p>` : ""}
         ${recommendation.searchTerms?.length ? `<p class="muted">Búsqueda sugerida: ${escapeHtml(recommendation.searchTerms.join(", "))}</p>` : ""}
         ${recommendation.budgetHint ? `<p class="muted">Presupuesto: ${escapeHtml(recommendation.budgetHint)}</p>` : ""}
@@ -3341,10 +3456,12 @@ function guidePreviewPage(draft: GuideDraft): string {
 
 function guideValidationPage(draft: GuideDraft): string {
   const result = validateGuideDraft(draft, readPublicContent());
+  const { readiness } = result;
   return page(
     `Validación · ${draftName(draft)}`,
     `<p><a href="/drafts/${draft.id}">← Editar guía</a></p>
      <h1>Validación de la guía</h1>
+     <section class="card"><h2>Preparación</h2><dl><dt>Editorial</dt><dd>${readiness.editorialReadyCount}/${readiness.recommendationCount} listas</dd><dt>Products</dt><dd>${readiness.productResolvedCount}/${readiness.recommendationCount} resueltos · ${readiness.productPendingCount} pendientes</dd></dl>${readiness.productPendingCount ? '<p class="muted">Los Products pendientes no bloquean la publicación; esos slots no tendrán CTA.</p>' : ""}</section>
      ${result.errors.length ? `<div class="error"><strong>Falta resolver:</strong><ul>${result.errors.map((error) => `<li>${escapeHtml(error)}</li>`).join("")}</ul></div>` : '<p class="notice">La guía está lista para la publicación.</p>'}
      ${result.route ? `<p>Ruta canónica: <code>${escapeHtml(result.route)}</code></p>` : ""}
      <p><strong>Publicar crea o actualiza el contenido del repositorio. Para publicarlo en Internet todavía hay que hacer commit y push.</strong></p>
@@ -3360,6 +3477,77 @@ function publicationResultPage(draft: EditorialDraft, result: PublicationResult)
      <p class="notice">Se escribió y validó el archivo canónico.</p>
      <dl><dt>ID estable</dt><dd><code>${escapeHtml(result.id)}</code></dd><dt>Archivo</dt><dd><code>${escapeHtml(result.file)}</code></dd><dt>Ruta</dt><dd><code>${escapeHtml(result.route)}</code></dd></dl>
      <p><strong>Publicar crea o actualiza el contenido del repositorio. Para publicarlo en Internet todavía hay que hacer commit y push.</strong></p>`,
+  );
+}
+
+function autopilotResultPage(draft: GuideDraft, result: AutopilotResolutionOutcome): string {
+  const heading =
+    result.status === "resolved-product"
+      ? "✓ Resuelto automáticamente con Product"
+      : result.status === "resolved-idea-only"
+        ? "✓ Editorialmente lista · Product pendiente"
+        : "No se pudo completar automáticamente";
+  const evidence = result.executionEvidence;
+  const bestCandidate = evidence.bestCandidate;
+  const attempts = result.discoveryAttempts.length
+    ? `<ul>${result.discoveryAttempts
+        .map(
+          (attempt) =>
+            `<li>Ronda ${attempt.round}: <code>${escapeHtml(attempt.status)}</code>, ${attempt.providerCalls} llamada(s), ${attempt.returnedCandidateCount} candidato(s) devuelto(s)${attempt.failureCode ? `, falla <code>${escapeHtml(attempt.failureCode)}</code>` : ""}</li>`,
+        )
+        .join("")}</ul>`
+    : "";
+  const p2Attempts = evidence.p2Attempts.length
+    ? `<ul>${evidence.p2Attempts
+        .map(
+          (attempt) =>
+            `<li>P.2 ${attempt.kind === "recovery" ? "recuperación" : "inicial"}: ${attempt.candidatesEvaluated}/${attempt.candidatesSent} evaluado(s), ${attempt.candidatesFailed} falla(s)${attempt.unmappedMalformedResults ? `, ${attempt.unmappedMalformedResults} resultado(s) malformado(s) sin ID utilizable` : ""}</li>`,
+        )
+        .join("")}</ul>`
+    : "";
+  const evaluationFailures = evidence.candidateEvaluationFailures.length
+    ? `<p>Evaluaciones no recuperadas:</p><ul>${evidence.candidateEvaluationFailures
+        .map(
+          (failure) =>
+            `<li>${escapeHtml(failure.name)} (<code>${escapeHtml(failure.candidateId)}</code>): <code>${escapeHtml(failure.reasonCode)}</code></li>`,
+        )
+        .join("")}</ul>`
+    : "";
+  return page(
+    `Autopilot · ${draftName(draft)}`,
+    `<p><a href="/drafts/${encodeURIComponent(draft.id)}/curation">← Volver a curación</a></p>
+     <h1>${heading}</h1>
+     <p class="${result.status === "failed" ? "error" : "notice"}">${result.status === "failed" ? "No se pudo guardar un estado editorial seguro por una falla de infraestructura." : result.status === "resolved-idea-only" ? "Autopilot no encontró un Product con suficiente confianza. La recomendación quedó lista, sin CTA, y podés agregar el Product ahora o más adelante." : "La recomendación quedó editorialmente lista con el Product asignado."}</p>
+     <p><strong><code>${escapeHtml(result.reasonCode)}</code></strong> — ${escapeHtml(result.reasonExplanation)}</p>
+     <dl><dt>Resultado</dt><dd><code>${escapeHtml(result.status)}</code></dd><dt>Ruta</dt><dd><code>${escapeHtml(result.resolutionStrategy)}</code></dd>${result.productId ? `<dt>Product</dt><dd><code>${escapeHtml(result.productId)}</code></dd>` : ""}<dt>Afiliación</dt><dd><code>${escapeHtml(result.affiliateDestinationStatus)}</code></dd></dl>
+     <details><summary>Evidencia compacta de ejecución</summary><dl><dt>Catálogo considerado</dt><dd>${evidence.catalogCandidatesConsidered}</dd><dt>Candidatos recientes considerados</dt><dd>${evidence.recentSourceCandidatesConsidered}</dd><dt>Amazon intentado</dt><dd>${evidence.amazonDiscoveryAttempted ? "sí" : "no"}</dd><dt>Llamadas al proveedor</dt><dd>${evidence.providerCallCount}</dd><dt>Candidatos devueltos</dt><dd>${evidence.candidatesReturned}</dd><dt>Candidatos evaluados</dt><dd>${evidence.candidatesEvaluated}</dd><dt>Llamadas P.2</dt><dd>${evidence.p2ProviderCallCount}</dd><dt>Recuperación P.2</dt><dd>${evidence.p2RecoveryAttempted ? "sí" : "no"}</dd><dt>Candidatos recuperados</dt><dd>${evidence.candidatesRecovered}</dd><dt>Refinamiento intentado</dt><dd>${evidence.searchRefinementAttempted ? "sí" : "no"}</dd>${bestCandidate ? `<dt>Mejor candidato evaluado</dt><dd>${escapeHtml(bestCandidate.name)} (<code>${escapeHtml(bestCandidate.candidateId)}</code>)</dd>` : ""}</dl>${bestCandidate?.p2GateFailures.length ? `<p>Fallos P.2 del mejor candidato:</p><ul>${bestCandidate.p2GateFailures.map((failure) => `<li><code>${escapeHtml(failure)}</code></li>`).join("")}</ul>` : ""}${attempts}${p2Attempts}${evaluationFailures}</details>
+     ${result.productNotUsedBecause.length ? `<details><summary>Por qué no se usó un Product</summary><ul>${result.productNotUsedBecause.map((reason) => `<li>${escapeHtml(reason)}</li>`).join("")}</ul></details>` : ""}
+     ${result.warnings.length ? `<details><summary>Advertencias no bloqueantes</summary><ul>${result.warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul></details>` : ""}`,
+  );
+}
+
+function guideAutopilotResultPage(draft: GuideDraft, result: GuideAutopilotOutcome): string {
+  const heading =
+    result.status === "failed"
+      ? "La guía no pudo completarse"
+      : result.status === "completed-with-warnings"
+        ? "✓ Guía completa con advertencias"
+        : "✓ Guía completada automáticamente";
+  const slotDetails = result.slots
+    .map(
+      (slot) =>
+        `<li><strong>${slot.position}. <code>${escapeHtml(slot.status)}</code></strong>${slot.productId ? ` · Product <code>${escapeHtml(slot.productId)}</code>` : ""}${slot.singleSlotResult ? ` · <code>${escapeHtml(slot.singleSlotResult.reasonCode)}</code>` : ""}${slot.warnings.length ? `<ul>${slot.warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul>` : ""}</li>`,
+    )
+    .join("");
+  return page(
+    `Autopilot de guía · ${draftName(draft)}`,
+    `<p><a href="/drafts/${encodeURIComponent(draft.id)}/curation">← Volver a curación</a></p>
+     <h1>${heading}</h1>
+     <p class="${result.status === "failed" ? "error" : "notice"}">${escapeHtml(result.reasonExplanation)}</p>
+     <p><strong><code>${escapeHtml(result.reasonCode)}</code></strong></p>
+     <section class="card"><h2>Resumen</h2><div class="actions"><span class="status">${result.counts.editorialReady}/${result.counts.totalRecommendations} editorialmente listas</span><span class="status">${result.counts.productResolved} Products resueltos</span><span class="status">${result.counts.productPending} Products pendientes</span><span class="status">${result.counts.affiliateReady} destinos listos</span><span class="status">${result.counts.affiliatePending} destinos pendientes</span></div></section>
+     <details><summary>Resultados por slot y diagnóstico compacto</summary><ol>${slotDetails}</ol><dl><dt>Products reutilizados</dt><dd>${result.execution.productsReused}</dd><dt>Products creados</dt><dd>${result.execution.productsCreated}</dd><dt>Llamadas Amazon</dt><dd>${result.execution.amazonDiscoveryCalls}</dd><dt>Llamadas P.2</dt><dd>${result.execution.p2Calls}</dd><dt>Generaciones editoriales</dt><dd>${result.execution.editorialGenerations}</dd><dt>Fallbacks con Product pendiente</dt><dd>${result.execution.productPendingFallbacks}</dd><dt>Concurrencia máxima</dt><dd>${result.execution.maxConcurrentSlots}</dd></dl></details>
+     ${result.warnings.length ? `<details><summary>Advertencias no bloqueantes</summary><ul>${result.warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul></details>` : ""}`,
   );
 }
 
@@ -3740,6 +3928,10 @@ export function createStudioServer(
           );
         }
         const form = await readForm(request);
+        const discoveryMode = discoveryModeValue(form);
+        if (!productDiscoverySourceSupportsMode(discoverySource, discoveryMode)) {
+          throw new TypeError("El proveedor configurado no admite búsqueda Amazon.");
+        }
         const draft = await readGuideDraft(store, guideCurationDiscoveryMatch[1]);
         const slotIds = [...new Set(form.getAll("slotId").map((id) => id.trim()))].filter(Boolean);
         const includeResolved = form.get("includeResolved") === "yes";
@@ -3778,6 +3970,7 @@ export function createStudioServer(
             ),
             slotResolved: includeResolved ? false : Boolean(slot.productId),
             forceExternal: form.get("forceExternal") === "yes",
+            discoveryMode,
             round: sourcingRequest.discoveryRounds.length + 1,
           });
           const saved = await sourcingStore.save(updated);
@@ -3789,6 +3982,7 @@ export function createStudioServer(
               requestId: saved.id,
               provider: discoverySource.providerId,
               discoveryRound: discoveryRound.round,
+              discoveryMode,
               ...feedbackContext(saved),
             });
           }
@@ -3800,6 +3994,7 @@ export function createStudioServer(
               provider: discoverySource.providerId,
               candidateSourceKind: discoverySource.providerId,
               discoveryRound: discoveryRound.round,
+              discoveryMode,
               providerInvocationCount: discoveryRound.providerCalls,
               ...feedbackContext(saved),
             });
@@ -3864,6 +4059,50 @@ export function createStudioServer(
         );
         await recordProductAssignment(draft, updatedDraft, slotId, sourcingRequest, feedbackStore);
         redirect(response, `/drafts/${encodeURIComponent(draft.id)}/curation`);
+        return;
+      }
+      const guideAutopilotMatch =
+        method === "POST" ? /^\/drafts\/([a-z0-9_-]+)\/autopilot$/.exec(url.pathname) : null;
+      if (guideAutopilotMatch?.[1]) {
+        const draft = await readGuideDraft(store, guideAutopilotMatch[1]);
+        const content = catalog.read();
+        const result = await completeGuideAutonomously(draft, {
+          draftStore: store,
+          catalog,
+          sourcingStore,
+          sourceStore,
+          fitStore,
+          provider,
+          discoverySource,
+          benchmarks: benchmarkStore.list(content.products),
+        });
+        send(
+          response,
+          result.status === "failed" ? 500 : 200,
+          guideAutopilotResultPage(draft, result),
+        );
+        return;
+      }
+      const autopilotMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/recommendations\/([a-z0-9_-]+)\/autopilot$/.exec(
+              url.pathname,
+            )
+          : null;
+      if (autopilotMatch?.[1] && autopilotMatch[2]) {
+        const draft = await readGuideDraft(store, autopilotMatch[1]);
+        const content = catalog.read();
+        const result = await resolveRecommendationSlotAutonomously(draft, autopilotMatch[2], {
+          draftStore: store,
+          catalog,
+          sourcingStore,
+          sourceStore,
+          fitStore,
+          provider,
+          discoverySource,
+          benchmarks: benchmarkStore.list(content.products),
+        });
+        send(response, result.status === "failed" ? 500 : 200, autopilotResultPage(draft, result));
         return;
       }
       const outlinePromptMatch =
@@ -4475,6 +4714,10 @@ export function createStudioServer(
           );
         }
         const form = await readForm(request);
+        const discoveryMode = discoveryModeValue(form);
+        if (!productDiscoverySourceSupportsMode(discoverySource, discoveryMode)) {
+          throw new TypeError("El proveedor configurado no admite búsqueda Amazon.");
+        }
         const round = Number(requiredValue(form, "round", "La ronda"));
         if (round !== 1 && round !== 2) throw new TypeError("La ronda no es válida.");
         const sourcingRequest = sourcingStore.get(productDiscoveryMatch[1]);
@@ -4506,6 +4749,7 @@ export function createStudioServer(
           benchmarkProductIds,
           slotResolved: Boolean(originSlot?.productId),
           forceExternal: form.get("forceExternal") === "yes",
+          discoveryMode,
           round,
         });
         const saved = await sourcingStore.save(updated);
@@ -4517,6 +4761,7 @@ export function createStudioServer(
             requestId: saved.id,
             provider: discoverySource.providerId,
             discoveryRound: discoveryRound.round,
+            discoveryMode,
             ...feedbackContext(saved),
           });
         }
@@ -4528,6 +4773,7 @@ export function createStudioServer(
             provider: discoverySource.providerId,
             candidateSourceKind: discoverySource.providerId,
             discoveryRound: discoveryRound.round,
+            discoveryMode,
             providerInvocationCount: discoveryRound.providerCalls,
             ...feedbackContext(saved),
           });
@@ -5039,6 +5285,7 @@ export function createStudioServer(
                   requestId: request.id,
                   candidateId,
                   candidate: requestCandidate(request, candidateId),
+                  request,
                 } satisfies ManualProductCandidateReview;
               })()
             : undefined;
@@ -5051,6 +5298,52 @@ export function createStudioServer(
             review,
           ),
         );
+        return;
+      }
+      if (method === "POST" && url.pathname === "/products/intake/editorial-copy") {
+        const form = await readForm(request);
+        const input = manualProductIntakeFromForm(form);
+        const requestId = requiredValue(form, "requestId", "La solicitud de sourcing");
+        const candidateId = requiredValue(form, "candidateId", "El candidato");
+        const sourcingRequest = sourcingStore.get(requestId);
+        const review = {
+          requestId: sourcingRequest.id,
+          candidateId,
+          candidate: requestCandidate(sourcingRequest, candidateId),
+          request: sourcingRequest,
+        } satisfies ManualProductCandidateReview;
+        try {
+          const generated = await generateProductEditorialCopy(
+            review.request,
+            review.candidate,
+            provider,
+          );
+          send(
+            response,
+            200,
+            manualProductIntakePage(undefined, safeReturnTo(form.get("returnTo")), review, {
+              input: { ...input, shortDescription: generated.shortDescription },
+              outcome: "generated",
+              message: "Borrador generado. Revisalo y editalo antes de confirmar la descripción.",
+            }),
+          );
+        } catch (error) {
+          if (error instanceof ProviderError) {
+            console.error(`AI provider error: ${error.debugSummary()}`);
+          }
+          send(
+            response,
+            502,
+            manualProductIntakePage(undefined, safeReturnTo(form.get("returnTo")), review, {
+              input,
+              outcome: "failed",
+              message:
+                error instanceof ProviderError || error instanceof TypeError
+                  ? error.message
+                  : "No se pudo generar la descripción. Podés completar el campo manualmente.",
+            }),
+          );
+        }
         return;
       }
       if (method === "GET" && url.pathname === "/products/new") {
@@ -5145,7 +5438,7 @@ export function createStudioServer(
                   candidateId,
                   candidate: requestCandidate(request, candidateId),
                   request,
-                };
+                } satisfies ManualProductCandidateReview;
               })()
             : undefined;
         if (review && form.get("confirm") === "yes" && !preview.errors.length) {
@@ -5192,6 +5485,9 @@ export function createStudioServer(
             canonicalProductId: committed.product.id,
             provider: linkedCandidate.provider,
             candidateSourceKind: linkedCandidate.sourceKind,
+            ...(linkedCandidate.discoveryMode
+              ? { discoveryMode: linkedCandidate.discoveryMode }
+              : {}),
             ...feedbackContext(updated),
           });
         } else {

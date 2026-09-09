@@ -84,6 +84,11 @@ export function normalizeAmazonUrl(value: string): string {
   return url.toString();
 }
 
+export function normalizeAmazonAsin(value: string): string | undefined {
+  const normalized = value.trim().toUpperCase();
+  return ASIN_PATTERN.test(normalized) ? normalized : undefined;
+}
+
 export function extractAmazonAsin(value: string): string | undefined {
   let url: URL;
   try {
@@ -102,14 +107,10 @@ export function extractAmazonAsin(value: string): string | undefined {
     return undefined;
   }
   const pathMatch = path.match(/\/(?:dp|gp\/product|gp\/aw\/d)\/([a-z0-9]{10})(?:[/?]|$)/i);
-  if (pathMatch?.[1] && ASIN_PATTERN.test(pathMatch[1].toUpperCase())) {
-    return pathMatch[1].toUpperCase();
-  }
+  if (pathMatch?.[1]) return normalizeAmazonAsin(pathMatch[1]);
 
   for (const [key, candidate] of url.searchParams) {
-    if (key.toLowerCase() === "asin" && ASIN_PATTERN.test(candidate.toUpperCase())) {
-      return candidate.toUpperCase();
-    }
+    if (key.toLowerCase() === "asin") return normalizeAmazonAsin(candidate);
   }
   return undefined;
 }
@@ -167,8 +168,8 @@ export function inspectAmazonUrl(
 }
 
 export function amazonProductUrlForAsin(asin: string): string {
-  const normalized = asin.trim().toUpperCase();
-  if (!ASIN_PATTERN.test(normalized)) throw new TypeError("Must be a probable Amazon ASIN.");
+  const normalized = normalizeAmazonAsin(asin);
+  if (!normalized) throw new TypeError("Must be a probable Amazon ASIN.");
   return `https://www.amazon.com/dp/${normalized}`;
 }
 

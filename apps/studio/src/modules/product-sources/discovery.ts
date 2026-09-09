@@ -5,6 +5,12 @@ import type { GuideGenerationProvider } from "../../ai-provider.ts";
 import type { GuideDraft } from "../../drafts.ts";
 import { productSlotMatchScore } from "../../product-catalog.ts";
 import type { EditorialBrief } from "../content-opportunity-lab/review.ts";
+import {
+  extractAmazonAsin,
+  isApprovedAmazonUsHost,
+  normalizeAmazonAsin,
+  normalizeAmazonUrl,
+} from "../affiliate-operations/amazon.ts";
 import { isGoogleShoppingIntermediaryUrl } from "./records.ts";
 import {
   PRODUCT_DISCOVERY_PROVIDERS,
@@ -12,6 +18,7 @@ import {
   productSourcingRequestSchema,
   type ProductSourceCandidate,
   type ProductSourceCandidateInput,
+  type ProductDiscoveryMode,
   type ProductSourcingRequest,
 } from "../product-intelligence/sourcing.ts";
 
@@ -342,12 +349,21 @@ export interface ProductDiscoveryQuery {
   query: string;
   candidateLimit: number;
   observedAt: string;
+  discoveryMode?: ProductDiscoveryMode;
 }
 
 export interface ProductDiscoverySource {
   readonly providerId: (typeof PRODUCT_DISCOVERY_PROVIDERS)[number];
   readonly paidUsage: true;
+  readonly supportedModes?: readonly ProductDiscoveryMode[];
   search(input: ProductDiscoveryQuery): Promise<ProductSourceCandidateInput[]>;
+}
+
+export function productDiscoverySourceSupportsMode(
+  source: ProductDiscoverySource,
+  mode: ProductDiscoveryMode,
+): boolean {
+  return (source.supportedModes ?? ["general"]).includes(mode);
 }
 
 function statusFailure(response: Response): ProductDiscoveryError {
@@ -375,18 +391,28 @@ function abortFailure(cause: unknown): ProductDiscoveryError {
 }
 
 function sourceFacts(input: {
+  asin?: string | undefined;
+  brand?: string | undefined;
   merchant?: string | undefined;
   description?: string | undefined;
   price?: string | undefined;
   rating?: number | undefined;
   reviews?: number | undefined;
+  imageUrl?: string | undefined;
+  position?: number | undefined;
 }): string[] {
   return unique([
+    input.asin ? `Observed ASIN: ${input.asin}` : undefined,
+    input.brand ? `Observed brand: ${input.brand}` : undefined,
     input.merchant ? `Observed merchant: ${input.merchant}` : undefined,
     input.description ? `Observed description: ${input.description}` : undefined,
     input.price ? `Observed price: ${input.price}` : undefined,
     input.rating !== undefined ? `Observed rating: ${input.rating}` : undefined,
     input.reviews !== undefined ? `Observed review count: ${input.reviews}` : undefined,
+    input.imageUrl ? `Observed image reference: ${input.imageUrl}` : undefined,
+    input.position !== undefined
+      ? `Observed provider result position: ${input.position}`
+      : undefined,
   ]);
 }
 
@@ -398,7 +424,7 @@ function hostname(value: string): string | undefined {
   }
 }
 
-const serpApiItemSchema = z
+const serpApiGoogleShoppingItemSchema = z
   .object({
     title: nonEmptyText,
     product_id: z.union([z.string(), z.number()]).optional(),
@@ -415,14 +441,59 @@ const serpApiEnvelopeSchema = z
   .object({
     error: nonEmptyText.optional(),
     search_metadata: z.object({ status: z.string().optional() }).passthrough().optional(),
-    shopping_results: z.array(serpApiItemSchema).optional(),
-    inline_shopping_results: z.array(serpApiItemSchema).optional(),
+    shopping_results: z.array(serpApiGoogleShoppingItemSchema).optional(),
+    inline_shopping_results: z.array(serpApiGoogleShoppingItemSchema).optional(),
   })
   .passthrough();
+
+const serpApiAmazonItemSchema = z
+  .object({
+    position: z.number().int().positive().optional(),
+    asin: nonEmptyText.optional(),
+    brand: nonEmptyText.optional(),
+    title: nonEmptyText,
+    link: z.url({ protocol: /^https?$/ }),
+    link_clean: z.url({ protocol: /^https?$/ }).optional(),
+    thumbnail: z.url({ protocol: /^https?$/ }).optional(),
+    price: nonEmptyText.optional(),
+    rating: z.number().nonnegative().optional(),
+    reviews: z.number().int().nonnegative().optional(),
+  })
+  .passthrough();
+
+const serpApiAmazonEnvelopeSchema = z
+  .object({
+    error: nonEmptyText.optional(),
+    search_metadata: z.object({ status: z.string().optional() }).passthrough().optional(),
+    organic_results: z.array(serpApiAmazonItemSchema).optional(),
+  })
+  .passthrough();
+
+function serpApiPayloadError(error: string): ProductDiscoveryError {
+  const code = /quota|limit|run out|exhaust/i.test(error)
+    ? "quota"
+    : /api.?key|credential|auth/i.test(error)
+      ? "configuration"
+      : "unavailable";
+  return new ProductDiscoveryError("SerpAPI could not complete the search.", code);
+}
+
+function amazonProductUrl(
+  item: z.infer<typeof serpApiAmazonItemSchema>,
+  asin: string | undefined,
+): string | undefined {
+  for (const value of [item.link_clean, item.link]) {
+    if (!value || !isApprovedAmazonUsHost(value)) continue;
+    const urlAsin = extractAmazonAsin(value);
+    if (urlAsin && (!asin || urlAsin === asin)) return normalizeAmazonUrl(value);
+  }
+  return undefined;
+}
 
 export class SerpApiProductDiscoverySource implements ProductDiscoverySource {
   readonly providerId = "serpapi" as const;
   readonly paidUsage = true as const;
+  readonly supportedModes = ["general", "amazon"] as const;
   private readonly apiKey: string;
   private readonly timeoutMs: number;
   private readonly fetchImplementation: typeof fetch;
@@ -434,15 +505,27 @@ export class SerpApiProductDiscoverySource implements ProductDiscoverySource {
   }
 
   async search(input: ProductDiscoveryQuery): Promise<ProductSourceCandidateInput[]> {
+    const discoveryMode = input.discoveryMode ?? "general";
     const url = new URL("https://serpapi.com/search.json");
-    url.search = new URLSearchParams({
-      engine: "google_shopping",
-      q: input.query,
-      api_key: this.apiKey,
-      gl: "us",
-      hl: "en",
-      output: "json",
-    }).toString();
+    url.search = new URLSearchParams(
+      discoveryMode === "amazon"
+        ? {
+            engine: "amazon",
+            k: input.query,
+            api_key: this.apiKey,
+            amazon_domain: "amazon.com",
+            language: "en_US",
+            output: "json",
+          }
+        : {
+            engine: "google_shopping",
+            q: input.query,
+            api_key: this.apiKey,
+            gl: "us",
+            hl: "en",
+            output: "json",
+          },
+    ).toString();
     const signal = AbortSignal.timeout(this.timeoutMs);
     let response: Response;
     try {
@@ -467,20 +550,61 @@ export class SerpApiProductDiscoverySource implements ProductDiscoverySource {
     } catch (cause) {
       throw new ProductDiscoveryError("SerpAPI returned malformed JSON.", "malformed", { cause });
     }
+    if (discoveryMode === "amazon") {
+      const parsed = serpApiAmazonEnvelopeSchema.safeParse(payload);
+      if (!parsed.success) {
+        throw new ProductDiscoveryError(
+          "SerpAPI returned an unexpected Amazon result shape.",
+          "malformed",
+          { cause: parsed.error },
+        );
+      }
+      if (parsed.data.error) throw serpApiPayloadError(parsed.data.error);
+      return (parsed.data.organic_results ?? []).slice(0, input.candidateLimit).map((item) => {
+        const asin =
+          (item.asin ? normalizeAmazonAsin(item.asin) : undefined) ??
+          extractAmazonAsin(item.link_clean ?? item.link) ??
+          extractAmazonAsin(item.link);
+        const productUrl = amazonProductUrl(item, asin);
+        const domain = hostname(productUrl ?? item.link);
+        return {
+          sourceKind: "serpapi" as const,
+          provider: "SerpAPI",
+          discoveryMode,
+          ...(item.brand ? { brand: item.brand } : {}),
+          ...(domain ? { domain } : {}),
+          marketplace: "amazon.com",
+          ...(asin ? { externalId: asin } : {}),
+          sourceUrl: item.link,
+          ...(productUrl ? { productUrl } : {}),
+          name: item.title,
+          sourceFacts: sourceFacts({
+            asin,
+            brand: item.brand,
+            price: item.price,
+            rating: item.rating,
+            reviews: item.reviews,
+            imageUrl: item.thumbnail,
+            position: item.position,
+          }),
+          query: input.query,
+          observedAt: input.observedAt,
+          ...(item.price ? { observedPrice: item.price } : {}),
+          ...(item.rating !== undefined ? { observedRating: item.rating } : {}),
+          ...(item.reviews !== undefined ? { observedReviewCount: item.reviews } : {}),
+          ...(item.thumbnail ? { observedImageUrl: item.thumbnail } : {}),
+          ...(item.position !== undefined ? { providerResultPosition: item.position } : {}),
+        };
+      });
+    }
+
     const parsed = serpApiEnvelopeSchema.safeParse(payload);
     if (!parsed.success) {
       throw new ProductDiscoveryError("SerpAPI returned an unexpected result shape.", "malformed", {
         cause: parsed.error,
       });
     }
-    if (parsed.data.error) {
-      const code = /quota|limit|run out|exhaust/i.test(parsed.data.error)
-        ? "quota"
-        : /api.?key|credential|auth/i.test(parsed.data.error)
-          ? "configuration"
-          : "unavailable";
-      throw new ProductDiscoveryError("SerpAPI could not complete the search.", code);
-    }
+    if (parsed.data.error) throw serpApiPayloadError(parsed.data.error);
     return [...(parsed.data.shopping_results ?? []), ...(parsed.data.inline_shopping_results ?? [])]
       .slice(0, input.candidateLimit)
       .map((item) => {
@@ -491,6 +615,7 @@ export class SerpApiProductDiscoverySource implements ProductDiscoverySource {
         return {
           sourceKind: "serpapi" as const,
           provider: "SerpAPI",
+          discoveryMode,
           ...(merchant ? { merchant } : {}),
           ...(domain ? { domain } : {}),
           ...(externalId ? { externalId, marketplace: "google.com" } : {}),
@@ -569,6 +694,7 @@ const dataForSeoEnvelopeSchema = z
 export class DataForSeoProductDiscoverySource implements ProductDiscoverySource {
   readonly providerId = "dataforseo" as const;
   readonly paidUsage = true as const;
+  readonly supportedModes = ["general"] as const;
   private readonly login: string;
   private readonly password: string;
   private readonly timeoutMs: number;
@@ -587,6 +713,12 @@ export class DataForSeoProductDiscoverySource implements ProductDiscoverySource 
   }
 
   async search(input: ProductDiscoveryQuery): Promise<ProductSourceCandidateInput[]> {
+    if (input.discoveryMode === "amazon") {
+      throw new ProductDiscoveryError(
+        "Amazon-first discovery requires the configured SerpAPI provider.",
+        "configuration",
+      );
+    }
     const signal = AbortSignal.timeout(this.timeoutMs);
     let response: Response;
     try {
@@ -666,6 +798,7 @@ export class DataForSeoProductDiscoverySource implements ProductDiscoverySource 
       return {
         sourceKind: "dataforseo" as const,
         provider: "DataForSEO",
+        discoveryMode: "general" as const,
         ...(merchant ? { merchant } : {}),
         ...(domain ? { domain } : {}),
         ...(externalId && domain ? { externalId, marketplace: domain } : {}),
@@ -765,15 +898,19 @@ interface ProductDiscoveryRunOptions {
   benchmarkProductIds?: readonly string[];
   slotResolved?: boolean;
   forceExternal?: boolean;
+  skipCatalogReuse?: boolean;
+  discoveryMode?: ProductDiscoveryMode;
   round?: number;
   now?: Date;
-  limits?: Partial<typeof DEFAULT_PRODUCT_DISCOVERY_LIMITS>;
+  limits?: Partial<{ [Key in keyof typeof DEFAULT_PRODUCT_DISCOVERY_LIMITS]: number }>;
 }
 
 function candidateInput(candidate: ProductSourceCandidate): ProductSourceCandidateInput {
   return {
     sourceKind: candidate.sourceKind,
     provider: candidate.provider,
+    ...(candidate.discoveryMode ? { discoveryMode: candidate.discoveryMode } : {}),
+    ...(candidate.brand ? { brand: candidate.brand } : {}),
     ...(candidate.merchant ? { merchant: candidate.merchant } : {}),
     ...(candidate.domain ? { domain: candidate.domain } : {}),
     ...(candidate.marketplace ? { marketplace: candidate.marketplace } : {}),
@@ -796,7 +933,23 @@ function candidateInput(candidate: ProductSourceCandidate): ProductSourceCandida
     ...(candidate.observedReviewCount !== undefined
       ? { observedReviewCount: candidate.observedReviewCount }
       : {}),
+    ...(candidate.observedImageUrl ? { observedImageUrl: candidate.observedImageUrl } : {}),
+    ...(candidate.providerResultPosition !== undefined
+      ? { providerResultPosition: candidate.providerResultPosition }
+      : {}),
   };
+}
+
+function sameDiscoveryContext(
+  left: ProductSourcingRequest,
+  right: ProductSourcingRequest,
+): boolean {
+  const normalize = (value: string) => value.trim().toLocaleLowerCase("en-US");
+  return (
+    normalize(left.requiredCategory) === normalize(right.requiredCategory) &&
+    normalize(left.searchPlan?.productClass ?? left.requiredCategory) ===
+      normalize(right.searchPlan?.productClass ?? right.requiredCategory)
+  );
 }
 
 function compatibleCatalogProducts(
@@ -825,12 +978,14 @@ function withDiscoveryRound(
   request: ProductSourcingRequest,
   round: number,
   provider: ProductDiscoverySource["providerId"],
+  discoveryMode: ProductDiscoveryMode,
   status: ProductSourcingRequest["discoveryRounds"][number]["status"],
   queries: string[],
   providerCalls: number,
   storedCandidateCount: number,
   attemptedAt: string,
   failureCode?: ProductDiscoveryFailureCode,
+  counts: { returnedCandidateCount?: number; reusedCandidateCount?: number } = {},
 ): ProductSourcingRequest {
   return productSourcingRequestSchema.parse({
     ...request,
@@ -839,10 +994,12 @@ function withDiscoveryRound(
       {
         round,
         provider,
+        discoveryMode,
         status,
         queries,
         providerCalls,
         storedCandidateCount,
+        ...counts,
         attemptedAt,
         ...(failureCode ? { failureCode } : {}),
       },
@@ -875,6 +1032,14 @@ export async function runProductDiscovery(
   options: ProductDiscoveryRunOptions,
 ): Promise<ProductSourcingRequest> {
   if (!request.searchPlan) throw new TypeError("Generate a product SearchPlan before discovery.");
+  const discoveryMode = options.discoveryMode ?? "general";
+  if (!productDiscoverySourceSupportsMode(source, discoveryMode)) {
+    throw new TypeError(
+      discoveryMode === "amazon"
+        ? "Amazon-first discovery requires the configured SerpAPI provider."
+        : "The configured discovery provider does not support general search.",
+    );
+  }
   const limits = { ...DEFAULT_PRODUCT_DISCOVERY_LIMITS, ...options.limits };
   const round = options.round ?? request.discoveryRounds.length + 1;
   if (round !== request.discoveryRounds.length + 1 || round > limits.maxRounds) {
@@ -886,13 +1051,16 @@ export async function runProductDiscovery(
   const attemptedAt = now.toISOString();
   const queries = request.searchPlan.queries.slice(
     0,
-    Math.min(limits.maxQueriesPerSlot, limits.maxProviderCallsPerRun),
+    discoveryMode === "amazon"
+      ? 1
+      : Math.min(limits.maxQueriesPerSlot, limits.maxProviderCallsPerRun),
   );
   if (options.slotResolved || request.approvedProductIds.length) {
     return withDiscoveryRound(
       request,
       round,
       source.providerId,
+      discoveryMode,
       "skipped-resolved",
       queries,
       0,
@@ -903,6 +1071,7 @@ export async function runProductDiscovery(
   const benchmarkProducts = new Set(options.benchmarkProductIds ?? []);
   if (
     !options.forceExternal &&
+    !options.skipCatalogReuse &&
     (compatibleCatalogProducts(request, options.products).length ||
       options.products.some(({ id, status }) => status === "active" && benchmarkProducts.has(id)))
   ) {
@@ -910,6 +1079,7 @@ export async function runProductDiscovery(
       request,
       round,
       source.providerId,
+      discoveryMode,
       "reused-catalog",
       queries,
       0,
@@ -920,10 +1090,12 @@ export async function runProductDiscovery(
 
   const recentThreshold = now.valueOf() - limits.reuseWindowMs;
   const recent = (options.allRequests ?? [])
+    .filter((other) => other.id !== request.id && sameDiscoveryContext(request, other))
     .flatMap(({ sourceCandidates }) => sourceCandidates)
     .filter(
       (candidate) =>
         candidate.sourceKind === source.providerId &&
+        (candidate.discoveryMode ?? "general") === discoveryMode &&
         candidate.status !== "rejected" &&
         candidate.query !== undefined &&
         queries.includes(candidate.query) &&
@@ -931,7 +1103,9 @@ export async function runProductDiscovery(
         new Date(candidate.observedAt).valueOf() >= recentThreshold,
     );
   const discoveredCount = request.sourceCandidates.filter(
-    ({ sourceKind }) => sourceKind === "serpapi" || sourceKind === "dataforseo",
+    (candidate) =>
+      (candidate.sourceKind === "serpapi" || candidate.sourceKind === "dataforseo") &&
+      (candidate.discoveryMode ?? "general") === discoveryMode,
   ).length;
   const available = Math.max(0, limits.maxStoredCandidatesPerSlot - discoveredCount);
   if (available === 0) {
@@ -939,6 +1113,7 @@ export async function runProductDiscovery(
       request,
       round,
       source.providerId,
+      discoveryMode,
       "reused-candidates",
       queries,
       0,
@@ -956,11 +1131,14 @@ export async function runProductDiscovery(
       reused,
       round,
       source.providerId,
+      discoveryMode,
       "reused-candidates",
       queries,
       0,
       reused.sourceCandidates.length - request.sourceCandidates.length,
       attemptedAt,
+      undefined,
+      { reusedCandidateCount: Math.min(recent.length, available) },
     );
   }
 
@@ -969,8 +1147,12 @@ export async function runProductDiscovery(
       return {
         candidates: await source.search({
           query,
-          candidateLimit: limits.maxStoredCandidatesPerSlot,
+          candidateLimit: Math.min(
+            DEFAULT_PRODUCT_DISCOVERY_LIMITS.maxStoredCandidatesPerSlot,
+            limits.maxStoredCandidatesPerSlot,
+          ),
           observedAt: attemptedAt,
+          discoveryMode,
         }),
       };
     } catch (error) {
@@ -987,7 +1169,11 @@ export async function runProductDiscovery(
       };
     }
   });
-  const candidates = outcomes.flatMap(({ candidates: found }) => found).slice(0, available);
+  const returnedCandidates = outcomes.flatMap(({ candidates: found }) => found);
+  const candidates = returnedCandidates.slice(0, available).map((candidate) => ({
+    ...candidate,
+    discoveryMode: candidate.discoveryMode ?? discoveryMode,
+  }));
   const updated = candidates.length
     ? addProductSourceCandidates(request, candidates, now)
     : request;
@@ -1006,11 +1192,13 @@ export async function runProductDiscovery(
     updated,
     round,
     source.providerId,
+    discoveryMode,
     status,
     queries,
     outcomes.length,
     storedCandidateCount,
     attemptedAt,
     failures[0]?.code,
+    { returnedCandidateCount: returnedCandidates.length },
   );
 }

@@ -1,0 +1,30 @@
+{
+  "search_metadata": { "status": "Success" },
+  "search_parameters": {
+    "engine": "amazon",
+    "k": "large capacity hydration reservoir",
+    "amazon_domain": "amazon.com",
+    "language": "en_US"
+  },
+  "organic_results": [
+    {
+      "position": 1,
+      "asin": "B0ABC12345",
+      "brand": "HydraPak",
+      "title": "Large-capacity hydration reservoir",
+      "link": "https://www.amazon.com/Hydration-Reservoir/dp/B0ABC12345/ref=sr_1_1",
+      "link_clean": "https://www.amazon.com/Hydration-Reservoir/dp/B0ABC12345/",
+      "thumbnail": "https://m.media-amazon.com/images/I/example._AC_UL320_.jpg",
+      "price": "$54.95",
+      "rating": 4.6,
+      "reviews": 742
+    },
+    {
+      "position": 2,
+      "asin": "B0ABC12345",
+      "title": "Duplicate hydration reservoir result",
+      "link": "https://www.amazon.com/dp/B0ABC12345/ref=sr_1_2",
+      "link_clean": "https://www.amazon.com/dp/B0ABC12345/"
+    }
+  ]
+}

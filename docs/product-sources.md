@@ -18,15 +18,15 @@ The canonical product remains `content/products/{product-id}.json`. Saving or re
 
 Product sourcing and fit review preserve five explicit domains:
 
-| Domain                           | Owner and meaning                                                                                | May create canonical verified Product facts? |
-| -------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| I.0 deterministic evidence       | System-derived token matches, exact IDs, in-Guide repetition, and distinct cross-Guide reuse IDs | No                                           |
-| Provider-observed evidence       | Returned or manually observed name, merchant, URL/ID, price, rating/reviews, query, time, facts  | No                                           |
-| AI interpretation                | Product-fit, gift-value, evidence/operations, and collection-quality assessments                 | No                                           |
-| Editor decision                  | Intake confirmation, fulfillment/assignment choices, and optional EditorialBenchmarks            | Only through the separate confirmed intake   |
-| Canonical verified Product facts | Editor-approved fields on an existing `content/products/{product-id}.json` record                | This is the canonical domain                 |
+| Domain                             | Owner and meaning                                                                                | May create canonical verified Product facts?                |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
+| I.0 deterministic evidence         | System-derived token matches, exact IDs, in-Guide repetition, and distinct cross-Guide reuse IDs | No                                                          |
+| Provider-observed evidence         | Returned or manually observed name, merchant, URL/ID, price, rating/reviews, query, time, facts  | No                                                          |
+| AI interpretation                  | Product-fit, gift-value, evidence/operations, and collection-quality assessments                 | No                                                          |
+| Editor or trusted machine decision | Manual confirmations or the explicit Autopilot gate, plus fulfillment/assignment and benchmarks  | Only through the matching manual or machine intake boundary |
+| Canonical verified Product facts   | Editor-approved fields on an existing `content/products/{product-id}.json` record                | This is the canonical domain                                |
 
-The P.2.3 fit prompt labels these domains in its structured input. A provider observation cannot be copied into `verifiedFacts` by the evaluator, and a ProductClassProfile requirement or EditorialBenchmark rationale is guidance rather than proof. Only the existing P.1 confirmation path can author a canonical Product; fit evaluation, benchmark creation, linking, fulfillment, and assignment remain separate actions.
+The P.2.3 fit prompt labels these domains in its structured input. A provider observation cannot be copied into `verifiedFacts` by the evaluator, and a ProductClassProfile requirement or EditorialBenchmark rationale is guidance rather than proof. Manual P.1 remains unchanged. Autopilot has a separate machine-safe canonical write path whose precondition is the stricter structured gate; it does not simulate human confirmation or promote observations into verified facts.
 
 ## Record shape
 
@@ -138,7 +138,7 @@ External candidate discovery stays inside `apps/studio/src/modules/product-sourc
 
 The editor first selects unresolved sourcing requests and generates one batched `SearchPlan` through the existing editorial structured-generation provider. The prompt derives the editorial problem, use case, intended Product class, attributes, exclusions, and one to three concrete queries from the `GuideDraft`, stable recommendation slot, I.2 request, questionnaire, originating brief, budget, and taxonomies. Editors do not re-enter known context. The plan and provider metadata are stored on each existing request.
 
-Before an external call, the run checks the canonical catalog, relevant EditorialBenchmarks, and recent compatible candidates. Resolved slots are skipped. An editor may explicitly override reusable evidence, but each slot remains capped at three queries, four stored external candidates, two concurrent calls, three provider calls per run, and two total rounds. Only the first round is offered initially; the second requires its own editor action. There is no retry-until-satisfied loop.
+Before an external call, the run checks the canonical catalog, relevant EditorialBenchmarks, and recent mode-compatible candidates. Resolved slots are skipped. An editor may explicitly override reusable evidence, but each discovery mode remains capped at three queries, four stored external candidates, two concurrent calls, three provider calls per run, and two total rounds per slot. Only the first round is offered initially; the second requires its own editor action. There is no retry-until-satisfied loop.
 
 SerpAPI uses its current Google Shopping endpoint and API-key query authentication. DataForSEO uses its current Google organic live advanced endpoint with HTTP Basic authentication and extracts only returned shopping elements. These behaviors were verified against the official provider documentation on 2026-08-11:
 
@@ -157,7 +157,11 @@ Resolution order is fixed and visible: active canonical catalog; relevant Editor
 
 The P.3 Creators API remains a future adapter. If implemented, it must emit the same `ProductSourceCandidate` input and continue through ordinary P.1 review and P.0 provenance; it does not justify another candidate or Product lifecycle.
 
-Sourcing and provenance records support the decision without becoming separate checklist stages. Reviewing a candidate opens the existing P.1 intake; confirmed intake creates the ordinary P.0 record and links it to the candidate. The editor then explicitly fulfills I.2 and assigns the canonical Product to the exact slot. The board never assigns a source candidate or auto-selects a Product.
+Sourcing and provenance records support the decision without becoming separate checklist stages. Manual review still opens P.1, whose confirmations create the ordinary P.0 record before explicit fulfillment and assignment. The separate Autopilot action may reconcile or atomically create Product plus provenance, fulfill I.2, and assign only the exact originating slot after the automatic P.2 gate passes; otherwise it completes the slot idea-only.
+
+The guide-level action is only a bounded coordinator over that same single-slot path. It skips already complete Product slots, completes Product-backed copy without sourcing, and processes Product-pending slots serially because draft persistence currently replaces a whole GuideDraft. One slot's provider or Product failure cannot abort later slots; no Product and no affiliate destination remain non-blocking terminal outcomes.
+
+Autopilot persists merchant observations only in the source record. Price, rating/review data, ASIN, query, provider metadata, prompts, and outcome diagnostics do not enter canonical verified facts or public guide output. Amazon discovery never creates an affiliate URL, and its ordinary Product URL remains unavailable as a public CTA until an existing affiliate destination is added later.
 
 All SearchPlans, candidates, evaluations, benchmarks, requests, provider observations, source identities, IDs, and trace data remain under `editorial-data/` or Studio draft storage. Astro reads canonical `content/` only, so guide-wide discovery internals cannot enter the public build.
 
