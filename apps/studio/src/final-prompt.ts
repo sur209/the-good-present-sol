@@ -1,4 +1,8 @@
-import { primaryAxisSchema, type ValidatedPublicContent } from "@the-good-present/content-schema";
+import {
+  primaryAxisSchema,
+  productDisplayName,
+  type ValidatedPublicContent,
+} from "@the-good-present/content-schema";
 import { z } from "zod";
 
 import {
@@ -8,20 +12,25 @@ import {
   type GuideDraft,
 } from "./drafts.ts";
 
-export const FINAL_PROMPT_VERSION = "final-guide-v1";
+export const FINAL_PROMPT_VERSION = "final-guide-v4";
+export const GUIDE_METADATA_PROMPT_VERSION = "guide-metadata-v1";
 
 const optionalText = z.string().trim().min(1).optional();
+const nullableOptionalText = z.preprocess(
+  (value) => (value === null ? undefined : value),
+  optionalText,
+);
 const contentId = z.string().trim().min(1);
 
 export const generatedRecommendationSchema = z.strictObject({
   id: contentId,
   productId: contentId,
   position: z.number().int().positive(),
-  heading: optionalText,
+  heading: nullableOptionalText,
   editorialDescription: z.string().trim().min(1),
   whyItFits: z.string().trim().min(1),
-  bestFor: optionalText,
-  considerations: optionalText,
+  bestFor: nullableOptionalText,
+  considerations: nullableOptionalText,
 });
 
 export const generatedGuideSchema = z.strictObject({
@@ -32,6 +41,13 @@ export const generatedGuideSchema = z.strictObject({
   seoTitle: z.string().trim().min(1),
   seoDescription: z.string().trim().min(1),
   recommendations: z.array(generatedRecommendationSchema).min(1),
+});
+
+export const generatedGuideMetadataSchema = z.strictObject({
+  excerpt: z.string().trim().min(1).max(240),
+  introduction: z.string().trim().min(1).max(1_200),
+  seoTitle: z.string().trim().min(1).max(70),
+  seoDescription: z.string().trim().min(1).max(180),
 });
 
 const existingRecommendationCopySchema = z.strictObject({
@@ -52,10 +68,7 @@ export const finalRecommendationInputSchema = z.strictObject({
   product: z.strictObject({
     id: contentId,
     name: z.string().trim().min(1),
-    merchant: z.string().trim().min(1),
-    shortDescription: z.string().trim().min(1),
     verifiedFacts: z.array(z.string().trim().min(1)).optional(),
-    priceLabel: optionalText,
   }),
   existingCopy: existingRecommendationCopySchema.optional(),
 });
@@ -107,6 +120,25 @@ export const finalPromptInputSchema = z.strictObject({
 export type GeneratedGuide = z.infer<typeof generatedGuideSchema>;
 export type FinalPromptInput = z.infer<typeof finalPromptInputSchema>;
 
+export const guideMetadataPromptInputSchema = z.strictObject({
+  language: z.literal("en-US"),
+  missingFields: z.array(z.enum(["excerpt", "introduction", "seoTitle", "seoDescription"])),
+  cluster: finalPromptInputSchema.shape.cluster,
+  guide: finalPromptInputSchema.shape.guide.pick({
+    id: true,
+    primaryAxis: true,
+    primaryIntent: true,
+    taxonomies: true,
+    budgetContext: true,
+    questionnaire: true,
+    approvedOutline: true,
+    existingCopy: true,
+  }),
+  title: z.string().trim().min(1),
+});
+
+export type GuideMetadataPromptInput = z.infer<typeof guideMetadataPromptInputSchema>;
+
 export interface PreparedFinalPrompt {
   version: typeof FINAL_PROMPT_VERSION;
   input: FinalPromptInput;
@@ -135,15 +167,6 @@ export function createFinalPromptInput(
       if (!product || product.status !== "active") {
         throw new TypeError(`El producto "${recommendation.productId}" no existe o está inactivo.`);
       }
-      const existingCopy = {
-        ...(recommendation.heading ? { heading: recommendation.heading } : {}),
-        ...(recommendation.editorialDescription
-          ? { editorialDescription: recommendation.editorialDescription }
-          : {}),
-        ...(recommendation.whyItFits ? { whyItFits: recommendation.whyItFits } : {}),
-        ...(recommendation.bestFor ? { bestFor: recommendation.bestFor } : {}),
-        ...(recommendation.considerations ? { considerations: recommendation.considerations } : {}),
-      };
       return {
         recommendationId: recommendation.id,
         position: recommendation.position,
@@ -153,13 +176,9 @@ export function createFinalPromptInput(
         ...(recommendation.budgetHint ? { budgetHint: recommendation.budgetHint } : {}),
         product: {
           id: product.id,
-          name: product.name,
-          merchant: product.merchant,
-          shortDescription: product.shortDescription,
+          name: productDisplayName(product),
           ...(product.verifiedFacts ? { verifiedFacts: product.verifiedFacts } : {}),
-          ...(product.priceLabel ? { priceLabel: product.priceLabel } : {}),
         },
-        ...(Object.keys(existingCopy).length ? { existingCopy } : {}),
       };
     });
 
@@ -233,6 +252,7 @@ export function buildFinalPrompt(input: FinalPromptInput): string {
   return `Write the final gift guide for The Good Present.
 
 Return exactly one JSON object and no prose. Do not wrap the JSON in Markdown fences.
+Each recommendation must use exactly these fields and no aliases or extra fields: id (required non-empty string), productId (required non-empty string), position (required positive integer), editorialDescription (required non-empty string), whyItFits (required non-empty string), plus heading, bestFor, and considerations as optional non-empty strings. Optional fields may be omitted or null; null is normalized to omission.
 Use this compact object-shape example and return exactly one recommendation per supplied slot:
 ${JSON.stringify(shape)}
 
@@ -241,11 +261,12 @@ Rules:
 - Mention only the selected products in the structured input.
 - Preserve every supplied product name, product ID, recommendation ID, and position.
 - Never add an unselected product or change the selected order.
-- Use only supplied merchant names, short descriptions, verified facts, and price labels.
+- Treat the Product name as identity only. Derive factual Product claims exclusively from verifiedFacts.
+- Never treat measurements, materials, formulation, certification, or usage claims embedded in a Product name as verified facts.
 - Never invent or modify affiliate URLs. Do not return any URL.
 - Never invent prices, ratings, reviews, discounts, stock, availability, or specifications.
 - Respect the cluster, primary axis, primary intent, taxonomies, budget, questionnaire, and approved outline.
-- Improve existing copy when present without copying source text from elsewhere.
+- Write recommendation copy only from the supplied Product identity and verifiedFacts.
 
 Structured input:
 ${JSON.stringify(validated, null, 2)}`;
@@ -257,4 +278,66 @@ export function prepareFinalPrompt(
 ): PreparedFinalPrompt {
   const input = createFinalPromptInput(draft, content);
   return { version: FINAL_PROMPT_VERSION, input, prompt: buildFinalPrompt(input) };
+}
+
+export function prepareGuideMetadataPrompt(draft: GuideDraft, content: ValidatedPublicContent) {
+  if (!draft.clusterId) throw new TypeError("Elegí un cluster antes de generar metadata.");
+  const cluster = content.clusters.find(({ id }) => id === draft.clusterId);
+  if (!cluster) throw new TypeError("El cluster elegido no está publicado.");
+  if (!draft.primaryAxis || !draft.primaryIntent) {
+    throw new TypeError("La guía necesita eje e intención antes de generar metadata.");
+  }
+  const title =
+    draft.title ?? draft.outline?.provisionalTitle ?? `${cluster.title}: ${draft.primaryIntent}`;
+  const input = guideMetadataPromptInputSchema.parse({
+    language: "en-US",
+    missingFields: (["excerpt", "introduction", "seoTitle", "seoDescription"] as const).filter(
+      (field) => !draft[field],
+    ),
+    cluster: {
+      id: cluster.id,
+      title: cluster.title,
+      excerpt: cluster.excerpt,
+      introduction: cluster.introduction,
+    },
+    guide: {
+      id: draft.id,
+      primaryAxis: draft.primaryAxis,
+      primaryIntent: draft.primaryIntent,
+      ...(draft.taxonomies ? { taxonomies: draft.taxonomies } : {}),
+      ...(draft.budgetContext ? { budgetContext: draft.budgetContext } : {}),
+      questionnaire: draft.questionnaire,
+      approvedOutline: {
+        ...(draft.outline?.provisionalTitle
+          ? { provisionalTitle: draft.outline.provisionalTitle }
+          : {}),
+        ...(draft.outline?.audienceSummary
+          ? { audienceSummary: draft.outline.audienceSummary }
+          : {}),
+        ...(draft.outline?.editorialAngle ? { editorialAngle: draft.outline.editorialAngle } : {}),
+        slots: draft.recommendations.map((slot) => ({
+          id: slot.id,
+          position: slot.position,
+          label: slot.slotLabel,
+          ...(slot.slotIntent ? { intent: slot.slotIntent } : {}),
+        })),
+      },
+      existingCopy: {
+        ...(draft.title ? { title: draft.title } : {}),
+        ...(draft.excerpt ? { excerpt: draft.excerpt } : {}),
+        ...(draft.introduction ? { introduction: draft.introduction } : {}),
+        ...(draft.conclusion ? { conclusion: draft.conclusion } : {}),
+        ...(draft.seoTitle ? { seoTitle: draft.seoTitle } : {}),
+        ...(draft.seoDescription ? { seoDescription: draft.seoDescription } : {}),
+      },
+    },
+    title,
+  });
+  const prompt = `Complete the missing public metadata for one gift guide.
+
+Return exactly one JSON object containing only the fields listed in missingFields. Write natural US English. Describe the audience, editorial angle, and practical selection criteria without listing Products. Do not make safety, medical, operational, price, rating, availability, or Product-specific claims. Avoid keyword repetition. Keep the SEO title concise and do not append a site name.
+
+Structured input:
+${JSON.stringify(input, null, 2)}`;
+  return { version: GUIDE_METADATA_PROMPT_VERSION, input, prompt };
 }

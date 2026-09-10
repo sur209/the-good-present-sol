@@ -2,14 +2,24 @@ import { productDestination } from "@the-good-present/content-schema";
 import { z } from "zod";
 
 import { guideDraftSchema, type GuideDraft } from "../../drafts.ts";
-import { guideDraftReadiness, recommendationIsEditoriallyReady } from "../../guide-editor.ts";
+import {
+  completeGuideEditorialMetadata,
+  guideEditorialMetadataIsComplete,
+  guideDraftReadiness,
+  productClaimContext,
+  productBackedCopyNeedsVerifiedFactsRepair,
+  recommendationIsEditoriallyReady,
+} from "../../guide-editor.ts";
 import {
   autopilotResolutionOutcomeSchema,
+  completeIdeaOnlyRecommendationCopy,
   completeProductBackedRecommendationCopy,
+  ideaOnlyRecommendationNeedsCopyRepair,
   resolveRecommendationSlotAutonomously,
   type AutopilotDependencies,
   type AutopilotResolutionOutcome,
 } from "./autopilot.ts";
+import { findProductSourcingRequestForDraftSlot } from "./sourcing.ts";
 
 export const GUIDE_AUTOPILOT_POLICY_VERSION = "guide-autopilot-v1";
 
@@ -70,6 +80,8 @@ export const guideAutopilotOutcomeSchema = z.strictObject({
       status: z.enum(["product-resolved", "product-pending", "failed"]),
       action: z.enum([
         "preserved-ready-product-slot",
+        "preserved-ready-product-pending-slot",
+        "repaired-generic-idea-copy",
         "completed-product-copy",
         "single-slot-autopilot",
       ]),
@@ -134,6 +146,7 @@ function editorialGenerationCount(
       "generated-product-recommendation-copy",
       "generated-safe-product-copy-fallback",
       "generated-idea-only-copy",
+      "repaired-idea-only-copy-fields",
       "generated-safe-idea-only-fallback",
     ].includes(action),
   );
@@ -148,6 +161,7 @@ export async function completeGuideAutonomously(
   const now = options.now ?? new Date();
   let draft = guideDraftSchema.parse(initialDraft);
   const slots: GuideAutopilotOutcome["slots"] = [];
+  const guideWarnings: string[] = [];
   const execution = {
     maxConcurrentSlots: GUIDE_AUTOPILOT_MAX_CONCURRENT_SLOTS,
     peakConcurrentSlots: 0,
@@ -160,6 +174,23 @@ export async function completeGuideAutonomously(
     nonBlockingFailures: 0,
   } as GuideAutopilotOutcome["execution"];
 
+  if (draft.recommendations.length && !guideEditorialMetadataIsComplete(draft)) {
+    const completion = await completeGuideEditorialMetadata(
+      draft,
+      dependencies.catalog.read(),
+      dependencies.provider,
+      now,
+    );
+    try {
+      await dependencies.draftStore.save(completion.draft, now);
+      draft = await readGuideDraft(draft.id, dependencies);
+      execution.editorialGenerations += Number(completion.actionsPerformed.length > 0);
+      guideWarnings.push(...completion.warnings);
+    } catch {
+      guideWarnings.push("guide-metadata-save-failed");
+    }
+  }
+
   for (const originalSlot of [...draft.recommendations].sort(
     (left, right) => left.position - right.position,
   )) {
@@ -169,8 +200,24 @@ export async function completeGuideAutonomously(
     let action: GuideAutopilotOutcome["slots"][number]["action"];
     let singleSlotResult: ReturnType<typeof compactSingleSlotResult> | undefined;
     let warnings: string[] = [];
+    const content = dependencies.catalog.read();
+    const product = slot.productId
+      ? content.products.find(({ id }) => id === slot.productId)
+      : undefined;
+    const sourcingRequest = !slot.productId
+      ? findProductSourcingRequestForDraftSlot(dependencies.sourcingStore.list(), draft.id, slot.id)
+      : undefined;
 
-    if (slot.productId && recommendationIsEditoriallyReady(slot)) {
+    if (
+      product &&
+      recommendationIsEditoriallyReady(slot) &&
+      !productBackedCopyNeedsVerifiedFactsRepair(
+        slot,
+        product,
+        draft.generationMetadata?.promptVersion,
+        productClaimContext(draft, slot),
+      )
+    ) {
       action = "preserved-ready-product-slot";
     } else if (slot.productId) {
       action = "completed-product-copy";
@@ -190,6 +237,27 @@ export async function completeGuideAutonomously(
       } catch {
         warnings.push("product-copy-completion-failed");
       }
+    } else if (ideaOnlyRecommendationNeedsCopyRepair(draft, slot.id, content, sourcingRequest)) {
+      action = "repaired-generic-idea-copy";
+      try {
+        const copy = await completeIdeaOnlyRecommendationCopy(
+          draft,
+          slot.id,
+          dependencies,
+          sourcingRequest,
+          now,
+        );
+        await dependencies.draftStore.save(copy.draft, now);
+        execution.editorialGenerations += editorialGenerationCount(
+          copy.actionsPerformed,
+          copy.warnings,
+        );
+        warnings.push(...copy.warnings);
+      } catch {
+        warnings.push("idea-copy-repair-failed");
+      }
+    } else if (recommendationIsEditoriallyReady(slot)) {
+      action = "preserved-ready-product-pending-slot";
     } else {
       action = "single-slot-autopilot";
       try {
@@ -250,6 +318,8 @@ export async function completeGuideAutonomously(
   const warnings = slots.flatMap((slot) =>
     slot.warnings.map((warning) => `${slot.slotId}:${warning}`),
   );
+  warnings.unshift(...guideWarnings.map((warning) => `guide:${warning}`));
+  execution.nonBlockingFailures += guideWarnings.length;
   const status = !readiness.editorialComplete
     ? "failed"
     : warnings.length

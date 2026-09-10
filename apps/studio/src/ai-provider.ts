@@ -1,8 +1,15 @@
 import { z } from "zod";
 
-import { finalPromptInputSchema, type FinalPromptInput } from "./final-prompt.ts";
+import {
+  finalPromptInputSchema,
+  guideMetadataPromptInputSchema,
+  type FinalPromptInput,
+} from "./final-prompt.ts";
 import { outlinePromptInputSchema } from "./outline-prompt.ts";
-import { recommendationPromptInputSchema } from "./recommendation-prompt.ts";
+import {
+  recommendationFieldRepairInputSchema,
+  recommendationPromptInputSchema,
+} from "./recommendation-prompt.ts";
 import { ideaRecommendationPromptInputSchema } from "./idea-prompt.ts";
 import {
   mockOpportunityGeneration,
@@ -35,8 +42,10 @@ export interface ProviderCallMetadata {
 export interface StructuredGenerationRequest<T> {
   operation:
     | "outline"
+    | "guide-metadata"
     | "final-guide"
     | "single-recommendation"
+    | "recommendation-field-repair"
     | "idea-recommendation"
     | "opportunity-candidates"
     | "opportunity-evaluations"
@@ -74,20 +83,80 @@ type ProviderErrorCode =
   | "timeout"
   | "truncated";
 
+export interface SafeSchemaIssue {
+  path: string;
+  expected: string;
+  received: string;
+}
+
+function valueAtPath(value: unknown, path: PropertyKey[]): unknown {
+  let current = value;
+  for (const segment of path) {
+    if (typeof current !== "object" || current === null || !Object.hasOwn(current, segment)) {
+      return undefined;
+    }
+    current = (current as Record<PropertyKey, unknown>)[segment];
+  }
+  return current;
+}
+
+function receivedShape(value: unknown): string {
+  if (value === undefined) return "missing";
+  if (value === null) return "null";
+  if (typeof value === "string") return value.length ? `string(length=${value.length})` : "empty";
+  if (Array.isArray(value)) return `array(length=${value.length})`;
+  return typeof value;
+}
+
+function expectedConstraint(issue: z.core.$ZodIssue): string {
+  const details = issue as unknown as Record<string, unknown>;
+  if (issue.code === "invalid_type") return String(details.expected ?? "valid-type");
+  if (issue.code === "too_small") {
+    return `${String(details.origin ?? "value")}-min-${String(details.minimum ?? "required")}`;
+  }
+  if (issue.code === "too_big") {
+    return `${String(details.origin ?? "value")}-max-${String(details.maximum ?? "allowed")}`;
+  }
+  if (issue.code === "unrecognized_keys") return "no-unexpected-fields";
+  return issue.code;
+}
+
+export function safeSchemaIssues(error: z.ZodError, value?: unknown): SafeSchemaIssue[] {
+  return error.issues.slice(0, 8).map((issue) => {
+    const details = issue as unknown as Record<string, unknown>;
+    const path = issue.path.length ? issue.path.map(String).join(".") : "$";
+    return {
+      path,
+      expected: expectedConstraint(issue),
+      received:
+        issue.code === "unrecognized_keys"
+          ? `unexpected-fields(count=${Array.isArray(details.keys) ? details.keys.length : 1})`
+          : receivedShape(valueAtPath(value, issue.path)),
+    };
+  });
+}
+
 export class ProviderError extends Error {
   readonly code: ProviderErrorCode;
   readonly requestId?: string;
   readonly status?: number;
+  readonly schemaIssues?: SafeSchemaIssue[];
 
   constructor(
     message: string,
     code: ProviderErrorCode,
-    options: { cause?: unknown; requestId?: string; status?: number } = {},
+    options: {
+      cause?: unknown;
+      requestId?: string;
+      schemaIssues?: SafeSchemaIssue[];
+      status?: number;
+    } = {},
   ) {
     super(message, { cause: options.cause });
     this.name = "ProviderError";
     this.code = code;
     if (options.requestId !== undefined) this.requestId = options.requestId;
+    if (options.schemaIssues?.length) this.schemaIssues = options.schemaIssues;
     if (options.status !== undefined) this.status = options.status;
   }
 
@@ -97,18 +166,15 @@ export class ProviderError extends Error {
     if (this.requestId) details.push(`requestId=${this.requestId}`);
     if (this.cause instanceof Error) {
       details.push(`cause=${this.cause.name}`);
-      if (this.cause instanceof z.ZodError) {
-        const issues = this.cause.issues.slice(0, 8).map((issue) => {
-          const path = issue.path.length ? issue.path.join(".") : "$";
-          const message =
-            issue.code === "unrecognized_keys" ? "Unrecognized field(s)" : issue.message;
-          return `${path}: ${message.slice(0, 160)}`;
-        });
-        if (this.cause.issues.length > issues.length) {
-          issues.push(`+${this.cause.issues.length - issues.length} more`);
-        }
-        details.push(`issues=${issues.join("; ")}`);
-      }
+    }
+    if (this.schemaIssues?.length) {
+      details.push(
+        `issues=${this.schemaIssues
+          .map(
+            ({ path, expected, received }) => `${path}: expected=${expected} received=${received}`,
+          )
+          .join("; ")}`,
+      );
     }
     return details.join(" ");
   }
@@ -224,7 +290,7 @@ export function parseExactStructuredContent<T>(content: string, schema: z.ZodTyp
     throw new ProviderError(
       "La respuesta del proveedor no cumple el esquema editorial esperado.",
       "invalid-schema",
-      { cause: parsed.error },
+      { cause: parsed.error, schemaIssues: safeSchemaIssues(parsed.error, value) },
     );
   }
   return parsed.data;
@@ -433,6 +499,30 @@ export class MockGuideGenerationProvider implements GuideGenerationProvider {
         })),
       });
     }
+    if (request.operation === "guide-metadata") {
+      const input = guideMetadataPromptInputSchema.parse(request.input);
+      const audience = (
+        input.guide.questionnaire.recipient ??
+        input.guide.taxonomies?.recipients?.[0] ??
+        "the intended recipient"
+      ).split(/[.,;]/)[0]!;
+      const topic = input.guide.primaryIntent.replace(/[.!?]+$/, "").toLocaleLowerCase("en-US");
+      const generated = {
+        excerpt:
+          input.guide.existingCopy.excerpt ??
+          `A practical gift guide for ${audience}, focused on how to ${topic}.`,
+        introduction:
+          input.guide.existingCopy.introduction ??
+          `Choosing for ${audience} is easier when each idea fits the way they live and work. This guide emphasizes everyday usefulness, personal fit, and sensible tradeoffs so the final choice feels thoughtful rather than generic.`,
+        seoTitle: input.guide.existingCopy.seoTitle ?? input.title.slice(0, 70),
+        seoDescription:
+          input.guide.existingCopy.seoDescription ??
+          `Explore practical gift ideas for ${audience}, chosen around everyday usefulness, personal fit, and the guide's focused purpose.`,
+      };
+      return request.schema.parse(
+        Object.fromEntries(input.missingFields.map((field) => [field, generated[field]])),
+      );
+    }
     if (request.operation === "final-guide") {
       const input = finalPromptInputSchema.parse(request.input);
       const title =
@@ -461,23 +551,35 @@ export class MockGuideGenerationProvider implements GuideGenerationProvider {
       const input = recommendationPromptInputSchema.parse(request.input);
       return request.schema.parse(mockRecommendation(input.recommendation));
     }
+    if (request.operation === "recommendation-field-repair") {
+      const input = recommendationFieldRepairInputSchema.parse(request.input);
+      const productClass = input.productClass.toLocaleLowerCase("en-US");
+      const values = {
+        heading: input.product.name,
+        editorialDescription: `${input.product.name} is a ${productClass} choice for this guide.`,
+        whyItFits: `This ${productClass} matches the guide's editorial focus.`,
+        bestFor: "Someone whose interests align with this gift category",
+        considerations: "Consider how this gift category fits the recipient's preferences.",
+      };
+      return request.schema.parse({ value: values[input.field] });
+    }
     if (request.operation === "idea-recommendation") {
       const { recommendation } = ideaRecommendationPromptInputSchema.parse(request.input);
       const attributes = recommendation.whatToLookFor.slice(0, 3);
+      const productClass = recommendation.productClass.toLocaleLowerCase("en-US");
       return request.schema.parse({
         id: recommendation.id,
         position: recommendation.position,
-        heading: `A thoughtful ${recommendation.productClass.toLocaleLowerCase("en-US")} idea`,
-        editorialDescription: `Choose a version that fits the recipient's routine and the purpose of this gift slot.`,
-        whyItFits:
-          recommendation.slotIntent ??
-          `It gives the recipient something useful while keeping the choice personal.`,
+        heading: `${recommendation.productClass} for Everyday Use`,
+        editorialDescription: `${recommendation.productClass} can make a thoughtful gift when it suits the recipient's real routine and preferences.`,
+        whyItFits: `This kind of gift adds practical value without depending on a particular brand or model.`,
+        bestFor: "Someone likely to use it regularly",
         selectionGuidance: attributes.length
-          ? `Compare ${attributes.join(", ")} and favor the option that best suits everyday use.`
-          : "Compare ease of use, care, and suitability for the recipient's routine.",
-        ...(recommendation.exclusions.length
-          ? { considerations: `Avoid ${recommendation.exclusions.join(" and ")}.` }
-          : {}),
+          ? `Look for ${attributes.join(", ")}, then favor the choice that best suits everyday use.`
+          : `Compare ${productClass} choices for fit, care, and suitability for the recipient's routine.`,
+        considerations: recommendation.exclusions.length
+          ? `Avoid ${recommendation.exclusions.join(" and ")}.`
+          : "Personal preferences and ease of care may matter more than extra features.",
       });
     }
     throw new TypeError(`Mock operation not implemented: ${request.operation}`);
@@ -485,16 +587,15 @@ export class MockGuideGenerationProvider implements GuideGenerationProvider {
 }
 
 function mockRecommendation(recommendation: FinalPromptInput["recommendations"][number]) {
+  const productClass = recommendation.slotLabel.toLocaleLowerCase("en-US");
   return {
     id: recommendation.recommendationId,
     productId: recommendation.product.id,
     position: recommendation.position,
     heading: recommendation.product.name,
-    editorialDescription: `${recommendation.product.name} from ${recommendation.product.merchant} offers this verified catalog context: ${recommendation.product.shortDescription}`,
-    whyItFits:
-      recommendation.slotIntent ??
-      `It fills the “${recommendation.slotLabel}” role in this guide without changing the slot's purpose.`,
-    bestFor: recommendation.slotLabel,
+    editorialDescription: `This ${productClass} offers a practical choice shaped around the recipient's everyday routine.`,
+    whyItFits: `${recommendation.slotLabel} connects the gift to something the recipient can use in everyday life.`,
+    bestFor: "Someone likely to use it regularly",
     ...(recommendation.product.verifiedFacts?.length
       ? { considerations: `Verified details: ${recommendation.product.verifiedFacts.join("; ")}.` }
       : {}),

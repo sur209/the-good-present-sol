@@ -5,6 +5,7 @@ import {
 } from "@the-good-present/content-schema";
 
 import type { GuideDraft } from "../../drafts.ts";
+import { recommendationIsEditoriallyReady } from "../../guide-editor.ts";
 import { suggestProductsForSlot } from "../../product-catalog.ts";
 import type { EditorialBenchmark } from "./benchmarks.ts";
 import type { ProductSourcingRequest } from "./sourcing.ts";
@@ -21,12 +22,18 @@ export type GuideCurationNextAction =
   | "fully-ready";
 
 export interface GuideCurationProgress {
+  totalRecommendations: number;
+  editorialReady: number;
+  editorialPending: number;
+  editorialComplete: boolean;
   ideaReadyProductUnresolved: number;
   candidateReview: number;
   productResolved: number;
+  productPending: number;
   productCopyNeedsReview: number;
+  affiliateReady: number;
   affiliateDestinationMissing: number;
-  fullyReady: number;
+  fullyMonetized: number;
   publishedIdeaOnly: number;
 }
 
@@ -122,9 +129,19 @@ export function guideCurationProgress(
     content.products.map((product) => [product.id, product]),
   );
   const productSlots = draft.recommendations.filter(({ productId }) => productId);
+  const editorialReady = draft.recommendations.filter(recommendationIsEditoriallyReady).length;
+  const affiliateDestinationMissing = productSlots.filter(({ productId }) => {
+    const product = products.get(productId!);
+    return !product || !productDestination(product);
+  }).length;
   return {
+    totalRecommendations: draft.recommendations.length,
+    editorialReady,
+    editorialPending: draft.recommendations.length - editorialReady,
+    editorialComplete:
+      draft.recommendations.length > 0 && editorialReady === draft.recommendations.length,
     ideaReadyProductUnresolved: draft.recommendations.filter(
-      ({ productId, editorialStatus }) => !productId && editorialStatus === "ready",
+      (slot) => !slot.productId && recommendationIsEditoriallyReady(slot),
     ).length,
     candidateReview: draft.recommendations.filter((slot) =>
       requests.some(
@@ -136,16 +153,16 @@ export function guideCurationProgress(
       ),
     ).length,
     productResolved: productSlots.length,
-    productCopyNeedsReview: productSlots.filter(
-      ({ editorialStatus }) => editorialStatus !== "ready",
-    ).length,
-    affiliateDestinationMissing: productSlots.filter(({ productId }) => {
-      const product = products.get(productId!);
-      return !product || !productDestination(product);
-    }).length,
-    fullyReady: productSlots.filter(({ productId, editorialStatus }) => {
-      const product = products.get(productId!);
-      return editorialStatus === "ready" && Boolean(product && productDestination(product));
+    productPending: draft.recommendations.length - productSlots.length,
+    productCopyNeedsReview: productSlots.filter((slot) => !recommendationIsEditoriallyReady(slot))
+      .length,
+    affiliateReady: productSlots.length - affiliateDestinationMissing,
+    affiliateDestinationMissing,
+    fullyMonetized: productSlots.filter((slot) => {
+      const product = products.get(slot.productId!);
+      return (
+        recommendationIsEditoriallyReady(slot) && Boolean(product && productDestination(product))
+      );
     }).length,
     publishedIdeaOnly:
       content.guides

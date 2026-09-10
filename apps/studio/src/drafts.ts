@@ -99,6 +99,7 @@ export const draftRecommendationSchema = z.strictObject({
   bestFor: optionalText,
   selectionGuidance: optionalText,
   considerations: optionalText,
+  editorialPromptVersion: optionalText,
   editorialStatus: draftEditorialStatusSchema,
 });
 

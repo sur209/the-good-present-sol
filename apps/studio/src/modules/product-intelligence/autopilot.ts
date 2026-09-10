@@ -11,9 +11,14 @@ import type { GuideGenerationProvider } from "../../ai-provider.ts";
 import type { DraftStore } from "../../draft-store.ts";
 import { guideDraftSchema, type GuideDraft } from "../../drafts.ts";
 import {
-  generateIdeaOnlyRecommendation,
+  SAFE_IDEA_COPY_VERSION,
+  applyDeterministicProductCopyFallback,
+  formatGenerationContractDiagnostic,
+  generateIdeaOnlyRecommendationWithRecovery,
+  generateProductBackedRecommendationWithRecovery,
+  ideaOnlyCopyHasUnsupportedClaims,
+  recommendationCopyFailureDiagnostics,
   recommendationIsEditoriallyReady,
-  regenerateRecommendation,
 } from "../../guide-editor.ts";
 import type { ProductCatalog } from "../../product-catalog.ts";
 import {
@@ -733,30 +738,6 @@ function linkCandidateAutomatically(
   });
 }
 
-function productCopyFallback(draft: GuideDraft, slotId: string, product: Product): GuideDraft {
-  return guideDraftSchema.parse({
-    ...draft,
-    status: "editing",
-    recommendations: draft.recommendations.map((slot) =>
-      slot.id === slotId
-        ? {
-            id: slot.id,
-            position: slot.position,
-            slotLabel: slot.slotLabel,
-            ...(slot.slotIntent ? { slotIntent: slot.slotIntent } : {}),
-            ...(slot.searchTerms ? { searchTerms: slot.searchTerms } : {}),
-            ...(slot.budgetHint ? { budgetHint: slot.budgetHint } : {}),
-            productId: product.id,
-            heading: product.name,
-            editorialDescription: product.shortDescription,
-            whyItFits: "It directly supports the purpose of this recommendation slot.",
-            editorialStatus: "ready",
-          }
-        : slot,
-    ),
-  });
-}
-
 export interface ProductBackedCopyCompletion {
   draft: GuideDraft;
   actionsPerformed: string[];
@@ -775,88 +756,104 @@ export async function completeProductBackedRecommendationCopy(
   }
   const product = dependencies.catalog.get(slot.productId);
   try {
+    const generation = await generateProductBackedRecommendationWithRecovery(
+      draft,
+      slotId,
+      dependencies.catalog.read(),
+      dependencies.provider,
+      now,
+    );
     return {
-      draft: await regenerateRecommendation(
-        draft,
-        slotId,
-        dependencies.catalog.read(),
-        dependencies.provider,
-        now,
-      ),
-      actionsPerformed: ["generated-product-recommendation-copy"],
-      warnings: [],
+      draft: generation.draft,
+      actionsPerformed: [
+        generation.repairedFields.length
+          ? "repaired-product-recommendation-copy-fields"
+          : "generated-product-recommendation-copy",
+      ],
+      warnings: generation.diagnosticDetails.map(formatGenerationContractDiagnostic),
     };
-  } catch {
+  } catch (error) {
     return {
-      draft: productCopyFallback(draft, slotId, product),
+      draft: applyDeterministicProductCopyFallback(draft, slotId, product),
       actionsPerformed: ["generated-safe-product-copy-fallback"],
-      warnings: ["recommendation-copy-fallback-used"],
+      warnings: recommendationCopyFailureDiagnostics(error, dependencies.provider).map(
+        formatGenerationContractDiagnostic,
+      ),
     };
   }
 }
 
-function ideaCopyFallback(draft: GuideDraft, slotId: string): GuideDraft {
-  return guideDraftSchema.parse({
-    ...draft,
-    status: "editing",
-    recommendations: draft.recommendations.map((slot) =>
-      slot.id === slotId
-        ? {
-            id: slot.id,
-            position: slot.position,
-            slotLabel: slot.slotLabel,
-            ...(slot.slotIntent ? { slotIntent: slot.slotIntent } : {}),
-            ...(slot.searchTerms ? { searchTerms: slot.searchTerms } : {}),
-            ...(slot.budgetHint ? { budgetHint: slot.budgetHint } : {}),
-            heading: "A practical gift idea",
-            editorialDescription:
-              "Choose an option that suits the recipient's routine and the intended use.",
-            whyItFits:
-              "This keeps the recommendation useful without relying on an uncertain product match.",
-            selectionGuidance:
-              "Compare fit, everyday usability, care needs, and the recipient's preferences.",
-            considerations: "Confirm personal fit or compatibility before choosing.",
-            editorialStatus: "ready",
-          }
-        : slot,
-    ),
-  });
+const legacyGenericIdeaHeading = "A practical gift idea";
+const legacyGenericConsiderations =
+  "Confirm personal fit, compatibility, and care requirements before choosing.";
+
+export function recommendationHasLegacyIdeaFallback(
+  slot: GuideDraft["recommendations"][number],
+  audience?: string,
+): boolean {
+  const normalizedAudience = normalized(audience);
+  return Boolean(
+    slot.editorialPromptVersion === SAFE_IDEA_COPY_VERSION ||
+    normalized(slot.heading) === normalized(legacyGenericIdeaHeading) ||
+    normalized(slot.editorialDescription) ===
+      normalized(
+        `${slot.slotLabel} can make a thoughtful gift when it matches the recipient's real routine and preferences.`,
+      ) ||
+    /^choose among\b/i.test(slot.editorialDescription ?? "") ||
+    /^it supports this recommendation'?s purpose:/i.test(slot.whyItFits ?? "") ||
+    normalized(slot.considerations) === normalized(legacyGenericConsiderations) ||
+    (normalizedAudience.length >= 20 && normalized(slot.heading).includes(normalizedAudience)),
+  );
 }
 
-function ideaCopyContainsCandidateData(
+export function ideaOnlyRecommendationNeedsCopyRepair(
   draft: GuideDraft,
   slotId: string,
-  request: ProductSourcingRequest,
+  content: ValidatedPublicContent,
+  request?: ProductSourcingRequest,
 ): boolean {
   const slot = draft.recommendations.find(({ id }) => id === slotId)!;
   if (slot.productId) return true;
-  const copy = normalized(
-    [
-      slot.heading,
-      slot.editorialDescription,
-      slot.whyItFits,
-      slot.bestFor,
-      slot.selectionGuidance,
-      slot.considerations,
-    ]
-      .filter(Boolean)
-      .join(" "),
+  return (
+    recommendationHasLegacyIdeaFallback(slot, draft.questionnaire.recipient) ||
+    ideaOnlyCopyHasUnsupportedClaims(slot, content, request)
   );
-  return request.sourceCandidates.some((candidate) =>
-    [
-      candidate.name,
-      candidate.brand,
-      candidate.merchant,
-      candidate.marketplace,
-      candidate.externalId,
-      candidate.productUrl,
-      candidate.sourceUrl,
-      candidate.observedPrice,
-    ].some((value) => {
-      const term = normalized(value);
-      return term.length >= 4 && copy.includes(term);
-    }),
+}
+
+export async function completeIdeaOnlyRecommendationCopy(
+  draft: GuideDraft,
+  slotId: string,
+  dependencies: Pick<AutopilotDependencies, "catalog" | "provider">,
+  request?: ProductSourcingRequest,
+  now = new Date(),
+): Promise<ProductBackedCopyCompletion> {
+  const generation = await generateIdeaOnlyRecommendationWithRecovery(
+    draft,
+    slotId,
+    dependencies.catalog.read(),
+    dependencies.provider,
+    request,
+    now,
   );
+  if (generation.usedDeterministicFallback) {
+    return {
+      draft: generation.draft,
+      actionsPerformed: ["generated-safe-idea-only-fallback"],
+      warnings: [
+        ...generation.diagnosticDetails.map(formatGenerationContractDiagnostic),
+        "idea-editorial-copy-fallback-used",
+      ],
+    };
+  }
+  return {
+    draft: generation.draft,
+    actionsPerformed: [
+      generation.repairedFields.length
+        ? "repaired-idea-only-copy-fields"
+        : "generated-idea-only-copy",
+    ],
+    warnings: generation.diagnosticDetails.map(formatGenerationContractDiagnostic),
+  };
 }
 
 async function saveDraftAndRequest(
@@ -1018,28 +1015,23 @@ async function completeIdeaOnly(
 ): Promise<AutopilotResolutionOutcome> {
   let completedDraft: GuideDraft;
   const existingSlot = draft.recommendations.find(({ id }) => id === slotId)!;
-  if (recommendationIsEditoriallyReady(existingSlot)) {
+  if (
+    recommendationIsEditoriallyReady(existingSlot) &&
+    !recommendationHasLegacyIdeaFallback(existingSlot, draft.questionnaire.recipient)
+  ) {
     completedDraft = draft;
     actions.push("preserved-ready-idea-copy");
   } else {
-    try {
-      completedDraft = await generateIdeaOnlyRecommendation(
-        draft,
-        slotId,
-        dependencies.catalog.read(),
-        dependencies.provider,
-        request,
-        now,
-      );
-      if (ideaCopyContainsCandidateData(completedDraft, slotId, request)) {
-        throw new TypeError("idea-only-copy-contained-candidate-data");
-      }
-      actions.push("generated-idea-only-copy");
-    } catch {
-      completedDraft = ideaCopyFallback(draft, slotId);
-      actions.push("generated-safe-idea-only-fallback");
-      warnings.push("idea-editorial-copy-fallback-used");
-    }
+    const copy = await completeIdeaOnlyRecommendationCopy(
+      draft,
+      slotId,
+      dependencies,
+      request,
+      now,
+    );
+    completedDraft = copy.draft;
+    actions.push(...copy.actionsPerformed);
+    warnings.push(...copy.warnings);
   }
   const completedRequest = completeProductSourcingRequestAsIdeaOnly(request, now);
   try {

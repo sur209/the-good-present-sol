@@ -182,6 +182,24 @@ export type ClusterHub = z.infer<typeof clusterHubSchema>;
 export type GuideRecommendation = z.infer<typeof guideRecommendationSchema>;
 export type GiftGuide = z.infer<typeof giftGuideSchema>;
 
+export function productDisplayName(product: Pick<Product, "name">): string {
+  const firstListingSegment = product.name.split("|")[0]!.split(",")[0]!.trim();
+  const withoutListingMeasurements = firstListingSegment
+    .replace(
+      /\b\d+(?:\.\d+)?\s*(?:count|pack|mg|g|kg|oz|ounces?|ml|liters?|inches?|cm|mm|servings?)\b/gi,
+      "",
+    )
+    .replace(/\s+[-–—]\s+/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  const concise = withoutListingMeasurements || firstListingSegment || "Product";
+  if (concise.length <= 80) return concise;
+  return `${concise
+    .slice(0, 77)
+    .replace(/\s+\S*$/, "")
+    .replace(/[,:;\s-]+$/, "")}…`;
+}
+
 const AMAZON_HOSTS = new Set([
   "amazon.com",
   "www.amazon.com",

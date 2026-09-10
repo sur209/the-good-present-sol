@@ -10,8 +10,9 @@ import { promisify } from "node:util";
 import { z } from "zod";
 
 import {
-  productSchema,
+  productDisplayName,
   productDestination,
+  productSchema,
   type Product,
   type ValidatedPublicContent,
 } from "@the-good-present/content-schema";
@@ -46,15 +47,20 @@ import {
   type GuideDraft,
 } from "./drafts.ts";
 import {
+  MANUAL_EDITORIAL_COPY_VERSION,
   addManualRecommendation,
+  classifyObservedClaimMatches,
   clearRecommendationProduct,
   duplicateProductIds,
   generateFinalGuide,
   generateGuideOutline,
   generateIdeaOnlyRecommendation,
+  generateIdeaOnlyRecommendationWithRecovery,
+  generateProductBackedRecommendationWithRecovery,
   guideDraftReadiness,
   moveRecommendation,
   normalizeQuestionnaire,
+  productBackedCopyFailureReason,
   regenerateRecommendation,
   removeRecommendation,
   reopenGuideDraft,
@@ -62,7 +68,11 @@ import {
   updateRecommendationEditorialCopy,
   validateGuideDraft,
 } from "./guide-editor.ts";
-import { prepareFinalPrompt } from "./final-prompt.ts";
+import {
+  generatedRecommendationSchema,
+  guideMetadataPromptInputSchema,
+  prepareFinalPrompt,
+} from "./final-prompt.ts";
 import { prepareOutlinePrompt } from "./outline-prompt.ts";
 import {
   ProductCatalog,
@@ -71,7 +81,12 @@ import {
   suggestProductsForSlot,
   validateProductUrl,
 } from "./product-catalog.ts";
-import { prepareRecommendationPrompt } from "./recommendation-prompt.ts";
+import {
+  prepareRecommendationFieldRepairPrompt,
+  prepareRecommendationPrompt,
+  recommendationFieldRepairInputSchema,
+  recommendationPromptInputSchema,
+} from "./recommendation-prompt.ts";
 import {
   generatedIdeaRecommendationSchema,
   prepareIdeaRecommendationPrompt,
@@ -120,6 +135,9 @@ import {
   AUTOPILOT_LIMITS,
   assessAutomaticProductCandidate,
   chooseAutomaticProductCandidate,
+  completeIdeaOnlyRecommendationCopy,
+  completeProductBackedRecommendationCopy,
+  recommendationHasLegacyIdeaFallback,
   resolveRecommendationSlotAutonomously,
 } from "./modules/product-intelligence/autopilot.ts";
 import {
@@ -6311,8 +6329,17 @@ test("el prompt final contiene sólo datos seleccionados y ninguna URL", async (
   );
   assert.doesNotMatch(first.prompt, /https?:\/\//i);
   assert.doesNotMatch(first.prompt, /affiliateUrl/);
-  assert.match(first.prompt, new RegExp(content.products[0]!.name));
+  assert.match(first.prompt, new RegExp(productDisplayName(content.products[0]!)));
   assert.match(first.prompt, /Return exactly one JSON object/);
+  for (const recommendation of first.input.recommendations) {
+    assert.deepEqual(
+      Object.keys(recommendation.product).sort(),
+      ["id", "name", ...(recommendation.product.verifiedFacts ? ["verifiedFacts"] : [])].sort(),
+    );
+    assert.equal("merchant" in recommendation.product, false);
+    assert.equal("shortDescription" in recommendation.product, false);
+    assert.equal("priceLabel" in recommendation.product, false);
+  }
 });
 
 test("el mock genera una guía completa lista con IDs y orden intactos", async () => {
@@ -6337,7 +6364,7 @@ test("el mock genera una guía completa lista con IDs y orden intactos", async (
   assert.ok(
     generated.recommendations.every((recommendation) => recommendation.editorialStatus === "ready"),
   );
-  assert.equal(generated.generationMetadata?.promptVersion, "final-guide-v1");
+  assert.equal(generated.generationMetadata?.promptVersion, "final-guide-v4");
   assert.deepEqual(validateGuideDraft(generated, content).errors, []);
 });
 
@@ -6412,7 +6439,7 @@ test("regenera sólo el slot reemplazado y lo devuelve a ready", async () => {
   assert.equal(result.productId, replacement.id);
   assert.equal(result.editorialStatus, "ready");
   assert.deepEqual(regenerated.recommendations[1], untouched);
-  assert.equal(regenerated.generationMetadata?.promptVersion, "single-recommendation-v1");
+  assert.equal(regenerated.generationMetadata?.promptVersion, "single-recommendation-v4");
 });
 
 test("la edición manual sólo marca ready con copia mínima completa", async () => {
@@ -6435,6 +6462,7 @@ test("la edición manual sólo marca ready con copia mínima completa", async ()
     true,
   );
   assert.equal(ready.recommendations[0]!.editorialStatus, "ready");
+  assert.equal(ready.recommendations[0]!.editorialPromptVersion, MANUAL_EDITORIAL_COPY_VERSION);
   assert.ok(
     validateGuideDraft(ready, content).errors.some((error) => error.includes("no está listo")),
   );
@@ -6547,9 +6575,35 @@ test("selecciona slots de resolución pendientes y resume el progreso sin mezcla
     /No unresolved Product slots/,
   );
   const progress = guideCurationProgress(draft, content, [request]);
+  assert.equal(progress.totalRecommendations, 3);
+  assert.equal(progress.editorialReady, 2);
+  assert.equal(progress.editorialPending, 1);
+  assert.equal(progress.editorialComplete, false);
   assert.equal(progress.ideaReadyProductUnresolved, 1);
   assert.equal(progress.candidateReview, 1);
   assert.equal(progress.productResolved, 1);
+  assert.equal(progress.productPending, 2);
+  assert.equal(progress.affiliateReady, Number(Boolean(productDestination(product))));
+  assert.equal(progress.affiliateDestinationMissing, Number(!productDestination(product)));
+  const editoriallyComplete = guideDraftSchema.parse({
+    ...draft,
+    recommendations: draft.recommendations.map((slot) =>
+      slot.id === "slot_unresolved-review"
+        ? {
+            ...slot,
+            editorialDescription: "A complete generic description.",
+            whyItFits: "A complete generic rationale.",
+            selectionGuidance: "Compare fit and care.",
+            editorialStatus: "ready",
+          }
+        : slot,
+    ),
+  });
+  const completeProgress = guideCurationProgress(editoriallyComplete, content, [request]);
+  assert.equal(completeProgress.editorialComplete, true);
+  assert.equal(completeProgress.editorialReady, 3);
+  assert.equal(completeProgress.productResolved, 1);
+  assert.equal(completeProgress.productPending, 2);
   assert.equal(
     guideCurationNextAction(draft, draft.recommendations[1]!, content, request),
     "use-catalog-product",
@@ -6864,10 +6918,12 @@ test("genera idea-only segura con contexto heredado y deja Stage 2 Product-backe
       content.products.map(({ name }) => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"),
     ),
   );
-  assert.deepEqual(prepared.input.recommendation.whatToLookFor.slice(0, 2), [
-    "easy care",
-    "comfortable format",
-  ]);
+  assert.equal(prepared.input.guide.title, draft.title ?? draft.outline?.provisionalTitle);
+  assert.equal(prepared.input.guide.audience, draft.outline?.audienceSummary);
+  assert.equal(prepared.input.guide.editorialAngle, draft.outline?.editorialAngle);
+  assert.equal(prepared.input.recommendation.productClassProfile.classId, "generic");
+  assert.ok(prepared.input.recommendation.whatToLookFor.includes("specific use case"));
+  assert.doesNotMatch(serializedInput, /easy care|comfortable format|hard-to-clean materials/);
 
   const generated = await generateIdeaOnlyRecommendation(
     draft,
@@ -6881,11 +6937,19 @@ test("genera idea-only segura con contexto heredado y deja Stage 2 Product-backe
   assert.equal(idea.position, slot.position);
   assert.equal(idea.productId, undefined);
   assert.equal(idea.editorialStatus, "ready");
+  assert.ok(idea.bestFor);
   assert.ok(idea.selectionGuidance);
-  assert.equal(generated.generationMetadata?.promptVersion, "idea-recommendation-v1");
+  assert.equal(generated.generationMetadata?.promptVersion, "idea-recommendation-v5");
   assert.throws(() => prepareFinalPrompt(generated, content), /no tiene producto/);
 
-  for (const unsafeCopy of [content.products[0]!.name, "$29.99", "4.8 rating", "20 oz"]) {
+  for (const unsafeCopy of [
+    content.products[0]!.name,
+    "$29.99",
+    "4.8 rating",
+    "20 oz",
+    "at least 15g protein",
+    "around 200 calories",
+  ]) {
     const unsafe: GuideGenerationProvider = {
       providerId: "unsafe-idea",
       async generateStructured<T>(generationRequest: StructuredGenerationRequest<T>): Promise<T> {
@@ -6896,6 +6960,7 @@ test("genera idea-only segura con contexto heredado y deja Stage 2 Product-backe
           heading: "Generic recovery idea",
           editorialDescription: unsafeCopy,
           whyItFits: "It suits the recipient.",
+          bestFor: "Someone whose routine suits the idea.",
           selectionGuidance: "Compare care and comfort.",
         } as T;
       },
@@ -6916,6 +6981,551 @@ test("genera idea-only segura con contexto heredado y deja Stage 2 Product-backe
       productName: "Injected Product",
     }),
   );
+});
+
+test("recupera copy idea-only campo por campo y reporta diagnósticos compactos", async () => {
+  const content = new ProductCatalog().read();
+  const draft = await generatedGuideDraft("guide_idea-copy-diagnostics");
+  const slot = draft.recommendations[0]!;
+  const base = {
+    id: slot.id,
+    position: slot.position,
+    heading: "A thoughtful recovery accessory",
+    editorialDescription: "A well-chosen format can fit naturally into an established routine.",
+    whyItFits: "It makes the gift useful without depending on a particular brand or model.",
+    bestFor: "Someone who values practical recovery rituals",
+    selectionGuidance: "Compare comfort, care, and fit with the recipient's routine.",
+    considerations: "Personal preferences should guide the final choice.",
+  };
+  const providerFor = (response: Record<string, unknown>): GuideGenerationProvider => ({
+    providerId: "idea-copy-diagnostic-fixture",
+    modelId: "deepseek-style-fixture",
+    async generateStructured<T>(generationRequest: StructuredGenerationRequest<T>): Promise<T> {
+      assert.equal(generationRequest.operation, "idea-recommendation");
+      assert.equal(generationRequest.schema.safeParse({ ...base, extra: true }).success, false);
+      const { heading: _heading, ...missingRequired } = base;
+      assert.equal(generationRequest.schema.safeParse(missingRequired).success, false);
+      return response as T;
+    },
+  });
+  const prepared = prepareIdeaRecommendationPrompt(draft, slot.id, content);
+  assert.match(prepared.prompt, /bestFor: required non-empty string, at most 120 characters/);
+  assert.match(prepared.prompt, /selectionGuidance: required non-empty string, at most 500/);
+  assert.match(prepared.prompt, /considerations: optional non-empty string/);
+  assert.match(
+    prepared.prompt,
+    /target at most 80 characters for heading, 450 for editorialDescription/,
+  );
+  assert.doesNotMatch(prepared.prompt, /description\"|whyFit\"|selectionGuide\"/);
+  assert.doesNotThrow(() => generatedIdeaRecommendationSchema.parse(base));
+
+  const valid = await completeIdeaOnlyRecommendationCopy(draft, slot.id, {
+    catalog: new ProductCatalog(),
+    provider: providerFor(base),
+  });
+  assert.deepEqual(valid.actionsPerformed, ["generated-idea-only-copy"]);
+  assert.deepEqual(valid.warnings, []);
+  assert.equal(valid.draft.recommendations[0]!.editorialDescription, base.editorialDescription);
+
+  for (const considerations of [null, undefined]) {
+    const normalized = await completeIdeaOnlyRecommendationCopy(draft, slot.id, {
+      catalog: new ProductCatalog(),
+      provider: providerFor({ ...base, considerations }),
+    });
+    assert.deepEqual(normalized.warnings, []);
+    assert.equal(normalized.draft.recommendations[0]!.considerations, undefined);
+  }
+
+  for (const [field, value, diagnostic] of [
+    ["editorialDescription", content.products[0]!.name, "idea-copy-product-leak"],
+    ["whyItFits", "Available from Amazon for this gift.", "idea-copy-merchant-leak"],
+    ["considerations", "Compare ASIN B0ABCDEF12 before choosing.", "idea-copy-asin-leak"],
+    ["bestFor", "The audience described by this slot in Studio.", "idea-copy-internal-terminology"],
+    ["selectionGuidance", "Choose a 20 oz format.", "idea-copy-unsupported-numeric-claim"],
+  ] as const) {
+    const recovery = await generateIdeaOnlyRecommendationWithRecovery(
+      draft,
+      slot.id,
+      content,
+      providerFor({ ...base, [field]: value }),
+    );
+    assert.equal(recovery.usedDeterministicFallback, false);
+    assert.ok(recovery.repairedFields.includes(field));
+    assert.deepEqual(recovery.diagnostics, [diagnostic]);
+    const repairedSlot = recovery.draft.recommendations[0]!;
+    assert.equal(repairedSlot.heading, base.heading);
+    if (field !== "whyItFits") assert.equal(repairedSlot.whyItFits, base.whyItFits);
+    assert.notEqual(repairedSlot[field], value);
+  }
+
+  const wrongType = await generateIdeaOnlyRecommendationWithRecovery(
+    draft,
+    slot.id,
+    content,
+    providerFor({ ...base, selectionGuidance: 42 }),
+  );
+  assert.equal(wrongType.usedDeterministicFallback, false);
+  assert.deepEqual(wrongType.diagnostics, ["idea-copy-schema-invalid"]);
+  assert.deepEqual(wrongType.diagnosticDetails, [
+    {
+      code: "idea-copy-schema-invalid",
+      contractVersion: "idea-recommendation-v5",
+      providerId: "idea-copy-diagnostic-fixture",
+      modelId: "deepseek-style-fixture",
+      path: "selectionGuidance",
+      expected: "string",
+      received: "number",
+    },
+  ]);
+  assert.equal(wrongType.draft.recommendations[0]!.heading, base.heading);
+  assert.notEqual(wrongType.draft.recommendations[0]!.selectionGuidance, 42);
+
+  for (const invalid of [
+    { field: "bestFor", value: "x".repeat(121), expected: "string-max-120" },
+    { field: "selectionGuidance", value: ["Compare care."], expected: "string" },
+  ] as const) {
+    const recovery = await generateIdeaOnlyRecommendationWithRecovery(
+      draft,
+      slot.id,
+      content,
+      providerFor({ ...base, [invalid.field]: invalid.value }),
+    );
+    assert.deepEqual(recovery.diagnostics, ["idea-copy-schema-invalid"]);
+    assert.equal(recovery.diagnosticDetails[0]!.path, invalid.field);
+    assert.equal(recovery.diagnosticDetails[0]!.expected, invalid.expected);
+    assert.match(
+      recovery.diagnosticDetails[0]!.received!,
+      /^(?:string\(length=121\)|array\(length=1\))$/,
+    );
+    assert.equal(recovery.draft.recommendations[0]!.heading, base.heading);
+  }
+
+  for (const [provider, diagnostic] of [
+    [
+      providerFor(Object.fromEntries(Object.entries(base).filter(([key]) => key !== "heading"))),
+      "idea-copy-schema-invalid",
+    ],
+    [
+      {
+        providerId: "idea-copy-timeout-fixture",
+        async generateStructured<T>(): Promise<T> {
+          throw new ProviderError("Fixture timeout.", "timeout");
+        },
+      } satisfies GuideGenerationProvider,
+      "idea-copy-provider-failure",
+    ],
+  ] as const) {
+    const completion = await completeIdeaOnlyRecommendationCopy(draft, slot.id, {
+      catalog: new ProductCatalog(),
+      provider,
+    });
+    assert.deepEqual(completion.actionsPerformed, ["generated-safe-idea-only-fallback"]);
+    assert.equal(completion.warnings.length, 2);
+    assert.match(completion.warnings[0]!, new RegExp(`^${diagnostic} `));
+    assert.match(completion.warnings[0]!, /provider=.+ contract=idea-recommendation-v5/);
+    if (diagnostic === "idea-copy-schema-invalid") {
+      assert.match(completion.warnings[0]!, /path=heading expected=custom received=missing/);
+    } else {
+      assert.match(completion.warnings[0]!, /reason=timeout/);
+    }
+    assert.equal(completion.warnings[1], "idea-editorial-copy-fallback-used");
+    assert.equal(completion.draft.recommendations[0]!.editorialStatus, "ready");
+  }
+});
+
+test("alinea el contrato Product-backed, permite identidad canónica y clasifica cada fallback", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-product-copy-contract-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const product = productSchema.parse({
+    schemaVersion: 1,
+    id: "product_copy-contract",
+    name: "Trail Anti-Chafe Balm",
+    merchant: "Fixture merchant",
+    shortDescription: "Observed listing description that generation must never receive.",
+    verifiedFacts: ["Product type: anti-chafe balm"],
+    priceLabel: "$24.99 observed",
+    status: "active",
+  });
+  assert.equal(productDisplayName(product), product.name);
+  await catalog.save(product);
+  const base = await generatedGuideDraft("guide_product-copy-contract");
+  const slot = base.recommendations[0]!;
+  const draft = selectRecommendationProduct(base, slot.id, product.id, catalog.read());
+  const metadataBefore = {
+    title: draft.title,
+    excerpt: draft.excerpt,
+    introduction: draft.introduction,
+    conclusion: draft.conclusion,
+    seoTitle: draft.seoTitle,
+    seoDescription: draft.seoDescription,
+  };
+  const validResponse = {
+    id: slot.id,
+    productId: product.id,
+    position: slot.position,
+    heading: null,
+    editorialDescription:
+      "Trail Anti-Chafe Balm is a grounded option for an established active routine.",
+    whyItFits: "Its verified product type matches the practical purpose of this gift.",
+    bestFor: null,
+    considerations: null,
+  };
+  const providerFor = (response: Record<string, unknown>): GuideGenerationProvider => ({
+    providerId: "product-copy-contract-fixture",
+    modelId: "deepseek-style-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      if (request.operation === "recommendation-field-repair") {
+        const input = recommendationFieldRepairInputSchema.parse(request.input);
+        assert.equal(input.field, "editorialDescription");
+        return {
+          value: "This anti-chafe balm fits the practical purpose of this gift.",
+        } as T;
+      }
+      assert.equal(request.operation, "single-recommendation");
+      const input = recommendationPromptInputSchema.parse(request.input);
+      assert.deepEqual(input.recommendation.product, {
+        id: product.id,
+        name: productDisplayName(product),
+        verifiedFacts: product.verifiedFacts,
+      });
+      const serialized = JSON.stringify(input.recommendation.product);
+      assert.doesNotMatch(
+        serialized,
+        /merchant|shortDescription|priceLabel|rating|review|snippet/i,
+      );
+      assert.match(request.prompt, /Return exactly these fields and no aliases or extra fields/);
+      assert.match(request.prompt, /Optional fields may be omitted or null/);
+      assert.equal(request.prompt.includes(product.shortDescription), false);
+      return response as T;
+    },
+  });
+
+  const normalized = generatedRecommendationSchema.parse(validResponse);
+  assert.equal(normalized.heading, undefined);
+  assert.equal(normalized.bestFor, undefined);
+  assert.equal(normalized.considerations, undefined);
+  assert.throws(() =>
+    generatedRecommendationSchema.parse({
+      ...validResponse,
+      editorialDescription: undefined,
+      description: "An unsupported alias.",
+    }),
+  );
+
+  const completed = await completeProductBackedRecommendationCopy(draft, slot.id, {
+    catalog,
+    provider: providerFor(validResponse),
+  });
+  assert.deepEqual(completed.actionsPerformed, ["generated-product-recommendation-copy"]);
+  assert.deepEqual(completed.warnings, []);
+  assert.equal(completed.draft.recommendations[0]!.productId, product.id);
+  assert.equal(
+    completed.draft.recommendations[0]!.editorialPromptVersion,
+    "single-recommendation-v4",
+  );
+  assert.deepEqual(
+    {
+      title: completed.draft.title,
+      excerpt: completed.draft.excerpt,
+      introduction: completed.draft.introduction,
+      conclusion: completed.draft.conclusion,
+      seoTitle: completed.draft.seoTitle,
+      seoDescription: completed.draft.seoDescription,
+    },
+    metadataBefore,
+  );
+
+  for (const [response, diagnostic] of [
+    [
+      { ...validResponse, whyItFits: undefined },
+      /recommendation-copy-schema-invalid path=whyItFits expected=string received=missing/,
+    ],
+    [
+      { ...validResponse, bestFor: ["Active field workers"] },
+      /recommendation-copy-schema-invalid path=bestFor expected=string received=array\(length=1\)/,
+    ],
+    [
+      { ...validResponse, editorialDescription: { text: "Do not coerce this object." } },
+      /recommendation-copy-schema-invalid path=editorialDescription expected=string received=object/,
+    ],
+    [
+      { ...validResponse, productId: "product_changed" },
+      /recommendation-copy-product-identity-invalid .*reason=id-productId-or-position-changed/,
+    ],
+  ] as const) {
+    const fallback = await completeProductBackedRecommendationCopy(draft, slot.id, {
+      catalog,
+      provider: providerFor(response),
+    });
+    assert.deepEqual(fallback.actionsPerformed, ["generated-safe-product-copy-fallback"]);
+    assert.equal(fallback.warnings.length, 1);
+    assert.match(fallback.warnings[0]!, diagnostic);
+    assert.match(
+      fallback.warnings[0]!,
+      /provider=product-copy-contract-fixture model=deepseek-style-fixture contract=single-recommendation-v4/,
+    );
+    assert.equal(fallback.draft.recommendations[0]!.productId, product.id);
+    assert.equal(fallback.draft.recommendations[0]!.editorialStatus, "ready");
+  }
+
+  const claimRepair = await completeProductBackedRecommendationCopy(draft, slot.id, {
+    catalog,
+    provider: providerFor({
+      ...validResponse,
+      editorialDescription: "Available now for $24.99.",
+    }),
+  });
+  assert.deepEqual(claimRepair.actionsPerformed, ["repaired-product-recommendation-copy-fields"]);
+  assert.deepEqual(claimRepair.warnings, []);
+  assert.equal(claimRepair.draft.recommendations[0]!.whyItFits, validResponse.whyItFits);
+  assert.equal(
+    claimRepair.draft.recommendations[0]!.editorialDescription,
+    "This anti-chafe balm fits the practical purpose of this gift.",
+  );
+  assert.equal(
+    claimRepair.draft.recommendations[0]!.editorialPromptVersion,
+    "single-recommendation-v4",
+  );
+
+  const providerFailure = await completeProductBackedRecommendationCopy(draft, slot.id, {
+    catalog,
+    provider: {
+      providerId: "product-copy-timeout-fixture",
+      modelId: "timeout-model",
+      async generateStructured<T>(): Promise<T> {
+        throw new ProviderError("Fixture timeout.", "timeout");
+      },
+    },
+  });
+  assert.match(
+    providerFailure.warnings[0]!,
+    /^recommendation-copy-provider-failure reason=timeout provider=product-copy-timeout-fixture model=timeout-model contract=single-recommendation-v4$/,
+  );
+});
+
+test("distingue identidad Product y repara sólo el campo con claims observados", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-observed-claim-repair-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const product = productSchema.parse({
+    schemaVersion: 1,
+    id: "product_observed-claim-repair",
+    name: "Field Brand Trail Anti-Chafe Balm | 2.5 oz | 320mg Sodium | Long Lasting Protection",
+    brand: "Field Brand",
+    merchant: "Fixture merchant",
+    shortDescription:
+      "Merino wool material; stainless steel shell; reduce friction; inner thigh use; twist-up package; certified organic; twelve hour performance.",
+    verifiedFacts: ["Material: merino wool"],
+    status: "active",
+  });
+  await catalog.save(product);
+  const base = await generatedGuideDraft("guide_observed-claim-repair");
+  const originalSlot = base.recommendations[0]!;
+  const shaped = guideDraftSchema.parse({
+    ...base,
+    recommendations: base.recommendations.map((slot) =>
+      slot.id === originalSlot.id
+        ? {
+            ...slot,
+            slotLabel: "Anti-Chafe Balm",
+            slotIntent: "Reduce friction during long days on foot.",
+          }
+        : slot,
+    ),
+  });
+  const draft = selectRecommendationProduct(shaped, originalSlot.id, product.id, catalog.read());
+  const claimContext = {
+    productClass: "Anti-Chafe Balm",
+    slotPurpose: "Reduce friction during long days on foot.",
+    guideContext: [draft.title!, draft.primaryIntent!],
+  };
+
+  const identityMatches = classifyObservedClaimMatches(
+    "Field Brand Trail Anti-Chafe Balm is an anti-chafe balm choice.",
+    product,
+    claimContext,
+  );
+  assert.ok(identityMatches.length > 0);
+  assert.ok(identityMatches.every(({ classification }) => classification === "identity-safe"));
+  assert.deepEqual(classifyObservedClaimMatches("Trail balm", product, claimContext), []);
+
+  const verifiedMatch = classifyObservedClaimMatches(
+    "The verified material is merino wool.",
+    product,
+    claimContext,
+  ).find(({ matched }) => matched === "merino wool");
+  assert.deepEqual(verifiedMatch, {
+    matched: "merino wool",
+    source: "short-description",
+    identitySafe: false,
+    verifiedSafe: true,
+    classification: "verified-safe",
+  });
+  const marketingMatch = classifyObservedClaimMatches(
+    "It offers long lasting protection.",
+    product,
+    claimContext,
+  ).find(({ matched }) => matched === "long lasting protection");
+  assert.deepEqual(marketingMatch, {
+    matched: "long lasting protection",
+    source: "listing-title",
+    identitySafe: false,
+    verifiedSafe: false,
+    classification: "observed-only",
+  });
+  assert.equal(
+    classifyObservedClaimMatches("It can reduce friction.", product, claimContext).find(
+      ({ matched }) => matched === "reduce friction",
+    )?.classification,
+    "ambiguous",
+  );
+
+  const copyWith = (editorialDescription: string) => ({
+    editorialDescription,
+    whyItFits: "This gift category suits the slot.",
+    editorialPromptVersion: "single-recommendation-v4",
+  });
+  for (const value of [
+    "The 2.5 oz size is useful.",
+    "It contains 320mg sodium.",
+    "It lasts 12 hours.",
+    "It has UPF 50+ protection.",
+  ]) {
+    assert.equal(
+      productBackedCopyFailureReason(copyWith(value), product, undefined, claimContext),
+      "unsupported-numeric-claim",
+    );
+  }
+  for (const value of [
+    "It has a stainless steel shell.",
+    "It promises twelve hour performance.",
+    "It is intended for inner thigh use.",
+    "It uses a twist-up package.",
+    "It is certified organic.",
+    "It offers long lasting protection.",
+    "It can reduce friction.",
+  ]) {
+    assert.equal(
+      productBackedCopyFailureReason(copyWith(value), product, undefined, claimContext),
+      "observed-listing-claim",
+    );
+  }
+
+  const canonicalName = productDisplayName(product);
+  const generated = {
+    id: originalSlot.id,
+    productId: product.id,
+    position: originalSlot.position,
+    heading: canonicalName,
+    editorialDescription: `${canonicalName} offers long lasting protection.`,
+    whyItFits: "This anti-chafe balm fits a guide focused on comfort during long days on foot.",
+    bestFor: "Someone who spends long days on foot",
+  };
+  const operations: StructuredGenerationRequest<unknown>["operation"][] = [];
+  const provider: GuideGenerationProvider = {
+    providerId: "field-repair-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      operations.push(request.operation);
+      if (request.operation === "single-recommendation") return generated as T;
+      assert.equal(request.operation, "recommendation-field-repair");
+      const input = recommendationFieldRepairInputSchema.parse(request.input);
+      assert.equal(input.field, "editorialDescription");
+      assert.deepEqual(input.product, {
+        name: canonicalName,
+        brand: product.brand,
+        verifiedFacts: product.verifiedFacts,
+      });
+      assert.equal(input.productClass, "Anti-Chafe Balm");
+      assert.equal(input.slotPurpose, "Reduce friction during long days on foot.");
+      const serialized = JSON.stringify(input);
+      assert.doesNotMatch(serialized, /merchant|shortDescription|priceLabel|rating|review/i);
+      assert.equal(request.prompt.includes(product.name), false);
+      assert.equal(request.prompt.includes(product.shortDescription), false);
+      assert.equal(request.prompt.includes(generated.editorialDescription), false);
+      return {
+        value: `${canonicalName} is an anti-chafe balm choice for this guide.`,
+      } as T;
+    },
+  };
+  const siblingsBefore = draft.recommendations.slice(1);
+  const repaired = await generateProductBackedRecommendationWithRecovery(
+    draft,
+    originalSlot.id,
+    catalog.read(),
+    provider,
+  );
+  assert.deepEqual(operations, ["single-recommendation", "recommendation-field-repair"]);
+  assert.deepEqual(repaired.repairedFields, ["editorialDescription"]);
+  assert.deepEqual(repaired.repairedClaims, [
+    {
+      field: "editorialDescription",
+      matched: "long lasting protection",
+      source: "listing-title",
+      identitySafe: false,
+      verifiedSafe: false,
+      classification: "observed-only",
+    },
+  ]);
+  assert.deepEqual(repaired.diagnosticDetails, []);
+  assert.equal(repaired.draft.recommendations[0]!.productId, product.id);
+  assert.equal(repaired.draft.recommendations[0]!.heading, canonicalName);
+  assert.equal(repaired.draft.recommendations[0]!.whyItFits, generated.whyItFits);
+  assert.equal(repaired.draft.recommendations[0]!.bestFor, generated.bestFor);
+  assert.deepEqual(repaired.draft.recommendations.slice(1), siblingsBefore);
+  assert.equal(catalog.get(product.id).name, product.name);
+
+  const failedRepair = await completeProductBackedRecommendationCopy(draft, originalSlot.id, {
+    catalog,
+    provider: {
+      providerId: "field-repair-timeout-fixture",
+      async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+        if (request.operation === "single-recommendation") return generated as T;
+        throw new ProviderError("Fixture timeout.", "timeout");
+      },
+    },
+  });
+  assert.deepEqual(failedRepair.actionsPerformed, ["repaired-product-recommendation-copy-fields"]);
+  assert.equal(failedRepair.draft.recommendations[0]!.whyItFits, generated.whyItFits);
+  assert.notEqual(
+    failedRepair.draft.recommendations[0]!.editorialDescription,
+    generated.editorialDescription,
+  );
+  assert.match(
+    failedRepair.warnings[0]!,
+    /^recommendation-copy-provider-failure path=editorialDescription reason=timeout matched="long lasting protection" source=listing-title identitySafe=false verifiedSafe=false classification=observed-only provider=field-repair-timeout-fixture contract=single-recommendation-field-repair-v1$/,
+  );
+
+  const emptyFactsProduct = productSchema.parse({
+    schemaVersion: 1,
+    id: "product_empty-facts-repair",
+    name: "Field Brand Hydration Tablets | Fast Recovery",
+    brand: "Field Brand",
+    merchant: "Fixture merchant",
+    shortDescription: "Observed hydration and performance copy.",
+    status: "active",
+  });
+  const emptyFactsContent = {
+    ...catalog.read(),
+    products: [...catalog.read().products, emptyFactsProduct],
+  };
+  const emptyFactsDraft = selectRecommendationProduct(
+    shaped,
+    originalSlot.id,
+    emptyFactsProduct.id,
+    emptyFactsContent,
+  );
+  const emptyFactsRepair = prepareRecommendationFieldRepairPrompt(
+    emptyFactsDraft,
+    originalSlot.id,
+    "whyItFits",
+    emptyFactsContent,
+  );
+  assert.deepEqual(emptyFactsRepair.input.product.verifiedFacts, []);
+  assert.equal(emptyFactsRepair.prompt.includes(emptyFactsProduct.name), false);
+  assert.equal(emptyFactsRepair.prompt.includes(emptyFactsProduct.shortDescription), false);
 });
 
 test("reabre una guía publicada con identidad y copia listas", () => {
@@ -6940,11 +7550,19 @@ test("reabre una guía publicada con identidad y copia listas", () => {
 
 test("regenera por HTTP el slot 4 aunque los demás no tengan producto", async (context) => {
   const directory = await mkdtemp(join(tmpdir(), "good-present-final-http-"));
-  const store = new DraftStore(directory);
-  const content = new ProductCatalog().read();
+  await cp(join(REPOSITORY_ROOT, "content"), join(directory, "content"), { recursive: true });
+  const store = new DraftStore(join(directory, "drafts"));
+  const catalog = new ProductCatalog(directory);
+  const content = catalog.read();
   const draft = await selectedGuideDraft("guide_http-final", 4);
   await store.save(draft);
-  const server = createStudioServer(store);
+  const server = createStudioServer(
+    store,
+    catalog,
+    new MockGuideGenerationProvider(),
+    new Publisher(directory),
+    new ProductSourceStore(directory),
+  );
   server.listen(0, STUDIO_HOST);
   await once(server, "listening");
   context.after(async () => {
@@ -6960,7 +7578,7 @@ test("regenera por HTTP el slot 4 aunque los demás no tengan producto", async (
   const generatedResponse = await fetch(`${origin}/drafts/${draft.id}/final/generate`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ promptVersion: "final-guide-v1" }),
+    body: new URLSearchParams({ promptVersion: "final-guide-v4" }),
     redirect: "manual",
   });
   assert.equal(generatedResponse.status, 303);
@@ -7032,7 +7650,7 @@ test("regenera por HTTP el slot 4 aunque los demás no tengan producto", async (
     {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ promptVersion: "single-recommendation-v1" }),
+      body: new URLSearchParams({ promptVersion: "single-recommendation-v4" }),
       redirect: "manual",
     },
   );
@@ -7169,13 +7787,15 @@ test("publica y renderiza una idea sin Product ni CTA, conservando QA e I.0", as
 
   const resolved = publicGuide.recommendations.find(({ productId }) => productId)!;
   const resolvedProduct = published.products.find(({ id }) => id === resolved.productId)!;
-  const resolvedIndex = html.indexOf(resolvedProduct.name);
+  const resolvedIndex = html.indexOf(productDisplayName(resolvedProduct));
   const resolvedStart = html.lastIndexOf("<article", resolvedIndex);
   const resolvedEnd = html.indexOf("</article>", resolvedIndex);
-  assert.match(
-    html.slice(resolvedStart, resolvedEnd + "</article>".length),
-    /href=.*rel="sponsored nofollow noopener"/,
-  );
+  const resolvedCard = html.slice(resolvedStart, resolvedEnd + "</article>".length);
+  assert.match(resolvedCard, /href=.*rel="sponsored nofollow noopener"/);
+  assert.equal(resolvedCard.includes(resolvedProduct.shortDescription), false);
+  if (resolvedProduct.priceLabel) {
+    assert.equal(resolvedCard.includes(resolvedProduct.priceLabel), false);
+  }
 
   const reopenedIdea = reopenGuideDraft(publicGuide, published);
   const attached = selectRecommendationProduct(
@@ -7212,6 +7832,71 @@ test("publica y renderiza una idea sin Product ni CTA, conservando QA e I.0", as
   assert.equal(resolvedAgain.id, original.id);
   assert.equal(resolvedAgain.position, original.position);
   assert.equal(resolvedAgain.productId, original.productId);
+});
+
+test("deriva identidad pública concisa sin convertir el título observado en copy", () => {
+  const product = productSchema.parse({
+    schemaVersion: 1,
+    id: "product_observed-title-display",
+    name: "Trail Fuel - 40 Count Electrolyte Tablets | 320mg Sodium | Fast Recovery Claims",
+    merchant: "Amazon",
+    shortDescription: "An observed provider snippet with ratings, performance, and usage claims.",
+    priceLabel: "$19.99 observed",
+    status: "active",
+  });
+  assert.equal(productDisplayName(product), "Trail Fuel Electrolyte Tablets");
+  assert.notEqual(productDisplayName(product), product.name);
+  assert.match(product.name, /40 Count|320mg|Fast Recovery/);
+});
+
+test("permite hechos verificados y bloquea claims observados en copy Product-backed", async () => {
+  const baseContent = new ProductCatalog().read();
+  const product = productSchema.parse({
+    schemaVersion: 1,
+    id: "product_verified-copy-discipline",
+    name: "Trail Socks | Odor Resistant Listing Claim",
+    merchant: "Example merchant",
+    shortDescription: "An observed odor resistant option for demanding field work.",
+    verifiedFacts: ["Material: merino wool"],
+    status: "active",
+  });
+  const content = { ...baseContent, products: [...baseContent.products, product] };
+  const selected = await selectedGuideDraft("guide_verified-copy-discipline");
+  const slot = selected.recommendations[0]!;
+  const draft = selectRecommendationProduct(selected, slot.id, product.id, content);
+  const response = {
+    id: slot.id,
+    productId: product.id,
+    position: slot.position,
+    heading: productDisplayName(product),
+    editorialDescription:
+      "Its verified merino wool material gives the recommendation a grounded detail.",
+    whyItFits: "The choice fits the recipient's established routine.",
+  };
+  const providerFor = (editorialDescription: string): GuideGenerationProvider => ({
+    providerId: "verified-copy-fixture",
+    async generateStructured<T>(): Promise<T> {
+      return { ...response, editorialDescription } as T;
+    },
+  });
+
+  const verified = await regenerateRecommendation(
+    draft,
+    slot.id,
+    content,
+    providerFor(response.editorialDescription),
+  );
+  assert.equal(verified.recommendations[0]!.productId, product.id);
+  assert.match(verified.recommendations[0]!.editorialDescription!, /merino wool/i);
+  await assert.rejects(
+    regenerateRecommendation(
+      draft,
+      slot.id,
+      content,
+      providerFor("Its odor resistant construction is ideal for demanding field work."),
+    ),
+    /verifiedFacts/,
+  );
 });
 
 test("publica por ID estable, conserva publishedAt y rechaza conflictos antes de escribir", async (context) => {
@@ -7593,13 +8278,16 @@ test("resume rutas Zod sin exponer la respuesta inválida del proveedor", () => 
       const summary = error.debugSummary();
       assert.match(
         summary,
-        /evaluations\.0\.thinContentRiskAction: Too small: expected string to have >=1 characters/,
+        /evaluations\.0\.thinContentRiskAction: expected=string-min-1 received=empty/,
       );
       assert.match(
         summary,
-        /evaluations\.0\.cannibalizationRiskAction: Too small: expected string to have >=1 characters/,
+        /evaluations\.0\.cannibalizationRiskAction: expected=string-min-1 received=empty/,
       );
-      assert.match(summary, /\$: Unrecognized field\(s\)/);
+      assert.match(
+        summary,
+        /\$: expected=no-unexpected-fields received=unexpected-fields\(count=1\)/,
+      );
       assert.doesNotMatch(summary, /sk-provider|Bearer|output-secret/);
       assert.doesNotMatch(error.message, /evaluations|RiskAction|sk-provider/);
       return true;
@@ -9380,6 +10068,85 @@ test("Autopilot explica un timeout del proveedor antes de completar idea-only", 
   assert.equal(result.executionEvidence.searchRefinementAttempted, true);
 });
 
+test("Autopilot usa copy determinista y específico cuando falla la generación idea-only", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-autopilot-copy-failure-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const fitStore = new ProductFitEvaluationStore(repository);
+  const slotLabel = "Impact-Resistant Polarized Sunglasses";
+  const longAudience =
+    "Friends and family choosing for a field professional who works long outdoor shifts";
+  const draft = await draftStore.save(
+    guideDraftSchema.parse({
+      ...autopilotDraft("guide_autopilot-copy-failure", "slot_autopilot-copy-failure", slotLabel),
+      questionnaire: {
+        giftCount: 3,
+        recipient: longAudience,
+        occasion: "Career milestone",
+        budget: "Under $75",
+      },
+    }),
+  );
+  await sourcingStore.save(
+    productSourcingRequestSchema.parse({
+      ...autopilotRequest(draft, ["source_candidate_autopilot-copy-failure"]),
+      mustHaveVerifiedFacts: ["A deliberately unavailable verified fact"],
+    }),
+  );
+  const mock = new MockGuideGenerationProvider();
+  const provider: GuideGenerationProvider = {
+    providerId: "idea-copy-failure-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      if (request.operation === "idea-recommendation") {
+        throw new ProviderError("Fixture idea-copy timeout.", "timeout");
+      }
+      return mock.generateStructured(request);
+    },
+  };
+
+  const result = await resolveRecommendationSlotAutonomously(draft, draft.recommendations[0]!.id, {
+    draftStore,
+    catalog,
+    sourcingStore,
+    sourceStore,
+    fitStore,
+    provider,
+  });
+  const completed = guideDraftSchema.parse(await draftStore.read(draft.id));
+  const slot = completed.recommendations[0]!;
+  const editorialFields = [
+    slot.heading,
+    slot.editorialDescription,
+    slot.whyItFits,
+    slot.bestFor,
+    slot.selectionGuidance,
+    slot.considerations,
+  ].join(" ");
+
+  assert.equal(result.status, "resolved-idea-only");
+  assert.equal(result.reasonCode, "no-candidate-passed-product-gate");
+  assert.ok(result.actionsPerformed.includes("generated-safe-idea-only-fallback"));
+  assert.ok(result.warnings.some((warning) => warning.startsWith("idea-copy-provider-failure ")));
+  assert.ok(result.warnings.includes("idea-editorial-copy-fallback-used"));
+  assert.match(slot.heading!, new RegExp(slotLabel));
+  assert.ok(slot.editorialDescription);
+  assert.ok(slot.whyItFits);
+  assert.ok(slot.bestFor);
+  assert.ok(slot.selectionGuidance);
+  assert.ok(slot.considerations);
+  assert.equal(slot.productId, undefined);
+  assert.equal(slot.editorialStatus, "ready");
+  assert.doesNotMatch(
+    editorialFields,
+    /A practical gift idea|Field Brand|Amazon|B0AUTO0001|https?:|ASIN|this slot|Product class|recommendation'?s purpose|structured input|editorial system/i,
+  );
+  assert.doesNotMatch(slot.heading!, new RegExp(longAudience));
+});
+
 test("Autopilot no salta Amazon ante una falla P.2 y la UI explica cero candidatos sin listas vacías", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-autopilot-failure-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
@@ -9483,6 +10250,67 @@ test("Autopilot no salta Amazon ante una falla P.2 y la UI explica cero candidat
   assert.doesNotMatch(html, /<ul>\s*<\/ul>/);
 });
 
+test("detecta sólo las señales estrechas del fallback histórico", () => {
+  const audience =
+    "Friends, family, and romantic partners choosing for a field professional with long outdoor shifts";
+  const slot = {
+    ...autopilotDraft("guide_legacy-copy-signals", "slot_legacy-copy-signals").recommendations[0]!,
+    heading: "Extra capacity for long shifts",
+    editorialDescription: "A useful idea for demanding days outdoors.",
+    whyItFits: "It makes a long routine a little easier.",
+    selectionGuidance: "Compare fit, care, and ease of use.",
+    considerations: "Personal preferences may matter most.",
+    editorialStatus: "ready" as const,
+  };
+
+  assert.equal(
+    recommendationHasLegacyIdeaFallback(
+      { ...slot, heading: `Hydration for ${audience}` },
+      audience,
+    ),
+    true,
+  );
+  assert.equal(
+    recommendationHasLegacyIdeaFallback(
+      { ...slot, editorialDescription: "Choose among hydration options for long shifts." },
+      audience,
+    ),
+    true,
+  );
+  assert.equal(
+    recommendationHasLegacyIdeaFallback(
+      {
+        ...slot,
+        whyItFits: "It supports this recommendation's purpose: carry extra water.",
+      },
+      audience,
+    ),
+    true,
+  );
+  assert.equal(
+    recommendationHasLegacyIdeaFallback(
+      {
+        ...slot,
+        considerations:
+          "Confirm personal fit, compatibility, and care requirements before choosing.",
+      },
+      audience,
+    ),
+    true,
+  );
+  assert.equal(
+    recommendationHasLegacyIdeaFallback(
+      {
+        ...slot,
+        editorialDescription: `${slot.slotLabel} can make a thoughtful gift when it matches the recipient's real routine and preferences.`,
+      },
+      audience,
+    ),
+    true,
+  );
+  assert.equal(recommendationHasLegacyIdeaFallback(slot, audience), false);
+});
+
 test("Guide Autopilot preserva una guía resuelta, omite sourcing y muestra un resumen compacto", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-guide-autopilot-ready-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
@@ -9492,11 +10320,18 @@ test("Guide Autopilot preserva una guía resuelta, omite sourcing y muestra un r
   const sourceStore = new ProductSourceStore(repository);
   const providerOperations: string[] = [];
   const provider = strongAutopilotProvider((operation) => providerOperations.push(operation));
-  const complete = await generateFinalGuide(
+  const generatedComplete = await generateFinalGuide(
     await selectedGuideDraft("guide_guide-autopilot-ready"),
     catalog.read(),
     new MockGuideGenerationProvider(),
   );
+  const manualMetadata = {
+    excerpt: "Manual guide excerpt.",
+    introduction: "Manual guide introduction.",
+    seoTitle: "Manual guide SEO title",
+    seoDescription: "Manual guide SEO description.",
+  };
+  const complete = guideDraftSchema.parse({ ...generatedComplete, ...manualMetadata });
   const productWithoutDestination = catalog.get(complete.recommendations[0]!.productId!);
   const {
     productUrl: _productUrl,
@@ -9531,6 +10366,15 @@ test("Guide Autopilot preserva una guía resuelta, omite sourcing y muestra un r
   assert.equal(providerOperations.length, 0);
   assert.equal(sourcingStore.list().length, 0);
   assert.deepEqual(await draftStore.read(saved.id), saved);
+  assert.deepEqual(
+    {
+      excerpt: saved.excerpt,
+      introduction: saved.introduction,
+      seoTitle: saved.seoTitle,
+      seoDescription: saved.seoDescription,
+    },
+    manualMetadata,
+  );
   assert.ok(
     result.slots.every(
       ({ action, status }) =>
@@ -9567,10 +10411,301 @@ test("Guide Autopilot preserva una guía resuelta, omite sourcing y muestra un r
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /Guía completada automáticamente/);
-  assert.match(html, /3\/3 editorialmente listas/);
-  assert.match(html, /3 Products resueltos/);
+  assert.match(html, /Editorial:<\/strong> 3\/3 listas/);
+  assert.match(html, /Products:<\/strong> 3 resueltos · 0 pendientes/);
+  assert.match(
+    html,
+    new RegExp(
+      `Afiliación:<\\/strong> ${result.counts.affiliateReady} listas · ${result.counts.affiliatePending} pendientes`,
+    ),
+  );
+  assert.match(html, /Estado editorial de la guía:<\/strong> completa/);
   assert.doesNotMatch(html, /Advertencias no bloqueantes/);
   assert.doesNotMatch(html, /<ul>\s*<\/ul>/);
+});
+
+test("Guide Autopilot completa metadata, repara copy histórico y filtra claims no verificados sin sourcing", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-guide-autopilot-copy-repair-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const fitStore = new ProductFitEvaluationStore(repository);
+  const sparseProduct = productSchema.parse({
+    schemaVersion: 1,
+    id: "product_sparse-claims",
+    name: "Trail Hydration Tablets | 40 Count | 320mg Sodium",
+    merchant: "Amazon",
+    productUrl: "https://www.amazon.com/dp/B0SPARSE01",
+    shortDescription:
+      "A quick-dissolving 40-count tablet pack with 320mg sodium for demanding exercise.",
+    priceLabel: "$19.99 observed",
+    status: "active",
+  });
+  await catalog.save(sparseProduct);
+  const base = await generateFinalGuide(
+    await selectedGuideDraft("guide_guide-autopilot-copy-repair"),
+    catalog.read(),
+    new MockGuideGenerationProvider(),
+  );
+  const {
+    excerpt: _excerpt,
+    introduction: _introduction,
+    seoTitle: _seoTitle,
+    seoDescription: _seoDescription,
+    ...withoutGeneratedMetadata
+  } = base;
+  const [legacy, specific, productBacked] = base.recommendations;
+  const specificCopy = {
+    heading: "Calorie-Dense Meal Pouches Variety Pack",
+    editorialDescription: "Choose a practical format that fits the recipient's routine.",
+    whyItFits: "It keeps convenient meal variety close during demanding days.",
+    bestFor: "Someone who values convenient meals during demanding days.",
+    selectionGuidance: "Compare dietary fit, preparation needs, and pack variety.",
+    considerations: "Confirm dietary preferences before choosing.",
+  };
+  const manualTitle = "Manual field-ready gift guide";
+  const manualConclusion = "A manually written conclusion that must remain unchanged.";
+  const draft = await draftStore.save(
+    guideDraftSchema.parse({
+      ...withoutGeneratedMetadata,
+      title: manualTitle,
+      conclusion: manualConclusion,
+      recommendations: [
+        {
+          id: legacy!.id,
+          position: legacy!.position,
+          slotLabel: "Impact-Resistant Polarized Sunglasses",
+          slotIntent: "Support eye comfort around bright light and airborne dust.",
+          searchTerms: ["polarized eye protection"],
+          heading: "A practical gift idea",
+          editorialDescription: "Amazon candidate B0LEAK0001 from Field Brand.",
+          whyItFits: "https://www.amazon.com/dp/B0LEAK0001",
+          bestFor: "$39.99 live price",
+          selectionGuidance: "Candidate-specific selection copy.",
+          considerations: "ASIN B0LEAK0001",
+          editorialStatus: "ready",
+        },
+        {
+          id: specific!.id,
+          position: specific!.position,
+          slotLabel: "Calorie-Dense Meal Pouches Variety Pack",
+          slotIntent: "Offer convenient meal variety.",
+          searchTerms: ["meal pouch variety"],
+          ...specificCopy,
+          editorialStatus: "ready",
+        },
+        {
+          id: productBacked!.id,
+          position: productBacked!.position,
+          slotLabel: "Hydration support for long outdoor shifts",
+          slotIntent: "Offer an easy-to-carry hydration option for demanding days.",
+          searchTerms: ["portable hydration option"],
+          productId: sparseProduct.id,
+          heading: sparseProduct.name,
+          editorialDescription: `${sparseProduct.name} from ${sparseProduct.merchant}. ${sparseProduct.shortDescription}`,
+          whyItFits: "The 320mg sodium formulation supports demanding exercise.",
+          bestFor: "Someone who wants a quick-dissolving 40-count supply.",
+          considerations: "The observed listing says it dissolves quickly.",
+          editorialPromptVersion: "single-recommendation-v2",
+          editorialStatus: "ready",
+        },
+      ],
+    }),
+  );
+  const pendingRequest = autopilotRequest(
+    draft,
+    ["source_candidate_guide-autopilot-copy-repair"],
+    new Date("2026-09-08T12:00:00.000Z"),
+    legacy!.id,
+  );
+  await sourcingStore.save(pendingRequest);
+  const providerOperations: string[] = [];
+  let metadataMissingFields: string[] = [];
+  let productPrompt:
+    z.infer<typeof recommendationPromptInputSchema>["recommendation"]["product"] | undefined;
+  const strongProvider = strongAutopilotProvider();
+  const provider: GuideGenerationProvider = {
+    providerId: "guide-copy-polish-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      providerOperations.push(request.operation);
+      if (request.operation === "guide-metadata") {
+        metadataMissingFields = guideMetadataPromptInputSchema.parse(request.input).missingFields;
+      }
+      if (request.operation === "single-recommendation") {
+        const input = recommendationPromptInputSchema.parse(request.input);
+        if (input.recommendation.product.id === sparseProduct.id) {
+          productPrompt = structuredClone(input.recommendation.product);
+        }
+      }
+      return strongProvider.generateStructured(request);
+    },
+  };
+  const sourceCount = sourceStore.list(catalog.read().products).length;
+  const requestSnapshot = structuredClone(sourcingStore.list());
+
+  const first = await completeGuideAutonomously(draft, {
+    draftStore,
+    catalog,
+    sourcingStore,
+    sourceStore,
+    fitStore,
+    provider,
+  });
+  const repaired = guideDraftSchema.parse(await draftStore.read(draft.id));
+  const repairedLegacy = repaired.recommendations[0]!;
+  const preservedSpecific = repaired.recommendations[1]!;
+  const conservativeProduct = repaired.recommendations[2]!;
+  const editorialFields = [
+    repairedLegacy.heading,
+    repairedLegacy.editorialDescription,
+    repairedLegacy.whyItFits,
+    repairedLegacy.bestFor,
+    repairedLegacy.selectionGuidance,
+    repairedLegacy.considerations,
+  ].join(" ");
+  const productBody = [
+    conservativeProduct.editorialDescription,
+    conservativeProduct.whyItFits,
+    conservativeProduct.bestFor,
+    conservativeProduct.considerations,
+  ].join(" ");
+
+  assert.equal(first.status, "completed");
+  assert.equal(first.counts.editorialReady, 3);
+  assert.equal(first.counts.productResolved, 1);
+  assert.equal(first.counts.productPending, 2);
+  assert.equal(
+    first.slots.find(({ slotId }) => slotId === legacy!.id)!.action,
+    "repaired-generic-idea-copy",
+  );
+  assert.equal(
+    first.slots.find(({ slotId }) => slotId === specific!.id)!.action,
+    "preserved-ready-product-pending-slot",
+  );
+  assert.equal(
+    first.slots.find(({ slotId }) => slotId === productBacked!.id)!.action,
+    "completed-product-copy",
+  );
+  assert.match(repairedLegacy.heading!, /Impact-Resistant Polarized Sunglasses/);
+  assert.ok(repairedLegacy.bestFor);
+  assert.ok(repairedLegacy.selectionGuidance);
+  assert.ok(repairedLegacy.considerations);
+  assert.doesNotMatch(
+    editorialFields,
+    /A practical gift idea|Amazon|Field Brand|B0LEAK0001|https?:|\$39\.99|ASIN|this slot|Product class|recommendation'?s purpose|structured input|editorial system/i,
+  );
+  assert.doesNotMatch(
+    repairedLegacy.heading!,
+    new RegExp(draft.questionnaire.recipient ?? "this cannot match"),
+  );
+  assert.deepEqual(
+    {
+      heading: preservedSpecific.heading,
+      editorialDescription: preservedSpecific.editorialDescription,
+      whyItFits: preservedSpecific.whyItFits,
+      bestFor: preservedSpecific.bestFor,
+      selectionGuidance: preservedSpecific.selectionGuidance,
+      considerations: preservedSpecific.considerations,
+    },
+    specificCopy,
+  );
+  assert.equal(repaired.title, manualTitle);
+  assert.equal(repaired.conclusion, manualConclusion);
+  assert.ok(repaired.excerpt);
+  assert.ok(repaired.introduction);
+  assert.ok(repaired.seoTitle);
+  assert.ok(repaired.seoDescription);
+  assert.deepEqual(metadataMissingFields.sort(), [
+    "excerpt",
+    "introduction",
+    "seoDescription",
+    "seoTitle",
+  ]);
+  assert.deepEqual(validateGuideDraft(repaired, catalog.read()).errors, []);
+  assert.equal(conservativeProduct.productId, sparseProduct.id);
+  assert.equal(conservativeProduct.heading, productDisplayName(sparseProduct));
+  assert.equal(conservativeProduct.editorialStatus, "ready");
+  assert.equal(conservativeProduct.editorialPromptVersion, "single-recommendation-v4");
+  assert.doesNotMatch(
+    productBody,
+    /Amazon|320\s*mg|40[- ]?count|quick-dissolving|dissolves quickly/i,
+  );
+  assert.deepEqual(productPrompt, {
+    id: sparseProduct.id,
+    name: productDisplayName(sparseProduct),
+  });
+  assert.deepEqual(providerOperations, [
+    "guide-metadata",
+    "idea-recommendation",
+    "single-recommendation",
+  ]);
+  assert.equal(first.execution.amazonDiscoveryCalls, 0);
+  assert.equal(first.execution.p2Calls, 0);
+  assert.equal(first.execution.editorialGenerations, 3);
+  assert.deepEqual(sourcingStore.list(), requestSnapshot);
+  assert.equal(sourceStore.list(catalog.read().products).length, sourceCount);
+  assert.equal(first.counts.affiliateReady, Number(Boolean(productDestination(sparseProduct))));
+  assert.equal(first.counts.affiliatePending, 1 - first.counts.affiliateReady);
+
+  const publicGuide = guideDraftToPublic(repaired, catalog.read());
+  assert.equal(publicGuide.recommendations[0]!.heading, repairedLegacy.heading);
+  assert.doesNotMatch(
+    JSON.stringify(publicGuide),
+    /A practical gift idea|singleSlotResult|sourcingRequestId|reasonCode|executionEvidence|sourceCandidates|verifiedFacts|generationMetadata|editorialPromptVersion/i,
+  );
+
+  providerOperations.length = 0;
+  const second = await completeGuideAutonomously(repaired, {
+    draftStore,
+    catalog,
+    sourcingStore,
+    sourceStore,
+    fitStore,
+    provider,
+  });
+  assert.equal(second.status, "completed");
+  assert.equal(second.execution.editorialGenerations, 0);
+  assert.equal(second.execution.amazonDiscoveryCalls, 0);
+  assert.equal(second.execution.p2Calls, 0);
+  assert.deepEqual(await draftStore.read(draft.id), repaired);
+  assert.deepEqual(providerOperations, []);
+  assert.deepEqual(sourcingStore.list(), requestSnapshot);
+
+  const server = createStudioServer(
+    draftStore,
+    catalog,
+    provider,
+    new Publisher(repository),
+    sourceStore,
+  );
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(() => server.close());
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const curation = await (
+    await fetch(`http://${STUDIO_HOST}:${address.port}/drafts/${draft.id}/curation`)
+  ).text();
+  assert.match(curation, /Editorial:<\/strong> 3\/3 listas/);
+  assert.match(curation, /Products:<\/strong> 1 resueltos · 2 pendientes/);
+  assert.match(
+    curation,
+    new RegExp(
+      `Afiliación:<\\/strong> ${first.counts.affiliateReady} listas · ${first.counts.affiliatePending} pendientes`,
+    ),
+  );
+  assert.match(curation, /Estado editorial de la guía:<\/strong> completa/);
+  assert.doesNotMatch(curation, /completamente lista/);
+  const preview = await (
+    await fetch(`http://${STUDIO_HOST}:${address.port}/drafts/${draft.id}/preview`)
+  ).text();
+  assert.match(preview, new RegExp(productDisplayName(sparseProduct)));
+  assert.equal(preview.includes(sparseProduct.name), false);
+  assert.equal(preview.includes(sparseProduct.shortDescription), false);
+  assert.equal(preview.includes(sparseProduct.priceLabel!), false);
 });
 
 test("Guide Autopilot completa una guía mixta y converge sin sobrescribir copy manual", async (context) => {
@@ -9596,6 +10731,7 @@ test("Guide Autopilot completa una guía mixta y converge sin sobrescribir copy 
       recommendations: [
         {
           ...preservedProduct!,
+          editorialPromptVersion: MANUAL_EDITORIAL_COPY_VERSION,
           heading: "Manual Product heading",
           editorialDescription: "Manual Product description that must remain byte-for-byte.",
           whyItFits: "Manual Product rationale that must remain byte-for-byte.",
@@ -9630,6 +10766,7 @@ test("Guide Autopilot completa una guía mixta y converge sin sobrescribir copy 
     }),
     now,
   );
+  assert.equal(draft.recommendations[0]!.editorialPromptVersion, MANUAL_EDITORIAL_COPY_VERSION);
   const weakRequest = productSourcingRequestSchema.parse({
     ...autopilotRequest(draft, ["source_candidate_guide-autopilot-weak"], now, preservedIdea!.id),
     mustHaveVerifiedFacts: ["A deliberately unavailable verified fact"],
@@ -9678,7 +10815,7 @@ test("Guide Autopilot completa una guía mixta y converge sin sobrescribir copy 
     genericRecommendations: 1,
     slotsWithWarnings: 0,
   });
-  assert.equal(first.execution.productPendingFallbacks, 1);
+  assert.equal(first.execution.productPendingFallbacks, 0);
   assert.equal(first.execution.productsCreated + first.execution.productsReused, 1);
   assert.ok(first.execution.editorialGenerations >= 2);
   assert.equal(first.execution.amazonDiscoveryCalls, 0);
@@ -9709,8 +10846,8 @@ test("Guide Autopilot completa una guía mixta y converge sin sobrescribir copy 
     "only Product-backed copy needing work and the newly assigned Product are generated",
   );
   assert.equal(
-    first.slots.find(({ slotId }) => slotId === preservedIdea!.id)!.singleSlotResult?.status,
-    "resolved-idea-only",
+    first.slots.find(({ slotId }) => slotId === preservedIdea!.id)!.action,
+    "preserved-ready-product-pending-slot",
   );
   assert.equal(
     first.slots.find(({ slotId }) => slotId === unresolved!.id)!.singleSlotResult?.status,
@@ -9748,16 +10885,10 @@ test("Guide Autopilot completa una guía mixta y converge sin sobrescribir copy 
   assert.equal(sourceStore.list(catalog.read().products).length, sourceCount);
   assert.equal(
     sourcingStore.list().length,
-    requestCount + 1,
-    "the Product-pending slot gets one explicit new retry, not duplicate concurrent requests",
+    requestCount,
+    "a guide rerun does not rediscover an already-ready Product-pending slot",
   );
-  assert.deepEqual(providerOperations, ["product-search-plans", "product-fit-evaluations"]);
-  assert.ok(
-    providerOperations.every((operation) =>
-      ["product-search-plans", "product-fit-evaluations"].includes(operation),
-    ),
-    "the retry may enrich Product evidence but must not regenerate ready copy",
-  );
+  assert.deepEqual(providerOperations, []);
   assert.equal(second.execution.editorialGenerations, 0);
   guideDraftToPublic(converged, catalog.read());
 });

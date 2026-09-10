@@ -1,5 +1,6 @@
 ---
 import {
+  productDisplayName,
   productDestination,
   type GuideRecommendation,
   type Product,
@@ -16,9 +17,14 @@ const isAffiliate = Boolean(destination && destination === product?.affiliateUrl
 const isDemo = destination ? new URL(destination).hostname === "example.com" : false;
 const linkRel = isAffiliate ? "sponsored nofollow noopener" : "nofollow noopener";
 const merchantLabel = product?.merchant.replace(" (demo)", "");
+const displayName = product ? productDisplayName(product) : undefined;
 const selectionGuidance =
   "selectionGuidance" in recommendation ? recommendation.selectionGuidance : undefined;
-const title = recommendation.heading ?? product?.name ?? "Gift idea";
+const editorialHeading =
+  recommendation.heading && !product?.name.startsWith(recommendation.heading)
+    ? recommendation.heading
+    : undefined;
+const title = editorialHeading ?? displayName ?? "Gift idea";
 const initials = title
   .split(/\s+/)
   .slice(0, 2)
@@ -35,8 +41,7 @@ const accent = `recommendation--accent-${((recommendation.position - 1) % 4) + 1
   <div class="recommendation__body">
     <p class="recommendation__position">Recommendation {recommendation.position}</p>
     <h2>{title}</h2>
-    {product && recommendation.heading && <p class="recommendation__product">{product.name}</p>}
-    {product && <p class="recommendation__catalog">{product.shortDescription}</p>}
+    {product && editorialHeading && <p class="recommendation__product">{displayName}</p>}
     <p>{recommendation.editorialDescription}</p>
     <div class="why-box">
       <h3>Why it fits</h3>
@@ -67,22 +72,19 @@ const accent = `recommendation--accent-${((recommendation.position - 1) % 4) + 1
       )
     }
     {
-      product && (product.priceLabel || destination) && (
+      product && destination && (
         <div class="recommendation__commerce">
-          {product.priceLabel && <span>{product.priceLabel}</span>}
-          {destination && (
-            <a
-              class="button button--small"
-              href={destination}
-              target="_blank"
-              rel={linkRel}
-              aria-label={`${isDemo ? "View demo for" : "View"} ${product.name} at ${product.merchant} (opens in a new tab)`}
-            >
-              {isDemo
-                ? `View demo at ${merchantLabel}`
-                : `${isAffiliate ? "View at" : "View product at"} ${product.merchant}`}
-            </a>
-          )}
+          <a
+            class="button button--small"
+            href={destination}
+            target="_blank"
+            rel={linkRel}
+            aria-label={`${isDemo ? "View demo for" : "View"} ${displayName} at ${product.merchant} (opens in a new tab)`}
+          >
+            {isDemo
+              ? `View demo at ${merchantLabel}`
+              : `${isAffiliate ? "View at" : "View product at"} ${product.merchant}`}
+          </a>
         </div>
       )
     }

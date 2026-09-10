@@ -2,11 +2,19 @@ import { randomUUID } from "node:crypto";
 
 import {
   guidePath,
+  productDisplayName,
   type GiftGuide,
+  type Product,
   type ValidatedPublicContent,
 } from "@the-good-present/content-schema";
+import { z } from "zod";
 
-import type { GuideGenerationProvider } from "./ai-provider.ts";
+import {
+  ProviderError,
+  safeSchemaIssues,
+  type GuideGenerationProvider,
+  type SafeSchemaIssue,
+} from "./ai-provider.ts";
 import {
   DEFAULT_GIFT_COUNT,
   guideDraftSchema,
@@ -19,6 +27,9 @@ import {
 import {
   generatedRecommendationSchema,
   generatedGuideSchema,
+  generatedGuideMetadataSchema,
+  FINAL_PROMPT_VERSION,
+  prepareGuideMetadataPrompt,
   prepareFinalPrompt,
   type GeneratedGuide,
 } from "./final-prompt.ts";
@@ -31,11 +42,107 @@ import {
 } from "./idea-prompt.ts";
 import type { ProductSourcingRequest } from "./modules/product-intelligence/sourcing.ts";
 import {
+  prepareRecommendationFieldRepairPrompt,
   prepareRecommendationPrompt,
+  productBackedCopyFieldSchema,
+  recommendationFieldRepairSchema,
+  RECOMMENDATION_FIELD_REPAIR_PROMPT_VERSION,
   RECOMMENDATION_PROMPT_VERSION,
+  type ProductBackedCopyField,
 } from "./recommendation-prompt.ts";
 
 type QuestionnaireInput = Partial<Record<keyof GuideQuestionnaire, string | undefined>>;
+
+export const SAFE_PRODUCT_COPY_VERSION = "product-recommendation-deterministic-v1";
+export const SAFE_IDEA_COPY_VERSION = "idea-recommendation-deterministic-v1";
+export const MANUAL_EDITORIAL_COPY_VERSION = "manual-editorial-v1";
+
+export const RECOMMENDATION_COPY_DIAGNOSTIC_CODES = [
+  "recommendation-copy-provider-failure",
+  "recommendation-copy-schema-invalid",
+  "recommendation-copy-claim-invalid",
+  "recommendation-copy-product-identity-invalid",
+] as const;
+export type RecommendationCopyDiagnosticCode =
+  (typeof RECOMMENDATION_COPY_DIAGNOSTIC_CODES)[number];
+
+export interface GenerationContractDiagnostic {
+  code: string;
+  contractVersion: string;
+  providerId: string;
+  modelId?: string;
+  path?: string;
+  expected?: string;
+  received?: string;
+  reason?: string;
+  matched?: string;
+  source?: string;
+  identitySafe?: boolean;
+  verifiedSafe?: boolean;
+  classification?: string;
+}
+
+function generationDiagnostic(
+  code: string,
+  provider: GuideGenerationProvider,
+  contractVersion: string,
+  details: Partial<
+    Pick<
+      GenerationContractDiagnostic,
+      | "classification"
+      | "expected"
+      | "identitySafe"
+      | "matched"
+      | "path"
+      | "reason"
+      | "received"
+      | "source"
+      | "verifiedSafe"
+    >
+  > = {},
+): GenerationContractDiagnostic {
+  return {
+    code,
+    contractVersion,
+    providerId: provider.providerId,
+    ...(provider.modelId ? { modelId: provider.modelId } : {}),
+    ...details,
+  };
+}
+
+export function formatGenerationContractDiagnostic(
+  diagnostic: GenerationContractDiagnostic,
+): string {
+  return [
+    diagnostic.code,
+    diagnostic.path ? `path=${diagnostic.path}` : undefined,
+    diagnostic.expected ? `expected=${diagnostic.expected}` : undefined,
+    diagnostic.received ? `received=${diagnostic.received}` : undefined,
+    diagnostic.reason ? `reason=${diagnostic.reason}` : undefined,
+    diagnostic.matched ? `matched=${JSON.stringify(diagnostic.matched)}` : undefined,
+    diagnostic.source ? `source=${diagnostic.source}` : undefined,
+    diagnostic.identitySafe !== undefined ? `identitySafe=${diagnostic.identitySafe}` : undefined,
+    diagnostic.verifiedSafe !== undefined ? `verifiedSafe=${diagnostic.verifiedSafe}` : undefined,
+    diagnostic.classification ? `classification=${diagnostic.classification}` : undefined,
+    `provider=${diagnostic.providerId}`,
+    diagnostic.modelId ? `model=${diagnostic.modelId}` : undefined,
+    `contract=${diagnostic.contractVersion}`,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+class RecommendationCopyValidationError extends TypeError {
+  readonly diagnosticCode: RecommendationCopyDiagnosticCode;
+  readonly reason: string;
+
+  constructor(message: string, diagnosticCode: RecommendationCopyDiagnosticCode, reason: string) {
+    super(message);
+    this.name = "RecommendationCopyValidationError";
+    this.diagnosticCode = diagnosticCode;
+    this.reason = reason;
+  }
+}
 
 export function normalizeQuestionnaire(input: QuestionnaireInput): GuideQuestionnaire {
   const text = (key: keyof GuideQuestionnaire): string | undefined => {
@@ -152,8 +259,9 @@ export function selectRecommendationProduct(
     throw new TypeError("El producto ya está seleccionado. Confirmá explícitamente el duplicado.");
   }
   const recommendations = [...draft.recommendations];
+  const { editorialPromptVersion: _editorialPromptVersion, ...unversioned } = recommendation;
   recommendations[index] = {
-    ...recommendation,
+    ...unversioned,
     productId,
     editorialStatus:
       recommendation.productId ||
@@ -172,7 +280,11 @@ export function clearRecommendationProduct(
 ): GuideDraft {
   const index = recommendationIndex(draft, recommendationId);
   const recommendation = draft.recommendations[index]!;
-  const { productId: _productId, ...withoutProduct } = recommendation;
+  const {
+    productId: _productId,
+    editorialPromptVersion: _editorialPromptVersion,
+    ...withoutProduct
+  } = recommendation;
   const recommendations = [...draft.recommendations];
   recommendations[index] = {
     ...withoutProduct,
@@ -285,6 +397,20 @@ export async function generateFinalGuide(
   );
   rejectGeneratedUrls(generated);
   assertExactRecommendations(draft, generated);
+  for (const recommendation of generated.recommendations) {
+    const product = content.products.find(({ id }) => id === recommendation.productId)!;
+    const slot = draft.recommendations.find(({ id }) => id === recommendation.id)!;
+    if (
+      productBackedCopyNeedsVerifiedFactsRepair(
+        recommendation,
+        product,
+        undefined,
+        productClaimContext(draft, slot),
+      )
+    ) {
+      throw new TypeError("La guía contiene claims de Product sin respaldo en verifiedFacts.");
+    }
+  }
   const current = new Map(
     draft.recommendations.map((recommendation) => [recommendation.id, recommendation]),
   );
@@ -306,12 +432,388 @@ export async function generateFinalGuide(
         bestFor: _bestFor,
         selectionGuidance: _selectionGuidance,
         considerations: _considerations,
+        editorialPromptVersion: _editorialPromptVersion,
         editorialStatus: _editorialStatus,
         ...slot
       } = existing;
-      return { ...slot, ...recommendation, editorialStatus: "ready" };
+      return {
+        ...slot,
+        ...recommendation,
+        editorialPromptVersion: FINAL_PROMPT_VERSION,
+        editorialStatus: "ready",
+      };
     }),
     generationMetadata: generationMetadata(provider, prepared.version, prepared.prompt, now),
+  });
+}
+
+const guideMetadataFields = ["excerpt", "introduction", "seoTitle", "seoDescription"] as const;
+
+export function guideEditorialMetadataIsComplete(draft: GuideDraft): boolean {
+  return guideMetadataFields.every((field) => Boolean(draft[field]));
+}
+
+function deterministicGuideMetadata(
+  draft: GuideDraft,
+  content: ValidatedPublicContent,
+): GuideDraft {
+  const cluster = content.clusters.find(({ id }) => id === draft.clusterId);
+  const title = draft.title ?? draft.outline?.provisionalTitle ?? cluster?.title ?? "Gift Guide";
+  const audience = (
+    draft.questionnaire.recipient ??
+    draft.outline?.audienceSummary ??
+    "the intended recipient"
+  )
+    .split(/[.;\n]/)[0]!
+    .slice(0, 80)
+    .trim();
+  const excerpt = `A practical guide for ${audience}, with thoughtful gift ideas selected for real routines and preferences.`;
+  return guideDraftSchema.parse({
+    ...draft,
+    status: "editing",
+    excerpt: draft.excerpt ?? excerpt,
+    introduction:
+      draft.introduction ??
+      `Choosing for ${audience} is easier when the gift fits how they live and work. This guide focuses on everyday usefulness, personal fit, and sensible tradeoffs so each idea feels considered rather than generic.`,
+    seoTitle: draft.seoTitle ?? title.slice(0, 70),
+    seoDescription: draft.seoDescription ?? excerpt.slice(0, 180),
+  });
+}
+
+export interface GuideMetadataCompletion {
+  draft: GuideDraft;
+  actionsPerformed: string[];
+  warnings: string[];
+}
+
+type ProductBackedEditorialCopy = Pick<
+  GuideDraft["recommendations"][number],
+  "editorialDescription" | "whyItFits" | "bestFor" | "considerations" | "editorialPromptVersion"
+>;
+
+const currentProductCopyVersions = new Set([
+  FINAL_PROMPT_VERSION,
+  RECOMMENDATION_PROMPT_VERSION,
+  SAFE_PRODUCT_COPY_VERSION,
+  MANUAL_EDITORIAL_COPY_VERSION,
+]);
+
+function claimWords(value: string): string[] {
+  return value
+    .normalize("NFKD")
+    .replace(/\p{M}+/gu, "")
+    .toLocaleLowerCase("en-US")
+    .split(/[^a-z0-9]+/)
+    .filter((word) => word.length >= 4);
+}
+
+export type ObservedClaimSource = "listing-title" | "short-description";
+export type ObservedClaimClassification =
+  "identity-safe" | "verified-safe" | "observed-only" | "ambiguous";
+
+export interface ObservedClaimMatch {
+  matched: string;
+  source: ObservedClaimSource;
+  identitySafe: boolean;
+  verifiedSafe: boolean;
+  classification: ObservedClaimClassification;
+}
+
+export interface ProductClaimContext {
+  productClass?: string;
+  slotPurpose?: string;
+  guideContext?: string[];
+}
+
+export function productClaimContext(
+  draft: GuideDraft,
+  slot: GuideDraft["recommendations"][number],
+): ProductClaimContext {
+  return {
+    productClass: slot.slotLabel,
+    ...(slot.slotIntent ? { slotPurpose: slot.slotIntent } : {}),
+    guideContext: [
+      draft.title,
+      draft.primaryIntent,
+      draft.questionnaire.recipient,
+      draft.outline?.audienceSummary,
+      draft.outline?.editorialAngle,
+    ].filter((value): value is string => Boolean(value)),
+  };
+}
+
+function includesPhrase(words: string[], phrase: string[]): boolean {
+  return words.some((_, index) => phrase.every((word, offset) => words[index + offset] === word));
+}
+
+function claimPhrases(value: string): string[][] {
+  const words = claimWords(value);
+  return [4, 3, 2].flatMap((length) =>
+    words
+      .slice(0, Math.max(0, words.length - length + 1))
+      .map((_, index) => words.slice(index, index + length)),
+  );
+}
+
+export function classifyObservedClaimMatches(
+  value: string,
+  product: Product,
+  context: ProductClaimContext = {},
+): ObservedClaimMatch[] {
+  const bodyWords = claimWords(value);
+  const identityPhrases = [product.brand, productDisplayName(product), context.productClass]
+    .filter((item): item is string => Boolean(item))
+    .map(claimWords);
+  const verifiedPhrases = (product.verifiedFacts ?? []).map(claimWords);
+  const contextPhrases = [context.slotPurpose, ...(context.guideContext ?? [])]
+    .filter((item): item is string => Boolean(item))
+    .map(claimWords);
+  const matches: ObservedClaimMatch[] = [];
+  const seen = new Set<string>();
+  for (const [source, observed] of [
+    ["listing-title", product.name],
+    ["short-description", product.shortDescription],
+  ] as const) {
+    for (const phrase of claimPhrases(observed)) {
+      if (!includesPhrase(bodyWords, phrase)) continue;
+      const matched = phrase.join(" ");
+      const key = `${source}:${matched}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const identitySafe = identityPhrases.some((words) => includesPhrase(words, phrase));
+      const verifiedSafe = verifiedPhrases.some((words) => includesPhrase(words, phrase));
+      matches.push({
+        matched,
+        source,
+        identitySafe,
+        verifiedSafe,
+        classification: identitySafe
+          ? "identity-safe"
+          : verifiedSafe
+            ? "verified-safe"
+            : contextPhrases.some((words) => includesPhrase(words, phrase))
+              ? "ambiguous"
+              : "observed-only",
+      });
+    }
+  }
+  return matches;
+}
+
+export type ProductBackedCopyFailureReason =
+  | "empty-copy"
+  | "stale-contract"
+  | "raw-listing-title"
+  | "merchant-copy"
+  | "listing-description-copy"
+  | "unsupported-url"
+  | "commerce-claim"
+  | "unsupported-numeric-claim"
+  | "observed-listing-claim";
+
+interface ProductBackedTextFailure {
+  reason: ProductBackedCopyFailureReason;
+  match?: ObservedClaimMatch;
+}
+
+function productBackedTextFailure(
+  value: string,
+  product: Product,
+  context: ProductClaimContext = {},
+): ProductBackedTextFailure | undefined {
+  const body = value.toLocaleLowerCase("en-US");
+  if (/(?:https?:\/\/|www\.)/i.test(body)) return { reason: "unsupported-url" };
+  const observedTitle = product.name.toLocaleLowerCase("en-US");
+  const canonicalIdentity = productDisplayName(product).toLocaleLowerCase("en-US");
+  if (observedTitle !== canonicalIdentity && body.includes(observedTitle)) {
+    return { reason: "raw-listing-title" };
+  }
+  if (body.includes(product.merchant.toLocaleLowerCase("en-US"))) {
+    return { reason: "merchant-copy" };
+  }
+  if (body.includes(product.shortDescription.toLocaleLowerCase("en-US"))) {
+    return { reason: "listing-description-copy" };
+  }
+  if (
+    /[$€£]\s?\d|\b(?:ratings?|reviews?|discounts?|in stock|available now|availability)\b/i.test(
+      body,
+    )
+  ) {
+    return { reason: "commerce-claim" };
+  }
+  const claims =
+    body.match(
+      /\b(?:upf|spf)\s*\d+\+?|\b\d+(?:\.\d+)?\s*(?:-|\s)?(?:count|pack|mg|g|kg|oz|ounces?|ml|liters?|inches?|cm|mm|hours?|watts?|volts?|mah|gb|servings?)\b/gi,
+    ) ?? [];
+  const verified = (product.verifiedFacts ?? [])
+    .join(" ")
+    .toLocaleLowerCase("en-US")
+    .replace(/[\s-]+/g, "");
+  if (
+    claims.some(
+      (claim) => !verified.includes(claim.toLocaleLowerCase("en-US").replace(/[\s-]+/g, "")),
+    )
+  ) {
+    return { reason: "unsupported-numeric-claim" };
+  }
+  const match = classifyObservedClaimMatches(body, product, context).find(
+    ({ classification }) => classification === "observed-only" || classification === "ambiguous",
+  );
+  if (match) return { reason: "observed-listing-claim", match };
+  return undefined;
+}
+
+export function productBackedCopyFailureReason(
+  copy: ProductBackedEditorialCopy,
+  product: Product,
+  guidePromptVersion?: string,
+  context: ProductClaimContext = {},
+): ProductBackedCopyFailureReason | undefined {
+  const body = [copy.editorialDescription, copy.whyItFits, copy.bestFor, copy.considerations]
+    .filter(Boolean)
+    .join(" ")
+    .toLocaleLowerCase("en-US");
+  if (!body) return "empty-copy";
+  if (copy.editorialPromptVersion && !currentProductCopyVersions.has(copy.editorialPromptVersion)) {
+    return "stale-contract";
+  }
+  if (
+    !copy.editorialPromptVersion &&
+    guidePromptVersion &&
+    /^(?:final-guide|single-recommendation)-v/.test(guidePromptVersion) &&
+    !currentProductCopyVersions.has(guidePromptVersion)
+  ) {
+    return "stale-contract";
+  }
+  return productBackedTextFailure(body, product, context)?.reason;
+}
+
+export function productBackedCopyNeedsVerifiedFactsRepair(
+  copy: ProductBackedEditorialCopy,
+  product: Product,
+  guidePromptVersion?: string,
+  context: ProductClaimContext = {},
+): boolean {
+  return Boolean(productBackedCopyFailureReason(copy, product, guidePromptVersion, context));
+}
+
+export async function completeGuideEditorialMetadata(
+  draft: GuideDraft,
+  content: ValidatedPublicContent,
+  provider: GuideGenerationProvider,
+  now = new Date(),
+): Promise<GuideMetadataCompletion> {
+  if (guideEditorialMetadataIsComplete(draft)) {
+    return { draft, actionsPerformed: [], warnings: [] };
+  }
+  const prepared = prepareGuideMetadataPrompt(draft, content);
+  try {
+    const generated = generatedGuideMetadataSchema.partial().parse(
+      await provider.generateStructured({
+        operation: "guide-metadata",
+        prompt: prepared.prompt,
+        input: prepared.input,
+        schema: generatedGuideMetadataSchema.partial(),
+      }),
+    );
+    if (prepared.input.missingFields.some((field) => !generated[field])) {
+      throw new TypeError("La respuesta no completó toda la metadata solicitada.");
+    }
+    rejectGeneratedUrls(generated);
+    const generatedCopy = Object.values(generated).join(" ").toLocaleLowerCase("en-US");
+    if (
+      content.products.some(({ name }) => generatedCopy.includes(name.toLocaleLowerCase("en-US")))
+    ) {
+      throw new TypeError("La metadata de guía no puede incluir Products específicos.");
+    }
+    return {
+      draft: guideDraftSchema.parse({
+        ...draft,
+        status: "editing",
+        ...Object.fromEntries(
+          prepared.input.missingFields.map((field) => [field, generated[field]]),
+        ),
+        generationMetadata: generationMetadata(provider, prepared.version, prepared.prompt, now),
+      }),
+      actionsPerformed: ["generated-guide-metadata"],
+      warnings: [],
+    };
+  } catch {
+    return {
+      draft: deterministicGuideMetadata(draft, content),
+      actionsPerformed: ["generated-safe-guide-metadata-fallback"],
+      warnings: ["guide-metadata-fallback-used"],
+    };
+  }
+}
+
+export function applyDeterministicProductCopyFallback(
+  draft: GuideDraft,
+  recommendationId: string,
+  product: Product,
+): GuideDraft {
+  recommendationIndex(draft, recommendationId);
+  return guideDraftSchema.parse({
+    ...draft,
+    status: "editing",
+    recommendations: draft.recommendations.map((slot) =>
+      slot.id === recommendationId
+        ? {
+            id: slot.id,
+            position: slot.position,
+            slotLabel: slot.slotLabel,
+            ...(slot.slotIntent ? { slotIntent: slot.slotIntent } : {}),
+            ...(slot.searchTerms ? { searchTerms: slot.searchTerms } : {}),
+            ...(slot.budgetHint ? { budgetHint: slot.budgetHint } : {}),
+            productId: product.id,
+            heading: productDisplayName(product),
+            editorialDescription: `${slot.slotLabel} offers a practical choice shaped around the recipient's everyday routine.`,
+            whyItFits:
+              "This gift connects to something the recipient can use and appreciate regularly.",
+            bestFor: "Someone likely to use it regularly",
+            editorialPromptVersion: SAFE_PRODUCT_COPY_VERSION,
+            editorialStatus: "ready",
+          }
+        : slot,
+    ),
+  });
+}
+
+type GeneratedProductRecommendation = z.infer<typeof generatedRecommendationSchema>;
+
+function applyGeneratedProductRecommendation(
+  draft: GuideDraft,
+  recommendationId: string,
+  generated: GeneratedProductRecommendation,
+  provider: GuideGenerationProvider,
+  prompt: string,
+  now: Date,
+): GuideDraft {
+  const index = recommendationIndex(draft, recommendationId);
+  const existing = draft.recommendations[index]!;
+  const {
+    heading: _heading,
+    editorialDescription: _editorialDescription,
+    whyItFits: _whyItFits,
+    bestFor: _bestFor,
+    selectionGuidance: _selectionGuidance,
+    considerations: _considerations,
+    editorialPromptVersion: _editorialPromptVersion,
+    editorialStatus: _editorialStatus,
+    ...slot
+  } = existing;
+  const recommendations = [...draft.recommendations];
+  recommendations[index] = {
+    ...slot,
+    ...generated,
+    editorialPromptVersion: RECOMMENDATION_PROMPT_VERSION,
+    editorialStatus: "ready",
+  };
+  return guideDraftSchema.parse({
+    ...draft,
+    status: "editing",
+    recommendations,
+    generationMetadata: generationMetadata(provider, RECOMMENDATION_PROMPT_VERSION, prompt, now),
   });
 }
 
@@ -323,15 +825,30 @@ export async function regenerateRecommendation(
   now = new Date(),
 ): Promise<GuideDraft> {
   const prepared = prepareRecommendationPrompt(draft, recommendationId, content);
-  const generated = generatedRecommendationSchema.parse(
-    await provider.generateStructured({
-      operation: "single-recommendation",
-      prompt: prepared.prompt,
-      input: prepared.input,
-      schema: generatedRecommendationSchema,
-    }),
-  );
-  rejectGeneratedUrls(generated);
+  const response = await provider.generateStructured({
+    operation: "single-recommendation",
+    prompt: prepared.prompt,
+    input: prepared.input,
+    schema: generatedRecommendationSchema,
+  });
+  const parsed = generatedRecommendationSchema.safeParse(response);
+  if (!parsed.success) {
+    throw new ProviderError(
+      "La respuesta del proveedor no cumple el esquema editorial esperado.",
+      "invalid-schema",
+      { cause: parsed.error, schemaIssues: safeSchemaIssues(parsed.error, response) },
+    );
+  }
+  const generated = parsed.data;
+  try {
+    rejectGeneratedUrls(generated);
+  } catch {
+    throw new RecommendationCopyValidationError(
+      "La recomendación generada no puede contener URLs.",
+      "recommendation-copy-claim-invalid",
+      "unsupported-url",
+    );
+  }
   const index = recommendationIndex(draft, recommendationId);
   const existing = draft.recommendations[index]!;
   if (
@@ -339,8 +856,426 @@ export async function regenerateRecommendation(
     generated.productId !== existing.productId ||
     generated.position !== existing.position
   ) {
-    throw new TypeError("La respuesta cambió la identidad de la recomendación.");
+    throw new RecommendationCopyValidationError(
+      "La respuesta cambió la identidad de la recomendación.",
+      "recommendation-copy-product-identity-invalid",
+      "id-productId-or-position-changed",
+    );
   }
+  const product = content.products.find(({ id }) => id === generated.productId)!;
+  const claimFailure = productBackedCopyFailureReason(
+    generated,
+    product,
+    undefined,
+    productClaimContext(draft, existing),
+  );
+  if (claimFailure) {
+    throw new RecommendationCopyValidationError(
+      "La recomendación contiene claims sin respaldo en verifiedFacts.",
+      "recommendation-copy-claim-invalid",
+      claimFailure,
+    );
+  }
+  return applyGeneratedProductRecommendation(
+    draft,
+    recommendationId,
+    generated,
+    provider,
+    prepared.prompt,
+    now,
+  );
+}
+
+const productBackedCopyFields = productBackedCopyFieldSchema.options;
+
+export interface ProductBackedCopyGeneration {
+  draft: GuideDraft;
+  diagnosticDetails: GenerationContractDiagnostic[];
+  repairedFields: ProductBackedCopyField[];
+  repairedClaims: Array<ObservedClaimMatch & { field: ProductBackedCopyField }>;
+}
+
+async function repairProductBackedRecommendationField(
+  draft: GuideDraft,
+  recommendationId: string,
+  field: ProductBackedCopyField,
+  content: ValidatedPublicContent,
+  provider: GuideGenerationProvider,
+): Promise<string> {
+  const prepared = prepareRecommendationFieldRepairPrompt(draft, recommendationId, field, content);
+  const response = await provider.generateStructured({
+    operation: "recommendation-field-repair",
+    prompt: prepared.prompt,
+    input: prepared.input,
+    schema: recommendationFieldRepairSchema,
+  });
+  const parsed = recommendationFieldRepairSchema.safeParse(response);
+  if (!parsed.success) {
+    throw new ProviderError(
+      "La reparación no cumple el esquema editorial esperado.",
+      "invalid-schema",
+      { cause: parsed.error, schemaIssues: safeSchemaIssues(parsed.error, response) },
+    );
+  }
+  return parsed.data.value;
+}
+
+export async function generateProductBackedRecommendationWithRecovery(
+  draft: GuideDraft,
+  recommendationId: string,
+  content: ValidatedPublicContent,
+  provider: GuideGenerationProvider,
+  now = new Date(),
+): Promise<ProductBackedCopyGeneration> {
+  const prepared = prepareRecommendationPrompt(draft, recommendationId, content);
+  const response = await provider.generateStructured({
+    operation: "single-recommendation",
+    prompt: prepared.prompt,
+    input: prepared.input,
+    schema: generatedRecommendationSchema,
+  });
+  const parsed = generatedRecommendationSchema.safeParse(response);
+  if (!parsed.success) {
+    throw new ProviderError(
+      "La respuesta del proveedor no cumple el esquema editorial esperado.",
+      "invalid-schema",
+      { cause: parsed.error, schemaIssues: safeSchemaIssues(parsed.error, response) },
+    );
+  }
+  const generated = parsed.data;
+  const existing = draft.recommendations[recommendationIndex(draft, recommendationId)]!;
+  if (
+    generated.id !== existing.id ||
+    generated.productId !== existing.productId ||
+    generated.position !== existing.position
+  ) {
+    throw new RecommendationCopyValidationError(
+      "La respuesta cambió la identidad de la recomendación.",
+      "recommendation-copy-product-identity-invalid",
+      "id-productId-or-position-changed",
+    );
+  }
+  const product = content.products.find(({ id }) => id === generated.productId)!;
+  const fallback = applyDeterministicProductCopyFallback(
+    draft,
+    recommendationId,
+    product,
+  ).recommendations.find(({ id }) => id === recommendationId)!;
+  const safeCopy: Partial<Record<ProductBackedCopyField, string>> = {};
+  const repairedFields: ProductBackedCopyField[] = [];
+  const repairedClaims: ProductBackedCopyGeneration["repairedClaims"] = [];
+  const diagnosticDetails: GenerationContractDiagnostic[] = [];
+  const claimContext = productClaimContext(draft, existing);
+  for (const field of productBackedCopyFields) {
+    const value = generated[field];
+    if (value === undefined) continue;
+    const failure = productBackedTextFailure(value, product, claimContext);
+    if (!failure) {
+      safeCopy[field] = value;
+      continue;
+    }
+    repairedFields.push(field);
+    if (failure.match) repairedClaims.push({ field, ...failure.match });
+    try {
+      const repaired = await repairProductBackedRecommendationField(
+        draft,
+        recommendationId,
+        field,
+        content,
+        provider,
+      );
+      const repairFailure = productBackedTextFailure(repaired, product, claimContext);
+      if (!repairFailure) {
+        safeCopy[field] = repaired;
+        continue;
+      }
+      const match = repairFailure.match ?? failure.match;
+      diagnosticDetails.push(
+        generationDiagnostic(
+          "recommendation-copy-claim-invalid",
+          provider,
+          RECOMMENDATION_FIELD_REPAIR_PROMPT_VERSION,
+          {
+            path: field,
+            expected: "verified-facts-safe-string",
+            received: "policy-violation",
+            reason: repairFailure.reason,
+            ...(match ?? {}),
+          },
+        ),
+      );
+    } catch (error) {
+      diagnosticDetails.push(
+        ...recommendationCopyFailureDiagnostics(error, provider).map((diagnostic) => ({
+          ...diagnostic,
+          contractVersion: RECOMMENDATION_FIELD_REPAIR_PROMPT_VERSION,
+          path: field,
+          ...(failure.match ?? {}),
+        })),
+      );
+    }
+    if (field !== "considerations") safeCopy[field] = fallback[field]!;
+  }
+  const safeGenerated = generatedRecommendationSchema.parse({
+    id: generated.id,
+    productId: generated.productId,
+    position: generated.position,
+    ...safeCopy,
+  });
+  return {
+    draft: applyGeneratedProductRecommendation(
+      draft,
+      recommendationId,
+      safeGenerated,
+      provider,
+      prepared.prompt,
+      now,
+    ),
+    diagnosticDetails,
+    repairedFields,
+    repairedClaims,
+  };
+}
+
+type IdeaOnlyEditorialCopy = Partial<
+  Record<
+    | "heading"
+    | "editorialDescription"
+    | "whyItFits"
+    | "bestFor"
+    | "selectionGuidance"
+    | "considerations",
+    string | undefined
+  >
+>;
+
+const ideaOnlyCopyFields = [
+  "heading",
+  "editorialDescription",
+  "whyItFits",
+  "bestFor",
+  "selectionGuidance",
+  "considerations",
+] as const;
+type IdeaOnlyCopyField = (typeof ideaOnlyCopyFields)[number];
+
+export const IDEA_COPY_DIAGNOSTIC_CODES = [
+  "idea-copy-provider-failure",
+  "idea-copy-schema-invalid",
+  "idea-copy-product-leak",
+  "idea-copy-merchant-leak",
+  "idea-copy-asin-leak",
+  "idea-copy-internal-terminology",
+  "idea-copy-unsupported-numeric-claim",
+] as const;
+export type IdeaCopyDiagnosticCode = (typeof IDEA_COPY_DIAGNOSTIC_CODES)[number];
+
+function schemaIssuesFrom(error: unknown): SafeSchemaIssue[] {
+  if (error instanceof ProviderError) return error.schemaIssues ?? [];
+  return error instanceof z.ZodError ? safeSchemaIssues(error) : [];
+}
+
+function schemaContractDiagnostics(
+  code: string,
+  error: unknown,
+  provider: GuideGenerationProvider,
+  contractVersion: string,
+): GenerationContractDiagnostic[] {
+  const issues = schemaIssuesFrom(error);
+  if (issues.length) {
+    return issues.map(({ path, expected, received }) =>
+      generationDiagnostic(code, provider, contractVersion, { path, expected, received }),
+    );
+  }
+  return [
+    generationDiagnostic(code, provider, contractVersion, {
+      reason: error instanceof ProviderError ? error.code : "schema-validation",
+    }),
+  ];
+}
+
+export function recommendationCopyFailureDiagnostics(
+  error: unknown,
+  provider: GuideGenerationProvider,
+): GenerationContractDiagnostic[] {
+  if (error instanceof RecommendationCopyValidationError) {
+    return [
+      generationDiagnostic(error.diagnosticCode, provider, RECOMMENDATION_PROMPT_VERSION, {
+        reason: error.reason,
+      }),
+    ];
+  }
+  if (
+    error instanceof z.ZodError ||
+    (error instanceof ProviderError &&
+      [
+        "empty-response",
+        "invalid-json",
+        "invalid-response",
+        "invalid-schema",
+        "truncated",
+      ].includes(error.code))
+  ) {
+    return schemaContractDiagnostics(
+      "recommendation-copy-schema-invalid",
+      error,
+      provider,
+      RECOMMENDATION_PROMPT_VERSION,
+    );
+  }
+  return [
+    generationDiagnostic(
+      "recommendation-copy-provider-failure",
+      provider,
+      RECOMMENDATION_PROMPT_VERSION,
+      { reason: error instanceof ProviderError ? error.code : "generation-failure" },
+    ),
+  ];
+}
+
+function normalizedTerm(value: string | undefined): string {
+  return value?.trim().toLocaleLowerCase("en-US") ?? "";
+}
+
+export function ideaOnlyCopyDiagnostic(
+  value: string,
+  content: ValidatedPublicContent,
+  request?: ProductSourcingRequest,
+): IdeaCopyDiagnosticCode | undefined {
+  const copy = value.toLocaleLowerCase("en-US");
+  if (/\b(?:asin\s*)?b0[a-z0-9]{8}\b/i.test(copy)) return "idea-copy-asin-leak";
+  if (
+    /\b(?:this slot|product class|recommendation(?:'?s)? purpose|structured input|editorial system|product enrichment|studio workflow)\b/i.test(
+      copy,
+    )
+  ) {
+    return "idea-copy-internal-terminology";
+  }
+  const merchantTerms = [
+    ...content.products.map(({ merchant }) => merchant),
+    ...(request?.sourceCandidates.flatMap(({ merchant, marketplace }) => [merchant, marketplace]) ??
+      []),
+  ];
+  if (
+    merchantTerms.some((term) => {
+      const normalized = normalizedTerm(term);
+      return normalized.length >= 4 && copy.includes(normalized);
+    })
+  ) {
+    return "idea-copy-merchant-leak";
+  }
+  const productTerms = [
+    ...content.products.flatMap(({ name, brand }) => [name, brand]),
+    ...(request?.sourceCandidates.flatMap(({ name, brand, externalId }) => [
+      name,
+      brand,
+      externalId,
+    ]) ?? []),
+  ];
+  if (
+    productTerms.some((term) => {
+      const normalized = normalizedTerm(term);
+      return normalized.length >= 4 && copy.includes(normalized);
+    }) ||
+    /(?:https?:\/\/|www\.)/i.test(copy)
+  ) {
+    return "idea-copy-product-leak";
+  }
+  if (
+    /[$€£]\s?\d|\b(?:usd|price|costs?|ratings?|reviews?|discounts?|stock|availability|available now|in stock)\b|\b\d+(?:\.\d+)?\s?(?:-\s*)?(?:count|pack|mg|g|kg|oz|ounces?|ml|liters?|inches?|cm|mm|hours?|watts?|volts?|mah|gb|calories?|grams?|servings?)\b/i.test(
+      copy,
+    )
+  ) {
+    return "idea-copy-unsupported-numeric-claim";
+  }
+  return undefined;
+}
+
+export function ideaOnlyCopyHasUnsupportedClaims(
+  generated: IdeaOnlyEditorialCopy,
+  content: ValidatedPublicContent,
+  request?: ProductSourcingRequest,
+): boolean {
+  return ideaOnlyCopyFields.some((field) => {
+    const value = generated[field];
+    return value ? Boolean(ideaOnlyCopyDiagnostic(value, content, request)) : false;
+  });
+}
+
+export function applyDeterministicIdeaCopyFallback(
+  draft: GuideDraft,
+  recommendationId: string,
+): GuideDraft {
+  recommendationIndex(draft, recommendationId);
+  return guideDraftSchema.parse({
+    ...draft,
+    status: "editing",
+    recommendations: draft.recommendations.map((slot) =>
+      slot.id === recommendationId
+        ? (() => {
+            const label = slot.slotLabel.trim();
+            return {
+              id: slot.id,
+              position: slot.position,
+              slotLabel: slot.slotLabel,
+              ...(slot.slotIntent ? { slotIntent: slot.slotIntent } : {}),
+              ...(slot.searchTerms ? { searchTerms: slot.searchTerms } : {}),
+              ...(slot.budgetHint ? { budgetHint: slot.budgetHint } : {}),
+              heading: label,
+              editorialDescription: `${label} can make a thoughtful gift when it matches the recipient's real routine and preferences.`,
+              whyItFits: `This kind of ${label.toLocaleLowerCase("en-US")} connects the gift to something the recipient can use and appreciate regularly.`,
+              bestFor: "Someone likely to use it regularly",
+              selectionGuidance:
+                "Compare fit, comfort, care needs, and how well each choice suits the recipient's routine.",
+              considerations:
+                "Personal preferences and ease of care may matter more than extra features.",
+              editorialPromptVersion: SAFE_IDEA_COPY_VERSION,
+              editorialStatus: "ready",
+            };
+          })()
+        : slot,
+    ),
+  });
+}
+
+const recoverableIdeaRecommendationSchema = z
+  .strictObject({
+    id: generatedIdeaRecommendationSchema.shape.id,
+    position: generatedIdeaRecommendationSchema.shape.position,
+    heading: z.unknown().optional(),
+    editorialDescription: z.unknown().optional(),
+    whyItFits: z.unknown().optional(),
+    bestFor: z.unknown().optional(),
+    selectionGuidance: z.unknown().optional(),
+    considerations: z.unknown().optional(),
+  })
+  .superRefine((value, context) => {
+    for (const field of ideaOnlyCopyFields.slice(0, -1)) {
+      if (!Object.hasOwn(value, field)) {
+        context.addIssue({ code: "custom", path: [field], message: "Required field is missing." });
+      }
+    }
+  });
+
+const ideaOnlyFieldSchemas = {
+  heading: generatedIdeaRecommendationSchema.shape.heading,
+  editorialDescription: generatedIdeaRecommendationSchema.shape.editorialDescription,
+  whyItFits: generatedIdeaRecommendationSchema.shape.whyItFits,
+  bestFor: generatedIdeaRecommendationSchema.shape.bestFor,
+  selectionGuidance: generatedIdeaRecommendationSchema.shape.selectionGuidance,
+  considerations: generatedIdeaRecommendationSchema.shape.considerations,
+} as const;
+
+function applyGeneratedIdeaRecommendation(
+  draft: GuideDraft,
+  recommendationId: string,
+  generated: GeneratedIdeaRecommendation,
+  provider: GuideGenerationProvider,
+  prompt: string,
+  now: Date,
+): GuideDraft {
+  const index = recommendationIndex(draft, recommendationId);
+  const existing = draft.recommendations[index]!;
   const {
     heading: _heading,
     editorialDescription: _editorialDescription,
@@ -348,53 +1283,183 @@ export async function regenerateRecommendation(
     bestFor: _bestFor,
     selectionGuidance: _selectionGuidance,
     considerations: _considerations,
+    editorialPromptVersion: _editorialPromptVersion,
     editorialStatus: _editorialStatus,
     ...slot
   } = existing;
   const recommendations = [...draft.recommendations];
-  recommendations[index] = { ...slot, ...generated, editorialStatus: "ready" };
+  recommendations[index] = {
+    ...slot,
+    ...generated,
+    editorialPromptVersion: IDEA_RECOMMENDATION_PROMPT_VERSION,
+    editorialStatus: "ready",
+  };
   return guideDraftSchema.parse({
     ...draft,
     status: "editing",
     recommendations,
     generationMetadata: generationMetadata(
       provider,
-      RECOMMENDATION_PROMPT_VERSION,
-      prepared.prompt,
+      IDEA_RECOMMENDATION_PROMPT_VERSION,
+      prompt,
       now,
     ),
   });
 }
 
+export interface IdeaOnlyCopyGeneration {
+  draft: GuideDraft;
+  diagnostics: IdeaCopyDiagnosticCode[];
+  diagnosticDetails: GenerationContractDiagnostic[];
+  repairedFields: IdeaOnlyCopyField[];
+  usedDeterministicFallback: boolean;
+}
+
+function failureDiagnostic(error: unknown): IdeaCopyDiagnosticCode {
+  if (
+    error instanceof z.ZodError ||
+    (error instanceof ProviderError &&
+      [
+        "empty-response",
+        "invalid-json",
+        "invalid-response",
+        "invalid-schema",
+        "truncated",
+      ].includes(error.code))
+  ) {
+    return "idea-copy-schema-invalid";
+  }
+  return "idea-copy-provider-failure";
+}
+
+function ideaFailureDiagnostics(
+  error: unknown,
+  provider: GuideGenerationProvider,
+): GenerationContractDiagnostic[] {
+  const code = failureDiagnostic(error);
+  return code === "idea-copy-schema-invalid"
+    ? schemaContractDiagnostics(code, error, provider, IDEA_RECOMMENDATION_PROMPT_VERSION)
+    : [
+        generationDiagnostic(code, provider, IDEA_RECOMMENDATION_PROMPT_VERSION, {
+          reason: error instanceof ProviderError ? error.code : "generation-failure",
+        }),
+      ];
+}
+
+export async function generateIdeaOnlyRecommendationWithRecovery(
+  draft: GuideDraft,
+  recommendationId: string,
+  content: ValidatedPublicContent,
+  provider: GuideGenerationProvider,
+  request?: ProductSourcingRequest,
+  now = new Date(),
+): Promise<IdeaOnlyCopyGeneration> {
+  const prepared = prepareIdeaRecommendationPrompt(draft, recommendationId, content, request);
+  let raw: z.infer<typeof recoverableIdeaRecommendationSchema>;
+  try {
+    const response = await provider.generateStructured({
+      operation: "idea-recommendation",
+      prompt: prepared.prompt,
+      input: prepared.input,
+      schema: recoverableIdeaRecommendationSchema,
+    });
+    const parsed = recoverableIdeaRecommendationSchema.safeParse(response);
+    if (!parsed.success) {
+      throw new ProviderError(
+        "La respuesta del proveedor no cumple el esquema editorial esperado.",
+        "invalid-schema",
+        { cause: parsed.error, schemaIssues: safeSchemaIssues(parsed.error, response) },
+      );
+    }
+    raw = parsed.data;
+    const existing = draft.recommendations[recommendationIndex(draft, recommendationId)]!;
+    if (raw.id !== existing.id || raw.position !== existing.position) {
+      const path = raw.id !== existing.id ? "id" : "position";
+      throw new ProviderError("The response changed recommendation identity.", "invalid-schema", {
+        schemaIssues: [{ path, expected: "unchanged-input-value", received: "mismatched-value" }],
+      });
+    }
+  } catch (error) {
+    return {
+      draft: applyDeterministicIdeaCopyFallback(draft, recommendationId),
+      diagnostics: [failureDiagnostic(error)],
+      diagnosticDetails: ideaFailureDiagnostics(error, provider),
+      repairedFields: [...ideaOnlyCopyFields],
+      usedDeterministicFallback: true,
+    };
+  }
+
+  const fallback = applyDeterministicIdeaCopyFallback(draft, recommendationId).recommendations.find(
+    ({ id }) => id === recommendationId,
+  )!;
+  const safeCopy: Record<string, string | undefined> = {};
+  const diagnostics: IdeaCopyDiagnosticCode[] = [];
+  const diagnosticDetails: GenerationContractDiagnostic[] = [];
+  const repairedFields: IdeaOnlyCopyField[] = [];
+  for (const field of ideaOnlyCopyFields) {
+    if (field === "considerations" && raw[field] === undefined) continue;
+    const parsed = ideaOnlyFieldSchemas[field].safeParse(raw[field]);
+    if (field === "considerations" && parsed.success && parsed.data === undefined) continue;
+    const diagnostic =
+      parsed.success && parsed.data !== undefined
+        ? ideaOnlyCopyDiagnostic(parsed.data, content, request)
+        : "idea-copy-schema-invalid";
+    if (diagnostic) {
+      diagnostics.push(diagnostic);
+      if (diagnostic === "idea-copy-schema-invalid" && !parsed.success) {
+        const issue = safeSchemaIssues(parsed.error, raw[field])[0];
+        diagnosticDetails.push(
+          generationDiagnostic(diagnostic, provider, IDEA_RECOMMENDATION_PROMPT_VERSION, {
+            path: field,
+            expected: issue?.expected ?? "valid-field-value",
+            received: issue?.received ?? "invalid-value",
+          }),
+        );
+      } else {
+        diagnosticDetails.push(
+          generationDiagnostic(diagnostic, provider, IDEA_RECOMMENDATION_PROMPT_VERSION, {
+            path: field,
+            expected: "policy-compliant-string",
+            received: "policy-violation",
+          }),
+        );
+      }
+      repairedFields.push(field);
+      if (field !== "considerations") safeCopy[field] = fallback[field];
+    } else {
+      safeCopy[field] = parsed.data;
+    }
+  }
+  const generated = generatedIdeaRecommendationSchema.parse({
+    id: raw.id,
+    position: raw.position,
+    ...safeCopy,
+  });
+  return {
+    draft: applyGeneratedIdeaRecommendation(
+      draft,
+      recommendationId,
+      generated,
+      provider,
+      prepared.prompt,
+      now,
+    ),
+    diagnostics: [...new Set(diagnostics)],
+    diagnosticDetails,
+    repairedFields,
+    usedDeterministicFallback: false,
+  };
+}
+
 function rejectUnsafeIdeaOnlyClaims(
   generated: GeneratedIdeaRecommendation,
   content: ValidatedPublicContent,
+  request?: ProductSourcingRequest,
 ): void {
   rejectGeneratedUrls(generated);
-  const copy = [
-    generated.heading,
-    generated.editorialDescription,
-    generated.whyItFits,
-    generated.selectionGuidance,
-    generated.considerations,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLocaleLowerCase("en-US");
-  const catalogTerms = [
-    ...content.products.map(({ name }) => name),
-    ...content.products.map(({ merchant }) => merchant),
-  ];
-  if (catalogTerms.some((term) => copy.includes(term.toLocaleLowerCase("en-US")))) {
-    throw new TypeError("La idea generada no puede nombrar Products ni comercios del catálogo.");
-  }
-  if (
-    /(?:[$€£]\s?\d|\b(?:usd|price|costs?|ratings?|reviews?|discounts?|stock|availability|available now|in stock)\b|\b\d+(?:\.\d+)?\s?(?:oz|ounces?|ml|liters?|inches?|cm|mm|hours?|watts?|volts?|mah|gb)\b)/i.test(
-      copy,
-    )
-  ) {
+  if (ideaOnlyCopyHasUnsupportedClaims(generated, content, request)) {
     throw new TypeError(
-      "La idea generada no puede afirmar precios, ratings, disponibilidad ni especificaciones de Product.",
+      "La idea generada no puede afirmar Products, comercios, precios, disponibilidad ni especificaciones sin respaldo.",
     );
   }
 }
@@ -416,35 +1481,20 @@ export async function generateIdeaOnlyRecommendation(
       schema: generatedIdeaRecommendationSchema,
     }),
   );
-  rejectUnsafeIdeaOnlyClaims(generated, content);
+  rejectUnsafeIdeaOnlyClaims(generated, content, request);
   const index = recommendationIndex(draft, recommendationId);
   const existing = draft.recommendations[index]!;
   if (generated.id !== existing.id || generated.position !== existing.position) {
     throw new TypeError("La respuesta cambió la identidad de la idea.");
   }
-  const {
-    heading: _heading,
-    editorialDescription: _editorialDescription,
-    whyItFits: _whyItFits,
-    bestFor: _bestFor,
-    selectionGuidance: _selectionGuidance,
-    considerations: _considerations,
-    editorialStatus: _editorialStatus,
-    ...slot
-  } = existing;
-  const recommendations = [...draft.recommendations];
-  recommendations[index] = { ...slot, ...generated, editorialStatus: "ready" };
-  return guideDraftSchema.parse({
-    ...draft,
-    status: "editing",
-    recommendations,
-    generationMetadata: generationMetadata(
-      provider,
-      IDEA_RECOMMENDATION_PROMPT_VERSION,
-      prepared.prompt,
-      now,
-    ),
-  });
+  return applyGeneratedIdeaRecommendation(
+    draft,
+    recommendationId,
+    generated,
+    provider,
+    prepared.prompt,
+    now,
+  );
 }
 
 export interface GuideEditorialCopy {
@@ -477,7 +1527,11 @@ export function updateRecommendationEditorialCopy(
 ): GuideDraft {
   const index = recommendationIndex(draft, recommendationId);
   const current = draft.recommendations[index]!;
-  const updated = { ...current, ...copy };
+  const updated = {
+    ...current,
+    ...copy,
+    editorialPromptVersion: MANUAL_EDITORIAL_COPY_VERSION,
+  };
   if (markReady && (!updated.editorialDescription || !updated.whyItFits)) {
     throw new TypeError(
       "Para marcarla lista se requieren descripción editorial y motivo de elección.",

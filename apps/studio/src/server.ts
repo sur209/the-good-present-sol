@@ -8,6 +8,7 @@ import {
   clusterPath,
   guidePath,
   isAmazonProduct,
+  productDisplayName,
   productDestination,
   type PrimaryAxis,
   type Product,
@@ -1745,10 +1746,8 @@ function guideCurationPage(
   const progressItems: [string, number][] = [
     ["editorialmente lista / Product pendiente", progress.ideaReadyProductUnresolved],
     ["candidato por revisar", progress.candidateReview],
-    ["Product resuelto", progress.productResolved],
     ["copia de Product por revisar", progress.productCopyNeedsReview],
-    ["destino afiliado faltante", progress.affiliateDestinationMissing],
-    ["completamente lista", progress.fullyReady],
+    ["monetizadas completamente", progress.fullyMonetized],
     ["publicada / Product pendiente", progress.publishedIdeaOnly],
   ];
   const unresolved = draft.recommendations.filter(({ productId }) => !productId);
@@ -1866,7 +1865,7 @@ function guideCurationPage(
   return page(
     `Curación · ${draftName(draft)}`,
     `<p><a href="/drafts/${encodeURIComponent(draft.id)}">← Volver a la guía</a></p><div class="actions"><div><h1>Curación de la guía</h1><p>Elegí Products; los diagnósticos completos quedan en detalles.</p></div><a class="button" href="/drafts/${encodeURIComponent(draft.id)}/preview">Vista previa</a></div>
-    <section class="card"><h2>Progreso</h2><div class="actions">${progressItems.map(([label, count]) => `<span class="status">${count} ${escapeHtml(label)}</span>`).join("")}</div></section>
+    <section class="card"><h2>Progreso</h2><div class="actions"><span class="status"><strong>Editorial:</strong> ${progress.editorialReady}/${progress.totalRecommendations} listas</span><span class="status"><strong>Products:</strong> ${progress.productResolved} resueltos · ${progress.productPending} pendientes</span><span class="status"><strong>Afiliación:</strong> ${progress.affiliateReady} listas · ${progress.affiliateDestinationMissing} pendientes</span></div><p><strong>Estado editorial de la guía:</strong> ${progress.editorialComplete ? "completa" : "incompleta"}.</p><details><summary>Otros estados de curación</summary><div class="actions">${progressItems.map(([label, count]) => `<span class="status">${count} ${escapeHtml(label)}</span>`).join("")}</div></details></section>
     <section class="card"><h2>Autopilot de guía</h2><p>Completa el copy pendiente y busca Products confiables para cada slot sin bloquear la guía cuando un Product queda pendiente.</p><form method="post" action="/drafts/${encodeURIComponent(draft.id)}/autopilot"><button type="submit">Completar guía automáticamente</button></form></section>
     ${selection}<p class="notice">Autopilot asigna un Product sólo cuando supera el gate P.2; ante duda deja la recomendación editorialmente lista y el Product pendiente. Podés enriquecerla ahora o más adelante. ${discoverySource ? `${escapeHtml(discoverySource.providerId)} · uso pago acotado por ejecución.` : "Proveedor externo desactivado."} DataForSEO sólo existe cuando fue elegido y habilitado explícitamente; nunca se usa como fallback oculto.</p>
     ${cards}`,
@@ -3416,12 +3415,13 @@ function guidePreviewPage(draft: GuideDraft): string {
     .map((recommendation) => {
       const product = recommendation.productId ? products.get(recommendation.productId) : undefined;
       const destination = product ? productDestination(product) : undefined;
+      const displayName = product ? productDisplayName(product) : undefined;
       const isAffiliate = Boolean(destination && product?.affiliateUrl === destination);
       const linkRel = isAffiliate ? "sponsored nofollow noopener" : "nofollow noopener";
       return `<article class="card">
         <p class="muted">Recomendación ${recommendation.position}</p>
-        <h2>${escapeHtml(recommendation.heading ?? product?.name ?? recommendation.slotLabel)}</h2>
-        ${product ? `<p><strong>${escapeHtml(product.name)}</strong> · ${escapeHtml(product.merchant)}${product.priceLabel ? ` · ${escapeHtml(product.priceLabel)}` : ""}</p><p>${escapeHtml(product.shortDescription)}</p>` : '<p class="notice">Idea editorial publicada sin Product ni CTA.</p>'}
+        <h2>${escapeHtml(recommendation.heading && !product?.name.startsWith(recommendation.heading) ? recommendation.heading : (displayName ?? recommendation.slotLabel))}</h2>
+        ${product ? `<p><strong>${escapeHtml(displayName!)}</strong> · ${escapeHtml(product.merchant)}</p>` : '<p class="notice">Idea editorial publicada sin Product ni CTA.</p>'}
         <p>${escapeHtml(recommendation.editorialDescription ?? "Falta la descripción editorial.")}</p>
         <p><strong>Por qué encaja:</strong> ${escapeHtml(recommendation.whyItFits ?? "Falta este motivo.")}</p>
         ${recommendation.bestFor ? `<p><strong>Ideal para:</strong> ${escapeHtml(recommendation.bestFor)}</p>` : ""}
@@ -3545,7 +3545,7 @@ function guideAutopilotResultPage(draft: GuideDraft, result: GuideAutopilotOutco
      <h1>${heading}</h1>
      <p class="${result.status === "failed" ? "error" : "notice"}">${escapeHtml(result.reasonExplanation)}</p>
      <p><strong><code>${escapeHtml(result.reasonCode)}</code></strong></p>
-     <section class="card"><h2>Resumen</h2><div class="actions"><span class="status">${result.counts.editorialReady}/${result.counts.totalRecommendations} editorialmente listas</span><span class="status">${result.counts.productResolved} Products resueltos</span><span class="status">${result.counts.productPending} Products pendientes</span><span class="status">${result.counts.affiliateReady} destinos listos</span><span class="status">${result.counts.affiliatePending} destinos pendientes</span></div></section>
+     <section class="card"><h2>Resumen</h2><div class="actions"><span class="status"><strong>Editorial:</strong> ${result.counts.editorialReady}/${result.counts.totalRecommendations} listas</span><span class="status"><strong>Products:</strong> ${result.counts.productResolved} resueltos · ${result.counts.productPending} pendientes</span><span class="status"><strong>Afiliación:</strong> ${result.counts.affiliateReady} listas · ${result.counts.affiliatePending} pendientes</span></div><p><strong>Estado editorial de la guía:</strong> ${result.counts.editorialReady === result.counts.totalRecommendations && result.counts.totalRecommendations > 0 ? "completa" : "incompleta"}.</p></section>
      <details><summary>Resultados por slot y diagnóstico compacto</summary><ol>${slotDetails}</ol><dl><dt>Products reutilizados</dt><dd>${result.execution.productsReused}</dd><dt>Products creados</dt><dd>${result.execution.productsCreated}</dd><dt>Llamadas Amazon</dt><dd>${result.execution.amazonDiscoveryCalls}</dd><dt>Llamadas P.2</dt><dd>${result.execution.p2Calls}</dd><dt>Generaciones editoriales</dt><dd>${result.execution.editorialGenerations}</dd><dt>Fallbacks con Product pendiente</dt><dd>${result.execution.productPendingFallbacks}</dd><dt>Concurrencia máxima</dt><dd>${result.execution.maxConcurrentSlots}</dd></dl></details>
      ${result.warnings.length ? `<details><summary>Advertencias no bloqueantes</summary><ul>${result.warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul></details>` : ""}`,
   );

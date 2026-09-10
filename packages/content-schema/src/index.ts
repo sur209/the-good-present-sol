@@ -19,6 +19,7 @@ export {
   isAmazonProduct,
   pageTypeSchema,
   primaryAxisSchema,
+  productDisplayName,
   productDestination,
   productSchema,
   safeHttpUrlSchema,

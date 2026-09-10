@@ -3,6 +3,7 @@ import {
   PUBLIC_PATHS,
   clusterPath,
   guidePath,
+  productDisplayName,
   productDestination,
   type ClusterHub,
   type GiftGuide,
@@ -130,9 +131,11 @@ const hasDemoLinks = recommendations.some(({ product }) => {
             recommendations.map(({ recommendation, product }) => (
               <li>
                 <a href={`#pick-${recommendation.position}`}>
-                  {recommendation.heading ??
-                    product?.name ??
-                    `Gift idea ${recommendation.position}`}
+                  {recommendation.heading && !product?.name.startsWith(recommendation.heading)
+                    ? recommendation.heading
+                    : product
+                      ? productDisplayName(product)
+                      : `Gift idea ${recommendation.position}`}
                 </a>
               </li>
             ))
