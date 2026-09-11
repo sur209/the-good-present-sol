@@ -750,7 +750,7 @@ export async function completeProductBackedRecommendationCopy(
   if (!slot?.productId) {
     throw new TypeError("Product-backed copy completion requires an assigned Product.");
   }
-  const product = dependencies.catalog.get(slot.productId);
+  dependencies.catalog.get(slot.productId);
   try {
     const generation = await generateProductBackedRecommendationWithRecovery(
       draft,
@@ -770,7 +770,7 @@ export async function completeProductBackedRecommendationCopy(
     };
   } catch (error) {
     return {
-      draft: applyDeterministicProductCopyFallback(draft, slotId, product),
+      draft: applyDeterministicProductCopyFallback(draft, slotId, dependencies.catalog.read()),
       actionsPerformed: ["generated-safe-product-copy-fallback"],
       warnings: recommendationCopyFailureDiagnostics(error, dependencies.provider).map(
         formatGenerationContractDiagnostic,

@@ -88,7 +88,11 @@ Rules:
 - Never treat measurements, materials, formulation, certification, or usage claims embedded in the Product name as verified facts.
 - Never add a product or return any URL, including an affiliate URL.
 - Never invent prices, ratings, reviews, discounts, stock, availability, or specifications.
-- Keep the slot purpose and write only from the supplied Product identity, Product class, guide context, and verifiedFacts.
+- Preserve existingCopy's concrete gift concept and sound editorial heading; use the selected Product only to enrich the recommendation.
+- Keep the supplied purpose and write only from the supplied Product identity, Product class, guide context, existingCopy, and verifiedFacts.
+- Write public prose only. Never mention a slot, Product slot, option for the slot, resolved Product, sourcing, candidate, structured input, or editorial workflow.
+- Avoid stock openings and repeated boilerplate across the guide, especially "Night-shift nurses often," "practical," "routine," and "novelty merchandise."
+- Prefer experiential wording such as comfort during long shifts, support for tired legs, or easier daytime rest. Avoid physiological claims about circulation, recovery, or sleep effects unless verifiedFacts explicitly supports them.
 - Sparse or empty verifiedFacts is valid. In that case, identify the Product and explain only how its class relates to the slot; do not imply that the Product achieves the slot purpose.
 
 Structured input:
@@ -162,6 +166,10 @@ Rules:
 - Do not use listing attributes, marketing claims, measurements, materials, formulation, certification, duration, performance, body-area instructions, packaging, price, ratings, reviews, availability, merchant data, or URLs unless the exact factual claim appears in verifiedFacts.
 - Sparse or empty verifiedFacts is valid. In that case, identify the Product and explain only the editorial relationship between its class and the slot.
 - Do not claim that the Product achieves the slot purpose unless verifiedFacts explicitly supports that claim.
+- Preserve the concrete gift concept and any sound public heading; never replace it with workflow-oriented wording.
+- Never mention a slot, Product slot, option for the slot, resolved Product, sourcing, candidate, structured input, or editorial workflow.
+- Avoid stock openings and repeated boilerplate, including "Night-shift nurses often," "practical," "routine," and "novelty merchandise."
+- Prefer experiential comfort and rest wording over physiological claims unless verifiedFacts explicitly supports the claim.
 
 Structured input:
 ${JSON.stringify(input, null, 2)}`;

@@ -471,14 +471,17 @@ function deterministicGuideMetadata(
     .split(/[.;\n]/)[0]!
     .slice(0, 80)
     .trim();
-  const excerpt = `A practical guide for ${audience}, with thoughtful gift ideas selected for real routines and preferences.`;
+  const giftContext = draft.recommendations[0]?.slotLabel ?? cluster?.title ?? "thoughtful gifts";
+  const primaryIntent = draft.primaryIntent ?? "Choose a gift with a clear personal fit.";
+  const editorialAngle = draft.outline?.editorialAngle;
+  const excerpt = `${title} is a focused guide to ${giftContext.toLocaleLowerCase("en-US")} for ${audience}.`;
   return guideDraftSchema.parse({
     ...draft,
     status: "editing",
     excerpt: draft.excerpt ?? excerpt,
     introduction:
       draft.introduction ??
-      `Choosing for ${audience} is easier when the gift fits how they live and work. This guide focuses on everyday usefulness, personal fit, and sensible tradeoffs so each idea feels considered rather than generic.`,
+      `Created for ${audience}, this guide follows a clear aim: ${primaryIntent}${/[.!?]$/.test(primaryIntent) ? "" : "."}${editorialAngle ? ` Its editorial focus is ${editorialAngle}${/[.!?]$/.test(editorialAngle) ? "" : "."}` : ""} The recommendations stay grounded in concrete choices such as ${giftContext.toLocaleLowerCase("en-US")}.`,
     seoTitle: draft.seoTitle ?? title.slice(0, 70),
     seoDescription: draft.seoDescription ?? excerpt.slice(0, 180),
   });
@@ -492,7 +495,13 @@ export interface GuideMetadataCompletion {
 
 type ProductBackedEditorialCopy = Pick<
   GuideDraft["recommendations"][number],
-  "editorialDescription" | "whyItFits" | "bestFor" | "considerations" | "editorialPromptVersion"
+  | "heading"
+  | "editorialDescription"
+  | "whyItFits"
+  | "bestFor"
+  | "selectionGuidance"
+  | "considerations"
+  | "editorialPromptVersion"
 >;
 
 const currentProductCopyVersions = new Set([
@@ -612,6 +621,7 @@ export type ProductBackedCopyFailureReason =
   | "listing-description-copy"
   | "unsupported-url"
   | "commerce-claim"
+  | "internal-terminology"
   | "unsupported-numeric-claim"
   | "observed-listing-claim";
 
@@ -627,6 +637,9 @@ function productBackedTextFailure(
 ): ProductBackedTextFailure | undefined {
   const body = value.toLocaleLowerCase("en-US");
   if (/(?:https?:\/\/|www\.)/i.test(body)) return { reason: "unsupported-url" };
+  if (/\b(?:slot|sourcing|candidate|product[- ]backed|resolved product)\b/i.test(body)) {
+    return { reason: "internal-terminology" };
+  }
   const observedTitle = product.name.toLocaleLowerCase("en-US");
   const canonicalIdentity = productDisplayName(product).toLocaleLowerCase("en-US");
   if (observedTitle !== canonicalIdentity && body.includes(observedTitle)) {
@@ -673,7 +686,14 @@ export function productBackedCopyFailureReason(
   guidePromptVersion?: string,
   context: ProductClaimContext = {},
 ): ProductBackedCopyFailureReason | undefined {
-  const body = [copy.editorialDescription, copy.whyItFits, copy.bestFor, copy.considerations]
+  const body = [
+    copy.heading,
+    copy.editorialDescription,
+    copy.whyItFits,
+    copy.bestFor,
+    copy.selectionGuidance,
+    copy.considerations,
+  ]
     .filter(Boolean)
     .join(" ")
     .toLocaleLowerCase("en-US");
@@ -711,74 +731,86 @@ export async function completeGuideEditorialMetadata(
     return { draft, actionsPerformed: [], warnings: [] };
   }
   const prepared = prepareGuideMetadataPrompt(draft, content);
-  try {
-    const generated = generatedGuideMetadataSchema.partial().parse(
-      await provider.generateStructured({
-        operation: "guide-metadata",
-        prompt: prepared.prompt,
-        input: prepared.input,
-        schema: generatedGuideMetadataSchema.partial(),
-      }),
-    );
-    if (prepared.input.missingFields.some((field) => !generated[field])) {
-      throw new TypeError("La respuesta no completó toda la metadata solicitada.");
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const generated = generatedGuideMetadataSchema.partial().parse(
+        await provider.generateStructured({
+          operation: "guide-metadata",
+          prompt: prepared.prompt,
+          input: prepared.input,
+          schema: generatedGuideMetadataSchema.partial(),
+        }),
+      );
+      if (prepared.input.missingFields.some((field) => !generated[field])) {
+        throw new ProviderError("guide-metadata-missing-fields", "invalid-schema");
+      }
+      rejectGeneratedUrls(generated);
+      const generatedCopy = Object.values(generated).join(" ").toLocaleLowerCase("en-US");
+      if (
+        content.products.some(({ name }) => generatedCopy.includes(name.toLocaleLowerCase("en-US")))
+      ) {
+        throw new TypeError("La metadata de guía no puede incluir Products específicos.");
+      }
+      return {
+        draft: guideDraftSchema.parse({
+          ...draft,
+          status: "editing",
+          ...Object.fromEntries(
+            prepared.input.missingFields.map((field) => [field, generated[field]]),
+          ),
+          generationMetadata: generationMetadata(provider, prepared.version, prepared.prompt, now),
+        }),
+        actionsPerformed: ["generated-guide-metadata"],
+        warnings: [],
+      };
+    } catch (error) {
+      const retryable =
+        error instanceof z.ZodError ||
+        (error instanceof ProviderError && !["authentication", "refusal"].includes(error.code));
+      if (attempt === 0 && retryable) continue;
+      break;
     }
-    rejectGeneratedUrls(generated);
-    const generatedCopy = Object.values(generated).join(" ").toLocaleLowerCase("en-US");
-    if (
-      content.products.some(({ name }) => generatedCopy.includes(name.toLocaleLowerCase("en-US")))
-    ) {
-      throw new TypeError("La metadata de guía no puede incluir Products específicos.");
-    }
-    return {
-      draft: guideDraftSchema.parse({
-        ...draft,
-        status: "editing",
-        ...Object.fromEntries(
-          prepared.input.missingFields.map((field) => [field, generated[field]]),
-        ),
-        generationMetadata: generationMetadata(provider, prepared.version, prepared.prompt, now),
-      }),
-      actionsPerformed: ["generated-guide-metadata"],
-      warnings: [],
-    };
-  } catch {
-    return {
-      draft: deterministicGuideMetadata(draft, content),
-      actionsPerformed: ["generated-safe-guide-metadata-fallback"],
-      warnings: ["guide-metadata-fallback-used"],
-    };
   }
+  return {
+    draft: deterministicGuideMetadata(draft, content),
+    actionsPerformed: ["generated-safe-guide-metadata-fallback"],
+    warnings: ["guide-metadata-fallback-used"],
+  };
 }
 
 export function applyDeterministicProductCopyFallback(
   draft: GuideDraft,
   recommendationId: string,
-  product: Product,
+  content: ValidatedPublicContent,
 ): GuideDraft {
-  recommendationIndex(draft, recommendationId);
+  const index = recommendationIndex(draft, recommendationId);
+  const slot = draft.recommendations[index]!;
+  if (!slot.productId || !content.products.some(({ id }) => id === slot.productId)) {
+    throw new TypeError("Product copy fallback requires an assigned published Product.");
+  }
+  const ideaFallback = applyDeterministicIdeaCopyFallback(draft, recommendationId).recommendations[
+    index
+  ]!;
+  const copy = Object.fromEntries(
+    ideaOnlyCopyFields.flatMap((field) => {
+      const existing = slot[field];
+      const value =
+        existing && !ideaOnlyCopyDiagnostic(existing, content) ? existing : ideaFallback[field];
+      return value ? [[field, value]] : [];
+    }),
+  );
   return guideDraftSchema.parse({
     ...draft,
     status: "editing",
-    recommendations: draft.recommendations.map((slot) =>
-      slot.id === recommendationId
+    recommendations: draft.recommendations.map((recommendation) =>
+      recommendation.id === recommendationId
         ? {
-            id: slot.id,
-            position: slot.position,
-            slotLabel: slot.slotLabel,
-            ...(slot.slotIntent ? { slotIntent: slot.slotIntent } : {}),
-            ...(slot.searchTerms ? { searchTerms: slot.searchTerms } : {}),
-            ...(slot.budgetHint ? { budgetHint: slot.budgetHint } : {}),
-            productId: product.id,
-            heading: productDisplayName(product),
-            editorialDescription: `${slot.slotLabel} offers a practical choice shaped around the recipient's everyday routine.`,
-            whyItFits:
-              "This gift connects to something the recipient can use and appreciate regularly.",
-            bestFor: "Someone likely to use it regularly",
+            ...recommendation,
+            ...copy,
             editorialPromptVersion: SAFE_PRODUCT_COPY_VERSION,
             editorialStatus: "ready",
           }
-        : slot,
+        : recommendation,
     ),
   });
 }
@@ -800,7 +832,6 @@ function applyGeneratedProductRecommendation(
     editorialDescription: _editorialDescription,
     whyItFits: _whyItFits,
     bestFor: _bestFor,
-    selectionGuidance: _selectionGuidance,
     considerations: _considerations,
     editorialPromptVersion: _editorialPromptVersion,
     editorialStatus: _editorialStatus,
@@ -867,8 +898,15 @@ export async function regenerateRecommendation(
     );
   }
   const product = content.products.find(({ id }) => id === generated.productId)!;
+  const safeGenerated = generated.heading
+    ? generated
+    : generatedRecommendationSchema.parse({
+        ...generated,
+        heading: applyDeterministicProductCopyFallback(draft, recommendationId, content)
+          .recommendations[index]!.heading,
+      });
   const claimFailure = productBackedCopyFailureReason(
-    generated,
+    safeGenerated,
     product,
     undefined,
     productClaimContext(draft, existing),
@@ -883,7 +921,7 @@ export async function regenerateRecommendation(
   return applyGeneratedProductRecommendation(
     draft,
     recommendationId,
-    generated,
+    safeGenerated,
     provider,
     prepared.prompt,
     now,
@@ -963,7 +1001,7 @@ export async function generateProductBackedRecommendationWithRecovery(
   const fallback = applyDeterministicProductCopyFallback(
     draft,
     recommendationId,
-    product,
+    content,
   ).recommendations.find(({ id }) => id === recommendationId)!;
   const safeCopy: Partial<Record<ProductBackedCopyField, string>> = {};
   const repairedFields: ProductBackedCopyField[] = [];
@@ -1018,8 +1056,9 @@ export async function generateProductBackedRecommendationWithRecovery(
         })),
       );
     }
-    if (field !== "considerations") safeCopy[field] = fallback[field]!;
+    if (fallback[field]) safeCopy[field] = fallback[field];
   }
+  if (fallback.heading) safeCopy.heading ??= fallback.heading;
   const safeGenerated = generatedRecommendationSchema.parse({
     id: generated.id,
     productId: generated.productId,
@@ -1218,6 +1257,7 @@ export function applyDeterministicIdeaCopyFallback(
       slot.id === recommendationId
         ? (() => {
             const label = slot.slotLabel.trim();
+            const giftIdea = label.toLocaleLowerCase("en-US");
             return {
               id: slot.id,
               position: slot.position,
@@ -1226,11 +1266,10 @@ export function applyDeterministicIdeaCopyFallback(
               ...(slot.searchTerms ? { searchTerms: slot.searchTerms } : {}),
               ...(slot.budgetHint ? { budgetHint: slot.budgetHint } : {}),
               heading: label,
-              editorialDescription: `${label} can make a thoughtful gift when it matches the recipient's real routine and preferences.`,
-              whyItFits: `This kind of ${label.toLocaleLowerCase("en-US")} connects the gift to something the recipient can use and appreciate regularly.`,
-              bestFor: "Someone likely to use it regularly",
-              selectionGuidance:
-                "Compare fit, comfort, care needs, and how well each choice suits the recipient's routine.",
+              editorialDescription: `A well-chosen ${giftIdea} turns an everyday need into a gift that feels considered and personal.`,
+              whyItFits: `It gives the recipient a useful choice centered on ${giftIdea}.`,
+              bestFor: `Someone who would appreciate a well-chosen ${giftIdea}`,
+              selectionGuidance: `Compare ${giftIdea} options for fit, comfort, care needs, and the features the recipient will value most.`,
               considerations:
                 "Personal preferences and ease of care may matter more than extra features.",
               editorialPromptVersion: SAFE_IDEA_COPY_VERSION,

@@ -243,6 +243,8 @@ Rules:
 - Never return a URL, shopping CTA, price, rating, review count, discount, stock, or availability claim.
 - Never present a Product-specific measurement or specification as fact.
 - Never invent a numeric threshold, professional policy, medical claim, or safety claim.
+- Avoid stock openings and repeated boilerplate across the guide, especially "Night-shift nurses often," "practical," "routine," and "novelty merchandise."
+- Prefer experiential wording such as comfort during long shifts, support for tired legs, or easier daytime rest. Avoid claims about circulation, recovery, sleep effects, or other physiological outcomes.
 - Do not use placeholder copy. Explain what makes a good choice and relevant tradeoffs.
 
 Structured input:

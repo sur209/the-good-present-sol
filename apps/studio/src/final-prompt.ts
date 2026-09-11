@@ -167,6 +167,15 @@ export function createFinalPromptInput(
       if (!product || product.status !== "active") {
         throw new TypeError(`El producto "${recommendation.productId}" no existe o está inactivo.`);
       }
+      const existingCopy = {
+        ...(recommendation.heading ? { heading: recommendation.heading } : {}),
+        ...(recommendation.editorialDescription
+          ? { editorialDescription: recommendation.editorialDescription }
+          : {}),
+        ...(recommendation.whyItFits ? { whyItFits: recommendation.whyItFits } : {}),
+        ...(recommendation.bestFor ? { bestFor: recommendation.bestFor } : {}),
+        ...(recommendation.considerations ? { considerations: recommendation.considerations } : {}),
+      };
       return {
         recommendationId: recommendation.id,
         position: recommendation.position,
@@ -179,6 +188,7 @@ export function createFinalPromptInput(
           name: productDisplayName(product),
           ...(product.verifiedFacts ? { verifiedFacts: product.verifiedFacts } : {}),
         },
+        ...(Object.keys(existingCopy).length ? { existingCopy } : {}),
       };
     });
 
@@ -266,7 +276,11 @@ Rules:
 - Never invent or modify affiliate URLs. Do not return any URL.
 - Never invent prices, ratings, reviews, discounts, stock, availability, or specifications.
 - Respect the cluster, primary axis, primary intent, taxonomies, budget, questionnaire, and approved outline.
+- Preserve each existingCopy's concrete gift concept and sound editorial heading; use the selected Product only to enrich it.
 - Write recommendation copy only from the supplied Product identity and verifiedFacts.
+- Write public prose only. Never mention a slot, Product slot, option for the slot, resolved Product, sourcing, candidate, structured input, or editorial workflow.
+- Vary sentence openings and wording across recommendations. Avoid stock repetition such as "Night-shift nurses often," "practical," "routine," or "novelty merchandise."
+- Prefer experiential wording such as comfort during long shifts, support for tired legs, or easier daytime rest. Avoid physiological claims about circulation, recovery, or sleep effects unless verifiedFacts explicitly supports them.
 
 Structured input:
 ${JSON.stringify(validated, null, 2)}`;

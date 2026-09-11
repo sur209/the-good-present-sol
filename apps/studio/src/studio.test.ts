@@ -51,6 +51,7 @@ import {
   addManualRecommendation,
   classifyObservedClaimMatches,
   clearRecommendationProduct,
+  completeGuideEditorialMetadata,
   duplicateProductIds,
   generateFinalGuide,
   generateGuideOutline,
@@ -7127,6 +7128,10 @@ test("recupera copy idea-only campo por campo y reporta diagnósticos compactos"
     prepared.prompt,
     /target at most 80 characters for heading, 450 for editorialDescription/,
   );
+  assert.match(prepared.prompt, /Avoid stock openings and repeated boilerplate across the guide/);
+  assert.match(prepared.prompt, /Night-shift nurses often/);
+  assert.match(prepared.prompt, /comfort during long shifts/);
+  assert.match(prepared.prompt, /Avoid claims about circulation, recovery, sleep effects/);
   assert.doesNotMatch(prepared.prompt, /description\"|whyFit\"|selectionGuide\"/);
   assert.doesNotThrow(() => generatedIdeaRecommendationSchema.parse(base));
 
@@ -7244,6 +7249,72 @@ test("recupera copy idea-only campo por campo y reporta diagnósticos compactos"
   }
 });
 
+test("reintenta metadata una vez y conserva contexto específico en el fallback", async () => {
+  const content = new ProductCatalog().read();
+  const outlined = await generatedGuideDraft("guide_metadata-retry");
+  const title = "Night-Shift Comfort Gifts for Nurses";
+  const audience = "nurses who regularly work overnight";
+  const primaryIntent =
+    "Help friends choose gifts that make demanding shifts feel more manageable.";
+  const editorialAngle = "Favor concrete comfort and organization needs over generic nurse themes.";
+  const giftContext = "Portable organizer caddy";
+  const draft = guideDraftSchema.parse({
+    ...outlined,
+    title,
+    primaryIntent,
+    questionnaire: { ...outlined.questionnaire, recipient: audience },
+    outline: {
+      ...outlined.outline!,
+      editorialAngle,
+      slots: outlined.outline!.slots.map((slot, index) =>
+        index === 0 ? { ...slot, label: giftContext } : slot,
+      ),
+    },
+    recommendations: outlined.recommendations.map((slot, index) =>
+      index === 0 ? { ...slot, slotLabel: giftContext } : slot,
+    ),
+  });
+  const metadata = {
+    excerpt: "A concise guide to thoughtful gifts for overnight nurses.",
+    introduction: "Choose around the realities of overnight work and daytime rest.",
+    seoTitle: title,
+    seoDescription: "Comfort-minded gifts for nurses who work overnight.",
+  };
+  let recoveredCalls = 0;
+  const recovered = await completeGuideEditorialMetadata(draft, content, {
+    providerId: "metadata-retry-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      recoveredCalls++;
+      return (recoveredCalls === 1 ? { excerpt: 42 } : request.schema.parse(metadata)) as T;
+    },
+  });
+  assert.equal(recoveredCalls, 2);
+  assert.deepEqual(recovered.actionsPerformed, ["generated-guide-metadata"]);
+  assert.deepEqual(recovered.warnings, []);
+  assert.equal(recovered.draft.introduction, metadata.introduction);
+
+  let failedCalls = 0;
+  const fallback = await completeGuideEditorialMetadata(draft, content, {
+    providerId: "metadata-fallback-fixture",
+    async generateStructured<T>(): Promise<T> {
+      failedCalls++;
+      return {} as T;
+    },
+  });
+  assert.equal(failedCalls, 2, "one initial metadata call plus one bounded retry");
+  assert.deepEqual(fallback.actionsPerformed, ["generated-safe-guide-metadata-fallback"]);
+  assert.deepEqual(fallback.warnings, ["guide-metadata-fallback-used"]);
+  const publicMetadata = [
+    fallback.draft.excerpt,
+    fallback.draft.introduction,
+    fallback.draft.seoTitle,
+    fallback.draft.seoDescription,
+  ].join(" ");
+  for (const context of [title, audience, primaryIntent, editorialAngle, giftContext]) {
+    assert.match(publicMetadata, new RegExp(context.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
+  }
+});
+
 test("alinea el contrato Product-backed, permite identidad canónica y clasifica cada fallback", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-product-copy-contract-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
@@ -7264,6 +7335,33 @@ test("alinea el contrato Product-backed, permite identidad canónica y clasifica
   const base = await generatedGuideDraft("guide_product-copy-contract");
   const slot = base.recommendations[0]!;
   const draft = selectRecommendationProduct(base, slot.id, product.id, catalog.read());
+  const ideaCopy = {
+    heading: "A portable charger that is easy to keep close",
+    editorialDescription:
+      "A compact charging option can help keep a phone ready during long days away from an outlet.",
+    whyItFits: "It answers a concrete need without turning the gift into workplace-themed merch.",
+    bestFor: "Someone who relies on a phone throughout a long workday",
+    selectionGuidance: "Compare size, device compatibility, and ease of carrying.",
+    considerations: "Confirm compatibility with the recipient's usual phone and cable.",
+  };
+  const ideaBackedDraft = selectRecommendationProduct(
+    updateRecommendationEditorialCopy(base, slot.id, ideaCopy, true),
+    slot.id,
+    product.id,
+    catalog.read(),
+  );
+  const enrichmentPrompt = prepareRecommendationPrompt(ideaBackedDraft, slot.id, catalog.read());
+  assert.deepEqual(enrichmentPrompt.input.recommendation.existingCopy, {
+    heading: ideaCopy.heading,
+    editorialDescription: ideaCopy.editorialDescription,
+    whyItFits: ideaCopy.whyItFits,
+    bestFor: ideaCopy.bestFor,
+    considerations: ideaCopy.considerations,
+  });
+  assert.match(enrichmentPrompt.prompt, /use the selected Product only to enrich/);
+  assert.match(enrichmentPrompt.prompt, /Never mention a slot, Product slot/);
+  assert.match(enrichmentPrompt.prompt, /Avoid stock openings and repeated boilerplate/);
+  assert.match(enrichmentPrompt.prompt, /comfort during long shifts/);
   const metadataBefore = {
     title: draft.title,
     excerpt: draft.excerpt,
@@ -7400,7 +7498,7 @@ test("alinea el contrato Product-backed, permite identidad canónica y clasifica
     "single-recommendation-v4",
   );
 
-  const providerFailure = await completeProductBackedRecommendationCopy(draft, slot.id, {
+  const providerFailure = await completeProductBackedRecommendationCopy(ideaBackedDraft, slot.id, {
     catalog,
     provider: {
       providerId: "product-copy-timeout-fixture",
@@ -7414,6 +7512,66 @@ test("alinea el contrato Product-backed, permite identidad canónica y clasifica
     providerFailure.warnings[0]!,
     /^recommendation-copy-provider-failure reason=timeout provider=product-copy-timeout-fixture model=timeout-model contract=single-recommendation-v4$/,
   );
+  assert.equal(providerFailure.draft.recommendations[0]!.productId, product.id);
+  for (const [field, value] of Object.entries(ideaCopy)) {
+    assert.equal(
+      providerFailure.draft.recommendations[0]![
+        field as keyof GuideDraft["recommendations"][number]
+      ],
+      value,
+    );
+  }
+  assert.doesNotMatch(
+    JSON.stringify(providerFailure.draft.recommendations[0]),
+    /\b(?:slot|sourcing|candidate|resolved Product)\b/i,
+  );
+
+  const safeGeneratedSiblings = {
+    editorialDescription:
+      "A compact charging option can help keep a phone ready through a demanding day.",
+    whyItFits: "It answers a clear need for someone who depends on a phone away from home.",
+    bestFor: "Someone who spends long days away from an outlet",
+  };
+  const internalLanguageOperations: StructuredGenerationRequest<unknown>["operation"][] = [];
+  const internalHeading = await completeProductBackedRecommendationCopy(ideaBackedDraft, slot.id, {
+    catalog,
+    provider: {
+      providerId: "product-copy-internal-language-fixture",
+      async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+        internalLanguageOperations.push(request.operation);
+        if (request.operation === "single-recommendation") {
+          return {
+            id: slot.id,
+            productId: product.id,
+            position: slot.position,
+            heading: "Shoulder Bag Option for the Portable Organizer Slot",
+            ...safeGeneratedSiblings,
+          } as T;
+        }
+        assert.equal(request.operation, "recommendation-field-repair");
+        return { value: "Resolved Product candidate from sourcing for this slot." } as T;
+      },
+    },
+  });
+  const safeRecommendation = internalHeading.draft.recommendations[0]!;
+  assert.deepEqual(internalHeading.actionsPerformed, [
+    "repaired-product-recommendation-copy-fields",
+  ]);
+  assert.deepEqual(internalLanguageOperations, [
+    "single-recommendation",
+    "recommendation-field-repair",
+  ]);
+  assert.equal(safeRecommendation.productId, product.id);
+  assert.equal(safeRecommendation.heading, ideaCopy.heading);
+  assert.equal(safeRecommendation.editorialDescription, safeGeneratedSiblings.editorialDescription);
+  assert.equal(safeRecommendation.whyItFits, safeGeneratedSiblings.whyItFits);
+  assert.equal(safeRecommendation.bestFor, safeGeneratedSiblings.bestFor);
+  assert.equal(safeRecommendation.selectionGuidance, ideaCopy.selectionGuidance);
+  assert.doesNotMatch(
+    JSON.stringify(safeRecommendation),
+    /\b(?:slot|sourcing|candidate|resolved Product)\b/i,
+  );
+  assert.match(internalHeading.warnings[0]!, /reason=internal-terminology/);
 });
 
 test("distingue identidad Product y repara sólo el campo con claims observados", async (context) => {
@@ -7496,7 +7654,7 @@ test("distingue identidad Product y repara sólo el campo con claims observados"
 
   const copyWith = (editorialDescription: string) => ({
     editorialDescription,
-    whyItFits: "This gift category suits the slot.",
+    whyItFits: "This gift category suits the guide.",
     editorialPromptVersion: "single-recommendation-v4",
   });
   for (const value of [
@@ -11232,6 +11390,15 @@ test("Guide Autopilot aisla fallas P.2, limita llamadas y acepta que todos los s
   assert.equal(allFallback.counts.genericRecommendations, 2);
   assert.equal(allFallback.execution.productPendingFallbacks, 2);
   assert.ok(allFallback.slots.every(({ status }) => status === "product-pending"));
+  const persistedFallback = guideDraftSchema.parse(await draftStore.read(allFallbackDraft.id));
+  assert.ok(persistedFallback.recommendations.every(({ productId }) => productId === undefined));
+  for (const slot of persistedFallback.recommendations) {
+    assert.equal(
+      findProductSourcingRequestForDraftSlot(sourcingStore.list(), persistedFallback.id, slot.id)
+        ?.status,
+      "completed-idea-only",
+    );
+  }
 });
 
 test("Guide Autopilot mantiene ocho slots dentro del presupuesto independiente por slot", async (context) => {
