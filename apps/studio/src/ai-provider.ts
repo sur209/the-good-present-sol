@@ -445,6 +445,29 @@ export function createGuideGenerationProvider(
     : new OpenAiCompatibleGuideGenerationProvider(configuration, fetchImplementation);
 }
 
+const mockOutlineGiftClasses = [
+  "Portable Phone Charger",
+  "Travel Umbrella",
+  "Recipe Journal",
+  "Picnic Blanket",
+  "Adjustable Desk Lamp",
+  "Plant Mister",
+  "Strategy Board Game",
+  "Canvas Tool Roll",
+  "Cable Organizer",
+  "Reading Pillow",
+  "Insulated Lunch Cooler",
+  "Tea Infuser",
+  "Travel Wallet",
+  "Bluetooth Key Finder",
+  "Bath Towel Set",
+  "Zippered Pencil Case",
+  "Garden Gloves",
+  "Leather Card Holder",
+  "Rechargeable Bike Light",
+  "Wooden Serving Tray",
+] as const;
+
 export class MockGuideGenerationProvider implements GuideGenerationProvider {
   readonly providerId = "mock";
   readonly modelId = "mock-editorial-v1";
@@ -487,16 +510,17 @@ export class MockGuideGenerationProvider implements GuideGenerationProvider {
         audienceSummary: `A focused guide for someone choosing a gift for ${audience}.`,
         editorialAngle: `Use ${input.primaryAxis} as the primary lens while keeping every slot aligned with the stated intent.`,
         recommendationCount: input.requestedRecommendationCount,
-        slots: Array.from({ length: input.requestedRecommendationCount }, (_, index) => ({
-          id: input.slotIds[index]!,
-          label: `${input.primaryAxis} gift slot ${index + 1}`,
-          intent: `A distinct, practical option that supports: ${input.primaryIntent}`,
-          searchTerms: [
-            `${input.cluster.title} ${input.primaryAxis} gift ${index + 1}`,
-            `${audience} thoughtful gift`,
-          ],
-          ...(budgetHint ? { budgetHint } : {}),
-        })),
+        slots: Array.from({ length: input.requestedRecommendationCount }, (_, index) => {
+          const label = mockOutlineGiftClasses[index]!;
+          const productClass = label.toLocaleLowerCase("en-US");
+          return {
+            id: input.slotIds[index]!,
+            label,
+            intent: `A distinct, practical option that supports: ${input.primaryIntent}`,
+            searchTerms: [productClass, `${productClass} for ${audience}`],
+            ...(budgetHint ? { budgetHint } : {}),
+          };
+        }),
       });
     }
     if (request.operation === "guide-metadata") {

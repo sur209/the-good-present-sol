@@ -8,7 +8,110 @@ import {
   type GuideDraft,
 } from "./drafts.ts";
 
-export const OUTLINE_PROMPT_VERSION = "outline-v1";
+export const OUTLINE_PROMPT_VERSION = "outline-v2";
+
+const abstractLabelWords = new Set([
+  "after",
+  "before",
+  "between",
+  "body",
+  "care",
+  "comfort",
+  "drinks",
+  "during",
+  "feet",
+  "foot",
+  "hours",
+  "hydration",
+  "legs",
+  "long",
+  "needs",
+  "organization",
+  "recovery",
+  "relief",
+  "rest",
+  "shifts",
+  "sleep",
+  "storage",
+  "support",
+  "warm",
+  "wellness",
+  "work",
+]);
+const genericSearchWords = new Set([
+  "and",
+  "around",
+  "best",
+  "daily",
+  "everyday",
+  "for",
+  "the",
+  "gift",
+  "gifts",
+  "from",
+  "into",
+  "nurse",
+  "nurses",
+  "over",
+  "practical",
+  "professional",
+  "professionals",
+  "recipient",
+  "recipients",
+  "shift",
+  "shifts",
+  "thoughtful",
+  "under",
+  "with",
+]);
+
+function editorialWords(value: string): Set<string> {
+  return new Set(
+    value
+      .normalize("NFKD")
+      .replace(/\p{M}+/gu, "")
+      .toLocaleLowerCase("en-US")
+      .split(/[^a-z0-9]+/)
+      .filter((word) => word.length >= 3 && !genericSearchWords.has(word)),
+  );
+}
+
+function overlaps(left: Set<string>, right: Set<string>): boolean {
+  return [...left].some((word) => right.has(word));
+}
+
+// ponytail: lexical checks catch obvious mixtures; add semantic validation only if real false positives appear.
+export function outlineQualityIssues(outline: NonNullable<GuideDraft["outline"]>): string[] {
+  const issues: string[] = [];
+  const labels = new Set<string>();
+  outline.slots.forEach((slot, index) => {
+    const labelWords = editorialWords(slot.label);
+    if (![...labelWords].some((word) => !abstractLabelWords.has(word))) {
+      issues.push(`Slot ${index + 1} label must name one concrete gift class.`);
+    }
+    const normalizedLabel = [...labelWords].sort().join(" ");
+    if (labels.has(normalizedLabel)) {
+      issues.push(`Slot ${index + 1} repeats an existing gift class.`);
+    }
+    labels.add(normalizedLabel);
+
+    if (slot.searchTerms.length < 4) return;
+    const terms = slot.searchTerms.map(editorialWords);
+    let relatedPairs = 0;
+    let totalPairs = 0;
+    for (let left = 0; left < terms.length; left += 1) {
+      for (let right = left + 1; right < terms.length; right += 1) {
+        totalPairs += 1;
+        if (overlaps(terms[left]!, terms[right]!)) relatedPairs += 1;
+      }
+    }
+    const labelMatches = terms.filter((term) => overlaps(labelWords, term)).length;
+    if (relatedPairs / totalPairs < 0.25 && labelMatches < Math.ceil(terms.length / 2)) {
+      issues.push(`Slot ${index + 1} search terms span unrelated gift classes.`);
+    }
+  });
+  return issues;
+}
 
 function stableSlotIds(draft: GuideDraft): string[] {
   const existing = [...draft.recommendations].sort((left, right) => left.position - right.position);
@@ -77,9 +180,9 @@ export function buildOutlinePrompt(input: OutlinePromptInput): string {
     slots: [
       {
         id: validated.slotIds[0]!,
-        label: "Generic gift-slot label",
-        intent: "Need this slot addresses",
-        searchTerms: ["catalog search term"],
+        label: "One concrete unbranded gift class",
+        intent: "Broader need or use case this gift addresses",
+        searchTerms: ["same gift class naming or attribute variant"],
         budgetHint: "optional USD context",
       },
     ],
@@ -95,6 +198,10 @@ Rules:
 - Make conservative assumptions when optional information is missing.
 - Respect the selected cluster, primary axis, primary intent, taxonomies, budget, and questionnaire.
 - Generate only an outline and editorial gift slots with catalog search terms.
+- Make every slot label one concrete, commercially recognizable, unbranded gift or Product class that works as a recommendation heading. A reader must be able to picture the gift immediately.
+- Keep the broader editorial need or use case in intent; do not use an abstract need such as comfort, recovery, organization, hydration, sleep support, or wellness as the label itself.
+- Keep every searchTerm within that one Product class. Use only synonyms, close naming variants, attribute refinements, or use-case refinements of the labeled gift; never brainstorm different solutions to the same need.
+- Maintain useful variety across the complete slot collection without repeating the same Product class.
 - Do not select or name a commercial product, merchant, affiliate URL, price, rating, review, discount, stock state, availability claim, or unsupported specification.
 - Do not write the complete guide or product-specific claims.
 - Do not suggest additional public pages, taxonomy combinations, routes, or article ideas.

@@ -73,7 +73,12 @@ import {
   guideMetadataPromptInputSchema,
   prepareFinalPrompt,
 } from "./final-prompt.ts";
-import { prepareOutlinePrompt } from "./outline-prompt.ts";
+import {
+  OUTLINE_PROMPT_VERSION,
+  outlinePromptInputSchema,
+  outlineQualityIssues,
+  prepareOutlinePrompt,
+} from "./outline-prompt.ts";
 import {
   ProductCatalog,
   matchProducts,
@@ -2181,7 +2186,7 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
   const generateOutlineResponse = await fetch(`${origin}${draftLocation}/outline/generate`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ promptVersion: "outline-v1" }),
+    body: new URLSearchParams({ promptVersion: OUTLINE_PROMPT_VERSION }),
     redirect: "manual",
   });
   assert.equal(generateOutlineResponse.status, 303);
@@ -5928,7 +5933,12 @@ test("construye un prompt de esquema determinista y sin selección comercial", (
   const second = prepareOutlinePrompt(draft, content);
 
   assert.equal(first.prompt, second.prompt);
+  assert.equal(first.version, "outline-v2");
   assert.match(first.prompt, /exactly one JSON object/);
+  assert.match(first.prompt, /one concrete, commercially recognizable/);
+  assert.match(first.prompt, /broader editorial need or use case in intent/);
+  assert.match(first.prompt, /Keep every searchTerm within that one Product class/);
+  assert.match(first.prompt, /Maintain useful variety/);
   assert.match(first.prompt, /Do not select or name a commercial product/);
   assert.match(first.prompt, /Do not suggest additional public pages/);
   assert.equal(first.input.requestedRecommendationCount, 4);
@@ -5939,6 +5949,89 @@ test("construye un prompt de esquema determinista y sin selección comercial", (
     "guide_outline_slot-3",
     "guide_outline_slot-4",
   ]);
+});
+
+test("exige un concepto concreto por slot y rechaza búsquedas de clases heterogéneas", async () => {
+  const classes = [
+    "Portable Phone Charger",
+    "Travel Umbrella",
+    "Recipe Journal",
+    "Picnic Blanket",
+    "Adjustable Desk Lamp",
+    "Plant Mister",
+    "Strategy Board Game",
+    "Canvas Tool Roll",
+  ];
+  const valid = guideOutlineSchema.parse({
+    provisionalTitle: "Concrete gift guide",
+    audienceSummary: "People choosing useful gifts for a friend.",
+    editorialAngle: "Each section names a distinct gift while its intent carries the story.",
+    recommendationCount: classes.length,
+    slots: classes.map((label, index) => ({
+      id: `slot-${index + 1}`,
+      label,
+      intent:
+        index === 0
+          ? "Makes it easier to stay connected during long days away from an outlet."
+          : "Adds a distinct practical option to the broader guide.",
+      searchTerms: [
+        label.toLocaleLowerCase("en-US"),
+        `compact ${label.toLocaleLowerCase("en-US")}`,
+        `${label.toLocaleLowerCase("en-US")} for travel`,
+        `giftable ${label.toLocaleLowerCase("en-US")}`,
+      ],
+    })),
+  });
+  assert.deepEqual(outlineQualityIssues(valid), []);
+  assert.equal(new Set(valid.slots.map(({ label }) => label)).size, 8);
+
+  const broad = guideOutlineSchema.parse({
+    ...valid,
+    slots: valid.slots.map((slot, index) =>
+      index === 0
+        ? {
+            ...slot,
+            label: "Rest and sleep support between shifts",
+            intent: "Makes recovery easier after demanding overnight work.",
+            searchTerms: [
+              "blackout sleep mask",
+              "white noise machine",
+              "cooling pillow",
+              "blackout curtains",
+              "aromatherapy pillow mist",
+            ],
+          }
+        : slot,
+    ),
+  });
+  assert.equal(guideOutlineSchema.safeParse(broad).success, true);
+  assert.deepEqual(outlineQualityIssues(broad), [
+    "Slot 1 label must name one concrete gift class.",
+    "Slot 1 search terms span unrelated gift classes.",
+  ]);
+
+  const content = new ProductCatalog().read();
+  const draft = guideDraftSchema.parse({
+    ...createGuideDraft("guide_broad-outline"),
+    clusterId: content.clusters[0]!.id,
+    primaryAxis: "work-context",
+    primaryIntent: "Help a friend choose a useful gift after demanding shifts.",
+  });
+  const provider: GuideGenerationProvider = {
+    providerId: "broad-outline-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      assert.equal(request.operation, "outline");
+      const input = outlinePromptInputSchema.parse(request.input);
+      return {
+        ...broad,
+        slots: broad.slots.map((slot, index) => ({ ...slot, id: input.slotIds[index]! })),
+      } as T;
+    },
+  };
+  await assert.rejects(
+    generateGuideOutline(draft, content, provider),
+    /label must name one concrete gift class.*search terms span unrelated gift classes/,
+  );
 });
 
 test("rechaza esquemas truncados, conteos inconsistentes e IDs repetidos", () => {
@@ -5976,7 +6069,7 @@ test("el mock genera slots validados y guarda metadatos sin productos", async ()
     clusterId: content.clusters[0]!.id,
     primaryAxis: "occasion",
     primaryIntent: "Celebrate a nurse starting a new role.",
-    questionnaire: normalizeQuestionnaire({ occasion: "new role", giftCount: "5" }),
+    questionnaire: normalizeQuestionnaire({ occasion: "new role", giftCount: "8" }),
   });
   const generated = await generateGuideOutline(
     draft,
@@ -5986,9 +6079,27 @@ test("el mock genera slots validados y guarda metadatos sin productos", async ()
   );
 
   assert.equal(generated.status, "outline-ready");
-  assert.equal(generated.outline?.slots.length, 5);
-  assert.equal(generated.recommendations.length, 5);
+  assert.equal(generated.outline?.slots.length, 8);
+  assert.equal(generated.recommendations.length, 8);
   assert.equal(generated.recommendations[0]!.id, "guide_mock-outline_slot-1");
+  assert.equal(new Set(generated.outline!.slots.map(({ label }) => label)).size, 8);
+  assert.deepEqual(outlineQualityIssues(generated.outline!), []);
+  assert.ok(
+    generated.outline!.slots.every(({ label, searchTerms }) =>
+      searchTerms.every((term) => term.includes(label.toLocaleLowerCase("en-US"))),
+    ),
+  );
+  const outlineText = generated
+    .outline!.slots.flatMap(({ label, searchTerms }) => [label, ...searchTerms])
+    .join(" ")
+    .toLocaleLowerCase("en-US");
+  assert.ok(
+    content.products.every(
+      (product) =>
+        !outlineText.includes(productDisplayName(product).toLocaleLowerCase("en-US")) &&
+        (!product.brand || !outlineText.includes(product.brand.toLocaleLowerCase("en-US"))),
+    ),
+  );
   assert.ok(generated.recommendations.every((slot) => !slot.productId));
   assert.ok(generated.recommendations.every((slot) => slot.editorialStatus === "needs-generation"));
   assert.equal(generated.generationMetadata?.providerId, "mock");
@@ -6075,14 +6186,14 @@ test("muestra el prompt antes de generar un esquema mock por HTTP", async (conte
   const blocked = await fetch(`${origin}/drafts/guide_http-outline/outline/generate`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ promptVersion: "old-version" }),
+    body: new URLSearchParams({ promptVersion: "outline-v1" }),
   });
   assert.equal(blocked.status, 400);
 
   const generated = await fetch(`${origin}/drafts/guide_http-outline/outline/generate`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ promptVersion: "outline-v1" }),
+    body: new URLSearchParams({ promptVersion: OUTLINE_PROMPT_VERSION }),
     redirect: "manual",
   });
   assert.equal(generated.status, 303);

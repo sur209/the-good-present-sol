@@ -60,7 +60,7 @@ import {
   validateGuideDraft,
 } from "./guide-editor.ts";
 import { FINAL_PROMPT_VERSION, prepareFinalPrompt } from "./final-prompt.ts";
-import { prepareOutlinePrompt } from "./outline-prompt.ts";
+import { OUTLINE_PROMPT_VERSION, prepareOutlinePrompt } from "./outline-prompt.ts";
 import {
   ProductCatalog,
   createProductId,
@@ -4131,7 +4131,7 @@ export function createStudioServer(
           : null;
       if (generateOutlineMatch?.[1]) {
         const form = await readForm(request);
-        if (form.get("promptVersion") !== "outline-v1") {
+        if (form.get("promptVersion") !== OUTLINE_PROMPT_VERSION) {
           throw new TypeError("Revisá el prompt vigente antes de ejecutar la generación.");
         }
         const draft = await readGuideDraft(store, generateOutlineMatch[1]);

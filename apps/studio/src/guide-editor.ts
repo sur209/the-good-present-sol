@@ -33,7 +33,7 @@ import {
   prepareFinalPrompt,
   type GeneratedGuide,
 } from "./final-prompt.ts";
-import { prepareOutlinePrompt } from "./outline-prompt.ts";
+import { outlineQualityIssues, prepareOutlinePrompt } from "./outline-prompt.ts";
 import {
   generatedIdeaRecommendationSchema,
   IDEA_RECOMMENDATION_PROMPT_VERSION,
@@ -197,6 +197,10 @@ export async function generateGuideOutline(
     schema: guideOutlineSchema,
   });
   const outline = guideOutlineSchema.parse(generated);
+  const qualityIssues = outlineQualityIssues(outline);
+  if (qualityIssues.length) {
+    throw new TypeError(`The generated outline is too broad. ${qualityIssues.join(" ")}`);
+  }
   if (outline.slots.some((slot, index) => slot.id !== prepared.input.slotIds[index])) {
     throw new TypeError("La respuesta cambiÃ³ los IDs estables asignados por el Studio.");
   }
