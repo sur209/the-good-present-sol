@@ -9128,6 +9128,9 @@ test("Autopilot crea Product y provenance una vez, cumple I.2, asigna el slot ex
   assert.equal(result.resolutionStrategy, "existing-candidate");
   assert.equal(result.executionEvidence.amazonDiscoveryAttempted, false);
   assert.equal(result.executionEvidence.providerCallCount, 0);
+  assert.equal(result.executionEvidence.p2ProviderCallCount, 1);
+  assert.equal(result.executionEvidence.recoveryUsed, false);
+  assert.equal(result.executionEvidence.sourcingBudgetExhausted, false);
   assert.equal(result.executionEvidence.candidatesEvaluated, 1);
   assert.equal(
     result.executionEvidence.bestCandidate?.candidateId,
@@ -9164,16 +9167,37 @@ test("Autopilot crea Product y provenance una vez, cumple I.2, asigna el slot ex
     ),
   );
   await sourcingStore.save(autopilotRequest(reuseDraft, []));
+  let catalogReuseDiscoveryCalls = 0;
+  const unusedDiscoverySource: ProductDiscoverySource = {
+    providerId: "serpapi",
+    paidUsage: true,
+    supportedModes: ["amazon"],
+    async search() {
+      catalogReuseDiscoveryCalls++;
+      return [];
+    },
+  };
   const reused = await resolveRecommendationSlotAutonomously(
     reuseDraft,
     "slot_autopilot-reuse",
-    { draftStore, catalog, sourcingStore, sourceStore, fitStore, provider },
+    {
+      draftStore,
+      catalog,
+      sourcingStore,
+      sourceStore,
+      fitStore,
+      provider,
+      discoverySource: unusedDiscoverySource,
+    },
     { now: new Date("2026-09-06T13:30:00.000Z") },
   );
   assert.equal(reused.status, "resolved-product");
   assert.equal(reused.resolutionStrategy, "catalog-reuse");
   assert.equal(reused.reasonCode, "product-selected");
   assert.ok(reused.executionEvidence.catalogCandidatesConsidered > 0);
+  assert.equal(reused.executionEvidence.catalogReuseResult, "product-reused");
+  assert.equal(reused.executionEvidence.providerCallCount, 0);
+  assert.equal(catalogReuseDiscoveryCalls, 0);
   assert.equal(reused.productId, product.id);
   assert.equal(catalog.read().products.length, beforeProductCount + 1);
   assert.equal(sourceStore.forProduct(product.id, catalog.read().products).length, 1);
@@ -9443,6 +9467,53 @@ test("Autopilot conserva tres evaluaciones y recupera sólo el cuarto candidato 
   );
 });
 
+test("Autopilot reintenta una respuesta P.2 con schema inválido una sola vez", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-autopilot-p2-schema-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const fitStore = new ProductFitEvaluationStore(repository);
+  const draft = await draftStore.save(
+    autopilotDraft("guide_autopilot-p2-schema", "slot_autopilot-p2-schema"),
+  );
+  await sourcingStore.save(autopilotRequest(draft, ["source_candidate_autopilot-p2-schema"]));
+  const strong = strongAutopilotProvider();
+  let p2Calls = 0;
+  const provider: GuideGenerationProvider = {
+    providerId: "schema-recovery-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      if (request.operation !== "product-fit-evaluations") {
+        return strong.generateStructured(request);
+      }
+      p2Calls++;
+      if (p2Calls === 1) throw new ProviderError("Fixture invalid schema.", "invalid-schema");
+      return strong.generateStructured(request);
+    },
+  };
+
+  const result = await resolveRecommendationSlotAutonomously(draft, draft.recommendations[0]!.id, {
+    draftStore,
+    catalog,
+    sourcingStore,
+    sourceStore,
+    fitStore,
+    provider,
+  });
+
+  assert.equal(result.status, "resolved-product");
+  assert.equal(p2Calls, AUTOPILOT_LIMITS.maxP2ProviderCalls);
+  assert.equal(result.executionEvidence.p2RecoveryAttempted, true);
+  assert.equal(result.executionEvidence.candidatesRecovered, 1);
+  assert.equal(result.executionEvidence.sourcingBudgetExhausted, false);
+  assert.deepEqual(
+    result.executionEvidence.p2Attempts.map(({ kind }) => kind),
+    ["primary", "recovery"],
+  );
+});
+
 test("Autopilot conserva evaluaciones válidas cuando falla la recuperación parcial", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-autopilot-p2-partial-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
@@ -9607,7 +9678,7 @@ test("Autopilot usa falla de infraestructura sólo con cero evaluaciones tras la
   assert.deepEqual(fitStore.list(), []);
 });
 
-test("Autopilot acota P.2 a tres etapas normales y una sola recuperación", async (context) => {
+test("Autopilot agota como máximo una llamada P.2 y una recuperación técnica por slot", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-autopilot-p2-bound-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
   await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
@@ -9679,8 +9750,8 @@ test("Autopilot acota P.2 a tres etapas normales y una sola recuperación", asyn
   });
 
   assert.equal(result.status, "resolved-idea-only");
-  assert.equal(result.reasonCode, "no-candidate-passed-product-gate");
-  assert.equal(discoveryCalls, AUTOPILOT_LIMITS.maxDiscoveryCalls);
+  assert.equal(result.reasonCode, "evaluation-infrastructure-failed");
+  assert.equal(discoveryCalls, 0);
   assert.equal(p2Calls, AUTOPILOT_LIMITS.maxP2ProviderCalls);
   assert.equal(
     result.executionEvidence.p2Attempts.filter(({ kind }) => kind === "recovery").length,
@@ -9688,11 +9759,12 @@ test("Autopilot acota P.2 a tres etapas normales y una sola recuperación", asyn
   );
   assert.deepEqual(
     result.executionEvidence.p2Attempts.map(({ kind }) => kind),
-    ["primary", "recovery", "primary", "primary"],
+    ["primary", "recovery"],
   );
+  assert.equal(result.executionEvidence.sourcingBudgetExhausted, true);
 });
 
-test("Autopilot explica los fallos P.2 tras dos consultas Amazon y termina idea-only sin datos comerciales", async (context) => {
+test("Autopilot termina tras un rechazo P.2 sin repetir búsqueda ni refinamiento", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-autopilot-idea-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
   await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
@@ -9750,9 +9822,8 @@ test("Autopilot explica los fallos P.2 tras dos consultas Amazon y termina idea-
 
   assert.equal(result.status, "resolved-idea-only");
   assert.equal(result.reasonCode, "no-candidate-passed-product-gate");
-  assert.equal(queries.length, AUTOPILOT_LIMITS.maxDiscoveryCalls);
-  assert.notEqual(queries[0], queries[1], "the final attempt uses a bounded refinement");
-  assert.equal(result.discoveryAttempts.length, 2);
+  assert.equal(queries.length, 1);
+  assert.equal(result.discoveryAttempts.length, 1);
   assert.equal(
     result.executionEvidence.catalogCandidatesConsidered,
     catalogMatchesForRequest(empty, catalog.read().products, AUTOPILOT_LIMITS.maxCatalogCandidates)
@@ -9760,15 +9831,18 @@ test("Autopilot explica los fallos P.2 tras dos consultas Amazon y termina idea-
   );
   assert.equal(result.executionEvidence.recentSourceCandidatesConsidered, 0);
   assert.equal(result.executionEvidence.amazonDiscoveryAttempted, true);
-  assert.equal(result.executionEvidence.providerCallCount, 2);
-  assert.equal(result.executionEvidence.candidatesReturned, 2);
-  assert.equal(result.executionEvidence.candidatesEvaluated, 2);
-  assert.equal(result.executionEvidence.searchRefinementAttempted, true);
+  assert.equal(result.executionEvidence.providerCallCount, 1);
+  assert.equal(result.executionEvidence.candidatesReturned, 1);
+  assert.equal(result.executionEvidence.candidatesEvaluated, 1);
+  assert.equal(result.executionEvidence.p2ProviderCallCount, 1);
+  assert.equal(result.executionEvidence.recoveryUsed, false);
+  assert.equal(result.executionEvidence.searchRefinementAttempted, false);
+  assert.equal(result.executionEvidence.sourcingBudgetExhausted, false);
   assert.ok(result.executionEvidence.bestCandidate);
   assert.ok(result.executionEvidence.bestCandidate.p2GateFailures.length > 0);
   assert.equal(
     result.discoveryAttempts.reduce((sum, attempt) => sum + attempt.providerCalls, 0),
-    2,
+    1,
   );
   assert.equal(catalog.read().products.length, beforeProducts);
   assert.equal(sourcingStore.get(result.sourcingRequestId).status, "completed-idea-only");
@@ -10019,7 +10093,7 @@ test("un Product pendiente admite backfill de catálogo y P.1 sin cambiar la ide
   assert.equal(sourcingStore.get(p1Pending.request.id).status, "completed-idea-only");
 });
 
-test("Autopilot explica un timeout del proveedor antes de completar idea-only", async (context) => {
+test("Autopilot reintenta una falla técnica de discovery una sola vez", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-autopilot-timeout-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
   await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
@@ -10065,7 +10139,10 @@ test("Autopilot explica un timeout del proveedor antes de completar idea-only", 
   assert.equal(result.executionEvidence.amazonDiscoveryAttempted, true);
   assert.equal(result.executionEvidence.providerCallCount, providerCalls);
   assert.equal(result.executionEvidence.candidatesReturned, 0);
-  assert.equal(result.executionEvidence.searchRefinementAttempted, true);
+  assert.equal(result.executionEvidence.searchRefinementAttempted, false);
+  assert.equal(result.executionEvidence.discoveryRecoveryAttempted, true);
+  assert.equal(result.executionEvidence.recoveryUsed, true);
+  assert.equal(result.executionEvidence.sourcingBudgetExhausted, true);
 });
 
 test("Autopilot usa copy determinista y específico cuando falla la generación idea-only", async (context) => {
@@ -10147,7 +10224,7 @@ test("Autopilot usa copy determinista y específico cuando falla la generación 
   assert.doesNotMatch(slot.heading!, new RegExp(longAudience));
 });
 
-test("Autopilot no salta Amazon ante una falla P.2 y la UI explica cero candidatos sin listas vacías", async (context) => {
+test("Autopilot reintenta P.2 una vez sin sumar discovery y la UI explica cero candidatos", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-autopilot-failure-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
   await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
@@ -10192,12 +10269,11 @@ test("Autopilot no salta Amazon ante una falla P.2 y la UI explica cero candidat
   assert.ok(result.warnings.includes("candidate-evaluation-failed"));
   assert.equal(result.executionEvidence.candidatesEvaluated, 0);
   assert.equal(result.executionEvidence.bestCandidate, undefined);
-  assert.equal(
-    requiredDiscoveryCalls,
-    AUTOPILOT_LIMITS.maxDiscoveryCalls,
-    "P.2 failure cannot skip the bounded Amazon path",
-  );
-  assert.equal(result.executionEvidence.amazonDiscoveryAttempted, true);
+  assert.equal(result.executionEvidence.p2ProviderCallCount, AUTOPILOT_LIMITS.maxP2ProviderCalls);
+  assert.equal(result.executionEvidence.p2RecoveryAttempted, true);
+  assert.equal(result.executionEvidence.sourcingBudgetExhausted, true);
+  assert.equal(requiredDiscoveryCalls, 0, "P.2 infrastructure recovery owns the second call");
+  assert.equal(result.executionEvidence.amazonDiscoveryAttempted, false);
 
   const uiDraft = await draftStore.save(autopilotDraft("guide_autopilot-ui", "slot_autopilot-ui"));
   let emptyProviderCalls = 0;
@@ -10236,7 +10312,7 @@ test("Autopilot no salta Amazon ante una falla P.2 y la UI explica cero candidat
   );
   assert.equal(response.status, 200);
   const html = await response.text();
-  assert.equal(emptyProviderCalls, AUTOPILOT_LIMITS.maxDiscoveryCalls);
+  assert.equal(emptyProviderCalls, 1);
   assert.match(html, /Editorialmente lista · Product pendiente/);
   assert.match(html, /podés agregar el Product ahora o más adelante/);
   assert.match(html, /amazon-no-candidates/);
@@ -11045,4 +11121,95 @@ test("Guide Autopilot aisla fallas P.2, limita llamadas y acepta que todos los s
   assert.equal(allFallback.counts.genericRecommendations, 2);
   assert.equal(allFallback.execution.productPendingFallbacks, 2);
   assert.ok(allFallback.slots.every(({ status }) => status === "product-pending"));
+});
+
+test("Guide Autopilot mantiene ocho slots dentro del presupuesto independiente por slot", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-guide-autopilot-budget-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const fitStore = new ProductFitEvaluationStore(repository);
+  const now = new Date("2026-09-09T12:00:00.000Z");
+  const draft = await draftStore.save(
+    guideDraftSchema.parse({
+      ...autopilotDraft(
+        "guide_guide-autopilot-budget",
+        "slot_guide-autopilot-budget-1",
+        "Bounded sourcing item 1",
+      ),
+      recommendations: Array.from({ length: 8 }, (_, index) => ({
+        id: `slot_guide-autopilot-budget-${index + 1}`,
+        position: index + 1,
+        slotLabel: `Bounded sourcing item ${index + 1}`,
+        slotIntent: `Keep sourcing work independent for slot ${index + 1}.`,
+        searchTerms: [`bounded sourcing item ${index + 1}`],
+        editorialStatus: "needs-generation" as const,
+      })),
+    }),
+    now,
+  );
+  let discoveryCalls = 0;
+  let p2Calls = 0;
+  const mock = new MockGuideGenerationProvider();
+  const provider: GuideGenerationProvider = {
+    providerId: "guide-budget-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      if (request.operation === "product-fit-evaluations") p2Calls++;
+      return mock.generateStructured(request);
+    },
+  };
+  const discoverySource: ProductDiscoverySource = {
+    providerId: "serpapi",
+    paidUsage: true,
+    supportedModes: ["amazon"],
+    async search(input) {
+      discoveryCalls++;
+      const asin = `B0COST${String(discoveryCalls).padStart(4, "0")}`;
+      return [
+        {
+          sourceKind: "serpapi",
+          provider: "SerpAPI",
+          discoveryMode: "amazon",
+          marketplace: "amazon.com",
+          externalId: asin,
+          sourceUrl: `https://www.amazon.com/dp/${asin}`,
+          productUrl: `https://www.amazon.com/dp/${asin}`,
+          name: input.query,
+          sourceFacts: [`Observed query: ${input.query}`],
+          query: input.query,
+          observedAt: input.observedAt,
+        },
+      ];
+    },
+  };
+
+  const result = await completeGuideAutonomously(
+    draft,
+    { draftStore, catalog, sourcingStore, sourceStore, fitStore, provider, discoverySource },
+    { now },
+  );
+
+  assert.equal(result.status, "completed");
+  assert.equal(result.counts.editorialReady, 8);
+  assert.equal(result.counts.productPending, 8);
+  assert.equal(discoveryCalls, 8);
+  assert.equal(p2Calls, 8);
+  assert.equal(result.execution.amazonDiscoveryCalls, 8);
+  assert.equal(result.execution.p2Calls, 8);
+  assert.ok(result.execution.amazonDiscoveryCalls <= 8 * AUTOPILOT_LIMITS.maxDiscoveryCalls);
+  assert.ok(result.execution.p2Calls <= 8 * AUTOPILOT_LIMITS.maxP2ProviderCalls);
+  assert.equal(result.execution.slotsStoppedBySourcingBudget, 0);
+  assert.ok(
+    result.slots.every(
+      ({ status, singleSlotResult }) =>
+        status === "product-pending" &&
+        singleSlotResult?.reasonCode === "no-candidate-passed-product-gate" &&
+        singleSlotResult.sourcing.externalDiscoveryCalls === 1 &&
+        singleSlotResult.sourcing.p2Calls === 1 &&
+        !singleSlotResult.sourcing.recoveryUsed,
+    ),
+  );
 });

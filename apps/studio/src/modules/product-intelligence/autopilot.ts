@@ -31,7 +31,6 @@ import {
   generateProductSearchPlans,
   productDiscoverySourceSupportsMode,
   runProductDiscovery,
-  updateProductSearchPlan,
   type ProductDiscoverySource,
 } from "../product-sources/discovery.ts";
 import {
@@ -68,13 +67,13 @@ import {
   type ProductSourcingRequestStore,
 } from "./sourcing.ts";
 
-export const AUTOPILOT_POLICY_VERSION = "single-slot-autopilot-v1";
+export const AUTOPILOT_POLICY_VERSION = "single-slot-autopilot-v2";
 export const AUTOPILOT_LIMITS = {
   maxDiscoveryCalls: 2,
   maxDiscoveryRounds: 2,
   maxCandidatesPerEvaluation: 8,
   maxCatalogCandidates: 4,
-  maxP2ProviderCalls: 4,
+  maxP2ProviderCalls: 2,
   maxP2RecoveryCalls: 1,
 } as const;
 
@@ -143,32 +142,39 @@ export const autopilotResolutionOutcomeSchema = z.strictObject({
     "catalog-reuse",
     "existing-candidate",
     "amazon-discovery",
-    "amazon-refinement",
     "idea-only",
     "failed",
   ]),
   candidatePassedBecause: z.array(nonEmptyText),
   productNotUsedBecause: z.array(nonEmptyText),
-  discoveryAttempts: z.array(
-    z.strictObject({
-      round: z.number().int().min(1).max(AUTOPILOT_LIMITS.maxDiscoveryRounds),
-      provider: nonEmptyText,
-      mode: z.literal("amazon"),
-      status: nonEmptyText,
-      providerCalls: z.number().int().nonnegative(),
-      storedCandidateCount: z.number().int().nonnegative(),
-      returnedCandidateCount: z.number().int().nonnegative(),
-      reusedCandidateCount: z.number().int().nonnegative(),
-      failureCode: z
-        .enum(["configuration", "quota", "timeout", "unavailable", "malformed"])
-        .optional(),
-    }),
-  ),
+  discoveryAttempts: z
+    .array(
+      z.strictObject({
+        round: z.number().int().min(1).max(AUTOPILOT_LIMITS.maxDiscoveryRounds),
+        provider: nonEmptyText,
+        mode: z.literal("amazon"),
+        status: nonEmptyText,
+        providerCalls: z.number().int().nonnegative().max(1),
+        storedCandidateCount: z.number().int().nonnegative(),
+        returnedCandidateCount: z.number().int().nonnegative(),
+        reusedCandidateCount: z.number().int().nonnegative(),
+        failureCode: z
+          .enum(["configuration", "quota", "timeout", "unavailable", "malformed"])
+          .optional(),
+      }),
+    )
+    .max(AUTOPILOT_LIMITS.maxDiscoveryRounds),
   executionEvidence: z.strictObject({
+    catalogReuseAttempted: z.boolean(),
+    catalogReuseResult: z.enum([
+      "product-reused",
+      "candidate-not-selected",
+      "no-suitable-candidate",
+    ]),
     catalogCandidatesConsidered: z.number().int().nonnegative(),
     recentSourceCandidatesConsidered: z.number().int().nonnegative(),
     amazonDiscoveryAttempted: z.boolean(),
-    providerCallCount: z.number().int().nonnegative(),
+    providerCallCount: z.number().int().nonnegative().max(AUTOPILOT_LIMITS.maxDiscoveryCalls),
     candidatesReturned: z.number().int().nonnegative(),
     candidatesEvaluated: z.number().int().nonnegative(),
     p2ProviderCallCount: z.number().int().nonnegative().max(AUTOPILOT_LIMITS.maxP2ProviderCalls),
@@ -206,6 +212,9 @@ export const autopilotResolutionOutcomeSchema = z.strictObject({
       })
       .optional(),
     searchRefinementAttempted: z.boolean(),
+    discoveryRecoveryAttempted: z.boolean(),
+    recoveryUsed: z.boolean(),
+    sourcingBudgetExhausted: z.boolean(),
   }),
   affiliateDestinationStatus: z.enum([
     "available",
@@ -539,19 +548,6 @@ function fallbackSearchPlan(request: ProductSourcingRequest, now: Date): Product
     },
     updatedAt: now.toISOString(),
   });
-}
-
-function refinedRequest(request: ProductSourcingRequest, now: Date): ProductSourcingRequest {
-  const plan = request.searchPlan!;
-  const first = plan.queries[0]!;
-  const alternative =
-    plan.queries.find((query) => normalized(query) !== normalized(first)) ??
-    unique([plan.productClass, plan.usefulAttributes[0], request.intendedRole]).join(" ");
-  return updateProductSearchPlan(
-    request,
-    { ...plan, queries: [alternative || plan.productClass] },
-    now,
-  );
 }
 
 function comparableUrl(value: string | undefined): string | undefined {
@@ -899,6 +895,7 @@ function executionEvidence(
   p2: P2Diagnostics,
   content: ValidatedPublicContent,
   actions: readonly string[],
+  sourcingBudgetExhausted = false,
 ): AutopilotResolutionOutcome["executionEvidence"] {
   const attempts = discoveryAttempts(request, discoveryStart);
   const candidateById = new Map(
@@ -916,7 +913,21 @@ function executionEvidence(
       ? assessAutomaticProductCandidate(request, bestCandidate, bestEvaluation, content)
           .rejectedBecause
       : [];
+  const canonicalCandidateConsidered = request.sourceCandidates.some(
+    ({ canonicalProductId }) => canonicalProductId,
+  );
+  const discoveryRecoveryAttempted = actions.includes(
+    "retried-amazon-discovery-after-provider-failure",
+  );
   return {
+    catalogReuseAttempted: true,
+    catalogReuseResult:
+      actions.includes("fulfilled-originating-sourcing-request") &&
+      actions.includes("reused-canonical-product")
+        ? "product-reused"
+        : canonicalCandidateConsidered
+          ? "candidate-not-selected"
+          : "no-suitable-candidate",
     catalogCandidatesConsidered,
     recentSourceCandidatesConsidered: attempts.reduce(
       (sum, attempt) => sum + attempt.reusedCandidateCount,
@@ -945,6 +956,9 @@ function executionEvidence(
         }
       : {}),
     searchRefinementAttempted: actions.includes("refined-amazon-search"),
+    discoveryRecoveryAttempted,
+    recoveryUsed: p2.recoveryAttempted || discoveryRecoveryAttempted,
+    sourcingBudgetExhausted,
   };
 }
 
@@ -957,9 +971,8 @@ function ideaOnlyReasonCode(
   amazonDiscoveryAvailable: boolean,
 ): AutopilotReasonCode {
   const attempts = discoveryAttempts(request, discoveryStart);
-  const failedAttempt = attempts.find(
-    (attempt) => attempt.status === "failed" && attempt.failureCode,
-  );
+  const latestAttempt = attempts.at(-1);
+  const failedAttempt = latestAttempt?.status === "failed" ? latestAttempt : undefined;
   if (failedAttempt?.failureCode) return `amazon-provider-${failedAttempt.failureCode}`;
   if (warnings.includes("amazon-discovery-failed")) return "amazon-provider-unavailable";
   if (evaluations.length) return "no-candidate-passed-product-gate";
@@ -1012,6 +1025,7 @@ async function completeIdeaOnly(
   catalogCandidatesConsidered: number,
   evaluations: readonly ProductFitEvaluation[],
   p2: P2Diagnostics,
+  sourcingBudgetExhausted = false,
 ): Promise<AutopilotResolutionOutcome> {
   let completedDraft: GuideDraft;
   const existingSlot = draft.recommendations.find(({ id }) => id === slotId)!;
@@ -1053,6 +1067,7 @@ async function completeIdeaOnly(
         p2,
         dependencies.catalog.read(),
         actions,
+        sourcingBudgetExhausted,
       ),
       affiliateDestinationStatus: "not-applicable",
       actionsPerformed: actions,
@@ -1081,6 +1096,7 @@ async function completeIdeaOnly(
       p2,
       dependencies.catalog.read(),
       actions,
+      sourcingBudgetExhausted,
     ),
     affiliateDestinationStatus: "not-applicable",
     actionsPerformed: actions,
@@ -1213,7 +1229,12 @@ export async function resolveRecommendationSlotAutonomously(
       .slice(0, AUTOPILOT_LIMITS.maxCandidatesPerEvaluation);
     if (!candidates.length) return;
     const failed = await runP2Attempt(candidates, "primary");
-    if (failed.length && !p2.recoveryAttempted) {
+    const primaryChoice = chooseAutomaticProductCandidate(
+      request!,
+      evaluations,
+      dependencies.catalog.read(),
+    );
+    if (failed.length && !primaryChoice.candidate && !p2.recoveryAttempted) {
       p2.recoveryAttempted = true;
       const stillFailed = await runP2Attempt(failed, "recovery");
       p2.candidatesRecovered += failed.length - stillFailed.length;
@@ -1221,6 +1242,9 @@ export async function resolveRecommendationSlotAutonomously(
     for (const candidate of candidates) handledCandidateIds.add(candidate.id);
   };
 
+  const hadCandidatesBeforeDiscovery = request.sourceCandidates.some(
+    ({ status }) => status !== "rejected",
+  );
   await evaluateNewCandidates();
 
   let choice = chooseAutomaticProductCandidate(request, evaluations, dependencies.catalog.read());
@@ -1231,17 +1255,14 @@ export async function resolveRecommendationSlotAutonomously(
     productDiscoverySourceSupportsMode(dependencies.discoverySource, "amazon"),
   );
 
-  if (!choice.candidate && dependencies.discoverySource && amazonDiscoveryAvailable) {
-    for (
-      let round = request.discoveryRounds.length + 1;
-      round <= AUTOPILOT_LIMITS.maxDiscoveryRounds;
-      round++
-    ) {
-      if (round > 1) {
-        request = refinedRequest(request, now);
-        await dependencies.sourcingStore.save(request);
-        actions.push("refined-amazon-search");
-      }
+  if (
+    !choice.candidate &&
+    !hadCandidatesBeforeDiscovery &&
+    dependencies.discoverySource &&
+    amazonDiscoveryAvailable
+  ) {
+    while (request.discoveryRounds.length < AUTOPILOT_LIMITS.maxDiscoveryRounds) {
+      const round = request.discoveryRounds.length + 1;
       let discovered: ProductSourcingRequest;
       try {
         discovered = await runProductDiscovery(request, dependencies.discoverySource, {
@@ -1265,14 +1286,18 @@ export async function resolveRecommendationSlotAutonomously(
       }
       request = await dependencies.sourcingStore.save(discovered);
       assertExactSlotRequest(request, draft, slotId);
-      actions.push(round === 1 ? "ran-amazon-discovery" : "ran-bounded-amazon-refinement");
-      await evaluateNewCandidates();
-      choice = chooseAutomaticProductCandidate(request, evaluations, dependencies.catalog.read());
-      if (choice.candidate) {
-        strategy = round === 1 ? "amazon-discovery" : "amazon-refinement";
-        break;
-      }
+      actions.push(
+        round === discoveryStart + 1 ? "ran-amazon-discovery" : "retried-amazon-discovery",
+      );
+      const attempt = discoveryAttempts(request, discoveryStart).at(-1)!;
+      if (attempt.status !== "failed" || !attempt.failureCode) break;
+      if (!["timeout", "unavailable", "malformed"].includes(attempt.failureCode)) break;
+      if (request.discoveryRounds.length >= AUTOPILOT_LIMITS.maxDiscoveryRounds) break;
+      actions.push("retried-amazon-discovery-after-provider-failure");
     }
+    await evaluateNewCandidates();
+    choice = chooseAutomaticProductCandidate(request, evaluations, dependencies.catalog.read());
+    if (choice.candidate) strategy = "amazon-discovery";
   }
 
   const providerCalls = discoveryAttempts(request, discoveryStart).reduce(
@@ -1300,6 +1325,13 @@ export async function resolveRecommendationSlotAutonomously(
       p2,
       amazonDiscoveryAvailable,
     );
+    const latestDiscoveryAttempt = discoveryAttempts(request, discoveryStart).at(-1);
+    const sourcingBudgetExhausted =
+      (p2.providerCallCount >= AUTOPILOT_LIMITS.maxP2ProviderCalls &&
+        evaluations.length === 0 &&
+        p2.failures.size > 0) ||
+      (providerCalls >= AUTOPILOT_LIMITS.maxDiscoveryCalls &&
+        latestDiscoveryAttempt?.status === "failed");
     return completeIdeaOnly(
       draft,
       slotId,
@@ -1314,6 +1346,7 @@ export async function resolveRecommendationSlotAutonomously(
       catalogCandidatesConsidered,
       evaluations,
       p2,
+      sourcingBudgetExhausted,
     );
   }
 

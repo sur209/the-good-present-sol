@@ -21,7 +21,7 @@ import {
 } from "./autopilot.ts";
 import { findProductSourcingRequestForDraftSlot } from "./sourcing.ts";
 
-export const GUIDE_AUTOPILOT_POLICY_VERSION = "guide-autopilot-v1";
+export const GUIDE_AUTOPILOT_POLICY_VERSION = "guide-autopilot-v2";
 
 // ponytail: DraftStore saves a whole Guide; keep slot execution serial until it supports CAS/merge.
 export const GUIDE_AUTOPILOT_MAX_CONCURRENT_SLOTS = 1;
@@ -29,15 +29,27 @@ export const GUIDE_AUTOPILOT_MAX_CONCURRENT_SLOTS = 1;
 const nonEmptyText = z.string().trim().min(1);
 const safeId = nonEmptyText.regex(/^[a-z0-9]+(?:[-_][a-z0-9]+)*$/);
 
-const compactSingleSlotOutcomeSchema = autopilotResolutionOutcomeSchema.pick({
-  status: true,
-  reasonCode: true,
-  sourcingRequestId: true,
-  productId: true,
-  candidateId: true,
-  resolutionStrategy: true,
-  affiliateDestinationStatus: true,
-});
+const compactSingleSlotOutcomeSchema = autopilotResolutionOutcomeSchema
+  .pick({
+    status: true,
+    reasonCode: true,
+    sourcingRequestId: true,
+    productId: true,
+    candidateId: true,
+    resolutionStrategy: true,
+    affiliateDestinationStatus: true,
+  })
+  .extend({
+    sourcing: z.strictObject({
+      catalogReuseAttempted: z.boolean(),
+      catalogReuseResult:
+        autopilotResolutionOutcomeSchema.shape.executionEvidence.shape.catalogReuseResult,
+      externalDiscoveryCalls: z.number().int().nonnegative(),
+      p2Calls: z.number().int().nonnegative(),
+      recoveryUsed: z.boolean(),
+      budgetExhausted: z.boolean(),
+    }),
+  });
 
 export const guideAutopilotOutcomeSchema = z.strictObject({
   schemaVersion: z.literal(1),
@@ -68,6 +80,7 @@ export const guideAutopilotOutcomeSchema = z.strictObject({
     productsCreated: z.number().int().nonnegative(),
     amazonDiscoveryCalls: z.number().int().nonnegative(),
     p2Calls: z.number().int().nonnegative(),
+    slotsStoppedBySourcingBudget: z.number().int().nonnegative(),
     productPendingFallbacks: z.number().int().nonnegative(),
     editorialGenerations: z.number().int().nonnegative(),
     nonBlockingFailures: z.number().int().nonnegative(),
@@ -116,6 +129,7 @@ function unique(values: readonly string[]): string[] {
 }
 
 function compactSingleSlotResult(result: AutopilotResolutionOutcome) {
+  const evidence = result.executionEvidence;
   return compactSingleSlotOutcomeSchema.parse({
     status: result.status,
     reasonCode: result.reasonCode,
@@ -124,6 +138,14 @@ function compactSingleSlotResult(result: AutopilotResolutionOutcome) {
     ...(result.candidateId ? { candidateId: result.candidateId } : {}),
     resolutionStrategy: result.resolutionStrategy,
     affiliateDestinationStatus: result.affiliateDestinationStatus,
+    sourcing: {
+      catalogReuseAttempted: evidence.catalogReuseAttempted,
+      catalogReuseResult: evidence.catalogReuseResult,
+      externalDiscoveryCalls: evidence.providerCallCount,
+      p2Calls: evidence.p2ProviderCallCount,
+      recoveryUsed: evidence.recoveryUsed,
+      budgetExhausted: evidence.sourcingBudgetExhausted,
+    },
   });
 }
 
@@ -169,6 +191,7 @@ export async function completeGuideAutonomously(
     productsCreated: 0,
     amazonDiscoveryCalls: 0,
     p2Calls: 0,
+    slotsStoppedBySourcingBudget: 0,
     productPendingFallbacks: 0,
     editorialGenerations: 0,
     nonBlockingFailures: 0,
@@ -273,6 +296,9 @@ export async function completeGuideAutonomously(
           : 0;
         execution.amazonDiscoveryCalls += result.executionEvidence.providerCallCount;
         execution.p2Calls += result.executionEvidence.p2ProviderCallCount;
+        execution.slotsStoppedBySourcingBudget += Number(
+          result.executionEvidence.sourcingBudgetExhausted,
+        );
         execution.productPendingFallbacks += result.status === "resolved-idea-only" ? 1 : 0;
         execution.editorialGenerations += editorialGenerationCount(
           result.actionsPerformed,
