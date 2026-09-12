@@ -404,6 +404,14 @@ class OpenAiCompatibleGuideGenerationProvider implements GuideGenerationProvider
         { cause: envelope.error },
       );
     }
+    const usage = envelope.data.usage;
+    const requestId = response.headers.get("x-request-id") ?? undefined;
+    this.lastCallMetadata = {
+      ...(requestId ? { requestId } : {}),
+      ...(usage?.prompt_tokens !== undefined ? { inputTokens: usage.prompt_tokens } : {}),
+      ...(usage?.completion_tokens !== undefined ? { outputTokens: usage.completion_tokens } : {}),
+      ...(usage?.total_tokens !== undefined ? { totalTokens: usage.total_tokens } : {}),
+    };
     if (envelope.data.choices.length === 0) {
       throw new ProviderError("El proveedor no devolvió ninguna opción.", "empty-response");
     }
@@ -423,14 +431,6 @@ class OpenAiCompatibleGuideGenerationProvider implements GuideGenerationProvider
     if (typeof choice.message.content !== "string") {
       throw new ProviderError("El proveedor devolvió contenido vacío.", "empty-response");
     }
-    const usage = envelope.data.usage;
-    const requestId = response.headers.get("x-request-id") ?? undefined;
-    this.lastCallMetadata = {
-      ...(requestId ? { requestId } : {}),
-      ...(usage?.prompt_tokens !== undefined ? { inputTokens: usage.prompt_tokens } : {}),
-      ...(usage?.completion_tokens !== undefined ? { outputTokens: usage.completion_tokens } : {}),
-      ...(usage?.total_tokens !== undefined ? { totalTokens: usage.total_tokens } : {}),
-    };
     return parseExactStructuredContent(choice.message.content, request.schema);
   }
 }

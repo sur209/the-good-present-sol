@@ -1,6 +1,11 @@
 import { productDestination } from "@the-good-present/content-schema";
 import { z } from "zod";
 
+import type {
+  GuideGenerationProvider,
+  ProviderCallMetadata,
+  StructuredGenerationRequest,
+} from "../../ai-provider.ts";
 import { guideDraftSchema, type GuideDraft } from "../../drafts.ts";
 import {
   completeGuideEditorialMetadata,
@@ -21,13 +26,18 @@ import {
 } from "./autopilot.ts";
 import { findProductSourcingRequestForDraftSlot } from "./sourcing.ts";
 
-export const GUIDE_AUTOPILOT_POLICY_VERSION = "guide-autopilot-v2";
+export const GUIDE_AUTOPILOT_POLICY_VERSION = "guide-autopilot-v4";
 
 // ponytail: DraftStore saves a whole Guide; keep slot execution serial until it supports CAS/merge.
 export const GUIDE_AUTOPILOT_MAX_CONCURRENT_SLOTS = 1;
 
 const nonEmptyText = z.string().trim().min(1);
 const safeId = nonEmptyText.regex(/^[a-z0-9]+(?:[-_][a-z0-9]+)*$/);
+const providerUsageSchema = z.strictObject({
+  inputTokens: z.number().int().nonnegative().optional(),
+  outputTokens: z.number().int().nonnegative().optional(),
+  totalTokens: z.number().int().nonnegative().optional(),
+});
 
 const compactSingleSlotOutcomeSchema = autopilotResolutionOutcomeSchema
   .pick({
@@ -78,12 +88,23 @@ export const guideAutopilotOutcomeSchema = z.strictObject({
     peakConcurrentSlots: z.number().int().min(0).max(GUIDE_AUTOPILOT_MAX_CONCURRENT_SLOTS),
     productsReused: z.number().int().nonnegative(),
     productsCreated: z.number().int().nonnegative(),
-    amazonDiscoveryCalls: z.number().int().nonnegative(),
+    externalDiscoveryCalls: z.number().int().nonnegative(),
+    productPlanningCalls: z.number().int().nonnegative(),
     p2Calls: z.number().int().nonnegative(),
+    editorialCalls: z.number().int().nonnegative(),
+    guideMetadataCalls: z.number().int().nonnegative(),
+    technicalRetries: z.number().int().nonnegative(),
     slotsStoppedBySourcingBudget: z.number().int().nonnegative(),
     productPendingFallbacks: z.number().int().nonnegative(),
-    editorialGenerations: z.number().int().nonnegative(),
     nonBlockingFailures: z.number().int().nonnegative(),
+    providerUsage: z
+      .strictObject({
+        productPlanning: providerUsageSchema.optional(),
+        p2: providerUsageSchema.optional(),
+        editorial: providerUsageSchema.optional(),
+        guideMetadata: providerUsageSchema.optional(),
+      })
+      .optional(),
   }),
   slots: z.array(
     z.strictObject({
@@ -111,6 +132,7 @@ export type GuideAutopilotOutcome = z.infer<typeof guideAutopilotOutcomeSchema>;
 
 export interface GuideAutopilotOptions {
   now?: Date | undefined;
+  sourceProducts?: boolean | undefined;
 }
 
 const technicalFallbackReasons = new Set<AutopilotResolutionOutcome["reasonCode"]>([
@@ -156,23 +178,63 @@ async function readGuideDraft(
   return guideDraftSchema.parse(await dependencies.draftStore.read(id));
 }
 
-function editorialGenerationCount(
-  actions: readonly string[],
-  warnings: readonly string[] = [],
-): number {
-  const productEditorialCopy =
-    actions.includes("generated-product-editorial-copy") ||
-    warnings.includes("product-editorial-copy-fallback-used");
-  const recommendationCopy = actions.some((action) =>
-    [
-      "generated-product-recommendation-copy",
-      "generated-safe-product-copy-fallback",
-      "generated-idea-only-copy",
-      "repaired-idea-only-copy-fields",
-      "generated-safe-idea-only-fallback",
-    ].includes(action),
+type ProviderCallCategory = "productPlanning" | "p2" | "editorial" | "guideMetadata";
+
+interface ProviderCallCounter {
+  calls: number;
+  usage: { inputTokens?: number; outputTokens?: number; totalTokens?: number };
+}
+
+function providerCallCategory(
+  operation: StructuredGenerationRequest<unknown>["operation"],
+): ProviderCallCategory {
+  if (operation === "product-search-plans") return "productPlanning";
+  if (operation === "product-fit-evaluations") return "p2";
+  if (operation === "guide-metadata") return "guideMetadata";
+  return "editorial";
+}
+
+function addProviderUsage(counter: ProviderCallCounter, metadata?: ProviderCallMetadata): void {
+  for (const key of ["inputTokens", "outputTokens", "totalTokens"] as const) {
+    const value = metadata?.[key];
+    if (value !== undefined) counter.usage[key] = (counter.usage[key] ?? 0) + value;
+  }
+}
+
+function observedProvider(
+  provider: GuideGenerationProvider,
+  counters: Record<ProviderCallCategory, ProviderCallCounter>,
+): GuideGenerationProvider {
+  return {
+    providerId: provider.providerId,
+    ...(provider.modelId ? { modelId: provider.modelId } : {}),
+    get lastCallMetadata() {
+      return provider.lastCallMetadata;
+    },
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      const counter = counters[providerCallCategory(request.operation)];
+      const previousMetadata = provider.lastCallMetadata;
+      counter.calls++;
+      try {
+        return await provider.generateStructured(request);
+      } finally {
+        if (provider.lastCallMetadata !== previousMetadata) {
+          addProviderUsage(counter, provider.lastCallMetadata);
+        }
+      }
+    },
+  };
+}
+
+function providerUsage(
+  counters: Record<ProviderCallCategory, ProviderCallCounter>,
+): GuideAutopilotOutcome["execution"]["providerUsage"] {
+  const usage = Object.fromEntries(
+    Object.entries(counters)
+      .filter(([, counter]) => Object.keys(counter.usage).length > 0)
+      .map(([category, counter]) => [category, counter.usage]),
   );
-  return Number(productEditorialCopy) + Number(recommendationCopy);
+  return Object.keys(usage).length ? usage : undefined;
 }
 
 export async function completeGuideAutonomously(
@@ -184,16 +246,29 @@ export async function completeGuideAutonomously(
   let draft = guideDraftSchema.parse(initialDraft);
   const slots: GuideAutopilotOutcome["slots"] = [];
   const guideWarnings: string[] = [];
+  const providerCalls: Record<ProviderCallCategory, ProviderCallCounter> = {
+    productPlanning: { calls: 0, usage: {} },
+    p2: { calls: 0, usage: {} },
+    editorial: { calls: 0, usage: {} },
+    guideMetadata: { calls: 0, usage: {} },
+  };
+  const trackedDependencies = {
+    ...dependencies,
+    provider: observedProvider(dependencies.provider, providerCalls),
+  };
   const execution = {
     maxConcurrentSlots: GUIDE_AUTOPILOT_MAX_CONCURRENT_SLOTS,
     peakConcurrentSlots: 0,
     productsReused: 0,
     productsCreated: 0,
-    amazonDiscoveryCalls: 0,
+    externalDiscoveryCalls: 0,
+    productPlanningCalls: 0,
     p2Calls: 0,
+    editorialCalls: 0,
+    guideMetadataCalls: 0,
+    technicalRetries: 0,
     slotsStoppedBySourcingBudget: 0,
     productPendingFallbacks: 0,
-    editorialGenerations: 0,
     nonBlockingFailures: 0,
   } as GuideAutopilotOutcome["execution"];
 
@@ -201,13 +276,12 @@ export async function completeGuideAutonomously(
     const completion = await completeGuideEditorialMetadata(
       draft,
       dependencies.catalog.read(),
-      dependencies.provider,
+      trackedDependencies.provider,
       now,
     );
     try {
       await dependencies.draftStore.save(completion.draft, now);
       draft = await readGuideDraft(draft.id, dependencies);
-      execution.editorialGenerations += Number(completion.actionsPerformed.length > 0);
       guideWarnings.push(...completion.warnings);
     } catch {
       guideWarnings.push("guide-metadata-save-failed");
@@ -248,45 +322,23 @@ export async function completeGuideAutonomously(
         const copy = await completeProductBackedRecommendationCopy(
           draft,
           slot.id,
-          dependencies,
+          trackedDependencies,
           now,
         );
         await dependencies.draftStore.save(copy.draft, now);
-        execution.editorialGenerations += editorialGenerationCount(
-          copy.actionsPerformed,
-          copy.warnings,
-        );
         warnings.push(...copy.warnings);
       } catch {
         warnings.push("product-copy-completion-failed");
       }
-    } else if (ideaOnlyRecommendationNeedsCopyRepair(draft, slot.id, content, sourcingRequest)) {
-      action = "repaired-generic-idea-copy";
-      try {
-        const copy = await completeIdeaOnlyRecommendationCopy(
-          draft,
-          slot.id,
-          dependencies,
-          sourcingRequest,
-          now,
-        );
-        await dependencies.draftStore.save(copy.draft, now);
-        execution.editorialGenerations += editorialGenerationCount(
-          copy.actionsPerformed,
-          copy.warnings,
-        );
-        warnings.push(...copy.warnings);
-      } catch {
-        warnings.push("idea-copy-repair-failed");
-      }
-    } else if (recommendationIsEditoriallyReady(slot)) {
-      action = "preserved-ready-product-pending-slot";
-    } else {
+    } else if (options.sourceProducts) {
       action = "single-slot-autopilot";
       try {
-        const result = await resolveRecommendationSlotAutonomously(draft, slot.id, dependencies, {
-          now,
-        });
+        const result = await resolveRecommendationSlotAutonomously(
+          draft,
+          slot.id,
+          trackedDependencies,
+          { now },
+        );
         singleSlotResult = compactSingleSlotResult(result);
         execution.productsReused += result.actionsPerformed.includes("reused-canonical-product")
           ? 1
@@ -294,21 +346,39 @@ export async function completeGuideAutonomously(
         execution.productsCreated += result.actionsPerformed.includes("created-canonical-product")
           ? 1
           : 0;
-        execution.amazonDiscoveryCalls += result.executionEvidence.providerCallCount;
-        execution.p2Calls += result.executionEvidence.p2ProviderCallCount;
+        execution.externalDiscoveryCalls += result.executionEvidence.providerCallCount;
+        execution.technicalRetries +=
+          Number(result.executionEvidence.p2RecoveryAttempted) +
+          Number(result.executionEvidence.discoveryRecoveryAttempted);
         execution.slotsStoppedBySourcingBudget += Number(
           result.executionEvidence.sourcingBudgetExhausted,
         );
         execution.productPendingFallbacks += result.status === "resolved-idea-only" ? 1 : 0;
-        execution.editorialGenerations += editorialGenerationCount(
-          result.actionsPerformed,
-          result.warnings,
-        );
         warnings.push(...result.warnings);
         if (technicalFallbackReasons.has(result.reasonCode)) warnings.push(result.reasonCode);
       } catch {
         warnings.push("slot-autopilot-execution-failed");
       }
+    } else if (
+      ideaOnlyRecommendationNeedsCopyRepair(draft, slot.id, content, sourcingRequest) ||
+      !recommendationIsEditoriallyReady(slot)
+    ) {
+      action = "repaired-generic-idea-copy";
+      try {
+        const copy = await completeIdeaOnlyRecommendationCopy(
+          draft,
+          slot.id,
+          trackedDependencies,
+          sourcingRequest,
+          now,
+        );
+        await dependencies.draftStore.save(copy.draft, now);
+        warnings.push(...copy.warnings);
+      } catch {
+        warnings.push("idea-copy-repair-failed");
+      }
+    } else {
+      action = "preserved-ready-product-pending-slot";
     }
 
     draft = await readGuideDraft(draft.id, dependencies);
@@ -346,6 +416,12 @@ export async function completeGuideAutonomously(
   );
   warnings.unshift(...guideWarnings.map((warning) => `guide:${warning}`));
   execution.nonBlockingFailures += guideWarnings.length;
+  execution.productPlanningCalls = providerCalls.productPlanning.calls;
+  execution.p2Calls = providerCalls.p2.calls;
+  execution.editorialCalls = providerCalls.editorial.calls;
+  execution.guideMetadataCalls = providerCalls.guideMetadata.calls;
+  const usage = providerUsage(providerCalls);
+  if (usage) execution.providerUsage = usage;
   const status = !readiness.editorialComplete
     ? "failed"
     : warnings.length

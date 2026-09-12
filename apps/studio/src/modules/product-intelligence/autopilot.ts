@@ -28,7 +28,6 @@ import {
 } from "../affiliate-operations/amazon.ts";
 import {
   DEFAULT_PRODUCT_DISCOVERY_LIMITS,
-  generateProductSearchPlans,
   productDiscoverySourceSupportsMode,
   runProductDiscovery,
   type ProductDiscoverySource,
@@ -67,7 +66,7 @@ import {
   type ProductSourcingRequestStore,
 } from "./sourcing.ts";
 
-export const AUTOPILOT_POLICY_VERSION = "single-slot-autopilot-v2";
+export const AUTOPILOT_POLICY_VERSION = "single-slot-autopilot-v3";
 export const AUTOPILOT_LIMITS = {
   maxDiscoveryCalls: 2,
   maxDiscoveryRounds: 2,
@@ -1131,15 +1130,8 @@ export async function resolveRecommendationSlotAutonomously(
   const discoveryStart = request.discoveryRounds.length;
 
   if (!request.searchPlan) {
-    try {
-      request = (
-        await generateProductSearchPlans([request], dependencies.provider, [draft], [], now)
-      )[0]!;
-      actions.push("generated-search-plan");
-    } catch {
-      request = fallbackSearchPlan(request, now);
-      warnings.push("search-plan-fallback-used");
-    }
+    request = fallbackSearchPlan(request, now);
+    actions.push("created-deterministic-search-plan");
     request = await dependencies.sourcingStore.save(request);
     assertExactSlotRequest(request, draft, slotId);
   }
@@ -1175,7 +1167,7 @@ export async function resolveRecommendationSlotAutonomously(
   const runP2Attempt = async (
     candidates: readonly ProductSourceCandidate[],
     kind: "primary" | "recovery",
-  ): Promise<ProductSourceCandidate[]> => {
+  ) => {
     if (p2.providerCallCount >= AUTOPILOT_LIMITS.maxP2ProviderCalls) {
       throw new TypeError("Autopilot exceeded its P.2 provider call limit.");
     }
@@ -1190,22 +1182,6 @@ export async function resolveRecommendationSlotAutonomously(
         now,
       },
     );
-    if (attempt.session) {
-      await dependencies.fitStore.save(attempt.session);
-      evaluations.push(...attempt.session.aiInterpretation.evaluations);
-      for (const evaluation of attempt.session.aiInterpretation.evaluations) {
-        p2.failures.delete(evaluation.candidateId);
-      }
-      actions.push(
-        kind === "recovery"
-          ? "recovered-candidate-evaluations-with-structured-p2"
-          : "evaluated-candidates-with-structured-p2",
-      );
-    }
-    for (const failure of attempt.failures) p2.failures.set(failure.candidateId, failure);
-    if (attempt.malformedResultCount) {
-      warnings.push("candidate-evaluation-response-malformed");
-    }
     const failureByCandidateId = new Map(
       attempt.failures.map((failure) => [failure.candidateId, failure.code]),
     );
@@ -1220,24 +1196,51 @@ export async function resolveRecommendationSlotAutonomously(
         status: failureByCandidateId.get(id) ?? "valid",
       })),
     });
-    const failedIds = new Set(attempt.failures.map(({ candidateId: id }) => id));
-    return candidates.filter(({ id }) => failedIds.has(id));
+    return attempt;
   };
   const evaluateNewCandidates = async (): Promise<void> => {
     const candidates = request!.sourceCandidates
       .filter(({ id, status }) => status !== "rejected" && !handledCandidateIds.has(id))
       .slice(0, AUTOPILOT_LIMITS.maxCandidatesPerEvaluation);
     if (!candidates.length) return;
-    const failed = await runP2Attempt(candidates, "primary");
-    const primaryChoice = chooseAutomaticProductCandidate(
-      request!,
-      evaluations,
-      dependencies.catalog.read(),
-    );
-    if (failed.length && !primaryChoice.candidate && !p2.recoveryAttempted) {
+    const primary = await runP2Attempt(candidates, "primary");
+    const primaryFailedTechnically =
+      !primary.session || primary.failures.length > 0 || primary.malformedResultCount > 0;
+    let accepted = primary;
+    if (primaryFailedTechnically && !p2.recoveryAttempted) {
       p2.recoveryAttempted = true;
-      const stillFailed = await runP2Attempt(failed, "recovery");
-      p2.candidatesRecovered += failed.length - stillFailed.length;
+      accepted = await runP2Attempt(candidates, "recovery");
+      const recoveredIds = new Set(
+        accepted.session?.aiInterpretation.evaluations.map(({ candidateId }) => candidateId) ?? [],
+      );
+      p2.candidatesRecovered = primary.failures.filter(({ candidateId }) =>
+        recoveredIds.has(candidateId),
+      ).length;
+    }
+    const acceptedFailedTechnically =
+      !accepted.session || accepted.failures.length > 0 || accepted.malformedResultCount > 0;
+    if (acceptedFailedTechnically) {
+      for (const failure of accepted.failures) p2.failures.set(failure.candidateId, failure);
+      if (accepted.malformedResultCount) {
+        warnings.push("candidate-evaluation-response-malformed");
+        for (const candidate of candidates) {
+          if (!p2.failures.has(candidate.id)) {
+            p2.failures.set(candidate.id, {
+              requestId: request!.id,
+              candidateId: candidate.id,
+              code: "malformed-result",
+            });
+          }
+        }
+      }
+    } else if (accepted.session) {
+      await dependencies.fitStore.save(accepted.session);
+      evaluations.push(...accepted.session.aiInterpretation.evaluations);
+      actions.push(
+        p2.recoveryAttempted
+          ? "recovered-candidate-evaluations-with-structured-p2"
+          : "evaluated-candidates-with-structured-p2",
+      );
     }
     for (const candidate of candidates) handledCandidateIds.add(candidate.id);
   };

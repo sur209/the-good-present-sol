@@ -24,6 +24,7 @@ import {
   parseExactStructuredContent,
   resolveAiConfiguration,
   type GuideGenerationProvider,
+  type ProviderCallMetadata,
   type StructuredGenerationRequest,
 } from "./ai-provider.ts";
 import {
@@ -8478,6 +8479,32 @@ test("el adaptador compatible envía JSON mode y valida el objeto exacto", async
     outputTokens: 4,
     totalTokens: 16,
   });
+
+  const truncated = createGuideGenerationProvider(
+    environment,
+    async () =>
+      new Response(
+        JSON.stringify({
+          choices: [{ finish_reason: "length", message: { content: '{"answer":"ready"}' } }],
+          usage: { prompt_tokens: 20, completion_tokens: 30, total_tokens: 50 },
+        }),
+        { status: 200 },
+      ),
+  );
+  await assert.rejects(
+    truncated.generateStructured({
+      operation: "outline",
+      prompt: 'Return JSON shaped like {"answer":"ready"}.',
+      input: {},
+      schema,
+    }),
+    (error) => error instanceof ProviderError && error.code === "truncated",
+  );
+  assert.deepEqual(truncated.lastCallMetadata, {
+    inputTokens: 20,
+    outputTokens: 30,
+    totalTokens: 50,
+  });
 });
 
 test("rechaza fences, prosa, vacíos, JSON roto y objetos fuera de esquema", () => {
@@ -9627,7 +9654,7 @@ test("Autopilot mantiene discovery y P.2 en el slot exacto y rechaza overlap de 
   assert.equal(result.discoveryAttempts[0]!.providerCalls, 1);
 });
 
-test("Autopilot conserva tres evaluaciones y recupera sólo el cuarto candidato faltante", async (context) => {
+test("Autopilot reintenta el mismo lote completo tras una respuesta P.2 inválida", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-autopilot-p2-recovery-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
   await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
@@ -9662,12 +9689,13 @@ test("Autopilot conserva tres evaluaciones y recupera sólo el cuarto candidato 
         batch.evaluations = batch.evaluations
           .filter(({ candidateId }) => candidateId !== candidateIds[3])
           .reverse();
-        for (const evaluation of batch.evaluations) {
-          evaluation.editorialFunctionalFit.productClassMatch = {
-            assessment: "negative",
-            rationale: "Fixture candidates deliberately fail the Product class gate.",
-          };
-        }
+      }
+      for (const evaluation of batch.evaluations) {
+        if (evaluation.candidateId === candidateIds[3]) continue;
+        evaluation.editorialFunctionalFit.productClassMatch = {
+          assessment: "negative",
+          rationale: "Fixture candidates deliberately fail the Product class gate.",
+        };
       }
       return request.schema.parse(batch);
     },
@@ -9687,16 +9715,9 @@ test("Autopilot conserva tres evaluaciones y recupera sólo el cuarto candidato 
   assert.equal(result.candidateId, candidateIds[3]);
   assert.deepEqual(
     p2Inputs.map(({ candidates }) => candidates.map(({ candidateId }) => candidateId)),
-    [[...candidateIds], [candidateIds[3]]],
+    [[...candidateIds], [...candidateIds]],
   );
-  assert.deepEqual(
-    p2Inputs[1]!.candidates[0]!.requestContext,
-    p2Inputs[0]!.candidates[3]!.requestContext,
-  );
-  assert.deepEqual(
-    p2Inputs[1]!.candidates[0]!.productClassProfile,
-    p2Inputs[0]!.candidates[3]!.productClassProfile,
-  );
+  assert.deepEqual(p2Inputs[1], p2Inputs[0]);
   assert.equal(result.executionEvidence.candidatesEvaluated, 4);
   assert.equal(result.executionEvidence.p2ProviderCallCount, 2);
   assert.equal(result.executionEvidence.p2RecoveryAttempted, true);
@@ -9715,24 +9736,21 @@ test("Autopilot conserva tres evaluaciones y recupera sólo el cuarto candidato 
     },
     {
       kind: "recovery",
-      candidatesSent: 1,
-      candidatesEvaluated: 1,
+      candidatesSent: 4,
+      candidatesEvaluated: 4,
       candidatesFailed: 0,
       unmappedMalformedResults: 0,
-      candidateResults: [{ candidateId: candidateIds[3], status: "valid" }],
+      candidateResults: candidateIds.map((candidateId) => ({ candidateId, status: "valid" })),
     },
   ]);
   assert.deepEqual(result.executionEvidence.candidateEvaluationFailures, []);
   assert.ok(!result.warnings.includes("candidate-evaluation-partial-failure"));
   assert.deepEqual(
-    new Set(
-      fitStore
-        .list()
-        .flatMap(({ aiInterpretation }) =>
-          aiInterpretation.evaluations.map(({ candidateId }) => candidateId),
-        ),
-    ),
-    new Set(candidateIds),
+    fitStore
+      .list()
+      .map(({ candidateCount }) => candidateCount)
+      .sort((left, right) => left - right),
+    [4],
   );
 });
 
@@ -9783,7 +9801,7 @@ test("Autopilot reintenta una respuesta P.2 con schema inválido una sola vez", 
   );
 });
 
-test("Autopilot conserva evaluaciones válidas cuando falla la recuperación parcial", async (context) => {
+test("Autopilot descarta una respuesta parcial cuando falla el reintento completo", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-autopilot-p2-partial-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
   await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
@@ -9829,8 +9847,8 @@ test("Autopilot conserva evaluaciones válidas cuando falla la recuperación par
   });
 
   assert.equal(result.status, "resolved-idea-only");
-  assert.equal(result.reasonCode, "no-candidate-passed-product-gate");
-  assert.equal(result.executionEvidence.candidatesEvaluated, 3);
+  assert.equal(result.reasonCode, "evaluation-infrastructure-failed");
+  assert.equal(result.executionEvidence.candidatesEvaluated, 0);
   assert.equal(result.executionEvidence.p2ProviderCallCount, 2);
   assert.equal(result.executionEvidence.p2RecoveryAttempted, true);
   assert.equal(result.executionEvidence.candidatesRecovered, 0);
@@ -9848,27 +9866,26 @@ test("Autopilot conserva evaluaciones válidas cuando falla la recuperación par
     },
     {
       kind: "recovery",
-      candidatesSent: 1,
+      candidatesSent: 4,
       candidatesEvaluated: 0,
-      candidatesFailed: 1,
+      candidatesFailed: 4,
       unmappedMalformedResults: 0,
-      candidateResults: [{ candidateId: candidateIds[3], status: "provider-failure" }],
+      candidateResults: candidateIds.map((candidateId) => ({
+        candidateId,
+        status: "provider-failure",
+      })),
     },
   ]);
-  assert.deepEqual(result.executionEvidence.candidateEvaluationFailures, [
-    {
-      candidateId: candidateIds[3],
-      name: "UPF Neck Gaiter 4",
-      reasonCode: "provider-failure",
-    },
-  ]);
-  assert.ok(result.warnings.includes("candidate-evaluation-partial-failure"));
-  assert.ok(!result.warnings.includes("candidate-evaluation-failed"));
-  assert.notEqual(result.executionEvidence.bestCandidate?.candidateId, candidateIds[3]);
-  assert.equal(
-    fitStore.list().flatMap(({ aiInterpretation }) => aiInterpretation.evaluations).length,
-    3,
+  assert.deepEqual(
+    result.executionEvidence.candidateEvaluationFailures.map(({ candidateId, reasonCode }) => ({
+      candidateId,
+      reasonCode,
+    })),
+    candidateIds.map((candidateId) => ({ candidateId, reasonCode: "provider-failure" })),
   );
+  assert.ok(result.warnings.includes("candidate-evaluation-failed"));
+  assert.equal(result.executionEvidence.bestCandidate, undefined);
+  assert.deepEqual(fitStore.list(), []);
 });
 
 test("Autopilot usa falla de infraestructura sólo con cero evaluaciones tras la recuperación", async (context) => {
@@ -10704,9 +10721,9 @@ test("Guide Autopilot preserva una guía resuelta, omite sourcing y muestra un r
   assert.equal(result.counts.productResolved, 3);
   assert.equal(result.counts.productPending, 0);
   assert.ok(result.counts.affiliatePending >= 1, "missing affiliate coverage cannot block success");
-  assert.equal(result.execution.amazonDiscoveryCalls, 0);
+  assert.equal(result.execution.externalDiscoveryCalls, 0);
   assert.equal(result.execution.p2Calls, 0);
-  assert.equal(result.execution.editorialGenerations, 0);
+  assert.equal(result.execution.editorialCalls, 0);
   assert.equal(result.execution.peakConcurrentSlots, 1);
   assert.equal(providerOperations.length, 0);
   assert.equal(sourcingStore.list().length, 0);
@@ -10731,7 +10748,7 @@ test("Guide Autopilot preserva una guía resuelta, omite sourcing y muestra un r
   const publicGuide = guideDraftToPublic(saved, catalog.read());
   assert.doesNotMatch(
     JSON.stringify(publicGuide),
-    /singleSlotResult|sourcingRequestId|reasonCode|amazonDiscoveryCalls/i,
+    /singleSlotResult|sourcingRequestId|reasonCode|externalDiscoveryCalls/i,
   );
 
   const server = createStudioServer(
@@ -10765,6 +10782,12 @@ test("Guide Autopilot preserva una guía resuelta, omite sourcing y muestra un r
     ),
   );
   assert.match(html, /Estado editorial de la guía:<\/strong> completa/);
+  assert.match(html, /Llamadas de discovery externo<\/dt><dd>0/);
+  assert.match(html, /Llamadas LLM para planificar búsquedas<\/dt><dd>0/);
+  assert.match(html, /Invocaciones P\.2<\/dt><dd>0/);
+  assert.match(html, /Invocaciones editoriales<\/dt><dd>0/);
+  assert.match(html, /Invocaciones de metadata de guía<\/dt><dd>0/);
+  assert.match(html, /Reintentos técnicos<\/dt><dd>0/);
   assert.doesNotMatch(html, /Advertencias no bloqueantes/);
   assert.doesNotMatch(html, /<ul>\s*<\/ul>/);
 });
@@ -10987,9 +11010,11 @@ test("Guide Autopilot completa metadata, repara copy histórico y filtra claims 
     "idea-recommendation",
     "single-recommendation",
   ]);
-  assert.equal(first.execution.amazonDiscoveryCalls, 0);
+  assert.equal(first.execution.externalDiscoveryCalls, 0);
+  assert.equal(first.execution.productPlanningCalls, 0);
   assert.equal(first.execution.p2Calls, 0);
-  assert.equal(first.execution.editorialGenerations, 3);
+  assert.equal(first.execution.editorialCalls, 2);
+  assert.equal(first.execution.guideMetadataCalls, 1);
   assert.deepEqual(sourcingStore.list(), requestSnapshot);
   assert.equal(sourceStore.list(catalog.read().products).length, sourceCount);
   assert.equal(first.counts.affiliateReady, Number(Boolean(productDestination(sparseProduct))));
@@ -11012,8 +11037,8 @@ test("Guide Autopilot completa metadata, repara copy histórico y filtra claims 
     provider,
   });
   assert.equal(second.status, "completed");
-  assert.equal(second.execution.editorialGenerations, 0);
-  assert.equal(second.execution.amazonDiscoveryCalls, 0);
+  assert.equal(second.execution.editorialCalls, 0);
+  assert.equal(second.execution.externalDiscoveryCalls, 0);
   assert.equal(second.execution.p2Calls, 0);
   assert.deepEqual(await draftStore.read(draft.id), repaired);
   assert.deepEqual(providerOperations, []);
@@ -11043,6 +11068,9 @@ test("Guide Autopilot completa metadata, repara copy histórico y filtra claims 
     ),
   );
   assert.match(curation, /Estado editorial de la guía:<\/strong> completa/);
+  assert.match(curation, /Intentar monetizar Products/);
+  assert.match(curation, new RegExp(`/drafts/${draft.id}/autopilot/products`));
+  assert.match(curation, /Resolver automáticamente/);
   assert.doesNotMatch(curation, /completamente lista/);
   const preview = await (
     await fetch(`http://${STUDIO_HOST}:${address.port}/drafts/${draft.id}/preview`)
@@ -11053,7 +11081,7 @@ test("Guide Autopilot completa metadata, repara copy histórico y filtra claims 
   assert.equal(preview.includes(sparseProduct.priceLabel!), false);
 });
 
-test("Guide Autopilot completa una guía mixta y converge sin sobrescribir copy manual", async (context) => {
+test("Guide Autopilot completa una guía mixta sin sourcing y converge sin sobrescribir copy manual", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-guide-autopilot-mixed-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
   await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
@@ -11124,6 +11152,7 @@ test("Guide Autopilot completa una guía mixta y converge sin sobrescribir copy 
   );
   await sourcingStore.save(weakRequest);
   await sourcingStore.save(strongRequest);
+  const requestSnapshot = structuredClone(sourcingStore.list());
   const providerOperations: string[] = [];
   const strongProvider = strongAutopilotProvider();
   const ordinaryProvider = new MockGuideGenerationProvider();
@@ -11153,17 +11182,19 @@ test("Guide Autopilot completa una guía mixta y converge sin sobrescribir copy 
   assert.deepEqual(first.counts, {
     totalRecommendations: 4,
     editorialReady: 4,
-    productResolved: 3,
-    productPending: 1,
+    productResolved: 2,
+    productPending: 2,
     affiliateReady: first.counts.affiliateReady,
-    affiliatePending: 3 - first.counts.affiliateReady,
-    genericRecommendations: 1,
+    affiliatePending: 2 - first.counts.affiliateReady,
+    genericRecommendations: 2,
     slotsWithWarnings: 0,
   });
   assert.equal(first.execution.productPendingFallbacks, 0);
-  assert.equal(first.execution.productsCreated + first.execution.productsReused, 1);
-  assert.ok(first.execution.editorialGenerations >= 2);
-  assert.equal(first.execution.amazonDiscoveryCalls, 0);
+  assert.equal(first.execution.productsCreated + first.execution.productsReused, 0);
+  assert.equal(first.execution.editorialCalls, 2);
+  assert.equal(first.execution.externalDiscoveryCalls, 0);
+  assert.equal(first.execution.productPlanningCalls, 0);
+  assert.equal(first.execution.p2Calls, 0);
   assert.equal(first.execution.maxConcurrentSlots, GUIDE_AUTOPILOT_MAX_CONCURRENT_SLOTS);
   assert.equal(completedById.get(preservedProduct!.id)!.heading, "Manual Product heading");
   assert.equal(
@@ -11178,26 +11209,32 @@ test("Guide Autopilot completa una guía mixta y converge sin sobrescribir copy 
     JSON.stringify(completedById.get(preservedIdea!.id)),
     /Field Brand|Amazon|Guide Autopilot Pending Idea 1/i,
   );
-  assert.ok(completedById.get(unresolved!.id)!.productId);
+  assert.equal(completedById.get(unresolved!.id)!.productId, undefined);
   assert.equal(completedById.get(unresolved!.id)!.editorialStatus, "ready");
   assert.equal(
     providerOperations.filter((operation) => operation === "idea-recommendation").length,
-    0,
-    "ready generic copy must be preserved while Product enrichment is retried",
+    1,
+    "only the incomplete idea slot needs idea-only copy",
   );
   assert.equal(
     providerOperations.filter((operation) => operation === "single-recommendation").length,
-    2,
-    "only Product-backed copy needing work and the newly assigned Product are generated",
+    1,
+    "only the existing Product-backed copy needing work is generated",
   );
   assert.equal(
     first.slots.find(({ slotId }) => slotId === preservedIdea!.id)!.action,
     "preserved-ready-product-pending-slot",
   );
   assert.equal(
-    first.slots.find(({ slotId }) => slotId === unresolved!.id)!.singleSlotResult?.status,
-    "resolved-product",
+    first.slots.find(({ slotId }) => slotId === unresolved!.id)!.action,
+    "repaired-generic-idea-copy",
   );
+  assert.equal(
+    first.slots.find(({ slotId }) => slotId === unresolved!.id)!.singleSlotResult,
+    undefined,
+  );
+  assert.deepEqual(sourcingStore.list(), requestSnapshot);
+  assert.deepEqual(fitStore.list(), []);
 
   const productCount = catalog.read().products.length;
   const sourceCount = sourceStore.list(catalog.read().products).length;
@@ -11234,7 +11271,8 @@ test("Guide Autopilot completa una guía mixta y converge sin sobrescribir copy 
     "a guide rerun does not rediscover an already-ready Product-pending slot",
   );
   assert.deepEqual(providerOperations, []);
-  assert.equal(second.execution.editorialGenerations, 0);
+  assert.equal(second.execution.editorialCalls, 0);
+  assert.equal(second.execution.p2Calls, 0);
   guideDraftToPublic(converged, catalog.read());
 });
 
@@ -11317,7 +11355,7 @@ test("Guide Autopilot aisla fallas P.2, limita llamadas y acepta que todos los s
   const isolated = await completeGuideAutonomously(
     draft,
     { draftStore, catalog, sourcingStore, sourceStore, fitStore, provider },
-    { now },
+    { now, sourceProducts: true },
   );
   const isolatedDraft = guideDraftSchema.parse(await draftStore.read(draft.id));
 
@@ -11380,7 +11418,7 @@ test("Guide Autopilot aisla fallas P.2, limita llamadas y acepta que todos los s
   const allFallback = await completeGuideAutonomously(
     allFallbackDraft,
     { draftStore, catalog, sourcingStore, sourceStore, fitStore, provider: strong },
-    { now },
+    { now, sourceProducts: true },
   );
 
   assert.equal(allFallback.status, "completed");
@@ -11401,7 +11439,7 @@ test("Guide Autopilot aisla fallas P.2, limita llamadas y acepta que todos los s
   }
 });
 
-test("Guide Autopilot mantiene ocho slots dentro del presupuesto independiente por slot", async (context) => {
+test("Guide Autopilot completa ocho slots sin sourcing y reserva el presupuesto para la acción explícita", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-guide-autopilot-budget-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
   await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
@@ -11431,12 +11469,21 @@ test("Guide Autopilot mantiene ocho slots dentro del presupuesto independiente p
   );
   let discoveryCalls = 0;
   let p2Calls = 0;
+  let lastCallMetadata: ProviderCallMetadata | undefined;
   const mock = new MockGuideGenerationProvider();
   const provider: GuideGenerationProvider = {
     providerId: "guide-budget-fixture",
+    get lastCallMetadata() {
+      return lastCallMetadata;
+    },
     async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
       if (request.operation === "product-fit-evaluations") p2Calls++;
-      return mock.generateStructured(request);
+      const generated = await mock.generateStructured(request);
+      lastCallMetadata =
+        request.operation === "product-fit-evaluations"
+          ? { inputTokens: 10, outputTokens: 20, totalTokens: 30 }
+          : { inputTokens: 1, outputTokens: 2, totalTokens: 3 };
+      return generated;
     },
   };
   const discoverySource: ProductDiscoverySource = {
@@ -11464,10 +11511,53 @@ test("Guide Autopilot mantiene ocho slots dentro del presupuesto independiente p
     },
   };
 
-  const result = await completeGuideAutonomously(
+  const editorial = await completeGuideAutonomously(
     draft,
     { draftStore, catalog, sourcingStore, sourceStore, fitStore, provider, discoverySource },
     { now },
+  );
+
+  assert.equal(editorial.status, "completed");
+  assert.equal(editorial.counts.editorialReady, 8);
+  assert.equal(editorial.counts.productResolved, 0);
+  assert.equal(editorial.counts.productPending, 8);
+  assert.equal(discoveryCalls, 0);
+  assert.equal(p2Calls, 0);
+  assert.equal(editorial.execution.externalDiscoveryCalls, 0);
+  assert.equal(editorial.execution.productPlanningCalls, 0);
+  assert.equal(editorial.execution.p2Calls, 0);
+  assert.equal(editorial.execution.productsCreated, 0);
+  assert.equal(editorial.execution.productsReused, 0);
+  assert.equal(editorial.execution.editorialCalls, 8);
+  assert.equal(editorial.execution.guideMetadataCalls, 1);
+  assert.deepEqual(editorial.execution.providerUsage, {
+    editorial: { inputTokens: 8, outputTokens: 16, totalTokens: 24 },
+    guideMetadata: { inputTokens: 1, outputTokens: 2, totalTokens: 3 },
+  });
+  assert.ok(
+    editorial.slots.every(
+      ({ action, status, editorialReady, productId, singleSlotResult }) =>
+        action === "repaired-generic-idea-copy" &&
+        status === "product-pending" &&
+        editorialReady &&
+        productId === undefined &&
+        singleSlotResult === undefined,
+    ),
+  );
+  assert.ok(
+    guideDraftSchema
+      .parse(await draftStore.read(draft.id))
+      .recommendations.every(
+        ({ productId, editorialStatus }) => productId === undefined && editorialStatus === "ready",
+      ),
+  );
+  assert.deepEqual(sourcingStore.list(), []);
+  assert.deepEqual(fitStore.list(), []);
+
+  const result = await completeGuideAutonomously(
+    guideDraftSchema.parse(await draftStore.read(draft.id)),
+    { draftStore, catalog, sourcingStore, sourceStore, fitStore, provider, discoverySource },
+    { now: new Date("2026-09-09T12:30:00.000Z"), sourceProducts: true },
   );
 
   assert.equal(result.status, "completed");
@@ -11475,9 +11565,16 @@ test("Guide Autopilot mantiene ocho slots dentro del presupuesto independiente p
   assert.equal(result.counts.productPending, 8);
   assert.equal(discoveryCalls, 8);
   assert.equal(p2Calls, 8);
-  assert.equal(result.execution.amazonDiscoveryCalls, 8);
+  assert.equal(result.execution.externalDiscoveryCalls, 8);
+  assert.equal(result.execution.productPlanningCalls, 0);
   assert.equal(result.execution.p2Calls, 8);
-  assert.ok(result.execution.amazonDiscoveryCalls <= 8 * AUTOPILOT_LIMITS.maxDiscoveryCalls);
+  assert.equal(result.execution.editorialCalls, 0);
+  assert.equal(result.execution.guideMetadataCalls, 0);
+  assert.equal(result.execution.technicalRetries, 0);
+  assert.deepEqual(result.execution.providerUsage, {
+    p2: { inputTokens: 80, outputTokens: 160, totalTokens: 240 },
+  });
+  assert.ok(result.execution.externalDiscoveryCalls <= 8 * AUTOPILOT_LIMITS.maxDiscoveryCalls);
   assert.ok(result.execution.p2Calls <= 8 * AUTOPILOT_LIMITS.maxP2ProviderCalls);
   assert.equal(result.execution.slotsStoppedBySourcingBudget, 0);
   assert.ok(
@@ -11489,5 +11586,69 @@ test("Guide Autopilot mantiene ocho slots dentro del presupuesto independiente p
         singleSlotResult.sourcing.p2Calls === 1 &&
         !singleSlotResult.sourcing.recoveryUsed,
     ),
+  );
+  assert.equal(
+    result.slots.reduce(
+      (sum, { singleSlotResult }) => sum + (singleSlotResult?.sourcing.p2Calls ?? 0),
+      0,
+    ),
+    result.execution.p2Calls,
+  );
+  const worstNow = new Date("2026-09-09T13:00:00.000Z");
+  const worstDraft = await draftStore.save(
+    guideDraftSchema.parse({
+      ...draft,
+      id: "guide_guide-autopilot-worst-budget",
+      slug: "guide-autopilot-worst-budget",
+      recommendations: draft.recommendations.map((slot, index) => ({
+        ...slot,
+        id: `slot_guide-autopilot-worst-budget-${slot.position}`,
+        slotLabel: `Technical failure item ${index + 1}`,
+        slotIntent: `Remain editorially usable after technical failure ${index + 1}.`,
+        searchTerms: [`technical failure item ${index + 1}`],
+      })),
+    }),
+    worstNow,
+  );
+  const discoveryCallsBeforeWorstCase = discoveryCalls;
+  p2Calls = 0;
+  const worstProvider: GuideGenerationProvider = {
+    providerId: "guide-worst-budget-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      if (request.operation === "product-fit-evaluations") {
+        p2Calls++;
+        throw new ProviderError("Fixture P.2 timeout.", "timeout");
+      }
+      return mock.generateStructured(request);
+    },
+  };
+  const worst = await completeGuideAutonomously(
+    worstDraft,
+    {
+      draftStore,
+      catalog,
+      sourcingStore,
+      sourceStore,
+      fitStore,
+      provider: worstProvider,
+      discoverySource,
+    },
+    { now: worstNow, sourceProducts: true },
+  );
+
+  assert.equal(worst.counts.editorialReady, 8);
+  assert.equal(worst.counts.productPending, 8);
+  assert.equal(discoveryCalls - discoveryCallsBeforeWorstCase, 8);
+  assert.equal(p2Calls, 16);
+  assert.equal(worst.execution.externalDiscoveryCalls, 8);
+  assert.equal(worst.execution.p2Calls, 16);
+  assert.equal(worst.execution.technicalRetries, 8);
+  assert.equal(worst.execution.productPlanningCalls, 0);
+  assert.equal(
+    worst.slots.reduce(
+      (sum, { singleSlotResult }) => sum + (singleSlotResult?.sourcing.p2Calls ?? 0),
+      0,
+    ),
+    worst.execution.p2Calls,
   );
 });

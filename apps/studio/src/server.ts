@@ -1866,8 +1866,8 @@ function guideCurationPage(
     `Curación · ${draftName(draft)}`,
     `<p><a href="/drafts/${encodeURIComponent(draft.id)}">← Volver a la guía</a></p><div class="actions"><div><h1>Curación de la guía</h1><p>Elegí Products; los diagnósticos completos quedan en detalles.</p></div><a class="button" href="/drafts/${encodeURIComponent(draft.id)}/preview">Vista previa</a></div>
     <section class="card"><h2>Progreso</h2><div class="actions"><span class="status"><strong>Editorial:</strong> ${progress.editorialReady}/${progress.totalRecommendations} listas</span><span class="status"><strong>Products:</strong> ${progress.productResolved} resueltos · ${progress.productPending} pendientes</span><span class="status"><strong>Afiliación:</strong> ${progress.affiliateReady} listas · ${progress.affiliateDestinationMissing} pendientes</span></div><p><strong>Estado editorial de la guía:</strong> ${progress.editorialComplete ? "completa" : "incompleta"}.</p><details><summary>Otros estados de curación</summary><div class="actions">${progressItems.map(([label, count]) => `<span class="status">${count} ${escapeHtml(label)}</span>`).join("")}</div></details></section>
-    <section class="card"><h2>Autopilot de guía</h2><p>Completa el copy pendiente y busca Products confiables para cada slot sin bloquear la guía cuando un Product queda pendiente.</p><form method="post" action="/drafts/${encodeURIComponent(draft.id)}/autopilot"><button type="submit">Completar guía automáticamente</button></form></section>
-    ${selection}<p class="notice">Autopilot asigna un Product sólo cuando supera el gate P.2; ante duda deja la recomendación editorialmente lista y el Product pendiente. Podés enriquecerla ahora o más adelante. ${discoverySource ? `${escapeHtml(discoverySource.providerId)} · uso pago acotado por ejecución.` : "Proveedor externo desactivado."} DataForSEO sólo existe cuando fue elegido y habilitado explícitamente; nunca se usa como fallback oculto.</p>
+    <section class="card"><h2>Autopilot de guía</h2><p>Completa metadata y copy editorial; conserva los Products existentes y deja el resto pendiente.</p><div class="actions"><form method="post" action="/drafts/${encodeURIComponent(draft.id)}/autopilot"><button type="submit">Completar guía automáticamente</button></form>${unresolved.length ? `<form method="post" action="/drafts/${encodeURIComponent(draft.id)}/autopilot/products"><button type="submit">Intentar monetizar Products</button></form>` : ""}</div></section>
+    ${selection}<p class="notice">Los Products pendientes no bloquean la publicación. La monetización usa el sourcing acotado existente. ${discoverySource ? `${escapeHtml(discoverySource.providerId)} · uso pago acotado por ejecución.` : "Proveedor externo desactivado."} DataForSEO sólo existe cuando fue elegido y habilitado explícitamente.</p>
     ${cards}`,
   );
 }
@@ -3539,6 +3539,16 @@ function guideAutopilotResultPage(draft: GuideDraft, result: GuideAutopilotOutco
         `<li><strong>${slot.position}. <code>${escapeHtml(slot.status)}</code></strong>${slot.productId ? ` · Product <code>${escapeHtml(slot.productId)}</code>` : ""}${slot.singleSlotResult ? ` · <code>${escapeHtml(slot.singleSlotResult.reasonCode)}</code>` : ""}${slot.warnings.length ? `<ul>${slot.warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul>` : ""}</li>`,
     )
     .join("");
+  const providerUsage = result.execution.providerUsage;
+  const usageDetails = providerUsage
+    ? `<h3>Tokens informados por el proveedor</h3><dl>${Object.entries(providerUsage)
+        .map(([category, usage]) =>
+          usage
+            ? `<dt>${escapeHtml({ productPlanning: "Planificación de búsqueda", p2: "P.2", editorial: "Editorial", guideMetadata: "Metadata de guía" }[category] ?? category)}</dt><dd>${usage.inputTokens ?? "—"} entrada · ${usage.outputTokens ?? "—"} salida · ${usage.totalTokens ?? "—"} total</dd>`
+            : "",
+        )
+        .join("")}</dl>`
+    : "";
   return page(
     `Autopilot de guía · ${draftName(draft)}`,
     `<p><a href="/drafts/${encodeURIComponent(draft.id)}/curation">← Volver a curación</a></p>
@@ -3546,7 +3556,7 @@ function guideAutopilotResultPage(draft: GuideDraft, result: GuideAutopilotOutco
      <p class="${result.status === "failed" ? "error" : "notice"}">${escapeHtml(result.reasonExplanation)}</p>
      <p><strong><code>${escapeHtml(result.reasonCode)}</code></strong></p>
      <section class="card"><h2>Resumen</h2><div class="actions"><span class="status"><strong>Editorial:</strong> ${result.counts.editorialReady}/${result.counts.totalRecommendations} listas</span><span class="status"><strong>Products:</strong> ${result.counts.productResolved} resueltos · ${result.counts.productPending} pendientes</span><span class="status"><strong>Afiliación:</strong> ${result.counts.affiliateReady} listas · ${result.counts.affiliatePending} pendientes</span></div><p><strong>Estado editorial de la guía:</strong> ${result.counts.editorialReady === result.counts.totalRecommendations && result.counts.totalRecommendations > 0 ? "completa" : "incompleta"}.</p></section>
-     <details><summary>Resultados por slot y diagnóstico compacto</summary><ol>${slotDetails}</ol><dl><dt>Products reutilizados</dt><dd>${result.execution.productsReused}</dd><dt>Products creados</dt><dd>${result.execution.productsCreated}</dd><dt>Llamadas Amazon</dt><dd>${result.execution.amazonDiscoveryCalls}</dd><dt>Llamadas P.2</dt><dd>${result.execution.p2Calls}</dd><dt>Generaciones editoriales</dt><dd>${result.execution.editorialGenerations}</dd><dt>Fallbacks con Product pendiente</dt><dd>${result.execution.productPendingFallbacks}</dd><dt>Slots detenidos por presupuesto</dt><dd>${result.execution.slotsStoppedBySourcingBudget}</dd><dt>Concurrencia máxima</dt><dd>${result.execution.maxConcurrentSlots}</dd></dl></details>
+     <details><summary>Resultados por slot y diagnóstico compacto</summary><ol>${slotDetails}</ol><dl><dt>Products reutilizados</dt><dd>${result.execution.productsReused}</dd><dt>Products creados</dt><dd>${result.execution.productsCreated}</dd><dt>Llamadas de discovery externo</dt><dd>${result.execution.externalDiscoveryCalls}</dd><dt>Llamadas LLM para planificar búsquedas</dt><dd>${result.execution.productPlanningCalls}</dd><dt>Invocaciones P.2</dt><dd>${result.execution.p2Calls}</dd><dt>Invocaciones editoriales</dt><dd>${result.execution.editorialCalls}</dd><dt>Invocaciones de metadata de guía</dt><dd>${result.execution.guideMetadataCalls}</dd><dt>Reintentos técnicos</dt><dd>${result.execution.technicalRetries}</dd><dt>Fallbacks con Product pendiente</dt><dd>${result.execution.productPendingFallbacks}</dd><dt>Slots detenidos por presupuesto</dt><dd>${result.execution.slotsStoppedBySourcingBudget}</dd><dt>Concurrencia máxima</dt><dd>${result.execution.maxConcurrentSlots}</dd></dl>${usageDetails}</details>
      ${result.warnings.length ? `<details><summary>Advertencias no bloqueantes</summary><ul>${result.warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul></details>` : ""}`,
   );
 }
@@ -4062,20 +4072,26 @@ export function createStudioServer(
         return;
       }
       const guideAutopilotMatch =
-        method === "POST" ? /^\/drafts\/([a-z0-9_-]+)\/autopilot$/.exec(url.pathname) : null;
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/autopilot(\/products)?$/.exec(url.pathname)
+          : null;
       if (guideAutopilotMatch?.[1]) {
         const draft = await readGuideDraft(store, guideAutopilotMatch[1]);
         const content = catalog.read();
-        const result = await completeGuideAutonomously(draft, {
-          draftStore: store,
-          catalog,
-          sourcingStore,
-          sourceStore,
-          fitStore,
-          provider,
-          discoverySource,
-          benchmarks: benchmarkStore.list(content.products),
-        });
+        const result = await completeGuideAutonomously(
+          draft,
+          {
+            draftStore: store,
+            catalog,
+            sourcingStore,
+            sourceStore,
+            fitStore,
+            provider,
+            discoverySource,
+            benchmarks: benchmarkStore.list(content.products),
+          },
+          { sourceProducts: Boolean(guideAutopilotMatch[2]) },
+        );
         send(
           response,
           result.status === "failed" ? 500 : 200,
