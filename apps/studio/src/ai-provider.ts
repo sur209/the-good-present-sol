@@ -10,7 +10,10 @@ import {
   recommendationFieldRepairInputSchema,
   recommendationPromptInputSchema,
 } from "./recommendation-prompt.ts";
-import { ideaRecommendationPromptInputSchema } from "./idea-prompt.ts";
+import {
+  ideaRecommendationBatchPromptInputSchema,
+  ideaRecommendationPromptInputSchema,
+} from "./idea-prompt.ts";
 import {
   mockOpportunityGeneration,
   opportunityGenerationPromptInputSchema,
@@ -47,6 +50,8 @@ export interface StructuredGenerationRequest<T> {
     | "single-recommendation"
     | "recommendation-field-repair"
     | "idea-recommendation"
+    | "idea-recommendation-batch"
+    | "idea-recommendation-batch-repair"
     | "opportunity-candidates"
     | "opportunity-evaluations"
     | "product-search-plans"
@@ -589,25 +594,41 @@ export class MockGuideGenerationProvider implements GuideGenerationProvider {
     }
     if (request.operation === "idea-recommendation") {
       const { recommendation } = ideaRecommendationPromptInputSchema.parse(request.input);
-      const attributes = recommendation.whatToLookFor.slice(0, 3);
-      const productClass = recommendation.productClass.toLocaleLowerCase("en-US");
+      return request.schema.parse(mockIdeaRecommendation(recommendation));
+    }
+    if (
+      request.operation === "idea-recommendation-batch" ||
+      request.operation === "idea-recommendation-batch-repair"
+    ) {
+      const input = ideaRecommendationBatchPromptInputSchema.parse(request.input);
       return request.schema.parse({
-        id: recommendation.id,
-        position: recommendation.position,
-        heading: `${recommendation.productClass} for Everyday Use`,
-        editorialDescription: `${recommendation.productClass} can make a thoughtful gift when it suits the recipient's real routine and preferences.`,
-        whyItFits: `This kind of gift adds practical value without depending on a particular brand or model.`,
-        bestFor: "Someone likely to use it regularly",
-        selectionGuidance: attributes.length
-          ? `Look for ${attributes.join(", ")}, then favor the choice that best suits everyday use.`
-          : `Compare ${productClass} choices for fit, care, and suitability for the recipient's routine.`,
-        considerations: recommendation.exclusions.length
-          ? `Avoid ${recommendation.exclusions.join(" and ")}.`
-          : "Personal preferences and ease of care may matter more than extra features.",
+        recommendations: input.recommendations.map(mockIdeaRecommendation),
       });
     }
     throw new TypeError(`Mock operation not implemented: ${request.operation}`);
   }
+}
+
+function mockIdeaRecommendation(
+  recommendation: z.infer<typeof ideaRecommendationPromptInputSchema>["recommendation"],
+) {
+  const attributes = recommendation.whatToLookFor.slice(0, 3);
+  const productClass = recommendation.productClass.toLocaleLowerCase("en-US");
+  return {
+    id: recommendation.id,
+    position: recommendation.position,
+    heading: `${recommendation.productClass} for Everyday Use`,
+    editorialDescription: `${recommendation.productClass} can make a thoughtful gift when it suits the recipient's real routine and preferences.`,
+    whyItFits:
+      "This kind of gift adds practical value without depending on a particular brand or model.",
+    bestFor: "Someone likely to use it regularly",
+    selectionGuidance: attributes.length
+      ? `Look for ${attributes.join(", ")}, then favor the choice that best suits everyday use.`
+      : `Compare ${productClass} choices for fit, care, and suitability for the recipient's routine.`,
+    considerations: recommendation.exclusions.length
+      ? `Avoid ${recommendation.exclusions.join(" and ")}.`
+      : "Personal preferences and ease of care may matter more than extra features.",
+  };
 }
 
 function mockRecommendation(recommendation: FinalPromptInput["recommendations"][number]) {

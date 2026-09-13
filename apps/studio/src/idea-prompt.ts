@@ -11,6 +11,7 @@ import { resolveProductClassProfile } from "./modules/product-intelligence/fit.t
 import type { ProductSourcingRequest } from "./modules/product-intelligence/sourcing.ts";
 
 export const IDEA_RECOMMENDATION_PROMPT_VERSION = "idea-recommendation-v5";
+export const IDEA_RECOMMENDATION_BATCH_PROMPT_VERSION = "idea-recommendation-batch-v1";
 
 const nonEmptyText = z.string().trim().min(1);
 const optionalText = nonEmptyText.optional();
@@ -67,12 +68,27 @@ export const ideaRecommendationPromptInputSchema = z.strictObject({
   }),
 });
 
+export const ideaRecommendationBatchPromptInputSchema = z.strictObject({
+  language: z.literal("en-US"),
+  guide: ideaRecommendationPromptInputSchema.shape.guide,
+  recommendations: z.array(ideaRecommendationPromptInputSchema.shape.recommendation).min(1),
+});
+
 export type GeneratedIdeaRecommendation = z.infer<typeof generatedIdeaRecommendationSchema>;
 export type IdeaRecommendationPromptInput = z.infer<typeof ideaRecommendationPromptInputSchema>;
+export type IdeaRecommendationBatchPromptInput = z.infer<
+  typeof ideaRecommendationBatchPromptInputSchema
+>;
 
 export interface PreparedIdeaRecommendationPrompt {
   version: typeof IDEA_RECOMMENDATION_PROMPT_VERSION;
   input: IdeaRecommendationPromptInput;
+  prompt: string;
+}
+
+export interface PreparedIdeaRecommendationBatchPrompt {
+  version: typeof IDEA_RECOMMENDATION_BATCH_PROMPT_VERSION;
+  input: IdeaRecommendationBatchPromptInput;
   prompt: string;
 }
 
@@ -201,24 +217,18 @@ export function createIdeaRecommendationPromptInput(
   });
 }
 
-export function buildIdeaRecommendationPrompt(input: IdeaRecommendationPromptInput): string {
-  const validated = ideaRecommendationPromptInputSchema.parse(input);
-  const shape = {
-    id: "unchanged recommendation ID",
-    position: 1,
-    heading: "Generic gift-idea heading",
-    editorialDescription: "Useful consumer guidance about the idea",
-    whyItFits: "Why the idea serves this slot and audience",
-    bestFor: "Who this idea suits best",
-    selectionGuidance: "Attributes to compare when choosing",
-    considerations: "Optional tradeoffs or exclusions",
-  };
-  return `Write one idea-only recommendation for The Good Present.
+const ideaRecommendationShape = {
+  id: "unchanged recommendation ID",
+  position: 1,
+  heading: "Generic gift-idea heading",
+  editorialDescription: "Useful consumer guidance about the idea",
+  whyItFits: "Why the idea serves this slot and audience",
+  bestFor: "Who this idea suits best",
+  selectionGuidance: "Attributes to compare when choosing",
+  considerations: "Optional tradeoffs or exclusions",
+};
 
-Return exactly one JSON object and no prose. Do not wrap the JSON in Markdown fences.
-Return exactly these keys; do not add aliases or extra keys.
-Exact output contract:
-- id: required non-empty string; copy the supplied recommendation ID exactly.
+const ideaRecommendationFieldContract = `- id: required non-empty string; copy the supplied recommendation ID exactly.
 - position: required positive integer; copy the supplied position exactly.
 - heading: required non-empty string, at most 120 characters.
 - editorialDescription: required non-empty string, at most 600 characters.
@@ -226,26 +236,62 @@ Exact output contract:
 - bestFor: required non-empty string, at most 120 characters.
 - selectionGuidance: required non-empty string, at most 500 characters.
 - considerations: optional non-empty string. Omit it or return null when there is no useful consideration; null is normalized to omission.
-Stay comfortably below the hard limits: target at most 80 characters for heading, 450 for editorialDescription, 300 for whyItFits, 90 for bestFor, and 350 for selectionGuidance.
-Use this exact object-shape example:
-${JSON.stringify(shape)}
+Stay comfortably below the hard limits: target at most 80 characters for heading, 450 for editorialDescription, 300 for whyItFits, 90 for bestFor, and 350 for selectionGuidance.`;
 
-Rules:
+const ideaRecommendationEditorialRules = `Rules:
 - Write original, useful, natural US English.
-- Preserve the supplied recommendation ID and position.
-- Present a gift idea and practical selection guidance, never a specific Product endorsement.
-- Include a concise bestFor description grounded only in the supplied audience and slot context.
-- Keep the heading short and specific; never append or repeat the complete audience description.
+- Preserve each supplied recommendation ID and position.
+- Present gift ideas and practical selection guidance, never specific Product endorsements.
+- Include a concise bestFor description grounded only in the supplied audience and recommendation context.
+- Keep headings short and specific; never append or repeat the complete audience description.
 - Write public editorial prose. Never mention a slot, Product class, recommendation purpose, structured input, or editorial system.
-- Explain the idea naturally instead of prefixing or mechanically restating the supplied intent.
-- Use only the slot, Guide, audience, budget, Product class, what-to-look-for, and exclusion context supplied below.
+- Explain each idea naturally instead of prefixing or mechanically restating the supplied intent.
+- Use only the recommendation, Guide, audience, budget, Product class, what-to-look-for, and exclusion context supplied below.
 - Never name a Product, brand, model, merchant, marketplace, or affiliate program.
 - Never return a URL, shopping CTA, price, rating, review count, discount, stock, or availability claim.
 - Never present a Product-specific measurement or specification as fact.
 - Never invent a numeric threshold, professional policy, medical claim, or safety claim.
-- Avoid stock openings and repeated boilerplate across the guide, especially "Night-shift nurses often," "practical," "routine," and "novelty merchandise."
+- Avoid stock openings and repeated boilerplate across the guide. Vary sentence structure, phrasing, and openings, especially around "Night-shift nurses often," "practical," "routine," and "novelty merchandise."
 - Prefer experiential wording such as comfort during long shifts, support for tired legs, or easier daytime rest. Avoid claims about circulation, recovery, sleep effects, or other physiological outcomes.
-- Do not use placeholder copy. Explain what makes a good choice and relevant tradeoffs.
+- For notebooks and journals, suggest only learning notes, non-sensitive reminders, questions for a preceptor, study points, or permitted task reminders. Never encourage storing patient-identifying or confidential information.
+- Do not use placeholder copy. Explain what makes a good choice and relevant tradeoffs.`;
+
+export function buildIdeaRecommendationPrompt(input: IdeaRecommendationPromptInput): string {
+  const validated = ideaRecommendationPromptInputSchema.parse(input);
+  return `Write one idea-only recommendation for The Good Present.
+
+Return exactly one JSON object and no prose. Do not wrap the JSON in Markdown fences.
+Return exactly these keys; do not add aliases or extra keys.
+Exact output contract:
+${ideaRecommendationFieldContract}
+Use this exact object-shape example:
+${JSON.stringify(ideaRecommendationShape)}
+
+${ideaRecommendationEditorialRules}
+
+Structured input:
+${JSON.stringify(validated, null, 2)}`;
+}
+
+export function buildIdeaRecommendationBatchPrompt(
+  input: IdeaRecommendationBatchPromptInput,
+): string {
+  const validated = ideaRecommendationBatchPromptInputSchema.parse(input);
+  const shape = { recommendations: [ideaRecommendationShape] };
+  return `Write all requested idea-only recommendations for one The Good Present guide in a single batch.
+
+Return exactly one JSON object and no prose. Do not wrap the JSON in Markdown fences.
+The object must contain exactly one key named recommendations.
+recommendations must contain exactly one result for every supplied recommendation, in the same order. Do not omit, duplicate, merge, or add results.
+Every result must contain exactly the keys in this contract; do not add aliases or extra keys.
+Exact per-result output contract:
+${ideaRecommendationFieldContract}
+Use this exact object-shape example:
+${JSON.stringify(shape)}
+
+${ideaRecommendationEditorialRules}
+- Make every recommendation specific to its own gift concept, audience fit, choosing criteria, and useful tradeoffs.
+- Review the full batch before returning it and remove repeated openings, sentence patterns, and interchangeable filler.
 
 Structured input:
 ${JSON.stringify(validated, null, 2)}`;
@@ -262,5 +308,27 @@ export function prepareIdeaRecommendationPrompt(
     version: IDEA_RECOMMENDATION_PROMPT_VERSION,
     input,
     prompt: buildIdeaRecommendationPrompt(input),
+  };
+}
+
+export function prepareIdeaRecommendationBatchPrompt(
+  draft: GuideDraft,
+  recommendationIds: readonly string[],
+  content: ValidatedPublicContent,
+  requests: ReadonlyMap<string, ProductSourcingRequest> = new Map(),
+): PreparedIdeaRecommendationBatchPrompt {
+  if (!recommendationIds.length) throw new TypeError("The idea-only batch cannot be empty.");
+  const inputs = recommendationIds.map((id) =>
+    createIdeaRecommendationPromptInput(draft, id, content, requests.get(id)),
+  );
+  const input = ideaRecommendationBatchPromptInputSchema.parse({
+    language: "en-US",
+    guide: inputs[0]!.guide,
+    recommendations: inputs.map(({ recommendation }) => recommendation),
+  });
+  return {
+    version: IDEA_RECOMMENDATION_BATCH_PROMPT_VERSION,
+    input,
+    prompt: buildIdeaRecommendationBatchPrompt(input),
   };
 }

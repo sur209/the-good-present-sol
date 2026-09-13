@@ -11,13 +11,13 @@ import {
   completeGuideEditorialMetadata,
   guideEditorialMetadataIsComplete,
   guideDraftReadiness,
+  generateIdeaOnlyRecommendationBatchWithRecovery,
   productClaimContext,
   productBackedCopyNeedsVerifiedFactsRepair,
   recommendationIsEditoriallyReady,
 } from "../../guide-editor.ts";
 import {
   autopilotResolutionOutcomeSchema,
-  completeIdeaOnlyRecommendationCopy,
   completeProductBackedRecommendationCopy,
   ideaOnlyRecommendationNeedsCopyRepair,
   resolveRecommendationSlotAutonomously,
@@ -26,7 +26,7 @@ import {
 } from "./autopilot.ts";
 import { findProductSourcingRequestForDraftSlot } from "./sourcing.ts";
 
-export const GUIDE_AUTOPILOT_POLICY_VERSION = "guide-autopilot-v4";
+export const GUIDE_AUTOPILOT_POLICY_VERSION = "guide-autopilot-v5";
 
 // ponytail: DraftStore saves a whole Guide; keep slot execution serial until it supports CAS/merge.
 export const GUIDE_AUTOPILOT_MAX_CONCURRENT_SLOTS = 1;
@@ -92,6 +92,8 @@ export const guideAutopilotOutcomeSchema = z.strictObject({
     productPlanningCalls: z.number().int().nonnegative(),
     p2Calls: z.number().int().nonnegative(),
     editorialCalls: z.number().int().nonnegative(),
+    editorialBatchCalls: z.number().int().nonnegative(),
+    editorialRepairCalls: z.number().int().nonnegative(),
     guideMetadataCalls: z.number().int().nonnegative(),
     technicalRetries: z.number().int().nonnegative(),
     slotsStoppedBySourcingBudget: z.number().int().nonnegative(),
@@ -204,6 +206,7 @@ function addProviderUsage(counter: ProviderCallCounter, metadata?: ProviderCallM
 function observedProvider(
   provider: GuideGenerationProvider,
   counters: Record<ProviderCallCategory, ProviderCallCounter>,
+  editorialInvocations: { batch: number; repair: number },
 ): GuideGenerationProvider {
   return {
     providerId: provider.providerId,
@@ -212,6 +215,8 @@ function observedProvider(
       return provider.lastCallMetadata;
     },
     async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      if (request.operation === "idea-recommendation-batch") editorialInvocations.batch++;
+      if (request.operation === "idea-recommendation-batch-repair") editorialInvocations.repair++;
       const counter = counters[providerCallCategory(request.operation)];
       const previousMetadata = provider.lastCallMetadata;
       counter.calls++;
@@ -252,9 +257,10 @@ export async function completeGuideAutonomously(
     editorial: { calls: 0, usage: {} },
     guideMetadata: { calls: 0, usage: {} },
   };
+  const editorialInvocations = { batch: 0, repair: 0 };
   const trackedDependencies = {
     ...dependencies,
-    provider: observedProvider(dependencies.provider, providerCalls),
+    provider: observedProvider(dependencies.provider, providerCalls, editorialInvocations),
   };
   const execution = {
     maxConcurrentSlots: GUIDE_AUTOPILOT_MAX_CONCURRENT_SLOTS,
@@ -265,6 +271,8 @@ export async function completeGuideAutonomously(
     productPlanningCalls: 0,
     p2Calls: 0,
     editorialCalls: 0,
+    editorialBatchCalls: 0,
+    editorialRepairCalls: 0,
     guideMetadataCalls: 0,
     technicalRetries: 0,
     slotsStoppedBySourcingBudget: 0,
@@ -288,6 +296,57 @@ export async function completeGuideAutonomously(
     }
   }
 
+  const batchedIdeaWarnings = new Map<string, string[]>();
+  if (!options.sourceProducts) {
+    const content = dependencies.catalog.read();
+    const recommendationIds = [...draft.recommendations]
+      .sort((left, right) => left.position - right.position)
+      .filter((slot) => {
+        if (slot.productId) return false;
+        const request = findProductSourcingRequestForDraftSlot(
+          dependencies.sourcingStore.list(),
+          draft.id,
+          slot.id,
+        );
+        return (
+          ideaOnlyRecommendationNeedsCopyRepair(draft, slot.id, content, request) ||
+          !recommendationIsEditoriallyReady(slot)
+        );
+      })
+      .map(({ id }) => id);
+    if (recommendationIds.length) {
+      const requests = new Map(
+        recommendationIds.flatMap((id) => {
+          const request = findProductSourcingRequestForDraftSlot(
+            dependencies.sourcingStore.list(),
+            draft.id,
+            id,
+          );
+          return request ? [[id, request] as const] : [];
+        }),
+      );
+      try {
+        const completion = await generateIdeaOnlyRecommendationBatchWithRecovery(
+          draft,
+          recommendationIds,
+          content,
+          trackedDependencies.provider,
+          requests,
+          now,
+        );
+        await dependencies.draftStore.save(completion.draft, now);
+        draft = await readGuideDraft(draft.id, dependencies);
+        for (const slot of completion.slots) {
+          batchedIdeaWarnings.set(slot.slotId, slot.warnings);
+        }
+      } catch {
+        for (const id of recommendationIds) {
+          batchedIdeaWarnings.set(id, ["idea-copy-repair-failed"]);
+        }
+      }
+    }
+  }
+
   for (const originalSlot of [...draft.recommendations].sort(
     (left, right) => left.position - right.position,
   )) {
@@ -305,7 +364,10 @@ export async function completeGuideAutonomously(
       ? findProductSourcingRequestForDraftSlot(dependencies.sourcingStore.list(), draft.id, slot.id)
       : undefined;
 
-    if (
+    if (batchedIdeaWarnings.has(slot.id)) {
+      action = "repaired-generic-idea-copy";
+      warnings.push(...batchedIdeaWarnings.get(slot.id)!);
+    } else if (
       product &&
       recommendationIsEditoriallyReady(slot) &&
       !productBackedCopyNeedsVerifiedFactsRepair(
@@ -359,24 +421,6 @@ export async function completeGuideAutonomously(
       } catch {
         warnings.push("slot-autopilot-execution-failed");
       }
-    } else if (
-      ideaOnlyRecommendationNeedsCopyRepair(draft, slot.id, content, sourcingRequest) ||
-      !recommendationIsEditoriallyReady(slot)
-    ) {
-      action = "repaired-generic-idea-copy";
-      try {
-        const copy = await completeIdeaOnlyRecommendationCopy(
-          draft,
-          slot.id,
-          trackedDependencies,
-          sourcingRequest,
-          now,
-        );
-        await dependencies.draftStore.save(copy.draft, now);
-        warnings.push(...copy.warnings);
-      } catch {
-        warnings.push("idea-copy-repair-failed");
-      }
     } else {
       action = "preserved-ready-product-pending-slot";
     }
@@ -419,6 +463,8 @@ export async function completeGuideAutonomously(
   execution.productPlanningCalls = providerCalls.productPlanning.calls;
   execution.p2Calls = providerCalls.p2.calls;
   execution.editorialCalls = providerCalls.editorial.calls;
+  execution.editorialBatchCalls = editorialInvocations.batch;
+  execution.editorialRepairCalls = editorialInvocations.repair;
   execution.guideMetadataCalls = providerCalls.guideMetadata.calls;
   const usage = providerUsage(providerCalls);
   if (usage) execution.providerUsage = usage;

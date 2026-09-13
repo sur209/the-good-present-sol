@@ -36,7 +36,9 @@ import {
 import { outlineQualityIssues, prepareOutlinePrompt } from "./outline-prompt.ts";
 import {
   generatedIdeaRecommendationSchema,
+  IDEA_RECOMMENDATION_BATCH_PROMPT_VERSION,
   IDEA_RECOMMENDATION_PROMPT_VERSION,
+  prepareIdeaRecommendationBatchPrompt,
   prepareIdeaRecommendationPrompt,
   type GeneratedIdeaRecommendation,
 } from "./idea-prompt.ts";
@@ -1300,6 +1302,10 @@ const recoverableIdeaRecommendationSchema = z
     }
   });
 
+const recoverableIdeaRecommendationBatchSchema = z.strictObject({
+  recommendations: z.array(z.unknown()),
+});
+
 const ideaOnlyFieldSchemas = {
   heading: generatedIdeaRecommendationSchema.shape.heading,
   editorialDescription: generatedIdeaRecommendationSchema.shape.editorialDescription,
@@ -1316,6 +1322,7 @@ function applyGeneratedIdeaRecommendation(
   provider: GuideGenerationProvider,
   prompt: string,
   now: Date,
+  promptVersion = IDEA_RECOMMENDATION_PROMPT_VERSION,
 ): GuideDraft {
   const index = recommendationIndex(draft, recommendationId);
   const existing = draft.recommendations[index]!;
@@ -1334,19 +1341,14 @@ function applyGeneratedIdeaRecommendation(
   recommendations[index] = {
     ...slot,
     ...generated,
-    editorialPromptVersion: IDEA_RECOMMENDATION_PROMPT_VERSION,
+    editorialPromptVersion: promptVersion,
     editorialStatus: "ready",
   };
   return guideDraftSchema.parse({
     ...draft,
     status: "editing",
     recommendations,
-    generationMetadata: generationMetadata(
-      provider,
-      IDEA_RECOMMENDATION_PROMPT_VERSION,
-      prompt,
-      now,
-    ),
+    generationMetadata: generationMetadata(provider, promptVersion, prompt, now),
   });
 }
 
@@ -1378,12 +1380,13 @@ function failureDiagnostic(error: unknown): IdeaCopyDiagnosticCode {
 function ideaFailureDiagnostics(
   error: unknown,
   provider: GuideGenerationProvider,
+  contractVersion = IDEA_RECOMMENDATION_PROMPT_VERSION,
 ): GenerationContractDiagnostic[] {
   const code = failureDiagnostic(error);
   return code === "idea-copy-schema-invalid"
-    ? schemaContractDiagnostics(code, error, provider, IDEA_RECOMMENDATION_PROMPT_VERSION)
+    ? schemaContractDiagnostics(code, error, provider, contractVersion)
     : [
-        generationDiagnostic(code, provider, IDEA_RECOMMENDATION_PROMPT_VERSION, {
+        generationDiagnostic(code, provider, contractVersion, {
           reason: error instanceof ProviderError ? error.code : "generation-failure",
         }),
       ];
@@ -1491,6 +1494,245 @@ export async function generateIdeaOnlyRecommendationWithRecovery(
     diagnosticDetails,
     repairedFields,
     usedDeterministicFallback: false,
+  };
+}
+
+interface IdeaBatchAttempt {
+  prompt: string;
+  valid: Map<string, GeneratedIdeaRecommendation>;
+  failures: Map<string, GenerationContractDiagnostic[]>;
+}
+
+function validateIdeaBatchItem(
+  value: unknown,
+  expected: { id: string; position: number },
+  content: ValidatedPublicContent,
+  provider: GuideGenerationProvider,
+  request?: ProductSourcingRequest,
+): GeneratedIdeaRecommendation | GenerationContractDiagnostic[] {
+  const parsed = recoverableIdeaRecommendationSchema.safeParse(value);
+  if (!parsed.success) {
+    return ideaFailureDiagnostics(
+      new ProviderError("The batched recommendation failed schema validation.", "invalid-schema", {
+        cause: parsed.error,
+        schemaIssues: safeSchemaIssues(parsed.error, value),
+      }),
+      provider,
+      IDEA_RECOMMENDATION_BATCH_PROMPT_VERSION,
+    );
+  }
+  if (parsed.data.id !== expected.id || parsed.data.position !== expected.position) {
+    const path = parsed.data.id !== expected.id ? "id" : "position";
+    return ideaFailureDiagnostics(
+      new ProviderError("The batched response changed recommendation identity.", "invalid-schema", {
+        schemaIssues: [{ path, expected: "unchanged-input-value", received: "mismatched-value" }],
+      }),
+      provider,
+      IDEA_RECOMMENDATION_BATCH_PROMPT_VERSION,
+    );
+  }
+
+  const copy: Record<string, string | undefined> = {};
+  const diagnostics: GenerationContractDiagnostic[] = [];
+  for (const field of ideaOnlyCopyFields) {
+    if (field === "considerations" && parsed.data[field] === undefined) continue;
+    const fieldResult = ideaOnlyFieldSchemas[field].safeParse(parsed.data[field]);
+    if (field === "considerations" && fieldResult.success && fieldResult.data === undefined) {
+      continue;
+    }
+    const diagnostic =
+      fieldResult.success && fieldResult.data !== undefined
+        ? ideaOnlyCopyDiagnostic(fieldResult.data, content, request)
+        : "idea-copy-schema-invalid";
+    if (diagnostic) {
+      const issue = !fieldResult.success
+        ? safeSchemaIssues(fieldResult.error, parsed.data[field])[0]
+        : undefined;
+      diagnostics.push(
+        generationDiagnostic(diagnostic, provider, IDEA_RECOMMENDATION_BATCH_PROMPT_VERSION, {
+          path: field,
+          expected: issue?.expected ?? "policy-compliant-string",
+          received: issue?.received ?? "policy-violation",
+        }),
+      );
+    } else {
+      copy[field] = fieldResult.data;
+    }
+  }
+  return diagnostics.length
+    ? diagnostics
+    : generatedIdeaRecommendationSchema.parse({
+        id: expected.id,
+        position: expected.position,
+        ...copy,
+      });
+}
+
+async function generateIdeaBatchAttempt(
+  draft: GuideDraft,
+  recommendationIds: readonly string[],
+  content: ValidatedPublicContent,
+  provider: GuideGenerationProvider,
+  requests: ReadonlyMap<string, ProductSourcingRequest>,
+  operation: "idea-recommendation-batch" | "idea-recommendation-batch-repair",
+): Promise<IdeaBatchAttempt> {
+  const prepared = prepareIdeaRecommendationBatchPrompt(
+    draft,
+    recommendationIds,
+    content,
+    requests,
+  );
+  const valid = new Map<string, GeneratedIdeaRecommendation>();
+  const failures = new Map<string, GenerationContractDiagnostic[]>();
+  try {
+    const response = await provider.generateStructured({
+      operation,
+      prompt: prepared.prompt,
+      input: prepared.input,
+      schema: recoverableIdeaRecommendationBatchSchema,
+    });
+    const parsed = recoverableIdeaRecommendationBatchSchema.safeParse(response);
+    if (!parsed.success) {
+      throw new ProviderError("The batched response failed schema validation.", "invalid-schema", {
+        cause: parsed.error,
+        schemaIssues: safeSchemaIssues(parsed.error, response),
+      });
+    }
+    const resultsById = new Map<string, unknown[]>();
+    for (const result of parsed.data.recommendations) {
+      if (typeof result !== "object" || result === null || !("id" in result)) continue;
+      const id = (result as { id?: unknown }).id;
+      if (typeof id === "string") resultsById.set(id, [...(resultsById.get(id) ?? []), result]);
+    }
+    for (const recommendation of prepared.input.recommendations) {
+      const matches = resultsById.get(recommendation.id) ?? [];
+      if (matches.length !== 1) {
+        failures.set(
+          recommendation.id,
+          ideaFailureDiagnostics(
+            new ProviderError(
+              "The batched response did not contain exactly one result for the recommendation.",
+              "invalid-schema",
+              {
+                schemaIssues: [
+                  {
+                    path: "id",
+                    expected: "exactly-one-result",
+                    received: `result-count=${matches.length}`,
+                  },
+                ],
+              },
+            ),
+            provider,
+            IDEA_RECOMMENDATION_BATCH_PROMPT_VERSION,
+          ),
+        );
+        continue;
+      }
+      const result = validateIdeaBatchItem(
+        matches[0],
+        recommendation,
+        content,
+        provider,
+        requests.get(recommendation.id),
+      );
+      if (Array.isArray(result)) failures.set(recommendation.id, result);
+      else valid.set(recommendation.id, result);
+    }
+  } catch (error) {
+    const diagnostics = ideaFailureDiagnostics(
+      error,
+      provider,
+      IDEA_RECOMMENDATION_BATCH_PROMPT_VERSION,
+    );
+    for (const id of recommendationIds) failures.set(id, diagnostics);
+  }
+  return { prompt: prepared.prompt, valid, failures };
+}
+
+export interface IdeaOnlyBatchCopyGeneration {
+  draft: GuideDraft;
+  slots: {
+    slotId: string;
+    warnings: string[];
+  }[];
+}
+
+export async function generateIdeaOnlyRecommendationBatchWithRecovery(
+  draft: GuideDraft,
+  recommendationIds: readonly string[],
+  content: ValidatedPublicContent,
+  provider: GuideGenerationProvider,
+  requests: ReadonlyMap<string, ProductSourcingRequest> = new Map(),
+  now = new Date(),
+): Promise<IdeaOnlyBatchCopyGeneration> {
+  let completed = draft;
+  const warnings = new Map(recommendationIds.map((id) => [id, [] as string[]]));
+  const primary = await generateIdeaBatchAttempt(
+    completed,
+    recommendationIds,
+    content,
+    provider,
+    requests,
+    "idea-recommendation-batch",
+  );
+  for (const id of recommendationIds) {
+    const generated = primary.valid.get(id);
+    if (generated) {
+      completed = applyGeneratedIdeaRecommendation(
+        completed,
+        id,
+        generated,
+        provider,
+        primary.prompt,
+        now,
+        IDEA_RECOMMENDATION_BATCH_PROMPT_VERSION,
+      );
+    } else {
+      warnings
+        .get(id)!
+        .push(...(primary.failures.get(id) ?? []).map(formatGenerationContractDiagnostic));
+    }
+  }
+
+  const failedIds = recommendationIds.filter((id) => !primary.valid.has(id));
+  const repair = failedIds.length
+    ? await generateIdeaBatchAttempt(
+        completed,
+        failedIds,
+        content,
+        provider,
+        requests,
+        "idea-recommendation-batch-repair",
+      )
+    : undefined;
+  for (const id of failedIds) {
+    const generated = repair?.valid.get(id);
+    if (generated) {
+      completed = applyGeneratedIdeaRecommendation(
+        completed,
+        id,
+        generated,
+        provider,
+        repair!.prompt,
+        now,
+        IDEA_RECOMMENDATION_BATCH_PROMPT_VERSION,
+      );
+    } else {
+      warnings
+        .get(id)!
+        .push(...(repair?.failures.get(id) ?? []).map(formatGenerationContractDiagnostic));
+      completed = applyDeterministicIdeaCopyFallback(completed, id);
+      warnings.get(id)!.push("idea-editorial-copy-fallback-used");
+    }
+  }
+
+  return {
+    draft: completed,
+    slots: recommendationIds.map((slotId) => ({
+      slotId,
+      warnings: warnings.get(slotId)!,
+    })),
   };
 }
 

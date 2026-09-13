@@ -48,6 +48,7 @@ import {
   type GuideDraft,
 } from "./drafts.ts";
 import {
+  SAFE_IDEA_COPY_VERSION,
   MANUAL_EDITORIAL_COPY_VERSION,
   addManualRecommendation,
   classifyObservedClaimMatches,
@@ -96,6 +97,7 @@ import {
 } from "./recommendation-prompt.ts";
 import {
   generatedIdeaRecommendationSchema,
+  ideaRecommendationBatchPromptInputSchema,
   prepareIdeaRecommendationPrompt,
 } from "./idea-prompt.ts";
 import {
@@ -11007,7 +11009,7 @@ test("Guide Autopilot completa metadata, repara copy histórico y filtra claims 
   });
   assert.deepEqual(providerOperations, [
     "guide-metadata",
-    "idea-recommendation",
+    "idea-recommendation-batch",
     "single-recommendation",
   ]);
   assert.equal(first.execution.externalDiscoveryCalls, 0);
@@ -11212,7 +11214,7 @@ test("Guide Autopilot completa una guía mixta sin sourcing y converge sin sobre
   assert.equal(completedById.get(unresolved!.id)!.productId, undefined);
   assert.equal(completedById.get(unresolved!.id)!.editorialStatus, "ready");
   assert.equal(
-    providerOperations.filter((operation) => operation === "idea-recommendation").length,
+    providerOperations.filter((operation) => operation === "idea-recommendation-batch").length,
     1,
     "only the incomplete idea slot needs idea-only copy",
   );
@@ -11470,6 +11472,9 @@ test("Guide Autopilot completa ocho slots sin sourcing y reserva el presupuesto 
   let discoveryCalls = 0;
   let p2Calls = 0;
   let lastCallMetadata: ProviderCallMetadata | undefined;
+  const providerOperations: string[] = [];
+  const editorialPrompts: string[] = [];
+  const editorialBatchSizes: number[] = [];
   const mock = new MockGuideGenerationProvider();
   const provider: GuideGenerationProvider = {
     providerId: "guide-budget-fixture",
@@ -11477,6 +11482,16 @@ test("Guide Autopilot completa ocho slots sin sourcing y reserva el presupuesto 
       return lastCallMetadata;
     },
     async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      providerOperations.push(request.operation);
+      if (
+        request.operation === "idea-recommendation-batch" ||
+        request.operation === "idea-recommendation-batch-repair"
+      ) {
+        editorialPrompts.push(request.prompt);
+        editorialBatchSizes.push(
+          (request.input as { recommendations: unknown[] }).recommendations.length,
+        );
+      }
       if (request.operation === "product-fit-evaluations") p2Calls++;
       const generated = await mock.generateStructured(request);
       lastCallMetadata =
@@ -11517,7 +11532,7 @@ test("Guide Autopilot completa ocho slots sin sourcing y reserva el presupuesto 
     { now },
   );
 
-  assert.equal(editorial.status, "completed");
+  assert.equal(editorial.status, "completed", JSON.stringify(editorial));
   assert.equal(editorial.counts.editorialReady, 8);
   assert.equal(editorial.counts.productResolved, 0);
   assert.equal(editorial.counts.productPending, 8);
@@ -11528,12 +11543,23 @@ test("Guide Autopilot completa ocho slots sin sourcing y reserva el presupuesto 
   assert.equal(editorial.execution.p2Calls, 0);
   assert.equal(editorial.execution.productsCreated, 0);
   assert.equal(editorial.execution.productsReused, 0);
-  assert.equal(editorial.execution.editorialCalls, 8);
+  assert.equal(editorial.execution.editorialCalls, 1);
+  assert.equal(editorial.execution.editorialBatchCalls, 1);
+  assert.equal(editorial.execution.editorialRepairCalls, 0);
   assert.equal(editorial.execution.guideMetadataCalls, 1);
   assert.deepEqual(editorial.execution.providerUsage, {
-    editorial: { inputTokens: 8, outputTokens: 16, totalTokens: 24 },
+    editorial: { inputTokens: 1, outputTokens: 2, totalTokens: 3 },
     guideMetadata: { inputTokens: 1, outputTokens: 2, totalTokens: 3 },
   });
+  assert.deepEqual(editorialBatchSizes, [8]);
+  assert.equal(
+    providerOperations.filter((operation) => operation === "idea-recommendation-batch").length,
+    1,
+  );
+  assert.equal(providerOperations.filter((operation) => operation === "guide-metadata").length, 1);
+  assert.match(editorialPrompts[0]!, /Vary sentence structure, phrasing, and openings/);
+  assert.match(editorialPrompts[0]!, /learning notes, non-sensitive reminders/);
+  assert.match(editorialPrompts[0]!, /patient-identifying or confidential information/);
   assert.ok(
     editorial.slots.every(
       ({ action, status, editorialReady, productId, singleSlotResult }) =>
@@ -11544,12 +11570,34 @@ test("Guide Autopilot completa ocho slots sin sourcing y reserva el presupuesto 
         singleSlotResult === undefined,
     ),
   );
+  const completedEditorialDraft = guideDraftSchema.parse(await draftStore.read(draft.id));
+  assert.deepEqual(
+    completedEditorialDraft.recommendations.map(({ id }) => id),
+    draft.recommendations.map(({ id }) => id),
+  );
   assert.ok(
-    guideDraftSchema
-      .parse(await draftStore.read(draft.id))
-      .recommendations.every(
-        ({ productId, editorialStatus }) => productId === undefined && editorialStatus === "ready",
-      ),
+    completedEditorialDraft.recommendations.every(
+      ({
+        productId,
+        editorialStatus,
+        heading,
+        editorialDescription,
+        whyItFits,
+        bestFor,
+        selectionGuidance,
+        considerations,
+      }) =>
+        productId === undefined &&
+        editorialStatus === "ready" &&
+        [
+          heading,
+          editorialDescription,
+          whyItFits,
+          bestFor,
+          selectionGuidance,
+          considerations,
+        ].every(Boolean),
+    ),
   );
   assert.deepEqual(sourcingStore.list(), []);
   assert.deepEqual(fitStore.list(), []);
@@ -11569,6 +11617,8 @@ test("Guide Autopilot completa ocho slots sin sourcing y reserva el presupuesto 
   assert.equal(result.execution.productPlanningCalls, 0);
   assert.equal(result.execution.p2Calls, 8);
   assert.equal(result.execution.editorialCalls, 0);
+  assert.equal(result.execution.editorialBatchCalls, 0);
+  assert.equal(result.execution.editorialRepairCalls, 0);
   assert.equal(result.execution.guideMetadataCalls, 0);
   assert.equal(result.execution.technicalRetries, 0);
   assert.deepEqual(result.execution.providerUsage, {
@@ -11651,4 +11701,104 @@ test("Guide Autopilot completa ocho slots sin sourcing y reserva el presupuesto 
     ),
     worst.execution.p2Calls,
   );
+});
+
+test("Guide Autopilot conserva hermanos válidos y repara sólo los slots fallidos en un lote", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-guide-autopilot-repair-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const catalog = new ProductCatalog(repository);
+  const draftStore = new DraftStore(join(repository, "drafts"));
+  const sourcingStore = new ProductSourcingRequestStore(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const fitStore = new ProductFitEvaluationStore(repository);
+  const now = new Date("2026-09-10T12:00:00.000Z");
+  const draft = await draftStore.save(
+    guideDraftSchema.parse({
+      ...autopilotDraft(
+        "guide_guide-autopilot-batch-repair",
+        "slot_guide-autopilot-batch-repair-1",
+      ),
+      recommendations: Array.from({ length: 8 }, (_, index) => ({
+        id: `slot_guide-autopilot-batch-repair-${index + 1}`,
+        position: index + 1,
+        slotLabel: `Batch repair gift ${index + 1}`,
+        slotIntent: `Offer distinct choosing guidance for gift ${index + 1}.`,
+        searchTerms: [`batch repair gift ${index + 1}`],
+        editorialStatus: "needs-generation" as const,
+      })),
+    }),
+    now,
+  );
+  const mock = new MockGuideGenerationProvider();
+  const operations: string[] = [];
+  let repairedIds: string[] = [];
+  let lastCallMetadata: ProviderCallMetadata | undefined;
+  const provider: GuideGenerationProvider = {
+    providerId: "guide-batch-repair-fixture",
+    get lastCallMetadata() {
+      return lastCallMetadata;
+    },
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      operations.push(request.operation);
+      const generated = await mock.generateStructured(request);
+      if (request.operation === "idea-recommendation-batch") {
+        const response = generated as { recommendations: Record<string, unknown>[] };
+        response.recommendations.forEach((recommendation, index) => {
+          recommendation.heading = `Primary editorial heading ${index + 1}`;
+        });
+        response.recommendations[2]!.selectionGuidance = 42;
+        response.recommendations[5]!.whyItFits = ["invalid"];
+      } else if (request.operation === "idea-recommendation-batch-repair") {
+        const input = ideaRecommendationBatchPromptInputSchema.parse(request.input);
+        repairedIds = input.recommendations.map(({ id }) => id);
+        const response = generated as { recommendations: Record<string, unknown>[] };
+        response.recommendations[0]!.heading = "Repaired editorial heading 3";
+        response.recommendations[1]!.selectionGuidance = 42;
+      }
+      lastCallMetadata =
+        request.operation === "guide-metadata"
+          ? { inputTokens: 10, outputTokens: 20, totalTokens: 30 }
+          : request.operation === "idea-recommendation-batch"
+            ? { inputTokens: 100, outputTokens: 200, totalTokens: 300 }
+            : { inputTokens: 20, outputTokens: 40, totalTokens: 60 };
+      return generated;
+    },
+  };
+
+  const result = await completeGuideAutonomously(draft, {
+    draftStore,
+    catalog,
+    sourcingStore,
+    sourceStore,
+    fitStore,
+    provider,
+  });
+  const completed = guideDraftSchema.parse(await draftStore.read(draft.id));
+
+  assert.equal(result.counts.editorialReady, 8);
+  assert.equal(result.execution.editorialCalls, 2);
+  assert.equal(result.execution.editorialBatchCalls, 1);
+  assert.equal(result.execution.editorialRepairCalls, 1);
+  assert.equal(result.execution.guideMetadataCalls, 1);
+  assert.ok(result.execution.editorialCalls <= 2);
+  assert.deepEqual(
+    operations.filter((operation) => operation.startsWith("idea-recommendation-batch")),
+    ["idea-recommendation-batch", "idea-recommendation-batch-repair"],
+  );
+  assert.deepEqual(repairedIds, [
+    "slot_guide-autopilot-batch-repair-3",
+    "slot_guide-autopilot-batch-repair-6",
+  ]);
+  assert.deepEqual(result.execution.providerUsage, {
+    editorial: { inputTokens: 120, outputTokens: 240, totalTokens: 360 },
+    guideMetadata: { inputTokens: 10, outputTokens: 20, totalTokens: 30 },
+  });
+  assert.equal(completed.recommendations[0]!.heading, "Primary editorial heading 1");
+  assert.equal(completed.recommendations[2]!.heading, "Repaired editorial heading 3");
+  assert.equal(completed.recommendations[5]!.heading, "Batch repair gift 6");
+  assert.equal(completed.recommendations[5]!.editorialPromptVersion, SAFE_IDEA_COPY_VERSION);
+  assert.ok(completed.recommendations.every(({ editorialStatus }) => editorialStatus === "ready"));
+  assert.deepEqual(sourcingStore.list(), []);
+  assert.deepEqual(fitStore.list(), []);
 });
