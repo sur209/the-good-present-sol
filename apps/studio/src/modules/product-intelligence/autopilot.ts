@@ -17,6 +17,7 @@ import {
   generateIdeaOnlyRecommendationWithRecovery,
   generateProductBackedRecommendationWithRecovery,
   ideaOnlyCopyHasUnsupportedClaims,
+  ideaOnlyEditorialContext,
   recommendationCopyFailureDiagnostics,
   recommendationIsEditoriallyReady,
 } from "../../guide-editor.ts";
@@ -811,7 +812,7 @@ export function ideaOnlyRecommendationNeedsCopyRepair(
   if (slot.productId) return true;
   return (
     recommendationHasLegacyIdeaFallback(slot, draft.questionnaire.recipient) ||
-    ideaOnlyCopyHasUnsupportedClaims(slot, content, request)
+    ideaOnlyCopyHasUnsupportedClaims(slot, content, request, ideaOnlyEditorialContext(draft, slot))
   );
 }
 

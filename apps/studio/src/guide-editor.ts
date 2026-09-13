@@ -1182,10 +1182,43 @@ function normalizedTerm(value: string | undefined): string {
   return value?.trim().toLocaleLowerCase("en-US") ?? "";
 }
 
+const ideaOnlyNumericClaimPattern =
+  /[$€£]\s?\d+(?:\.\d+)?|\b\d+(?:\.\d+)?\s*%|\b\d+(?:\.\d+)?\s?(?:[-–—]\s*)?(?:count|pack|mg|g|kg|oz|ounces?|ml|liters?|inches?|cm|mm|hours?|watts?|volts?|mah|gb|calories?|grams?|servings?|percent(?:age)?s?)\b/gi;
+
+function ideaOnlyNumericClaims(value: string): string[] {
+  return value.match(ideaOnlyNumericClaimPattern) ?? [];
+}
+
+function normalizedNumericClaim(value: string): string {
+  return value.toLocaleLowerCase("en-US").replace(/\s*(?:[-–—])\s*|\s+/g, "-");
+}
+
+export function ideaOnlyEditorialContext(
+  draft: GuideDraft,
+  slot: GuideDraft["recommendations"][number],
+): string[] {
+  const questionnaire = Object.entries(draft.questionnaire).flatMap(([key, value]) =>
+    key !== "giftCount" && typeof value === "string" ? [value] : [],
+  );
+  return [
+    draft.title,
+    draft.outline?.provisionalTitle,
+    draft.outline?.audienceSummary,
+    draft.outline?.editorialAngle,
+    draft.primaryIntent,
+    draft.budgetContext?.label,
+    ...questionnaire,
+    slot.slotLabel,
+    slot.slotIntent,
+    slot.budgetHint,
+  ].filter((value): value is string => Boolean(value));
+}
+
 export function ideaOnlyCopyDiagnostic(
   value: string,
   content: ValidatedPublicContent,
   request?: ProductSourcingRequest,
+  editorialContext: readonly string[] = [],
 ): IdeaCopyDiagnosticCode | undefined {
   const copy = value.toLocaleLowerCase("en-US");
   if (/\b(?:asin\s*)?b0[a-z0-9]{8}\b/i.test(copy)) return "idea-copy-asin-leak";
@@ -1227,9 +1260,17 @@ export function ideaOnlyCopyDiagnostic(
     return "idea-copy-product-leak";
   }
   if (
-    /[$€£]\s?\d|\b(?:usd|price|costs?|ratings?|reviews?|discounts?|stock|availability|available now|in stock)\b|\b\d+(?:\.\d+)?\s?(?:-\s*)?(?:count|pack|mg|g|kg|oz|ounces?|ml|liters?|inches?|cm|mm|hours?|watts?|volts?|mah|gb|calories?|grams?|servings?)\b/i.test(
+    /\b(?:usd|price|costs?|ratings?|reviews?|discounts?|stock|availability|available now|in stock)\b/i.test(
       copy,
     )
+  ) {
+    return "idea-copy-unsupported-numeric-claim";
+  }
+  const groundedClaims = new Set(
+    editorialContext.flatMap(ideaOnlyNumericClaims).map(normalizedNumericClaim),
+  );
+  if (
+    ideaOnlyNumericClaims(copy).some((claim) => !groundedClaims.has(normalizedNumericClaim(claim)))
   ) {
     return "idea-copy-unsupported-numeric-claim";
   }
@@ -1240,10 +1281,13 @@ export function ideaOnlyCopyHasUnsupportedClaims(
   generated: IdeaOnlyEditorialCopy,
   content: ValidatedPublicContent,
   request?: ProductSourcingRequest,
+  editorialContext: readonly string[] = [],
 ): boolean {
   return ideaOnlyCopyFields.some((field) => {
     const value = generated[field];
-    return value ? Boolean(ideaOnlyCopyDiagnostic(value, content, request)) : false;
+    return value
+      ? Boolean(ideaOnlyCopyDiagnostic(value, content, request, editorialContext))
+      : false;
   });
 }
 
@@ -1442,13 +1486,17 @@ export async function generateIdeaOnlyRecommendationWithRecovery(
   const diagnostics: IdeaCopyDiagnosticCode[] = [];
   const diagnosticDetails: GenerationContractDiagnostic[] = [];
   const repairedFields: IdeaOnlyCopyField[] = [];
+  const editorialContext = ideaOnlyEditorialContext(
+    draft,
+    draft.recommendations[recommendationIndex(draft, recommendationId)]!,
+  );
   for (const field of ideaOnlyCopyFields) {
     if (field === "considerations" && raw[field] === undefined) continue;
     const parsed = ideaOnlyFieldSchemas[field].safeParse(raw[field]);
     if (field === "considerations" && parsed.success && parsed.data === undefined) continue;
     const diagnostic =
       parsed.success && parsed.data !== undefined
-        ? ideaOnlyCopyDiagnostic(parsed.data, content, request)
+        ? ideaOnlyCopyDiagnostic(parsed.data, content, request, editorialContext)
         : "idea-copy-schema-invalid";
     if (diagnostic) {
       diagnostics.push(diagnostic);
@@ -1509,6 +1557,7 @@ function validateIdeaBatchItem(
   content: ValidatedPublicContent,
   provider: GuideGenerationProvider,
   request?: ProductSourcingRequest,
+  editorialContext: readonly string[] = [],
 ): GeneratedIdeaRecommendation | GenerationContractDiagnostic[] {
   const parsed = recoverableIdeaRecommendationSchema.safeParse(value);
   if (!parsed.success) {
@@ -1542,7 +1591,7 @@ function validateIdeaBatchItem(
     }
     const diagnostic =
       fieldResult.success && fieldResult.data !== undefined
-        ? ideaOnlyCopyDiagnostic(fieldResult.data, content, request)
+        ? ideaOnlyCopyDiagnostic(fieldResult.data, content, request, editorialContext)
         : "idea-copy-schema-invalid";
     if (diagnostic) {
       const issue = !fieldResult.success
@@ -1635,6 +1684,10 @@ async function generateIdeaBatchAttempt(
         content,
         provider,
         requests.get(recommendation.id),
+        ideaOnlyEditorialContext(
+          draft,
+          draft.recommendations[recommendationIndex(draft, recommendation.id)]!,
+        ),
       );
       if (Array.isArray(result)) failures.set(recommendation.id, result);
       else valid.set(recommendation.id, result);
@@ -1740,9 +1793,10 @@ function rejectUnsafeIdeaOnlyClaims(
   generated: GeneratedIdeaRecommendation,
   content: ValidatedPublicContent,
   request?: ProductSourcingRequest,
+  editorialContext: readonly string[] = [],
 ): void {
   rejectGeneratedUrls(generated);
-  if (ideaOnlyCopyHasUnsupportedClaims(generated, content, request)) {
+  if (ideaOnlyCopyHasUnsupportedClaims(generated, content, request, editorialContext)) {
     throw new TypeError(
       "La idea generada no puede afirmar Products, comercios, precios, disponibilidad ni especificaciones sin respaldo.",
     );
@@ -1766,9 +1820,14 @@ export async function generateIdeaOnlyRecommendation(
       schema: generatedIdeaRecommendationSchema,
     }),
   );
-  rejectUnsafeIdeaOnlyClaims(generated, content, request);
   const index = recommendationIndex(draft, recommendationId);
   const existing = draft.recommendations[index]!;
+  rejectUnsafeIdeaOnlyClaims(
+    generated,
+    content,
+    request,
+    ideaOnlyEditorialContext(draft, existing),
+  );
   if (generated.id !== existing.id || generated.position !== existing.position) {
     throw new TypeError("La respuesta cambió la identidad de la idea.");
   }

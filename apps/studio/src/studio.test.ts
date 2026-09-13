@@ -146,6 +146,7 @@ import {
   chooseAutomaticProductCandidate,
   completeIdeaOnlyRecommendationCopy,
   completeProductBackedRecommendationCopy,
+  ideaOnlyRecommendationNeedsCopyRepair,
   recommendationHasLegacyIdeaFallback,
   resolveRecommendationSlotAutonomously,
 } from "./modules/product-intelligence/autopilot.ts";
@@ -7064,6 +7065,7 @@ test("genera idea-only segura con contexto heredado y deja Stage 2 Product-backe
     "20 oz",
     "at least 15g protein",
     "around 200 calories",
+    "improves comfort by 40%",
   ]) {
     const unsafe: GuideGenerationProvider = {
       providerId: "unsafe-idea",
@@ -7671,6 +7673,13 @@ test("distingue identidad Product y repara sólo el campo con claims observados"
       "unsupported-numeric-claim",
     );
   }
+  assert.equal(
+    productBackedCopyFailureReason(copyWith("It suits a 12-hour shift."), product, undefined, {
+      ...claimContext,
+      guideContext: ["Gifts for Nurses Working 12-Hour Shifts"],
+    }),
+    "unsupported-numeric-claim",
+  );
   for (const value of [
     "It has a stainless steel shell.",
     "It promises twelve hour performance.",
@@ -11719,12 +11728,14 @@ test("Guide Autopilot conserva hermanos válidos y repara sólo los slots fallid
         "guide_guide-autopilot-batch-repair",
         "slot_guide-autopilot-batch-repair-1",
       ),
+      title: "Gifts for Nurses Working 12-Hour Shifts",
       recommendations: Array.from({ length: 8 }, (_, index) => ({
         id: `slot_guide-autopilot-batch-repair-${index + 1}`,
         position: index + 1,
-        slotLabel: `Batch repair gift ${index + 1}`,
+        slotLabel: index === 3 ? "24-ounce hydration option" : `Batch repair gift ${index + 1}`,
         slotIntent: `Offer distinct choosing guidance for gift ${index + 1}.`,
         searchTerms: [`batch repair gift ${index + 1}`],
+        ...(index === 4 ? { budgetHint: "Under $50" } : {}),
         editorialStatus: "needs-generation" as const,
       })),
     }),
@@ -11747,7 +11758,14 @@ test("Guide Autopilot conserva hermanos válidos y repara sólo los slots fallid
         response.recommendations.forEach((recommendation, index) => {
           recommendation.heading = `Primary editorial heading ${index + 1}`;
         });
-        response.recommendations[2]!.selectionGuidance = 42;
+        response.recommendations[0]!.editorialDescription =
+          "A useful choice for the realities of 12-hour shifts.";
+        response.recommendations[1]!.whyItFits =
+          "It can make a 12-hour workday feel more considered.";
+        response.recommendations[2]!.selectionGuidance = "Choose a 20 oz format.";
+        response.recommendations[3]!.selectionGuidance =
+          "Compare 24-ounce options for fit and care.";
+        response.recommendations[4]!.considerations = "Keep the final choice under $50.";
         response.recommendations[5]!.whyItFits = ["invalid"];
       } else if (request.operation === "idea-recommendation-batch-repair") {
         const input = ideaRecommendationBatchPromptInputSchema.parse(request.input);
@@ -11795,10 +11813,42 @@ test("Guide Autopilot conserva hermanos válidos y repara sólo los slots fallid
     guideMetadata: { inputTokens: 10, outputTokens: 20, totalTokens: 30 },
   });
   assert.equal(completed.recommendations[0]!.heading, "Primary editorial heading 1");
+  assert.equal(
+    completed.recommendations[0]!.editorialDescription,
+    "A useful choice for the realities of 12-hour shifts.",
+  );
+  assert.equal(
+    completed.recommendations[1]!.whyItFits,
+    "It can make a 12-hour workday feel more considered.",
+  );
   assert.equal(completed.recommendations[2]!.heading, "Repaired editorial heading 3");
+  assert.equal(
+    completed.recommendations[3]!.selectionGuidance,
+    "Compare 24-ounce options for fit and care.",
+  );
+  assert.equal(completed.recommendations[4]!.considerations, "Keep the final choice under $50.");
   assert.equal(completed.recommendations[5]!.heading, "Batch repair gift 6");
   assert.equal(completed.recommendations[5]!.editorialPromptVersion, SAFE_IDEA_COPY_VERSION);
+  assert.deepEqual(result.slots[0]!.warnings, []);
+  assert.deepEqual(result.slots[1]!.warnings, []);
+  assert.deepEqual(result.slots[3]!.warnings, []);
+  assert.deepEqual(result.slots[4]!.warnings, []);
+  for (const index of [0, 1, 3, 4]) {
+    assert.equal(
+      ideaOnlyRecommendationNeedsCopyRepair(
+        completed,
+        completed.recommendations[index]!.id,
+        catalog.read(),
+      ),
+      false,
+    );
+  }
   assert.ok(completed.recommendations.every(({ editorialStatus }) => editorialStatus === "ready"));
+  assert.equal(result.execution.externalDiscoveryCalls, 0);
+  assert.equal(result.execution.productPlanningCalls, 0);
+  assert.equal(result.execution.p2Calls, 0);
+  assert.equal(result.execution.productsCreated, 0);
+  assert.equal(result.execution.productsReused, 0);
   assert.deepEqual(sourcingStore.list(), []);
   assert.deepEqual(fitStore.list(), []);
 });
