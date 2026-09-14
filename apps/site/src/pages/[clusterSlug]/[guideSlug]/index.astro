@@ -4,7 +4,7 @@ import {
   clusterPath,
   guidePath,
   productDisplayName,
-  productDestination,
+  recommendationDestination,
   type ClusterHub,
   type GiftGuide,
 } from "@the-good-present/content-schema";
@@ -47,12 +47,15 @@ const recommendations = [...guide.recommendations]
     product: recommendation.productId ? productsById.get(recommendation.productId) : undefined,
   }));
 const relatedGuides = (guide.relatedGuideIds ?? []).map((guideId) => guidesById.get(guideId)!);
-const hasAffiliateLinks = recommendations.some(({ product }) => {
-  const destination = product ? productDestination(product) : undefined;
-  return Boolean(destination && destination === product?.affiliateUrl);
+const hasAffiliateLinks = recommendations.some(({ recommendation, product }) => {
+  const destination = recommendationDestination(recommendation, product);
+  return Boolean(
+    destination &&
+    (destination === recommendation.directAffiliateUrl || destination === product?.affiliateUrl),
+  );
 });
-const hasDemoLinks = recommendations.some(({ product }) => {
-  const destination = product ? productDestination(product) : undefined;
+const hasDemoLinks = recommendations.some(({ recommendation, product }) => {
+  const destination = recommendationDestination(recommendation, product);
   return destination ? new URL(destination).hostname === "example.com" : false;
 });
 ---

@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   isAmazonProduct,
   productDestination,
+  recommendationDestination,
   type ClusterHub,
   type GiftGuide,
   type Product,
@@ -119,6 +120,50 @@ test("accepts an editorially ready unresolved gift idea without a Product record
   assert.equal(recommendation.productResolution, "unresolved");
   assert.equal(recommendation.productId, undefined);
   assert.match(recommendation.selectionGuidance ?? "", /Compare care needs/);
+});
+
+test("validates direct Amazon affiliate destinations and gives them CTA precedence", () => {
+  const directAffiliateUrl =
+    "https://www.amazon.com/dp/B012345678?tag=thegoodpresent-20&utm_source=guide";
+  const sources = validSources();
+  sources.guides[0] = source(`content/guides/${guide.id}.json`, {
+    ...guide,
+    recommendations: [
+      {
+        id: "practical_recovery-ritual",
+        productResolution: "unresolved",
+        directAffiliateUrl,
+        position: 1,
+        heading: "A small recovery ritual for after a long shift",
+        editorialDescription: "Build the gift around how they prefer to decompress at home.",
+        whyItFits: "It starts with the recipient's routine instead of inventing a product.",
+        considerations: "Look for easy care and a format that suits their space.",
+        editorialStatus: "ready",
+      },
+    ],
+  });
+
+  const recommendation = assertValidPublicContent(sources).guides[0]!.recommendations[0]!;
+  assert.equal(recommendation.directAffiliateUrl, directAffiliateUrl);
+  assert.equal(recommendationDestination(recommendation), directAffiliateUrl);
+  assert.equal(
+    recommendationDestination({ ...guide.recommendations[0], directAffiliateUrl }, product),
+    directAffiliateUrl,
+  );
+  assert.equal(recommendationDestination(guide.recommendations[0]!, product), product.affiliateUrl);
+
+  for (const invalid of [
+    "http://www.amazon.com/dp/B012345678?tag=thegoodpresent-20",
+    "https://amazon.com.evil.test/dp/B012345678?tag=thegoodpresent-20",
+    "not-a-url",
+  ]) {
+    const invalidSources = validSources();
+    invalidSources.guides[0] = source(`content/guides/${guide.id}.json`, {
+      ...guide,
+      recommendations: [{ ...guide.recommendations[0], directAffiliateUrl: invalid }],
+    });
+    assert.equal(validatePublicContent(invalidSources).success, false);
+  }
 });
 
 test("rejects missing and mixed Product-resolution states", () => {

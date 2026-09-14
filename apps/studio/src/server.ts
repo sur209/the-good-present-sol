@@ -10,6 +10,7 @@ import {
   isAmazonProduct,
   productDisplayName,
   productDestination,
+  recommendationDestination,
   type PrimaryAxis,
   type Product,
 } from "@the-good-present/content-schema";
@@ -56,6 +57,7 @@ import {
   reopenGuideDraft,
   selectRecommendationProduct,
   updateGuideEditorialCopy,
+  updateRecommendationDirectAffiliateUrl,
   updateRecommendationEditorialCopy,
   validateGuideDraft,
 } from "./guide-editor.ts";
@@ -84,6 +86,7 @@ import { validateAffiliateOperations } from "./modules/affiliate-operations/vali
 import {
   createAmazonProductSourceRecord,
   extractAmazonAsin,
+  inspectAmazonUrl,
   isApprovedAmazonUsHost,
   normalizeAmazonAsin,
   normalizeAmazonUrl,
@@ -3162,6 +3165,20 @@ function recommendationSelectionSection(
         ${!selected ? `<form method="post" action="${slotPath}/resolve-url" class="card"><label>URL de producto o afiliado<input type="url" name="url" required placeholder="https://..."></label><label>Destino afiliado separado (opcional)<input type="url" name="affiliateUrl" placeholder="https://..."></label><label>Tracking ID conocido (opcional)<input name="trackingId"></label><button type="submit">Pegar URL de producto/afiliado</button></form>` : ""}
         <details><summary>Contexto I.2 heredado automaticamente</summary><div class="grid"><label>Audiencia<input value="${value(prefill.audience)}" readonly></label><label>Ocasion o contexto<input value="${value(prefill.occasion)}" readonly></label><label>Presupuesto<input value="${value(prefill.budgetContext)}" readonly></label><label class="wide">Exclusiones<textarea rows="2" readonly>${listText(prefill.exclusions, "\n")}</textarea></label><label class="wide">Terminos de busqueda<input value="${listText(prefill.searchTerms)}" readonly></label></div></details>
       </section>`;
+      const directAffiliateInspection = recommendation.directAffiliateUrl
+        ? inspectAmazonUrl("affiliate", recommendation.directAffiliateUrl)
+        : undefined;
+      const directAffiliateWarning = directAffiliateInspection
+        ? (directAffiliateInspection.warnings[0] ??
+          (directAffiliateInspection.visibleTrackingTags.length === 0
+            ? "No se detectó un tag afiliado; no se agregará automáticamente."
+            : undefined))
+        : undefined;
+      const directAffiliate = `<section class="card"><h4>Monetización</h4>
+        <form method="post" action="${slotPath}/direct-affiliate"><label>Amazon affiliate link<input type="url" name="directAffiliateUrl" value="${value(recommendation.directAffiliateUrl)}" placeholder="https://www.amazon.com/..."></label><button type="submit">Guardar enlace</button></form>
+        ${recommendation.directAffiliateUrl ? `<p class="muted">Guardado: <code>${escapeHtml(recommendation.directAffiliateUrl)}</code></p><form method="post" action="${slotPath}/direct-affiliate"><button type="submit">Quitar enlace</button></form>` : '<p class="muted">Sin enlace afiliado</p>'}
+        ${directAffiliateWarning ? `<p class="notice">${escapeHtml(directAffiliateWarning)}</p>` : ""}
+      </section>`;
       return `<article class="card" id="slot-${escapeHtml(recommendation.id)}">
         <div class="actions"><h3>${recommendation.position}. ${escapeHtml(recommendation.slotLabel)}</h3><span class="status">${escapeHtml(recommendation.editorialStatus)} · ${selected ? "Product resuelto" : "Product pendiente"}</span></div>
         ${recommendation.slotIntent ? `<p>${escapeHtml(recommendation.slotIntent)}</p>` : ""}
@@ -3190,6 +3207,7 @@ function recommendationSelectionSection(
           <label><input type="checkbox" name="markReady" value="yes"> ${selected ? "Revisé el producto actual" : "Revisé que esta idea no contenga nombres, comercios, precios ni datos específicos de un Product"} y quiero marcar esta recomendación como lista.</label>
           <div class="actions"><button type="submit">Guardar recomendación</button>${selected ? `<a href="/drafts/${draft.id}/recommendations/${recommendation.id}/prompt">Ver prompt y regenerar sólo esta recomendación</a>` : `<a href="/drafts/${draft.id}/recommendations/${recommendation.id}/idea-prompt">Generar guía de selección idea-only</a>`}</div>
         </form>
+        ${directAffiliate}
         <details open>
           <summary>${selected ? "Reemplazar producto" : "Sugerencias del catálogo"}</summary>
           <div class="grid">${suggestions || '<p class="muted">No hay coincidencias sugeridas.</p>'}</div>
@@ -3265,6 +3283,7 @@ function guideEditorPage(
     draftName(draft),
     `<p><a href="/">← Borradores</a></p>
      <div class="actions"><div><h1>${escapeHtml(draftName(draft))}</h1><p><code>${escapeHtml(draft.id)}</code> · ${escapeHtml(draft.status)}</p></div><a class="button" href="/drafts/${draft.id}/curation">Buscar productos para slots sin resolver</a><a class="button" href="/drafts/${draft.id}/outline-prompt">${draft.outline ? "Revisar o regenerar esquema" : "Revisar y generar esquema"}</a><a class="button" href="/drafts/${draft.id}/final-prompt">Generación final</a><a class="button" href="/drafts/${draft.id}/preview">Vista previa</a><a class="button" href="/drafts/${draft.id}/validate">Validar</a></div>
+     <section class="card"><h2>Completar guía</h2><p>Completa la metadata y la copia editorial; no requiere Products.</p><div class="actions"><form method="post" action="/drafts/${encodeURIComponent(draft.id)}/autopilot"><button type="submit">Completar guía automáticamente</button></form><a class="button" href="/drafts/${encodeURIComponent(draft.id)}/curation">Curación de Products (opcional)</a></div></section>
      <aside class="notice"><strong>Cómo funciona la arquitectura editorial</strong><p>Las taxonomías clasifican contenido; no crean URLs. Una ruta pública existe sólo al publicar un hub o una guía. Cada guía hija pertenece a un cluster válido. Las guías relacionadas son enlaces editoriales, no jerarquía. “Nurse Gifts Under $25” es una guía con eje <code>budget</code>, no un filtro generado.</p></aside>
      <form method="post" action="/drafts/${draft.id}/guide/architecture" class="card">
        <h2>Arquitectura de la guía</h2>
@@ -3414,20 +3433,22 @@ function guidePreviewPage(draft: GuideDraft): string {
     .sort((left, right) => left.position - right.position)
     .map((recommendation) => {
       const product = recommendation.productId ? products.get(recommendation.productId) : undefined;
-      const destination = product ? productDestination(product) : undefined;
+      const destination = recommendationDestination(recommendation, product);
       const displayName = product ? productDisplayName(product) : undefined;
-      const isAffiliate = Boolean(destination && product?.affiliateUrl === destination);
+      const isDirectAffiliate = Boolean(recommendation.directAffiliateUrl);
+      const isAffiliate =
+        isDirectAffiliate || Boolean(destination && product?.affiliateUrl === destination);
       const linkRel = isAffiliate ? "sponsored nofollow noopener" : "nofollow noopener";
       return `<article class="card">
         <p class="muted">Recomendación ${recommendation.position}</p>
         <h2>${escapeHtml(recommendation.heading && !product?.name.startsWith(recommendation.heading) ? recommendation.heading : (displayName ?? recommendation.slotLabel))}</h2>
-        ${product ? `<p><strong>${escapeHtml(displayName!)}</strong> · ${escapeHtml(product.merchant)}</p>` : '<p class="notice">Idea editorial publicada sin Product ni CTA.</p>'}
+        ${product ? `<p><strong>${escapeHtml(displayName!)}</strong> · ${escapeHtml(product.merchant)}</p>` : `<p class="notice">Idea editorial publicada sin Product${destination ? "." : " ni CTA."}</p>`}
         <p>${escapeHtml(recommendation.editorialDescription ?? "Falta la descripción editorial.")}</p>
         <p><strong>Por qué encaja:</strong> ${escapeHtml(recommendation.whyItFits ?? "Falta este motivo.")}</p>
         ${recommendation.bestFor ? `<p><strong>Ideal para:</strong> ${escapeHtml(recommendation.bestFor)}</p>` : ""}
         ${recommendation.selectionGuidance ? `<p><strong>Cómo elegir:</strong> ${escapeHtml(recommendation.selectionGuidance)}</p>` : ""}
         ${recommendation.considerations ? `<p><strong>Consideraciones:</strong> ${escapeHtml(recommendation.considerations)}</p>` : ""}
-        ${destination && product ? `<p><a href="${escapeHtml(destination)}" target="_blank" rel="${linkRel}">${isAffiliate ? "Ver en" : "Ver producto en"} ${escapeHtml(product.merchant)}</a></p>` : ""}
+        ${destination ? `<p><a href="${escapeHtml(destination)}" target="_blank" rel="${linkRel}">${isDirectAffiliate ? "View on Amazon" : `${isAffiliate ? "Ver en" : "Ver producto en"} ${escapeHtml(product!.merchant)}`}</a></p>` : ""}
       </article>`;
     })
     .join("");
@@ -4277,6 +4298,25 @@ export function createStudioServer(
           ),
         );
         redirect(response, guideDraftSlotPath(draft.id, saveRecommendationCopyMatch[2]));
+        return;
+      }
+      const saveDirectAffiliateMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/recommendations\/([a-z0-9_-]+)\/direct-affiliate$/.exec(
+              url.pathname,
+            )
+          : null;
+      if (saveDirectAffiliateMatch?.[1] && saveDirectAffiliateMatch[2]) {
+        const form = await readForm(request);
+        const draft = await readGuideDraft(store, saveDirectAffiliateMatch[1]);
+        await store.save(
+          updateRecommendationDirectAffiliateUrl(
+            draft,
+            saveDirectAffiliateMatch[2],
+            optionalValue(form, "directAffiliateUrl"),
+          ),
+        );
+        redirect(response, guideDraftSlotPath(draft.id, saveDirectAffiliateMatch[2]));
         return;
       }
       const addRecommendationMatch =

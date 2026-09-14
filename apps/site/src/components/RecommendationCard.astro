@@ -1,7 +1,7 @@
 ---
 import {
   productDisplayName,
-  productDestination,
+  recommendationDestination,
   type GuideRecommendation,
   type Product,
 } from "@the-good-present/content-schema";
@@ -12,8 +12,10 @@ interface Props {
 }
 
 const { recommendation, product } = Astro.props;
-const destination = product ? productDestination(product) : undefined;
-const isAffiliate = Boolean(destination && destination === product?.affiliateUrl);
+const destination = recommendationDestination(recommendation, product);
+const isDirectAffiliate = Boolean(recommendation.directAffiliateUrl);
+const isAffiliate =
+  isDirectAffiliate || Boolean(destination && destination === product?.affiliateUrl);
 const isDemo = destination ? new URL(destination).hostname === "example.com" : false;
 const linkRel = isAffiliate ? "sponsored nofollow noopener" : "nofollow noopener";
 const merchantLabel = product?.merchant.replace(" (demo)", "");
@@ -72,18 +74,24 @@ const accent = `recommendation--accent-${((recommendation.position - 1) % 4) + 1
       )
     }
     {
-      product && destination && (
+      destination && (
         <div class="recommendation__commerce">
           <a
             class="button button--small"
             href={destination}
             target="_blank"
             rel={linkRel}
-            aria-label={`${isDemo ? "View demo for" : "View"} ${displayName} at ${product.merchant} (opens in a new tab)`}
+            aria-label={
+              isDirectAffiliate
+                ? `View ${title} on Amazon (opens in a new tab)`
+                : `${isDemo ? "View demo for" : "View"} ${displayName} at ${product!.merchant} (opens in a new tab)`
+            }
           >
-            {isDemo
-              ? `View demo at ${merchantLabel}`
-              : `${isAffiliate ? "View at" : "View product at"} ${product.merchant}`}
+            {isDirectAffiliate
+              ? "View on Amazon"
+              : isDemo
+                ? `View demo at ${merchantLabel}`
+                : `${isAffiliate ? "View at" : "View product at"} ${product!.merchant}`}
           </a>
         </div>
       )

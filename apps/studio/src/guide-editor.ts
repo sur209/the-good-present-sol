@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import {
+  amazonAffiliateUrlSchema,
   guidePath,
   productDisplayName,
   type GiftGuide,
@@ -1889,6 +1890,27 @@ export function updateRecommendationEditorialCopy(
   return guideDraftSchema.parse({ ...draft, status: "editing", recommendations });
 }
 
+export function updateRecommendationDirectAffiliateUrl(
+  draft: GuideDraft,
+  recommendationId: string,
+  directAffiliateUrl?: string,
+): GuideDraft {
+  const index = recommendationIndex(draft, recommendationId);
+  const recommendations = [...draft.recommendations];
+  const current = recommendations[index]!;
+  if (directAffiliateUrl) {
+    const parsed = amazonAffiliateUrlSchema.safeParse(directAffiliateUrl);
+    if (!parsed.success) {
+      throw new TypeError("Ingresá una URL HTTPS de un host Amazon aceptado.");
+    }
+    recommendations[index] = { ...current, directAffiliateUrl: parsed.data };
+  } else {
+    const { directAffiliateUrl: _directAffiliateUrl, ...withoutAffiliateUrl } = current;
+    recommendations[index] = withoutAffiliateUrl;
+  }
+  return guideDraftSchema.parse({ ...draft, recommendations });
+}
+
 export interface GuideDraftValidation {
   errors: string[];
   readiness: GuideDraftReadiness;
@@ -2058,6 +2080,9 @@ export function reopenGuideDraft(
             ? [product.name, product.merchant]
             : [recommendation.heading ?? `Gift idea ${recommendation.position}`],
           ...(recommendation.productId ? { productId: recommendation.productId } : {}),
+          ...(recommendation.directAffiliateUrl
+            ? { directAffiliateUrl: recommendation.directAffiliateUrl }
+            : {}),
           ...(recommendation.heading ? { heading: recommendation.heading } : {}),
           editorialDescription: recommendation.editorialDescription,
           whyItFits: recommendation.whyItFits,

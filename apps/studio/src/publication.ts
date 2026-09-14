@@ -103,6 +103,9 @@ export function guideDraftToPublic(
               productResolution: "unresolved" as const,
               heading: recommendation.heading ?? recommendation.slotLabel,
             }),
+        ...(recommendation.directAffiliateUrl
+          ? { directAffiliateUrl: recommendation.directAffiliateUrl }
+          : {}),
         position: recommendation.position,
         ...(recommendation.productId && recommendation.heading
           ? { heading: recommendation.heading }

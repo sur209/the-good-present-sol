@@ -69,6 +69,7 @@ import {
   reopenGuideDraft,
   selectRecommendationProduct,
   updateRecommendationEditorialCopy,
+  updateRecommendationDirectAffiliateUrl,
   validateGuideDraft,
 } from "./guide-editor.ts";
 import {
@@ -8113,6 +8114,188 @@ test("publica y renderiza una idea sin Product ni CTA, conservando QA e I.0", as
   assert.equal(resolvedAgain.id, original.id);
   assert.equal(resolvedAgain.position, original.position);
   assert.equal(resolvedAgain.productId, original.productId);
+});
+
+test("monetiza una recomendación directamente sin Product ni trabajo de sourcing", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-direct-affiliate-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const store = new DraftStore(join(repository, "drafts"));
+  const catalog = new ProductCatalog(repository);
+  const publisher = new Publisher(repository);
+  const sourceStore = new ProductSourceStore(repository);
+  const content = catalog.read();
+  const existing = content.guides[0]!;
+  const original = existing.recommendations[0]!;
+  let draft = clearRecommendationProduct(reopenGuideDraft(existing, content), original.id);
+  draft = updateRecommendationEditorialCopy(
+    draft,
+    original.id,
+    {
+      heading: "A low-effort recovery ritual",
+      editorialDescription: "Shape the gift around how they already decompress after a long day.",
+      whyItFits: "It stays useful without pretending one specific item fits everyone.",
+      considerations: "Favor easy care and a format that works in their available space.",
+    },
+    true,
+  );
+  draft = await store.save(draft);
+  const untouchedRecommendation = structuredClone(
+    draft.recommendations.find(({ id }) => id === original.id)!,
+  );
+  let providerCalls = 0;
+  let discoveryCalls = 0;
+  const provider: GuideGenerationProvider = {
+    providerId: "must-not-run",
+    async generateStructured<T>(): Promise<T> {
+      providerCalls++;
+      throw new Error("Affiliate save must not call an LLM or P.2.");
+    },
+  };
+  const discoverySource: ProductDiscoverySource = {
+    providerId: "serpapi",
+    paidUsage: true,
+    supportedModes: ["amazon"],
+    async search() {
+      discoveryCalls++;
+      throw new Error("Affiliate save must not run discovery.");
+    },
+  };
+  const server = createStudioServer(
+    store,
+    catalog,
+    provider,
+    publisher,
+    sourceStore,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    discoverySource,
+  );
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(() => server.close());
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+  const slotPath = `/drafts/${draft.id}/recommendations/${original.id}/direct-affiliate`;
+
+  const editorBefore = await (await fetch(`${origin}/drafts/${draft.id}`)).text();
+  assert.match(editorBefore, /Completar guía automáticamente/);
+  assert.match(editorBefore, /Curación de Products \(opcional\)/);
+  assert.match(editorBefore, /Monetización/);
+  assert.match(editorBefore, /Sin enlace afiliado/);
+
+  const directAffiliateUrl =
+    "https://www.amazon.com/dp/B012345678?tag=thegoodpresent-20&utm_source=studio";
+  const savedResponse = await fetch(`${origin}${slotPath}`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ directAffiliateUrl }),
+    redirect: "manual",
+  });
+  assert.equal(savedResponse.status, 303);
+  let saved = guideDraftSchema.parse(await store.read(draft.id));
+  let savedRecommendation = saved.recommendations.find(({ id }) => id === original.id)!;
+  assert.equal(savedRecommendation.productId, undefined);
+  assert.equal(savedRecommendation.directAffiliateUrl, directAffiliateUrl);
+  const { directAffiliateUrl: _directAffiliateUrl, ...withoutDirectAffiliateUrl } =
+    savedRecommendation;
+  assert.deepEqual(withoutDirectAffiliateUrl, untouchedRecommendation);
+  assert.equal(providerCalls, 0, "0 LLM or P.2 calls");
+  assert.equal(discoveryCalls, 0, "0 discovery calls");
+
+  const preview = await (await fetch(`${origin}/drafts/${draft.id}/preview`)).text();
+  assert.match(preview, />View on Amazon<\/a>/);
+  await publisher.publishGuide(saved, new Date("2026-09-13T12:00:00.000Z"));
+  await execFileAsync(process.execPath, [join(REPOSITORY_ROOT, "scripts", "astro.mjs"), "build"], {
+    cwd: join(REPOSITORY_ROOT, "apps", "site"),
+    env: { ...process.env, CONTENT_REPOSITORY_ROOT: repository },
+    maxBuffer: 10 * 1024 * 1024,
+    windowsHide: true,
+  });
+  const published = publisher.read();
+  const publicGuide = published.guides.find(({ id }) => id === existing.id)!;
+  const publicRecommendation = publicGuide.recommendations.find(({ id }) => id === original.id)!;
+  assert.equal(publicRecommendation.directAffiliateUrl, directAffiliateUrl);
+  const cluster = published.clusters.find(({ id }) => id === existing.clusterId)!;
+  const html = await readFile(
+    join(REPOSITORY_ROOT, "apps", "site", "dist", cluster.slug, existing.slug, "index.html"),
+    "utf8",
+  );
+  const cardIndex = html.indexOf(`id="pick-${original.position}"`);
+  const card = html.slice(
+    html.lastIndexOf("<article", cardIndex),
+    html.indexOf("</article>", cardIndex),
+  );
+  assert.match(card, />View on Amazon<\/a>/);
+  assert.match(card, /rel="sponsored nofollow noopener"/);
+  assert.match(card, /tag=thegoodpresent-20/);
+  assert.match(card, /utm_source=studio/);
+  assert.equal(card.replace(/<[^>]+>/g, " ").includes(directAffiliateUrl), false);
+  assert.match(html, /class="guide-disclosure/);
+  const affiliateQa = validateAffiliateOperations(
+    published,
+    [{ file: "amazon-us.json", program: configuredAmazonProgram() }],
+    { siteDistRoot: join(REPOSITORY_ROOT, "apps", "site", "dist") },
+  );
+  assert.equal(
+    affiliateQa.coverage.find(({ productId }) => productId === original.id)?.destination,
+    directAffiliateUrl,
+  );
+  assert.equal(
+    affiliateQa.errors.some(({ productId }) => productId === original.id),
+    false,
+  );
+
+  const untaggedUrl = "https://www.amazon.com/dp/B012345678?utm_source=studio";
+  await fetch(`${origin}${slotPath}`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ directAffiliateUrl: untaggedUrl }),
+  });
+  saved = guideDraftSchema.parse(await store.read(draft.id));
+  savedRecommendation = saved.recommendations.find(({ id }) => id === original.id)!;
+  assert.equal(savedRecommendation.directAffiliateUrl, untaggedUrl);
+  assert.equal(savedRecommendation.directAffiliateUrl.includes("tag="), false);
+  const editorWithWarning = await (await fetch(`${origin}/drafts/${draft.id}`)).text();
+  assert.match(editorWithWarning, /No se detectó un tag afiliado/);
+
+  for (const invalid of [
+    "http://www.amazon.com/dp/B012345678",
+    "https://amazon.com.evil.test/dp/B012345678",
+  ]) {
+    const response = await fetch(`${origin}${slotPath}`, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ directAffiliateUrl: invalid }),
+    });
+    assert.equal(response.status, 400);
+  }
+  assert.equal(
+    guideDraftSchema
+      .parse(await store.read(draft.id))
+      .recommendations.find(({ id }) => id === original.id)!.directAffiliateUrl,
+    untaggedUrl,
+  );
+
+  const removedResponse = await fetch(`${origin}${slotPath}`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams(),
+    redirect: "manual",
+  });
+  assert.equal(removedResponse.status, 303);
+  savedRecommendation = guideDraftSchema
+    .parse(await store.read(draft.id))
+    .recommendations.find(({ id }) => id === original.id)!;
+  assert.equal(savedRecommendation.directAffiliateUrl, undefined);
+  assert.deepEqual(savedRecommendation, untouchedRecommendation);
+  const previewAfterRemoval = await (await fetch(`${origin}/drafts/${draft.id}/preview`)).text();
+  assert.doesNotMatch(previewAfterRemoval, />View on Amazon<\/a>/);
+  assert.equal(providerCalls, 0);
+  assert.equal(discoveryCalls, 0);
 });
 
 test("deriva identidad pública concisa sin convertir el título observado en copy", () => {

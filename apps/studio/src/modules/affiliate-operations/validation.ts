@@ -89,10 +89,11 @@ function findingContext(
   productId: string,
   product: ValidatedPublicContent["products"][number] | undefined,
   route: string,
+  recommendationLabel?: string,
 ): FindingContext {
   return {
     productId,
-    product: product?.name ?? "<missing product>",
+    product: product?.name ?? recommendationLabel ?? "<missing product>",
     guideId: guide.id,
     guide: guide.title,
     route,
@@ -112,7 +113,7 @@ function addFinding(
 function inspectUrl(
   value: unknown,
   context: FindingContext,
-  field: "productUrl" | "affiliateUrl",
+  field: "productUrl" | "affiliateUrl" | "directAffiliateUrl",
   findings: AffiliateFinding[],
 ): URL | undefined {
   if (value === undefined) return undefined;
@@ -168,6 +169,7 @@ function checkAffiliateUrl(
   context: FindingContext,
   records: AffiliateProgramRecord[],
   findings: AffiliateFinding[],
+  field = "affiliateUrl",
 ): void {
   const host = hostToken(url.hostname) ?? "<unknown host>";
   const matches = matchingPrograms(host, records);
@@ -177,7 +179,7 @@ function checkAffiliateUrl(
       findings,
       "warning",
       context,
-      "affiliateUrl.program",
+      `${field}.program`,
       `No hay un programa afiliado local que reconozca el host "${host}".`,
     );
     if (!DEMO_HOSTS.has(host)) {
@@ -185,7 +187,7 @@ function checkAffiliateUrl(
         findings,
         "error",
         context,
-        "affiliateUrl.host",
+        `${field}.host`,
         `El host "${host}" no está aprobado por ningún programa afiliado configurado.`,
       );
     }
@@ -194,7 +196,7 @@ function checkAffiliateUrl(
         findings,
         "warning",
         context,
-        "affiliateUrl.trackingId",
+        `${field}.trackingId`,
         "El enlace corto requiere revisión: sus parámetros finales de tracking no son visibles localmente.",
       );
     }
@@ -208,7 +210,7 @@ function checkAffiliateUrl(
       findings,
       "error",
       context,
-      "affiliateUrl.host",
+      `${field}.host`,
       `El host "${host}" coincide con el marketplace, pero no está en la lista de hosts aprobados de "${program.id}".`,
     );
   }
@@ -217,7 +219,7 @@ function checkAffiliateUrl(
       findings,
       "error",
       context,
-      "affiliateUrl.program",
+      `${field}.program`,
       `El programa afiliado "${program.id}" está desactivado.`,
     );
   }
@@ -228,7 +230,7 @@ function checkAffiliateUrl(
       findings,
       "warning",
       context,
-      "affiliateUrl.trackingId",
+      `${field}.trackingId`,
       "El enlace corto requiere revisión: sus parámetros finales de tracking no son visibles localmente.",
     );
   }
@@ -239,7 +241,7 @@ function checkAffiliateUrl(
         findings,
         "error",
         context,
-        "affiliateUrl.trackingId",
+        `${field}.trackingId`,
         `La URL expone ${trackingIds.join(", ")}, pero el programa "${program.id}" no tiene tracking IDs aprobados configurados.`,
       );
     } else {
@@ -251,7 +253,7 @@ function checkAffiliateUrl(
           findings,
           "error",
           context,
-          "affiliateUrl.trackingId",
+          `${field}.trackingId`,
           `El tracking ID visible ${mismatches.join(", ")} no coincide con los IDs aprobados del programa "${program.id}".`,
         );
       }
@@ -261,7 +263,7 @@ function checkAffiliateUrl(
       findings,
       "warning",
       context,
-      "affiliateUrl.trackingId",
+      `${field}.trackingId`,
       `La URL afiliada no expone un tracking ID verificable; los IDs finales no se reescriben automáticamente.`,
     );
   }
@@ -442,9 +444,35 @@ export function validateAffiliateOperations(
     const route = routesByGuideId.get(guide.id) ?? "<unknown route>";
     const guideEntries: AffiliateCoverageEntry[] = [];
     for (const recommendation of guide.recommendations) {
+      const product = recommendation.productId
+        ? productsById.get(recommendation.productId)
+        : undefined;
+      const context = findingContext(
+        guide,
+        recommendation.productId ?? recommendation.id,
+        product,
+        route,
+        recommendation.heading,
+      );
+      if (recommendation.directAffiliateUrl) {
+        const directUrl = inspectUrl(
+          recommendation.directAffiliateUrl,
+          context,
+          "directAffiliateUrl",
+          findings,
+        );
+        const entry: AffiliateCoverageEntry = {
+          ...context,
+          kind: "affiliate",
+          destination: recommendation.directAffiliateUrl,
+        };
+        coverage.push(entry);
+        guideEntries.push(entry);
+        if (directUrl)
+          checkAffiliateUrl(directUrl, context, programRecords, findings, "directAffiliateUrl");
+        continue;
+      }
       if (!recommendation.productId) continue;
-      const product = productsById.get(recommendation.productId);
-      const context = findingContext(guide, recommendation.productId, product, route);
       if (!product) {
         addFinding(
           findings,

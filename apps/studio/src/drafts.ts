@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { primaryAxisSchema } from "@the-good-present/content-schema";
+import { amazonAffiliateUrlSchema, primaryAxisSchema } from "@the-good-present/content-schema";
 import { z } from "zod";
 
 export const DRAFT_SCHEMA_VERSION = 1 as const;
@@ -93,6 +93,7 @@ export const draftRecommendationSchema = z.strictObject({
   searchTerms: optionalTextList.optional(),
   budgetHint: optionalText,
   productId: contentIdSchema.optional(),
+  directAffiliateUrl: amazonAffiliateUrlSchema.optional(),
   heading: optionalText,
   editorialDescription: optionalText,
   whyItFits: optionalText,

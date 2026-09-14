@@ -32,6 +32,30 @@ const stringListSchema = z.array(nonEmptyString);
 
 export const safeHttpUrlSchema = z.url({ protocol: /^https?$/ });
 
+const AMAZON_HOSTS = new Set([
+  "amazon.com",
+  "www.amazon.com",
+  "smile.amazon.com",
+  "amzn.to",
+  "a.co",
+]);
+
+function isAmazonUrl(value: string | undefined): boolean {
+  if (!value) return false;
+  try {
+    return AMAZON_HOSTS.has(new URL(value).hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+export const amazonAffiliateUrlSchema = z
+  .string()
+  .trim()
+  .url("Must be a valid URL.")
+  .refine((value) => URL.canParse(value) && new URL(value).protocol === "https:", "Must use HTTPS.")
+  .refine(isAmazonUrl, "Must use an accepted Amazon retail hostname.");
+
 const imageSchema = nonEmptyString.refine(
   (value) =>
     safeHttpUrlSchema.safeParse(value).success ||
@@ -120,6 +144,7 @@ const productBackedGuideRecommendationSchema = z.strictObject({
   id: contentIdSchema,
   productId: contentIdSchema,
   productResolution: z.never().optional(),
+  directAffiliateUrl: amazonAffiliateUrlSchema.optional(),
   position: z.number().int().positive(),
   heading: nonEmptyString.optional(),
   editorialDescription: nonEmptyString,
@@ -133,6 +158,7 @@ const unresolvedGuideRecommendationSchema = z.strictObject({
   id: contentIdSchema,
   productId: z.never().optional(),
   productResolution: z.literal("unresolved"),
+  directAffiliateUrl: amazonAffiliateUrlSchema.optional(),
   position: z.number().int().positive(),
   heading: nonEmptyString,
   editorialDescription: nonEmptyString,
@@ -200,23 +226,6 @@ export function productDisplayName(product: Pick<Product, "name">): string {
     .replace(/[,:;\s-]+$/, "")}…`;
 }
 
-const AMAZON_HOSTS = new Set([
-  "amazon.com",
-  "www.amazon.com",
-  "smile.amazon.com",
-  "amzn.to",
-  "a.co",
-]);
-
-function isAmazonUrl(value: string | undefined): boolean {
-  if (!value) return false;
-  try {
-    return AMAZON_HOSTS.has(new URL(value).hostname.toLowerCase());
-  } catch {
-    return false;
-  }
-}
-
 export function isAmazonProduct(
   product: Pick<Product, "merchant" | "productUrl" | "affiliateUrl">,
 ): boolean {
@@ -243,4 +252,11 @@ export function productDestination(product: Product): string | undefined {
   return [product.affiliateUrl, product.productUrl].find(
     (value) => value && safeHttpUrlSchema.safeParse(value).success,
   );
+}
+
+export function recommendationDestination(
+  recommendation: Pick<GuideRecommendation, "directAffiliateUrl">,
+  product?: Product,
+): string | undefined {
+  return recommendation.directAffiliateUrl ?? (product ? productDestination(product) : undefined);
 }

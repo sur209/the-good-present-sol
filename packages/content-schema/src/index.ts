@@ -13,6 +13,7 @@ export {
   PRIMARY_AXES,
   PUBLIC_CONTENT_DIRECTORIES,
   PUBLIC_SCHEMA_VERSION,
+  amazonAffiliateUrlSchema,
   clusterHubSchema,
   giftGuideSchema,
   guideRecommendationSchema,
@@ -21,6 +22,7 @@ export {
   primaryAxisSchema,
   productDisplayName,
   productDestination,
+  recommendationDestination,
   productSchema,
   safeHttpUrlSchema,
 } from "./schemas.ts";
