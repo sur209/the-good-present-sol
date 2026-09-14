@@ -62,6 +62,7 @@ import {
   generateIdeaOnlyRecommendation,
   moveRecommendation,
   normalizeQuestionnaire,
+  outlineRegenerationBlockReason,
   regenerateRecommendation,
   removeRecommendation,
   reopenGuideDraft,
@@ -3436,18 +3437,16 @@ async function readGuideDraft(store: DraftStore, id: string): Promise<GuideDraft
 
 function outlinePromptPage(draft: GuideDraft, provider: GuideGenerationProvider): string {
   const prepared = prepareOutlinePrompt(draft, readPublicContent());
-  const hasSelectedProducts = draft.recommendations.some(
-    (recommendation) => recommendation.productId,
-  );
+  const blockedReason = outlineRegenerationBlockReason(draft);
   return page(
     `Prompt de esquema · ${draftName(draft)}`,
     `<p><a href="/drafts/${draft.id}">← Editar guía</a></p>
      <h1>Revisar prompt de esquema</h1>
      <p class="notice">Esta etapa crea sólo slots editoriales y términos de búsqueda. No selecciona productos ni escribe la guía completa.</p>
-     ${hasSelectedProducts ? '<p class="error">Quitá las selecciones de productos antes de regenerar el esquema para no perder trabajo editorial.</p>' : ""}
+     ${blockedReason ? `<p class="error">${escapeHtml(blockedReason)}</p>` : ""}
      <p>Versión <code>${escapeHtml(prepared.version)}</code> · proveedor <code>${escapeHtml(provider.providerId)}</code>${provider.modelId ? ` · modelo <code>${escapeHtml(provider.modelId)}</code>` : ""}</p>
      <pre>${escapeHtml(prepared.prompt)}</pre>
-     <form method="post" action="/drafts/${draft.id}/outline/generate"><input type="hidden" name="promptVersion" value="${escapeHtml(prepared.version)}"><button type="submit"${hasSelectedProducts ? " disabled" : ""}>Generar esquema con este prompt</button></form>`,
+     <form method="post" action="/drafts/${draft.id}/outline/generate"><input type="hidden" name="promptVersion" value="${escapeHtml(prepared.version)}"><button type="submit"${blockedReason ? " disabled" : ""}>Generar esquema con este prompt</button></form>`,
   );
 }
 

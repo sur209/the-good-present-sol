@@ -51,6 +51,7 @@ import {
   SAFE_IDEA_COPY_VERSION,
   MANUAL_EDITORIAL_COPY_VERSION,
   addManualRecommendation,
+  applyDeterministicIdeaCopyFallback,
   classifyObservedClaimMatches,
   clearRecommendationProduct,
   completeGuideEditorialMetadata,
@@ -58,6 +59,7 @@ import {
   generateFinalGuide,
   generateGuideOutline,
   generateIdeaOnlyRecommendation,
+  generateIdeaOnlyRecommendationBatchWithRecovery,
   generateIdeaOnlyRecommendationWithRecovery,
   generateProductBackedRecommendationWithRecovery,
   guideDraftReadiness,
@@ -6206,6 +6208,34 @@ test("muestra el prompt antes de generar un esquema mock por HTTP", async (conte
   const saved = await store.read("guide_http-outline");
   assert.equal(saved.draftType, "gift-guide");
   assert.equal(saved.outline?.slots.length, 3);
+
+  const edited = await store.save(
+    updateRecommendationEditorialCopy(
+      saved,
+      saved.recommendations[0]!.id,
+      {
+        editorialDescription: "Manual copy that must survive.",
+        whyItFits: "It reflects an accepted editorial choice.",
+      },
+      true,
+    ),
+  );
+  const regenerationPrompt = await fetch(`${origin}/drafts/guide_http-outline/outline-prompt`);
+  const regenerationHtml = await regenerationPrompt.text();
+  assert.match(regenerationHtml, /reemplazaría recomendaciones con trabajo editorial o comercial/);
+  assert.match(regenerationHtml, /<button type="submit" disabled>/);
+
+  const rejectedRegeneration = await fetch(`${origin}/drafts/guide_http-outline/outline/generate`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ promptVersion: OUTLINE_PROMPT_VERSION }),
+  });
+  assert.equal(rejectedRegeneration.status, 400);
+  assert.match(await rejectedRegeneration.text(), /evitar perder cambios/);
+  assert.deepEqual(
+    guideDraftSchema.parse(await store.read(edited.id)).recommendations,
+    edited.recommendations,
+  );
 });
 
 test("sugiere productos activos con coincidencia textual determinista", () => {
@@ -6329,6 +6359,90 @@ test("mueve, elimina y agrega slots sin cambiar IDs sobrevivientes", async () =>
   assert.ok(removed.recommendations.some((recommendation) => recommendation.id === thirdId));
 });
 
+test("regenera normalmente un esquema que todavía no tiene trabajo editorial", async () => {
+  const content = new ProductCatalog().read();
+  const draft = await generatedGuideDraft("guide_fresh-outline", 4);
+  let calls = 0;
+  const mock = new MockGuideGenerationProvider();
+  const provider: GuideGenerationProvider = {
+    providerId: "fresh-outline-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      calls++;
+      return mock.generateStructured(request);
+    },
+  };
+  const regenerated = await generateGuideOutline(
+    guideDraftSchema.parse({
+      ...draft,
+      questionnaire: { ...draft.questionnaire, giftCount: 3 },
+    }),
+    content,
+    provider,
+  );
+
+  assert.equal(calls, 1);
+  assert.equal(regenerated.recommendations.length, 3);
+  assert.ok(
+    regenerated.recommendations.every(
+      ({ editorialStatus }) => editorialStatus === "needs-generation",
+    ),
+  );
+});
+
+test("bloquea reducir el esquema si eliminaría una recomendación editada", async () => {
+  const content = new ProductCatalog().read();
+  const draft = await generatedGuideDraft("guide_edited-outline", 4);
+  const editedId = draft.recommendations[3]!.id;
+  const generated = await generateIdeaOnlyRecommendation(
+    draft,
+    editedId,
+    content,
+    new MockGuideGenerationProvider(),
+  );
+  const edited = guideDraftSchema.parse({
+    ...updateRecommendationEditorialCopy(
+      generated,
+      editedId,
+      {
+        editorialDescription: "Accepted copy for the fourth recommendation.",
+        whyItFits: "It preserves a deliberate editorial choice.",
+      },
+      true,
+    ),
+    questionnaire: { ...draft.questionnaire, giftCount: 3 },
+  });
+  let providerCalls = 0;
+  const provider: GuideGenerationProvider = {
+    providerId: "blocked-outline-fixture",
+    async generateStructured<T>(): Promise<T> {
+      providerCalls++;
+      throw new Error("The provider must not be called for destructive regeneration.");
+    },
+  };
+
+  await assert.rejects(
+    generateGuideOutline(edited, content, provider),
+    /reemplazaría recomendaciones con trabajo editorial o comercial/,
+  );
+  assert.equal(providerCalls, 0);
+  assert.equal(edited.recommendations.find(({ id }) => id === editedId)!.editorialStatus, "ready");
+});
+
+test("bloquea regenerar el esquema cuando existe un enlace afiliado directo", async () => {
+  const content = new ProductCatalog().read();
+  const draft = await generatedGuideDraft("guide_monetized-outline");
+  const monetized = updateRecommendationDirectAffiliateUrl(
+    draft,
+    draft.recommendations[0]!.id,
+    "https://www.amazon.com/dp/B0ABCDEF12?tag=outline-20",
+  );
+
+  await assert.rejects(
+    generateGuideOutline(monetized, content, new MockGuideGenerationProvider()),
+    /reemplazaría recomendaciones con trabajo editorial o comercial/,
+  );
+});
+
 test("bloquea regenerar el esquema después de seleccionar productos", async () => {
   const content = new ProductCatalog().read();
   const draft = await generatedGuideDraft("guide_locked-outline");
@@ -6340,7 +6454,7 @@ test("bloquea regenerar el esquema después de seleccionar productos", async () 
   );
   await assert.rejects(
     generateGuideOutline(selected, content, new MockGuideGenerationProvider()),
-    /Quitá las selecciones/,
+    /reemplazaría recomendaciones con trabajo editorial o comercial/,
   );
 });
 
@@ -7099,6 +7213,111 @@ test("genera idea-only segura con contexto heredado y deja Stage 2 Product-backe
       productName: "Injected Product",
     }),
   );
+});
+
+test("el fallback determinista conserva identidad, Product y metadata comercial", async () => {
+  const content = new ProductCatalog().read();
+  const draft = await generatedGuideDraft("guide_safe-fallback-state");
+  const selected = selectRecommendationProduct(
+    draft,
+    draft.recommendations[0]!.id,
+    content.products[0]!.id,
+    content,
+  );
+  const enriched = updateRecommendationDirectAffiliateUrl(
+    selected,
+    selected.recommendations[0]!.id,
+    "https://www.amazon.com/dp/B0ABCDEF12?tag=fallback-20&ref_=safe",
+  );
+  const before = enriched.recommendations[0]!;
+  const untouched = enriched.recommendations[1]!;
+  const completed = applyDeterministicIdeaCopyFallback(enriched, before.id);
+  const after = completed.recommendations[0]!;
+
+  assert.equal(after.id, before.id);
+  assert.equal(after.position, before.position);
+  assert.equal(after.productId, before.productId);
+  assert.equal(after.directAffiliateUrl, before.directAffiliateUrl);
+  assert.equal(after.slotIntent, before.slotIntent);
+  assert.deepEqual(after.searchTerms, before.searchTerms);
+  assert.equal(after.budgetHint, before.budgetHint);
+  assert.equal(after.editorialPromptVersion, SAFE_IDEA_COPY_VERSION);
+  assert.equal(after.editorialStatus, "ready");
+  assert.deepEqual(completed.recommendations[1], untouched);
+});
+
+test("la generación editorial exitosa conserva el enlace directo y la referencia Product", async () => {
+  const content = new ProductCatalog().read();
+  const draft = await selectedGuideDraft("guide_safe-generated-state");
+  const withAffiliate = updateRecommendationDirectAffiliateUrl(
+    draft,
+    draft.recommendations[0]!.id,
+    "https://www.amazon.com/dp/B0ABCDEF12?tag=success-20",
+  );
+  const before = withAffiliate.recommendations[0]!;
+  const untouched = withAffiliate.recommendations[1]!;
+  const generated = await regenerateRecommendation(
+    withAffiliate,
+    before.id,
+    content,
+    new MockGuideGenerationProvider(),
+  );
+  const after = generated.recommendations[0]!;
+
+  assert.equal(after.id, before.id);
+  assert.equal(after.position, before.position);
+  assert.equal(after.productId, before.productId);
+  assert.equal(after.directAffiliateUrl, before.directAffiliateUrl);
+  assert.equal(after.editorialStatus, "ready");
+  assert.deepEqual(generated.recommendations[1], untouched);
+});
+
+test("el repair agotado usa fallback sin reescribir afiliación ni identidad", async () => {
+  const content = new ProductCatalog().read();
+  const draft = await generatedGuideDraft("guide_exhausted-fallback-state");
+  const monetized = updateRecommendationDirectAffiliateUrl(
+    draft,
+    draft.recommendations[0]!.id,
+    "https://www.amazon.com/dp/B0ABCDEF12?tag=exhausted-20",
+  );
+  const before = monetized.recommendations[0]!;
+  const operations: string[] = [];
+  const provider: GuideGenerationProvider = {
+    providerId: "identity-changing-batch-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      operations.push(request.operation);
+      const input = request.input as {
+        recommendations: Array<{ id: string; position: number }>;
+      };
+      return {
+        recommendations: input.recommendations.map((recommendation) => ({
+          id: recommendation.id,
+          position: recommendation.position + 1,
+          heading: "Unsafe identity change",
+          editorialDescription: "This response must be rejected.",
+          whyItFits: "It cannot replace stable recommendation identity.",
+          bestFor: "No accepted recommendation",
+          selectionGuidance: "Reject the mismatched position.",
+        })),
+      } as T;
+    },
+  };
+
+  const completed = await generateIdeaOnlyRecommendationBatchWithRecovery(
+    monetized,
+    [before.id],
+    content,
+    provider,
+  );
+  const after = completed.draft.recommendations[0]!;
+
+  assert.deepEqual(operations, ["idea-recommendation-batch", "idea-recommendation-batch-repair"]);
+  assert.equal(after.id, before.id);
+  assert.equal(after.position, before.position);
+  assert.equal(after.directAffiliateUrl, before.directAffiliateUrl);
+  assert.equal(after.productId, before.productId);
+  assert.equal(after.editorialPromptVersion, SAFE_IDEA_COPY_VERSION);
+  assert.ok(completed.slots[0]!.warnings.includes("idea-editorial-copy-fallback-used"));
 });
 
 test("recupera copy idea-only campo por campo y reporta diagnósticos compactos", async () => {

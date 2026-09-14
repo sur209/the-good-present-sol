@@ -189,9 +189,8 @@ export async function generateGuideOutline(
   provider: GuideGenerationProvider,
   now = new Date(),
 ): Promise<GuideDraft> {
-  if (draft.recommendations.some((recommendation) => recommendation.productId)) {
-    throw new TypeError("Quitá las selecciones de productos antes de regenerar el esquema.");
-  }
+  const blockedReason = outlineRegenerationBlockReason(draft);
+  if (blockedReason) throw new TypeError(blockedReason);
   const prepared = prepareOutlinePrompt(draft, content);
   const generated = await provider.generateStructured({
     operation: "outline",
@@ -222,6 +221,41 @@ export async function generateGuideOutline(
       editorialStatus: "needs-generation",
     })),
   });
+}
+
+const recommendationCopyFields = [
+  "heading",
+  "editorialDescription",
+  "whyItFits",
+  "bestFor",
+  "selectionGuidance",
+  "considerations",
+  "editorialPromptVersion",
+] as const;
+
+export function outlineRegenerationBlockReason(draft: GuideDraft): string | undefined {
+  const outlineSlots = draft.outline?.slots;
+  const hasRecommendationWork =
+    (outlineSlots && outlineSlots.length !== draft.recommendations.length) ||
+    draft.recommendations.some((recommendation, index) => {
+      const outlineSlot = outlineSlots?.[index];
+      return Boolean(
+        recommendation.productId ||
+        recommendation.directAffiliateUrl ||
+        recommendation.editorialStatus !== "needs-generation" ||
+        recommendationCopyFields.some((field) => recommendation[field]) ||
+        !outlineSlot ||
+        recommendation.id !== outlineSlot.id ||
+        recommendation.position !== index + 1 ||
+        recommendation.slotLabel !== outlineSlot.label ||
+        recommendation.slotIntent !== outlineSlot.intent ||
+        recommendation.budgetHint !== outlineSlot.budgetHint ||
+        JSON.stringify(recommendation.searchTerms) !== JSON.stringify(outlineSlot.searchTerms),
+      );
+    });
+  return hasRecommendationWork
+    ? "No se puede regenerar el esquema porque reemplazaría recomendaciones con trabajo editorial o comercial existente. El Studio bloquea esta acción para evitar perder cambios."
+    : undefined;
 }
 
 function recommendationIndex(draft: GuideDraft, recommendationId: string): number {
@@ -1306,12 +1340,7 @@ export function applyDeterministicIdeaCopyFallback(
             const label = slot.slotLabel.trim();
             const giftIdea = label.toLocaleLowerCase("en-US");
             return {
-              id: slot.id,
-              position: slot.position,
-              slotLabel: slot.slotLabel,
-              ...(slot.slotIntent ? { slotIntent: slot.slotIntent } : {}),
-              ...(slot.searchTerms ? { searchTerms: slot.searchTerms } : {}),
-              ...(slot.budgetHint ? { budgetHint: slot.budgetHint } : {}),
+              ...slot,
               heading: label,
               editorialDescription: `A well-chosen ${giftIdea} turns an everyday need into a gift that feels considered and personal.`,
               whyItFits: `It gives the recipient a useful choice centered on ${giftIdea}.`,
