@@ -3160,6 +3160,7 @@ function recommendationSelectionSection(
       );
       const prefill = productSourcingPrefillForDraftSlot(draft, recommendation, brief);
       const slotPath = guideDraftSlotPath(draft.id, recommendation.id);
+      const directAffiliatePath = `/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(recommendation.id)}/direct-affiliate`;
       const fastResolution = `<section class="card"><h4>Resolver Product con I.2</h4>
         ${slotRequests.length ? `<ul>${slotRequests.map((request) => `<li><a href="/product-sourcing/${encodeURIComponent(request.id)}"><code>${escapeHtml(request.id)}</code></a> - ${request.status === "completed-idea-only" ? "intento completo · Product pendiente" : escapeHtml(request.status)}</li>`).join("")}</ul>` : '<p class="muted">La solicitud I.2 se crea automaticamente al elegir una coincidencia o pegar una URL.</p>'}
         ${!selected ? `<form method="post" action="${slotPath}/resolve-url" class="card"><label>URL de producto o afiliado<input type="url" name="url" required placeholder="https://..."></label><label>Destino afiliado separado (opcional)<input type="url" name="affiliateUrl" placeholder="https://..."></label><label>Tracking ID conocido (opcional)<input name="trackingId"></label><button type="submit">Pegar URL de producto/afiliado</button></form>` : ""}
@@ -3175,8 +3176,8 @@ function recommendationSelectionSection(
             : undefined))
         : undefined;
       const directAffiliate = `<section class="card"><h4>Monetización</h4>
-        <form method="post" action="${slotPath}/direct-affiliate"><label>Amazon affiliate link<input type="url" name="directAffiliateUrl" value="${value(recommendation.directAffiliateUrl)}" placeholder="https://www.amazon.com/..."></label><button type="submit">Guardar enlace</button></form>
-        ${recommendation.directAffiliateUrl ? `<p class="muted">Guardado: <code>${escapeHtml(recommendation.directAffiliateUrl)}</code></p><form method="post" action="${slotPath}/direct-affiliate"><button type="submit">Quitar enlace</button></form>` : '<p class="muted">Sin enlace afiliado</p>'}
+        <form method="post" action="${directAffiliatePath}"><label>Amazon affiliate link<input type="url" name="directAffiliateUrl" value="${value(recommendation.directAffiliateUrl)}" placeholder="https://www.amazon.com/..."></label><button type="submit">Guardar enlace</button></form>
+        ${recommendation.directAffiliateUrl ? `<p class="muted">Guardado: <code>${escapeHtml(recommendation.directAffiliateUrl)}</code></p><form method="post" action="${directAffiliatePath}"><button type="submit">Quitar enlace</button></form>` : '<p class="muted">Sin enlace afiliado</p>'}
         ${directAffiliateWarning ? `<p class="notice">${escapeHtml(directAffiliateWarning)}</p>` : ""}
       </section>`;
       return `<article class="card" id="slot-${escapeHtml(recommendation.id)}">

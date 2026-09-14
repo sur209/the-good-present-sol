@@ -8180,12 +8180,17 @@ test("monetiza una recomendación directamente sin Product ni trabajo de sourcin
   assert.ok(address && typeof address !== "string");
   const origin = `http://${STUDIO_HOST}:${address.port}`;
   const slotPath = `/drafts/${draft.id}/recommendations/${original.id}/direct-affiliate`;
+  const slotAnchor = `/drafts/${draft.id}#slot-${original.id}`;
 
   const editorBefore = await (await fetch(`${origin}/drafts/${draft.id}`)).text();
   assert.match(editorBefore, /Completar guía automáticamente/);
   assert.match(editorBefore, /Curación de Products \(opcional\)/);
   assert.match(editorBefore, /Monetización/);
   assert.match(editorBefore, /Sin enlace afiliado/);
+  assert.ok(
+    editorBefore.includes(`<form method="post" action="${slotPath}"><label>Amazon affiliate link`),
+  );
+  assert.equal(editorBefore.includes(`#slot-${original.id}/direct-affiliate`), false);
 
   const directAffiliateUrl =
     "https://www.amazon.com/dp/B012345678?tag=thegoodpresent-20&utm_source=studio";
@@ -8196,6 +8201,7 @@ test("monetiza una recomendación directamente sin Product ni trabajo de sourcin
     redirect: "manual",
   });
   assert.equal(savedResponse.status, 303);
+  assert.equal(savedResponse.headers.get("location"), slotAnchor);
   let saved = guideDraftSchema.parse(await store.read(draft.id));
   let savedRecommendation = saved.recommendations.find(({ id }) => id === original.id)!;
   assert.equal(savedRecommendation.productId, undefined);
@@ -8205,6 +8211,14 @@ test("monetiza una recomendación directamente sin Product ni trabajo de sourcin
   assert.deepEqual(withoutDirectAffiliateUrl, untouchedRecommendation);
   assert.equal(providerCalls, 0, "0 LLM or P.2 calls");
   assert.equal(discoveryCalls, 0, "0 discovery calls");
+
+  const editorAfterSave = await (await fetch(`${origin}/drafts/${draft.id}`)).text();
+  assert.ok(
+    editorAfterSave.includes(
+      `<form method="post" action="${slotPath}"><button type="submit">Quitar enlace</button></form>`,
+    ),
+  );
+  assert.equal(editorAfterSave.includes(`#slot-${original.id}/direct-affiliate`), false);
 
   const preview = await (await fetch(`${origin}/drafts/${draft.id}/preview`)).text();
   assert.match(preview, />View on Amazon<\/a>/);
@@ -8287,6 +8301,7 @@ test("monetiza una recomendación directamente sin Product ni trabajo de sourcin
     redirect: "manual",
   });
   assert.equal(removedResponse.status, 303);
+  assert.equal(removedResponse.headers.get("location"), slotAnchor);
   savedRecommendation = guideDraftSchema
     .parse(await store.read(draft.id))
     .recommendations.find(({ id }) => id === original.id)!;
