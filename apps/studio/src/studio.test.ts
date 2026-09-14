@@ -393,6 +393,93 @@ function articleCandidate(overrides: Partial<ArticleCandidate> = {}): ArticleCan
   });
 }
 
+function opportunityContentFixture(): ValidatedPublicContent {
+  return {
+    products: [
+      productSchema.parse({
+        schemaVersion: 1,
+        id: "product_fixture-care-kit",
+        name: "Portable care kit",
+        merchant: "Fixture Merchant",
+        shortDescription: "A compact set for everyday routines.",
+        categories: ["care accessories", "portable organization"],
+        recipients: ["nurses"],
+        status: "active",
+      }),
+    ],
+    guides: [
+      {
+        schemaVersion: 1,
+        id: "guide_nurse-practical",
+        pageType: "gift-guide",
+        clusterId: "cluster_nurse-gifts",
+        slug: "practical",
+        language: "en-US",
+        title: "Practical Gifts for Nurses",
+        excerpt: "Useful gifts organized around real routines.",
+        introduction: "Choose a gift that solves one modest everyday problem well.",
+        primaryAxis: "gift-style",
+        primaryIntent: "Help a giver choose a useful gift for a nurse.",
+        taxonomies: { recipients: ["nurses"], giftStyles: ["practical"] },
+        seoTitle: "Practical Gifts for Nurses | The Good Present",
+        seoDescription: "A fixture guide for practical nurse gift ideas.",
+        status: "published",
+        publishedAt: "2026-08-03",
+        recommendations: [
+          {
+            id: "practical_fixture-care-kit",
+            productResolution: "unresolved",
+            position: 1,
+            heading: "A compact care kit",
+            editorialDescription: "A small kit keeps a few everyday items together.",
+            whyItFits: "It supports an existing routine without adding clutter.",
+            editorialStatus: "ready",
+          },
+        ],
+      },
+    ],
+    clusters: [
+      {
+        schemaVersion: 1,
+        id: "cluster_nurse-gifts",
+        pageType: "cluster-hub",
+        slug: "nurse-gifts",
+        language: "en-US",
+        title: "Nurse Gifts",
+        excerpt: "Thoughtful gifts for nurses.",
+        introduction: "Start with the recipient and the routine the gift should support.",
+        seoTitle: "Nurse Gifts | The Good Present",
+        seoDescription: "A fixture cluster for nurse gift guides.",
+        navigationGroups: [
+          {
+            id: "group_fixture-practical",
+            label: "Practical gifts",
+            axis: "gift-style",
+            guideIds: ["guide_nurse-practical"],
+          },
+        ],
+        status: "published",
+        publishedAt: "2026-08-01",
+      },
+    ],
+  };
+}
+
+async function writeOpportunityContentFixture(repository: string) {
+  const content = opportunityContentFixture();
+  for (const [directory, records] of [
+    ["products", content.products],
+    ["guides", content.guides],
+    ["clusters", content.clusters],
+  ] as const) {
+    await mkdir(join(repository, "content", directory), { recursive: true });
+    for (const record of records) {
+      await atomicWriteJson(join(repository, "content", directory, `${record.id}.json`), record);
+    }
+  }
+  return readPublicContent(repository);
+}
+
 function configuredAmazonProgram() {
   return affiliateProgramSchema.parse({
     id: "amazon-us",
@@ -1045,10 +1132,27 @@ test("valida candidatos, puntajes separados, decisiones y transiciones acotadas"
   assert.equal(tracedLaterState.guideDraftId, "guide_nurse-shift-recovery");
 });
 
+test("usa una raíz de contenido explícita y aislada para Opportunity Lab", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-opportunity-fixture-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  const expected = opportunityContentFixture();
+  const content = await writeOpportunityContentFixture(repository);
+  const catalog = new ProductCatalog(repository);
+
+  assert.notEqual(repository, REPOSITORY_ROOT);
+  assert.equal(catalog.root, repository);
+  assert.deepEqual(content, expected);
+  assert.deepEqual(catalog.read(), expected);
+  assert.deepEqual(
+    content.products.map(({ id }) => id),
+    ["product_fixture-care-kit"],
+  );
+});
+
 test("persiste un brief editable, exige aprobación y crea un GuideDraft sin contenido público", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-editorial-brief-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
-  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const content = await writeOpportunityContentFixture(repository);
   const candidateStore = new ArticleCandidateStore(repository);
   const briefStore = new EditorialBriefStore(repository, candidateStore);
   const draftStore = new DraftStore(join(repository, "drafts"));
@@ -1091,13 +1195,7 @@ test("persiste un brief editable, exige aprobación y crea un GuideDraft sin con
   await briefStore.save(edited);
   assert.equal(briefStore.get(edited.id).workingTitle, edited.workingTitle);
   await assert.rejects(
-    convertApprovedBriefToGuideDraft(
-      edited,
-      candidateStore,
-      briefStore,
-      draftStore,
-      readPublicContent(repository),
-    ),
+    convertApprovedBriefToGuideDraft(edited, candidateStore, briefStore, draftStore, content),
     /Approve the brief/,
   );
 
@@ -1109,7 +1207,7 @@ test("persiste un brief editable, exige aprobación y crea un GuideDraft sin con
     candidateStore,
     briefStore,
     draftStore,
-    readPublicContent(repository),
+    content,
     new Date("2026-08-09T05:00:00.000Z"),
   );
   assert.equal(converted.brief.status, "converted-to-guide-draft");
@@ -1124,7 +1222,7 @@ test("persiste un brief editable, exige aprobación y crea un GuideDraft sin con
   assert.match(converted.draft.questionnaire.additional ?? "", /Own the off-shift recovery/);
   assert.match(converted.draft.questionnaire.additional ?? "", /Which product facts require/);
   assert.deepEqual(
-    prepareOutlinePrompt(converted.draft, readPublicContent(repository)).input.questionnaire,
+    prepareOutlinePrompt(converted.draft, content).input.questionnaire,
     converted.draft.questionnaire,
   );
   assert.equal((await draftStore.read(converted.draft.id)).id, converted.draft.id);
@@ -1160,7 +1258,7 @@ test("normaliza y explica por separado cada señal determinista", () => {
   };
   const report = compareArticleCandidate(
     candidate,
-    readPublicContent(),
+    opportunityContentFixture(),
     [createGuideDraft("guide_comparison-draft")],
     [],
     [exactBrief, partialBrief],
@@ -1182,7 +1280,7 @@ test("normaliza y explica por separado cada señal determinista", () => {
 });
 
 test("separa colisiones públicas, conserva decisiones previas y permite el override humano", () => {
-  const content = readPublicContent();
+  const content = opportunityContentFixture();
   const current = articleCandidate({ proposedSlug: "practical" });
   const shortlisted = transitionArticleCandidate(
     transitionArticleCandidate(current, "evaluated"),
@@ -1257,7 +1355,7 @@ test("separa colisiones públicas, conserva decisiones previas y permite el over
 });
 
 test("construye un prompt divergente determinista y rechaza evidencia o campos protegidos", async () => {
-  const content = readPublicContent();
+  const content = opportunityContentFixture();
   const request = {
     clusterId: "cluster_nurse-gifts",
     sessionMode: "intent-first" as const,
@@ -1296,6 +1394,27 @@ test("construye un prompt divergente determinista y rechaza evidencia o campos p
     }).success,
     false,
   );
+  for (const category of ["Multicolor click pen set", "retractable click pen", "click-top pen"]) {
+    assert.equal(
+      generatedOpportunityBatchSchema.safeParse({
+        candidates: [{ ...generated.candidates[0], distinctiveProductCategories: [category] }],
+      }).success,
+      true,
+    );
+  }
+  for (const problemSolved of [
+    "The prior page received 100 clicks.",
+    "The category has a 25% conversion rate.",
+    "The keyword receives 1,000 monthly searches.",
+    "Traffic data proves this audience converts.",
+  ]) {
+    assert.equal(
+      generatedOpportunityBatchSchema.safeParse({
+        candidates: [{ ...generated.candidates[0], problemSolved }],
+      }).success,
+      false,
+    );
+  }
   assert.equal(
     generatedOpportunityBatchSchema.safeParse({
       candidates: [
@@ -1330,8 +1449,7 @@ test("construye un prompt divergente determinista y rechaza evidencia o campos p
 test("ejecuta los tres modos I.1 con procedencia y el ciclo de vida ordinario", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-opportunity-modes-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
-  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
-  const content = readPublicContent(repository);
+  const content = await writeOpportunityContentFixture(repository);
   const productCoverage = analyzeProductCoverage(content);
   const coverageSignal = opportunityCoverageSignals(productCoverage)[0]!;
   const sourceProduct = content.products.find(
@@ -1456,7 +1574,7 @@ test("ejecuta los tres modos I.1 con procedencia y el ciclo de vida ordinario", 
 });
 
 test("construye un prompt convergente determinista y valida puntajes, destinos y procedencia", () => {
-  const content = readPublicContent();
+  const content = opportunityContentFixture();
   const candidate = articleCandidate();
   const importedSignal = {
     id: "signal_manual-window",
@@ -1552,8 +1670,7 @@ test("construye un prompt convergente determinista y valida puntajes, destinos y
 test("evalúa un lote sólo hasta evaluated y guarda metadata validada sin respuesta cruda", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-opportunity-evaluation-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
-  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
-  const content = readPublicContent(repository);
+  const content = await writeOpportunityContentFixture(repository);
   const candidateStore = new ArticleCandidateStore(repository);
   const evaluationStore = new OpportunityEvaluationStore(repository);
   const candidate = articleCandidate({ proposedTitle: "PRIVATE_EVALUATION_SENTINEL" });
@@ -1605,8 +1722,7 @@ test("evalúa un lote sólo hasta evaluated y guarda metadata validada sin respu
 test("rechaza salida convergente inválida sin escribir candidatos ni evaluaciones", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-opportunity-evaluation-failure-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
-  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
-  const content = readPublicContent(repository);
+  const content = await writeOpportunityContentFixture(repository);
   const candidateStore = new ArticleCandidateStore(repository);
   const evaluationStore = new OpportunityEvaluationStore(repository);
   const candidate = articleCandidate();
@@ -1650,8 +1766,7 @@ test("rechaza salida convergente inválida sin escribir candidatos ni evaluacion
 test("genera 20 candidatos mock, compara antes de persistir y guarda metadata sin credenciales", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-opportunity-generation-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
-  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
-  const content = readPublicContent(repository);
+  const content = await writeOpportunityContentFixture(repository);
   const candidateStore = new ArticleCandidateStore(repository);
   const provider = new MockGuideGenerationProvider();
   const result = await generateDivergentOpportunities(
@@ -1738,8 +1853,7 @@ test("genera 20 candidatos mock, compara antes de persistir y guarda metadata si
 test("no persiste ante límites inválidos, salida inválida o fallas del proveedor", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-opportunity-failure-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
-  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
-  const content = readPublicContent(repository);
+  const content = await writeOpportunityContentFixture(repository);
   const candidateStore = new ArticleCandidateStore(repository);
   let calls = 0;
   const invalidProvider: GuideGenerationProvider = {
@@ -1864,7 +1978,7 @@ test("no persiste ante límites inválidos, salida inválida o fallas del provee
 test("persiste candidatos atómicamente por ID seguro y valida referencias canónicas", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-opportunities-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
-  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  await writeOpportunityContentFixture(repository);
   const store = new ArticleCandidateStore(repository);
   const candidate = articleCandidate();
   await store.save(candidate);
@@ -1902,7 +2016,7 @@ test("persiste candidatos atómicamente por ID seguro y valida referencias canó
 
 test("expone lista y detalle internos, guarda la decisión y excluye candidatos del build", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-opportunity-http-"));
-  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  await writeOpportunityContentFixture(repository);
   const sentinel = "INTERNAL_OPPORTUNITY_SENTINEL_20260809";
   const candidateStore = new ArticleCandidateStore(repository);
   const candidate = articleCandidate({ proposedTitle: sentinel });

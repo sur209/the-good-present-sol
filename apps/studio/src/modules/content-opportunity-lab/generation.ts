@@ -198,7 +198,7 @@ export type OpportunityGenerationPromptInput = z.infer<
 >;
 
 const FORBIDDEN_EXTERNAL_EVIDENCE =
-  /\b(?:search volume|keyword difficulty|monthly searches?|search demand|impressions?|click-through rate|ctr|clicks?|conversion rate|conversions?|affiliate (?:revenue|sales|performance)|pinterest (?:views|saves|performance)|search console|google analytics|traffic data|trending|best-?selling|high-demand|proven performer)\b/i;
+  /\b(?:search volume|keyword difficulty|monthly searches?|search demand|impressions?|click-through rate|ctr|\d[\d,.]*\s+clicks?|clicks? (?:count|rate|performance|traffic)|conversion rate|conversions?|affiliate (?:revenue|sales|performance)|pinterest (?:views|saves|performance)|search console|google analytics|traffic data|trending|best-?selling|high-demand|proven performer)\b/i;
 const URL_LIKE = /(?:https?:\/\/|www\.)/i;
 
 export const generatedOpportunitySchema = z.strictObject({
