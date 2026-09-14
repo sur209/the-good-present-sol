@@ -64,7 +64,7 @@ The root workspace commands are:
 
 The Astro launcher disables framework telemetry for deterministic local and CI execution; it does not change any user-level Astro setting. The Studio defaults to `http://127.0.0.1:4322`, uses a Spanish interface while producing US English public copy, and stores one validated JSON file per draft under `drafts/`.
 
-Working drafts are intentionally git-ignored: they may contain questionnaire answers and AI prompt metadata that do not belong in public history. Canonical files under `content/` remain version-controlled. Copy or back up `drafts/` explicitly if local draft history is needed. See the complete [editorial workflow](docs/editorial-workflow.md).
+Working drafts are intentionally git-ignored: they may contain questionnaire answers and AI prompt metadata that do not belong in public history. Each save checks the revision shown by the form and keeps one previous snapshot under `drafts/.backups/`. A root-level `.studio-writer.lock` allows one writable Studio process per repository; a dead process lock is removed automatically, while an unreadable or apparently live lock must be checked manually. Canonical files under `content/` remain version-controlled. See the complete [editorial workflow](docs/editorial-workflow.md).
 
 To opt into a real provider, copy `.env.example` to `.env`, select the OpenAI or DeepSeek profile, and supply an explicit model and API key. `.env` is git-ignored and loaded only by the local Studio server. See [AI provider configuration](docs/ai-providers.md); mock mode remains the default and is used by all tests.
 

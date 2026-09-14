@@ -13,6 +13,7 @@ import {
 } from "./ai-provider.ts";
 import { DraftStore } from "./draft-store.ts";
 import { createGuideDraft, guideDraftSchema, type GuideDraft } from "./drafts.ts";
+import { updateRecommendationDirectAffiliateUrl } from "./guide-editor.ts";
 import {
   EditorialReviewStore,
   applyEditorialCorrections,
@@ -495,6 +496,33 @@ test("editorial review: compare-before-save rejects competing corrections withou
   await store.save({ ...saved, conclusion: "A subsequent normal save still works." });
 });
 
+test("editorial correction requires both a valid fingerprint and the expected draft revision", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "editorial-review-revision-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const store = new DraftStore(root);
+  const draft = await store.save(fixture());
+  const { provider } = respondingProvider();
+  const review = await reviewGuideEditorially(draft, provider);
+  const affiliate = await store.save(
+    updateRecommendationDirectAffiliateUrl(
+      draft,
+      draft.recommendations[0]!.id,
+      "https://www.amazon.com/dp/B0ABCDEF12?tag=review-20",
+    ),
+  );
+  assert.equal(affiliate.revision, draft.revision + 1);
+  assert.equal(editorialReviewIsStale(affiliate, review), false);
+
+  const corrected = applyEditorialCorrections(affiliate, review, [review.issues[0]!.id]);
+  await assert.rejects(store.save(corrected.draft, new Date(), draft), /cambió después de abrir/);
+  const saved = await store.save(corrected.draft, new Date(), affiliate);
+  assert.equal(saved.revision, affiliate.revision + 1);
+  assert.equal(
+    saved.recommendations[0]!.directAffiliateUrl,
+    affiliate.recommendations[0]!.directAffiliateUrl,
+  );
+});
+
 test("editorial review: Studio review/apply/history flow has zero discovery, P.2, Product writes or extra LLM calls", async (t) => {
   const root = await mkdtemp(join(tmpdir(), "editorial-review-http-"));
   await cp(join(REPOSITORY_ROOT, "content"), join(root, "content"), { recursive: true });
@@ -576,12 +604,16 @@ test("editorial review: Studio review/apply/history flow has zero discovery, P.2
     assert.ok(html.includes(text), text);
   const applied = await post(
     "/editorial-review/apply",
-    new URLSearchParams({ reviewId: review.id, issueId: review.issues[1]!.id }),
+    new URLSearchParams({
+      revision: String(before.revision),
+      reviewId: review.id,
+      issueId: review.issues[1]!.id,
+    }),
   );
   assert.equal(applied.status, 303);
   const saved = (await store.read(draft.id)) as GuideDraft;
   assert.deepEqual(
-    { ...saved, updatedAt: before.updatedAt },
+    { ...saved, revision: before.revision, updatedAt: before.updatedAt },
     {
       ...before,
       recommendations: draft.recommendations.map((slot, index) =>
@@ -594,7 +626,11 @@ test("editorial review: Studio review/apply/history flow has zero discovery, P.2
     (
       await post(
         "/editorial-review/apply",
-        new URLSearchParams({ reviewId: review.id, issueId: review.issues[0]!.id }),
+        new URLSearchParams({
+          revision: String(saved.revision),
+          reviewId: review.id,
+          issueId: review.issues[0]!.id,
+        }),
       )
     ).status,
     400,

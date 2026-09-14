@@ -2,6 +2,7 @@ node_modules/
 .astro/
 dist/
 drafts/
+.studio-writer.lock
 .env
 .env.*
 !.env.example

@@ -107,6 +107,7 @@ export const draftRecommendationSchema = z.strictObject({
 const draftBaseShape = {
   schemaVersion: z.literal(DRAFT_SCHEMA_VERSION),
   id: contentIdSchema,
+  revision: z.number().int().nonnegative().default(0),
   createdAt: timestampSchema,
   updatedAt: timestampSchema,
 };

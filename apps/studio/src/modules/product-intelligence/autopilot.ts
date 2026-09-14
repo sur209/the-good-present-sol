@@ -8,7 +8,7 @@ import {
 import { z } from "zod";
 
 import type { GuideGenerationProvider } from "../../ai-provider.ts";
-import type { DraftStore } from "../../draft-store.ts";
+import { StaleDraftError, type DraftStore } from "../../draft-store.ts";
 import { guideDraftSchema, type GuideDraft } from "../../drafts.ts";
 import {
   SAFE_IDEA_COPY_VERSION,
@@ -859,11 +859,14 @@ async function saveDraftAndRequest(
   dependencies: AutopilotDependencies,
   now: Date,
 ): Promise<void> {
-  await dependencies.draftStore.save(nextDraft, now);
+  const savedDraft = await dependencies.draftStore.save(nextDraft, now);
   try {
     await dependencies.sourcingStore.save(request);
   } catch (error) {
-    await dependencies.draftStore.save(originalDraft, now);
+    await dependencies.draftStore.save(
+      guideDraftSchema.parse({ ...originalDraft, revision: savedDraft.revision }),
+      now,
+    );
     throw error;
   }
 }
@@ -1050,7 +1053,8 @@ async function completeIdeaOnly(
   const completedRequest = completeProductSourcingRequestAsIdeaOnly(request, now);
   try {
     await saveDraftAndRequest(draft, completedDraft, completedRequest, dependencies, now);
-  } catch {
+  } catch (error) {
+    if (error instanceof StaleDraftError) throw error;
     return outcome(draft, request, {
       status: "failed",
       reasonCode: "safe-terminal-write-failed",
@@ -1422,7 +1426,8 @@ export async function resolveRecommendationSlotAutonomously(
       actionsPerformed: actions,
       warnings: unique(warnings),
     });
-  } catch {
+  } catch (error) {
+    if (error instanceof StaleDraftError) throw error;
     warnings.push("automatic-product-resolution-failed");
     return completeIdeaOnly(
       draft,

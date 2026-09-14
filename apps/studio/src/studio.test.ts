@@ -99,6 +99,7 @@ import {
   recommendationPromptInputSchema,
 } from "./recommendation-prompt.ts";
 import {
+  IDEA_RECOMMENDATION_PROMPT_VERSION,
   generatedIdeaRecommendationSchema,
   ideaRecommendationBatchPromptInputSchema,
   prepareIdeaRecommendationPrompt,
@@ -266,6 +267,14 @@ import { REPOSITORY_ROOT, atomicWriteJson, readPublicContent } from "./repositor
 import { STUDIO_HOST, createStudioServer } from "./server.ts";
 
 const execFileAsync = promisify(execFile);
+
+function deferred() {
+  let release!: () => void;
+  const promise = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  return { promise, release };
+}
 
 async function productDiscoveryFixture(name: string): Promise<unknown> {
   return JSON.parse(
@@ -789,13 +798,77 @@ test("guarda, relee y reemplaza borradores con escritura atómica", async (conte
   );
 
   assert.equal((await store.read(created.id)).title, "A useful guide");
+  assert.equal(created.revision, 1);
+  assert.equal(updated.revision, 2);
   assert.equal(updated.updatedAt, "2026-08-08T02:00:00.000Z");
   assert.deepEqual((await store.list()).errors, []);
-  assert.deepEqual(await readdir(directory), ["guide_atomic.json"]);
+  assert.deepEqual(await readdir(directory), [".backups", "guide_atomic.json"]);
+  assert.equal(
+    JSON.parse(await readFile(join(directory, ".backups", "guide_atomic.previous.json"), "utf8"))
+      .revision,
+    created.revision,
+  );
   assert.equal(
     JSON.parse(await readFile(join(directory, "guide_atomic.json"), "utf8")).id,
     created.id,
   );
+});
+
+test("rechaza dos formularios de la misma revisión y conserva el primero", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-form-revision-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const store = new DraftStore(join(repository, "drafts"));
+  const saved = await store.save(createGuideDraft("guide_form-revision"));
+  const server = createStudioServer(store, new ProductCatalog(repository));
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(() => server.close());
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+  const path = `/drafts/${saved.id}/guide/copy`;
+  const editor = await (await fetch(`${origin}/drafts/${saved.id}`)).text();
+  assert.match(editor, new RegExp(`name="revision" value="${saved.revision}"`));
+
+  const submit = (title: string, revision = saved.revision) =>
+    fetch(`${origin}${path}`, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ revision: String(revision), title }),
+      redirect: "manual",
+    });
+  const first = await submit("First tab wins");
+  const stale = await submit("Second tab must not overwrite");
+
+  assert.equal(first.status, 303);
+  assert.equal(stale.status, 400);
+  assert.match(await stale.text(), /cambió después de abrir esta página/);
+  const current = guideDraftSchema.parse(await store.read(saved.id));
+  assert.equal(current.title, "First tab wins");
+  assert.equal(current.revision, saved.revision + 1);
+  const missingRevision = await fetch(`${origin}${path}`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ title: "Missing revision" }),
+  });
+  assert.equal(missingRevision.status, 400);
+});
+
+test("lee borradores legacy como revisión cero sin migración masiva", async (context) => {
+  const directory = await mkdtemp(join(tmpdir(), "good-present-legacy-revision-"));
+  context.after(() => rm(directory, { recursive: true, force: true }));
+  const legacy = createGuideDraft("guide_legacy-revision");
+  const { revision: _revision, ...withoutRevision } = legacy;
+  await writeFile(
+    join(directory, `${legacy.id}.json`),
+    `${JSON.stringify(withoutRevision, null, 2)}\n`,
+  );
+  const store = new DraftStore(directory);
+  const normalized = guideDraftSchema.parse(await store.read(legacy.id));
+  assert.equal(normalized.revision, 0);
+  const saved = await store.save({ ...normalized, title: "First revisioned save" });
+  assert.equal(saved.revision, 1);
 });
 
 test("limpia el temporal si falla el reemplazo atómico", async (context) => {
@@ -816,6 +889,44 @@ test("rechaza nombres inseguros y el Studio sólo enlaza loopback", () => {
   assert.throws(() => assertSafeDraftId("../outside"), /no válido/);
   assert.throws(() => assertSafeDraftId("Guide Uppercase"), /no válido/);
   assert.equal(STUDIO_HOST, "127.0.0.1");
+});
+
+test("permite un solo Studio escritor por raíz y escritores independientes por raíz", async (context) => {
+  const firstRoot = await mkdtemp(join(tmpdir(), "good-present-writer-one-"));
+  const secondRoot = await mkdtemp(join(tmpdir(), "good-present-writer-two-"));
+  context.after(() =>
+    Promise.all([
+      rm(firstRoot, { recursive: true, force: true }),
+      rm(secondRoot, { recursive: true, force: true }),
+    ]),
+  );
+  const first = createStudioServer(new DraftStore(join(firstRoot, "drafts")));
+  const competing = createStudioServer(new DraftStore(join(firstRoot, "drafts")));
+  const independent = createStudioServer(new DraftStore(join(secondRoot, "drafts")));
+  for (const server of [first, competing, independent]) server.listen(0, STUDIO_HOST);
+  await Promise.all([
+    once(first, "listening"),
+    once(competing, "listening"),
+    once(independent, "listening"),
+  ]);
+  context.after(() => {
+    for (const server of [first, competing, independent]) {
+      if (server.listening) server.close();
+    }
+  });
+  const origin = (server: typeof first) => {
+    const address = server.address();
+    assert.ok(address && typeof address !== "string");
+    return `http://${STUDIO_HOST}:${address.port}`;
+  };
+
+  assert.equal((await fetch(origin(first))).status, 200);
+  const rejected = await fetch(origin(competing));
+  assert.equal(rejected.status, 400);
+  assert.match(await rejected.text(), /otro Studio con escritura/);
+  assert.equal((await fetch(origin(independent))).status, 200);
+  await new Promise<void>((resolve) => first.close(() => resolve()));
+  assert.equal((await fetch(origin(competing))).status, 200);
 });
 
 test("sirve la lista y crea un borrador por HTTP sólo en loopback", async (context) => {
@@ -844,7 +955,7 @@ test("sirve la lista y crea un borrador por HTTP sólo en loopback", async (cont
   });
   assert.equal(createResponse.status, 303);
   assert.match(createResponse.headers.get("location") ?? "", /^\/drafts\/cluster_/);
-  assert.equal((await readdir(directory)).length, 1);
+  assert.equal((await readdir(directory)).filter((name) => name.endsWith(".json")).length, 1);
 });
 
 test("busca productos por texto y etiquetas, filtra estado y muestra uso", () => {
@@ -2308,7 +2419,10 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
   const generateOutlineResponse = await fetch(`${origin}${draftLocation}/outline/generate`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ promptVersion: OUTLINE_PROMPT_VERSION }),
+    body: new URLSearchParams({
+      revision: String(convertedDraft.revision),
+      promptVersion: OUTLINE_PROMPT_VERSION,
+    }),
     redirect: "manual",
   });
   assert.equal(generateOutlineResponse.status, 303);
@@ -3192,7 +3306,10 @@ test("crea un producto desde el Studio, lo selecciona en un GuideDraft y excluye
     {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ productId: product.id }),
+      body: new URLSearchParams({
+        revision: String(selectedDraft.revision),
+        productId: product.id,
+      }),
       redirect: "manual",
     },
   );
@@ -3547,7 +3664,10 @@ test("resuelve una coincidencia de catÃ¡logo por I.2 y exige asignaciÃ³n exa
   const assignment = await fetch(`${origin}/product-sourcing/${request.id}/assign`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ productId: "product_insulated-tumbler" }),
+    body: new URLSearchParams({
+      revision: String(draft.revision),
+      productId: "product_insulated-tumbler",
+    }),
     redirect: "manual",
   });
   assert.equal(assignment.status, 303);
@@ -5731,7 +5851,10 @@ test("crea, cumple y asigna una solicitud al slot exacto por HTTP", async (conte
   const assignResponse = await fetch(`${origin}${location}/assign`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ productId: "product_insulated-tumbler" }),
+    body: new URLSearchParams({
+      revision: String(draft.revision),
+      productId: "product_insulated-tumbler",
+    }),
     redirect: "manual",
   });
   assert.equal(assignResponse.status, 303);
@@ -6277,7 +6400,7 @@ test("muestra el prompt antes de generar un esquema mock por HTTP", async (conte
   const directory = await mkdtemp(join(tmpdir(), "good-present-outline-http-"));
   const store = new DraftStore(directory);
   const content = new ProductCatalog().read();
-  await store.save(
+  const initial = await store.save(
     guideDraftSchema.parse({
       ...createGuideDraft("guide_http-outline"),
       clusterId: content.clusters[0]!.id,
@@ -6308,14 +6431,20 @@ test("muestra el prompt antes de generar un esquema mock por HTTP", async (conte
   const blocked = await fetch(`${origin}/drafts/guide_http-outline/outline/generate`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ promptVersion: "outline-v1" }),
+    body: new URLSearchParams({
+      revision: String(initial.revision),
+      promptVersion: "outline-v1",
+    }),
   });
   assert.equal(blocked.status, 400);
 
   const generated = await fetch(`${origin}/drafts/guide_http-outline/outline/generate`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ promptVersion: OUTLINE_PROMPT_VERSION }),
+    body: new URLSearchParams({
+      revision: String(initial.revision),
+      promptVersion: OUTLINE_PROMPT_VERSION,
+    }),
     redirect: "manual",
   });
   assert.equal(generated.status, 303);
@@ -6342,7 +6471,10 @@ test("muestra el prompt antes de generar un esquema mock por HTTP", async (conte
   const rejectedRegeneration = await fetch(`${origin}/drafts/guide_http-outline/outline/generate`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ promptVersion: OUTLINE_PROMPT_VERSION }),
+    body: new URLSearchParams({
+      revision: String(edited.revision),
+      promptVersion: OUTLINE_PROMPT_VERSION,
+    }),
   });
   assert.equal(rejectedRegeneration.status, 400);
   assert.match(await rejectedRegeneration.text(), /evitar perder cambios/);
@@ -6350,6 +6482,140 @@ test("muestra el prompt antes de generar un esquema mock por HTTP", async (conte
     guideDraftSchema.parse(await store.read(edited.id)).recommendations,
     edited.recommendations,
   );
+});
+
+test("rechaza resultados LLM demorados tras ediciones manuales o afiliadas", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-stale-generation-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const store = new DraftStore(join(repository, "drafts"));
+  const catalog = new ProductCatalog(repository);
+  const first = await store.save(await generatedGuideDraft("guide_stale-generation-affiliate"));
+  const second = await store.save(await generatedGuideDraft("guide_stale-generation-manual"));
+  const mock = new MockGuideGenerationProvider();
+  const gates: Array<{
+    started: ReturnType<typeof deferred>;
+    release: ReturnType<typeof deferred>;
+  }> = [];
+  const provider: GuideGenerationProvider = {
+    providerId: "deferred-stale-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      const gate = gates.shift();
+      gate?.started.release();
+      if (gate) await gate.release.promise;
+      return mock.generateStructured(request);
+    },
+  };
+  const server = createStudioServer(store, catalog, provider, new Publisher(repository));
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  context.after(() => server.close());
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://${STUDIO_HOST}:${address.port}`;
+  const generate = (draft: GuideDraft) =>
+    fetch(
+      `${origin}/drafts/${draft.id}/recommendations/${draft.recommendations[0]!.id}/idea/generate`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          revision: String(draft.revision),
+          promptVersion: IDEA_RECOMMENDATION_PROMPT_VERSION,
+        }),
+        redirect: "manual",
+      },
+    );
+
+  const affiliateGate = { started: deferred(), release: deferred() };
+  gates.push(affiliateGate);
+  const affiliateGeneration = generate(first);
+  await affiliateGate.started.promise;
+  const affiliateUrl = "https://www.amazon.com/dp/B0ABCDEF12?tag=stale-20";
+  const affiliateEdit = await store.save(
+    updateRecommendationDirectAffiliateUrl(first, first.recommendations[0]!.id, affiliateUrl),
+  );
+  affiliateGate.release.release();
+  const affiliateResponse = await affiliateGeneration;
+  assert.equal(affiliateResponse.status, 400);
+  assert.match(await affiliateResponse.text(), /trabajo más nuevo se conservó/);
+  const affiliateCurrent = guideDraftSchema.parse(await store.read(first.id));
+  assert.equal(affiliateCurrent.revision, affiliateEdit.revision);
+  assert.equal(affiliateCurrent.recommendations[0]!.directAffiliateUrl, affiliateUrl);
+
+  const manualGate = { started: deferred(), release: deferred() };
+  gates.push(manualGate);
+  const manualGeneration = generate(second);
+  await manualGate.started.promise;
+  const manualEdit = await store.save({ ...second, introduction: "Newer manual editorial work." });
+  manualGate.release.release();
+  const manualResponse = await manualGeneration;
+  assert.equal(manualResponse.status, 400);
+  const manualCurrent = guideDraftSchema.parse(await store.read(second.id));
+  assert.equal(manualCurrent.revision, manualEdit.revision);
+  assert.equal(manualCurrent.introduction, "Newer manual editorial work.");
+
+  const fresh = await generate(manualCurrent);
+  assert.equal(fresh.status, 303);
+  assert.equal((await store.read(second.id)).revision, manualCurrent.revision + 1);
+});
+
+test("metadata y esquema no pueden guardar sobre una revisión más nueva", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-stale-long-work-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const store = new DraftStore(join(repository, "drafts"));
+  const catalog = new ProductCatalog(repository);
+  const mock = new MockGuideGenerationProvider();
+
+  const metadataBase = await store.save(await generatedGuideDraft("guide_stale-metadata"));
+  const metadataGate = deferred();
+  const metadataStarted = deferred();
+  const metadataProvider: GuideGenerationProvider = {
+    providerId: "deferred-metadata-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      metadataStarted.release();
+      await metadataGate.promise;
+      return mock.generateStructured(request);
+    },
+  };
+  const metadataWork = completeGuideEditorialMetadata(
+    metadataBase,
+    catalog.read(),
+    metadataProvider,
+  );
+  await metadataStarted.promise;
+  const newerMetadata = await store.save({ ...metadataBase, title: "Newer metadata title" });
+  metadataGate.release();
+  const metadataResult = await metadataWork;
+  await assert.rejects(store.save(metadataResult.draft), /cambió después de abrir/);
+  assert.deepEqual(await store.read(metadataBase.id), newerMetadata);
+
+  const outlineBase = await store.save(
+    guideDraftSchema.parse({
+      ...createGuideDraft("guide_stale-outline"),
+      clusterId: catalog.read().clusters[0]!.id,
+      primaryAxis: "recipient",
+      primaryIntent: "Help choose a practical gift.",
+      questionnaire: normalizeQuestionnaire({ giftCount: "3" }),
+    }),
+  );
+  const outlineGate = deferred();
+  const outlineStarted = deferred();
+  const outlineProvider: GuideGenerationProvider = {
+    providerId: "deferred-outline-fixture",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      outlineStarted.release();
+      await outlineGate.promise;
+      return mock.generateStructured(request);
+    },
+  };
+  const outlineWork = generateGuideOutline(outlineBase, catalog.read(), outlineProvider);
+  await outlineStarted.promise;
+  const newerOutline = await store.save({ ...outlineBase, title: "Newer outline title" });
+  outlineGate.release();
+  await assert.rejects(store.save(await outlineWork), /cambió después de abrir/);
+  assert.deepEqual(await store.read(outlineBase.id), newerOutline);
 });
 
 test("sugiere productos activos con coincidencia textual determinista", () => {
@@ -6577,8 +6843,7 @@ test("selecciona, reemplaza y vuelve desde alta de producto por HTTP", async (co
   await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
   const store = new DraftStore(join(repository, "drafts"));
   const catalog = new ProductCatalog(repository);
-  const draft = await generatedGuideDraft("guide_http-selection");
-  await store.save(draft);
+  const draft = await store.save(await generatedGuideDraft("guide_http-selection"));
   const server = createStudioServer(store, catalog);
   server.listen(0, STUDIO_HOST);
   await once(server, "listening");
@@ -6604,18 +6869,25 @@ test("selecciona, reemplaza y vuelve desde alta de producto por HTTP", async (co
     {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ productId: firstProduct.id }),
+      body: new URLSearchParams({
+        revision: String(draft.revision),
+        productId: firstProduct.id,
+      }),
       redirect: "manual",
     },
   );
   assert.equal(selected.status, 303);
+  const afterFirstSelection = guideDraftSchema.parse(await store.read(draft.id));
 
   const duplicateBlocked = await fetch(
     `${origin}/drafts/${draft.id}/recommendations/${secondSlot}/product`,
     {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ productId: firstProduct.id }),
+      body: new URLSearchParams({
+        revision: String(afterFirstSelection.revision),
+        productId: firstProduct.id,
+      }),
     },
   );
   assert.equal(duplicateBlocked.status, 400);
@@ -6624,16 +6896,24 @@ test("selecciona, reemplaza y vuelve desde alta de producto por HTTP", async (co
     {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ productId: firstProduct.id, allowDuplicate: "yes" }),
+      body: new URLSearchParams({
+        revision: String(afterFirstSelection.revision),
+        productId: firstProduct.id,
+        allowDuplicate: "yes",
+      }),
       redirect: "manual",
     },
   );
   assert.equal(duplicateAllowed.status, 303);
+  const afterDuplicateSelection = guideDraftSchema.parse(await store.read(draft.id));
 
   await fetch(`${origin}/drafts/${draft.id}/recommendations/${firstSlot}/product`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ productId: secondProduct.id }),
+    body: new URLSearchParams({
+      revision: String(afterDuplicateSelection.revision),
+      productId: secondProduct.id,
+    }),
     redirect: "manual",
   });
   const replaced = await store.read(draft.id);
@@ -7182,6 +7462,7 @@ test("cura slots sin resolver en lote, hereda contexto y crea o reutiliza I.2", 
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
+      revision: String(draft.revision),
       slotId: "slot_bulk-catalog",
       productId: "product_insulated-tumbler",
     }),
@@ -7211,6 +7492,8 @@ test("cura slots sin resolver en lote, hereda contexto y crea o reutiliza I.2", 
 
   await fetch(`${origin}/drafts/${draft.id}/recommendations/slot_bulk-catalog/product/clear`, {
     method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ revision: String(resolvedDraft.revision) }),
     redirect: "manual",
   });
   await fetch(`${origin}/drafts/${draft.id}/curation/prepare`, {
@@ -8170,7 +8453,7 @@ test("regenera por HTTP el slot 4 aunque los demás no tengan producto", async (
   const catalog = new ProductCatalog(directory);
   const content = catalog.read();
   const draft = await selectedGuideDraft("guide_http-final", 4);
-  await store.save(draft);
+  const initial = await store.save(draft);
   const server = createStudioServer(
     store,
     catalog,
@@ -8193,7 +8476,10 @@ test("regenera por HTTP el slot 4 aunque los demás no tengan producto", async (
   const generatedResponse = await fetch(`${origin}/drafts/${draft.id}/final/generate`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ promptVersion: "final-guide-v4" }),
+    body: new URLSearchParams({
+      revision: String(initial.revision),
+      promptVersion: "final-guide-v4",
+    }),
     redirect: "manual",
   });
   assert.equal(generatedResponse.status, 303);
@@ -8220,7 +8506,10 @@ test("regenera por HTTP el slot 4 aunque los demás no tengan producto", async (
   await fetch(`${origin}/drafts/${draft.id}/recommendations/${target.id}/product`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ productId: replacement.id }),
+    body: new URLSearchParams({
+      revision: String(saved.revision),
+      productId: replacement.id,
+    }),
     redirect: "manual",
   });
   assert.equal((await store.read(draft.id)).status, "selecting-products");
@@ -8231,7 +8520,7 @@ test("regenera por HTTP el slot 4 aunque los demás no tengan producto", async (
       focusedDraft = clearRecommendationProduct(focusedDraft, recommendation.id);
     }
   }
-  await store.save(focusedDraft);
+  focusedDraft = await store.save(focusedDraft);
   const identities = focusedDraft.recommendations.map(({ id, productId, position }) => ({
     id,
     productId,
@@ -8265,7 +8554,10 @@ test("regenera por HTTP el slot 4 aunque los demás no tengan producto", async (
     {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ promptVersion: "single-recommendation-v4" }),
+      body: new URLSearchParams({
+        revision: String(focusedDraft.revision),
+        promptVersion: "single-recommendation-v4",
+      }),
       redirect: "manual",
     },
   );
@@ -8520,8 +8812,11 @@ test("monetiza una recomendación directamente sin Product ni trabajo de sourcin
   assert.match(editorBefore, /Curación de Products \(opcional\)/);
   assert.match(editorBefore, /Monetización/);
   assert.match(editorBefore, /Sin enlace afiliado/);
-  assert.ok(
-    editorBefore.includes(`<form method="post" action="${slotPath}"><label>Amazon affiliate link`),
+  assert.match(
+    editorBefore,
+    new RegExp(
+      `<form method="post" action="${slotPath}"><input[^>]+name="revision"[^>]*><label>Amazon affiliate link`,
+    ),
   );
   assert.equal(editorBefore.includes(`#slot-${original.id}/direct-affiliate`), false);
 
@@ -8530,7 +8825,7 @@ test("monetiza una recomendación directamente sin Product ni trabajo de sourcin
   const savedResponse = await fetch(`${origin}${slotPath}`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ directAffiliateUrl }),
+    body: new URLSearchParams({ revision: String(draft.revision), directAffiliateUrl }),
     redirect: "manual",
   });
   assert.equal(savedResponse.status, 303);
@@ -8546,9 +8841,10 @@ test("monetiza una recomendación directamente sin Product ni trabajo de sourcin
   assert.equal(discoveryCalls, 0, "0 discovery calls");
 
   const editorAfterSave = await (await fetch(`${origin}/drafts/${draft.id}`)).text();
-  assert.ok(
-    editorAfterSave.includes(
-      `<form method="post" action="${slotPath}"><button type="submit">Quitar enlace</button></form>`,
+  assert.match(
+    editorAfterSave,
+    new RegExp(
+      `<form method="post" action="${slotPath}"><input[^>]+name="revision"[^>]*><button type="submit">Quitar enlace</button></form>`,
     ),
   );
   assert.equal(editorAfterSave.includes(`#slot-${original.id}/direct-affiliate`), false);
@@ -8600,7 +8896,10 @@ test("monetiza una recomendación directamente sin Product ni trabajo de sourcin
   await fetch(`${origin}${slotPath}`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ directAffiliateUrl: untaggedUrl }),
+    body: new URLSearchParams({
+      revision: String(saved.revision),
+      directAffiliateUrl: untaggedUrl,
+    }),
   });
   saved = guideDraftSchema.parse(await store.read(draft.id));
   savedRecommendation = saved.recommendations.find(({ id }) => id === original.id)!;
@@ -8616,7 +8915,7 @@ test("monetiza una recomendación directamente sin Product ni trabajo de sourcin
     const response = await fetch(`${origin}${slotPath}`, {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ directAffiliateUrl: invalid }),
+      body: new URLSearchParams({ revision: String(saved.revision), directAffiliateUrl: invalid }),
     });
     assert.equal(response.status, 400);
   }
@@ -8630,7 +8929,7 @@ test("monetiza una recomendación directamente sin Product ni trabajo de sourcin
   const removedResponse = await fetch(`${origin}${slotPath}`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams(),
+    body: new URLSearchParams({ revision: String(saved.revision) }),
     redirect: "manual",
   });
   assert.equal(removedResponse.status, 303);
@@ -8768,23 +9067,75 @@ test("publica por ID estable, conserva publishedAt y rechaza conflictos antes de
   assert.doesNotThrow(() => readPublicContent(repository));
 });
 
+test("serializa publicaciones concurrentes y evita carreras de slug", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-publication-race-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  const publisher = new Publisher(repository);
+  const content = publisher.read();
+  const slug = "concurrent-publication-race";
+  const drafts = await Promise.all(
+    ["guide_publication-race-a", "guide_publication-race-b"].map(async (id) =>
+      guideDraftSchema.parse({
+        ...(await generateFinalGuide(
+          await selectedGuideDraft(id),
+          content,
+          new MockGuideGenerationProvider(),
+        )),
+        slug,
+      }),
+    ),
+  );
+
+  const results = await Promise.allSettled(
+    drafts.map((draft) => publisher.publishGuide(draft, new Date("2026-08-09T12:30:00.000Z"))),
+  );
+  assert.equal(results.filter(({ status }) => status === "fulfilled").length, 1);
+  assert.equal(results.filter(({ status }) => status === "rejected").length, 1);
+  const rejected = results.find(({ status }) => status === "rejected");
+  assert.ok(rejected?.status === "rejected");
+  assert.match(String(rejected.reason), /slug ya pertenece/);
+
+  const published = publisher.read().guides.filter((guide) => guide.slug === slug);
+  assert.equal(published.length, 1);
+  assert.ok(drafts.some((draft) => draft.id === published[0]!.id));
+  assert.equal(
+    (await readdir(join(repository, "content", "guides"))).some((file) => file.endsWith(".tmp")),
+    false,
+  );
+  assert.doesNotThrow(() => readPublicContent(repository));
+});
+
 test("el botón Publicar escribe contenido canónico y explica commit y push", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-publish-http-"));
   const draftsDirectory = await mkdtemp(join(tmpdir(), "good-present-publish-drafts-"));
   await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
-  const store = new DraftStore(draftsDirectory);
+  const store = new DraftStore(draftsDirectory, repository);
   const content = readPublicContent(repository);
   const complete = await generateFinalGuide(
     await selectedGuideDraft("guide_http-publication"),
     content,
     new MockGuideGenerationProvider(),
   );
-  await store.save(guideDraftSchema.parse({ ...complete, status: "ready-to-publish" }));
+  const saved = await store.save(
+    guideDraftSchema.parse({ ...complete, status: "ready-to-publish" }),
+  );
+  const feedbackStore = new EditorialFeedbackStore(repository);
+  feedbackStore.record = async (..._args: Parameters<EditorialFeedbackStore["record"]>) => {
+    throw new Error("fixture feedback failure");
+  };
   const server = createStudioServer(
     store,
     new ProductCatalog(repository),
     new MockGuideGenerationProvider(),
     new Publisher(repository),
+    undefined,
+    undefined,
+    [],
+    undefined,
+    undefined,
+    undefined,
+    feedbackStore,
   );
   server.listen(0, STUDIO_HOST);
   await once(server, "listening");
@@ -8802,12 +9153,15 @@ test("el botón Publicar escribe contenido canónico y explica commit y push", a
     `http://${STUDIO_HOST}:${address.port}/drafts/${complete.id}/publish`,
     {
       method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ revision: String(saved.revision) }),
     },
   );
   const html = await response.text();
   assert.equal(response.status, 200);
   assert.match(html, /Contenido creado/);
   assert.match(html, /todavía hay que hacer commit y push/);
+  assert.match(html, /La publicación se completó, pero falló el registro secundario de feedback/);
   assert.match(html, new RegExp(`content/guides/${complete.id}\\.json`));
   assert.doesNotThrow(() => readPublicContent(repository));
 });
@@ -10792,12 +11146,12 @@ test("un Product pendiente admite backfill de catálogo y P.1 sin cambiar la ide
       },
       true,
     );
-    await draftStore.save(ready);
-    const request = autopilotRequest(ready, []);
+    const savedDraft = await draftStore.save(ready);
+    const request = autopilotRequest(savedDraft, []);
     await sourcingStore.save(
       completeProductSourcingRequestAsIdeaOnly(request, new Date("2026-09-06T17:00:00.000Z")),
     );
-    return { draft: ready, request };
+    return { draft: savedDraft, request };
   };
   const catalogPending = await makePendingDraft("guide_catalog-backfill", "slot_catalog-backfill");
   const p1Pending = await makePendingDraft("guide_p1-backfill", "slot_p1-backfill");
@@ -10831,6 +11185,7 @@ test("un Product pendiente admite backfill de catálogo y P.1 sin cambiar la ide
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
+        revision: String(catalogPending.draft.revision),
         slotId: "slot_catalog-backfill",
         productId: catalogProduct.id,
       }),
@@ -10906,7 +11261,10 @@ test("un Product pendiente admite backfill de catálogo y P.1 sin cambiar la ide
   const assignResponse = await fetch(`${origin}/product-sourcing/${p1Request.id}/assign`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ productId: p1Product.id }),
+    body: new URLSearchParams({
+      revision: String(p1Pending.draft.revision),
+      productId: p1Product.id,
+    }),
     redirect: "manual",
   });
   assert.equal(assignResponse.status, 303);
@@ -11136,7 +11494,11 @@ test("Autopilot reintenta P.2 una vez sin sumar discovery y la UI explica cero c
   assert.match(curation, /Resolver automáticamente/);
   const response = await fetch(
     `${origin}/drafts/${uiDraft.id}/recommendations/slot_autopilot-ui/autopilot`,
-    { method: "POST" },
+    {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ revision: String(uiDraft.revision) }),
+    },
   );
   assert.equal(response.status, 200);
   const html = await response.text();
@@ -11311,7 +11673,11 @@ test("Guide Autopilot preserva una guía resuelta, omite sourcing y muestra un r
   assert.match(curation, new RegExp(`/drafts/${saved.id}/autopilot`));
   assert.match(curation, /Regeneración enfocada/);
   assert.match(curation, /Buscar alternativas/);
-  const response = await fetch(`${origin}/drafts/${saved.id}/autopilot`, { method: "POST" });
+  const response = await fetch(`${origin}/drafts/${saved.id}/autopilot`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ revision: String(saved.revision) }),
+  });
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /Guía completada automáticamente/);

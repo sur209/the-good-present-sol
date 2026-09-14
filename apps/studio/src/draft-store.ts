@@ -1,8 +1,9 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import { mkdir, readFile, readdir } from "node:fs/promises";
-import { resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 
 import { editorialDraftSchema, type EditorialDraft } from "./drafts.ts";
-import { REPOSITORY_ROOT, atomicWriteJson } from "./repository.ts";
+import { REPOSITORY_ROOT, atomicWriteJson, runRepositoryMutation } from "./repository.ts";
 
 export const DEFAULT_DRAFT_DIRECTORY = resolve(REPOSITORY_ROOT, "drafts");
 
@@ -17,13 +18,33 @@ export function assertSafeDraftId(id: string): void {
   if (!SAFE_DRAFT_ID.test(id)) throw new TypeError("ID de borrador no válido.");
 }
 
-export class DraftStore {
-  private readonly directory: string;
-  // ponytail: one local save queue; use per-draft queues if Studio write throughput matters.
-  private pendingSave: Promise<unknown> = Promise.resolve();
+export class StaleDraftError extends TypeError {
+  constructor() {
+    super(
+      "Esta guía cambió después de abrir esta página. Recargá antes de guardar; el trabajo más nuevo se conservó.",
+    );
+    this.name = "StaleDraftError";
+  }
+}
 
-  constructor(directory = DEFAULT_DRAFT_DIRECTORY) {
+interface ExpectedRevisionContext {
+  revision: number;
+  used: boolean;
+}
+
+export class DraftStore {
+  readonly repositoryRoot: string;
+  private readonly directory: string;
+  private readonly expectedRevision = new AsyncLocalStorage<ExpectedRevisionContext>();
+
+  constructor(
+    directory = DEFAULT_DRAFT_DIRECTORY,
+    repositoryRoot = basename(directory).toLowerCase() === "drafts"
+      ? dirname(directory)
+      : directory,
+  ) {
     this.directory = directory;
+    this.repositoryRoot = resolve(repositoryRoot);
   }
 
   private file(id: string): string {
@@ -75,21 +96,54 @@ export class DraftStore {
   }
 
   async save<T extends EditorialDraft>(draft: T, now = new Date(), expected?: T): Promise<T> {
-    const saving = this.pendingSave.then(() => this.write(draft, now, expected));
-    this.pendingSave = saving.catch(() => undefined);
-    return saving;
+    const expectedRevision = this.takeExpectedRevision(expected?.revision ?? draft.revision);
+    return runRepositoryMutation(this.repositoryRoot, () =>
+      this.write(draft, now, expectedRevision),
+    );
   }
 
-  private async write<T extends EditorialDraft>(draft: T, now: Date, expected?: T): Promise<T> {
-    if (expected && JSON.stringify(await this.read(draft.id)) !== JSON.stringify(expected)) {
-      throw new TypeError(
-        "El borrador cambió mientras se guardaba. Recargá y volvé a revisar las correcciones.",
-      );
+  withExpectedRevision<T>(revision: number, operation: () => Promise<T>): Promise<T> {
+    return this.expectedRevision.run({ revision, used: false }, operation);
+  }
+
+  assertExpectedRevision(actualRevision: number): void {
+    if (this.takeExpectedRevision(actualRevision) !== actualRevision) throw new StaleDraftError();
+  }
+
+  private takeExpectedRevision(fallback: number): number {
+    const scoped = this.expectedRevision.getStore();
+    return scoped && !scoped.used ? ((scoped.used = true), scoped.revision) : fallback;
+  }
+
+  private async write<T extends EditorialDraft>(
+    draft: T,
+    now: Date,
+    expectedRevision: number,
+  ): Promise<T> {
+    let current: EditorialDraft | undefined;
+    try {
+      current = await this.read(draft.id);
+    } catch (error) {
+      if ((error as Error & { cause?: NodeJS.ErrnoException }).cause?.code !== "ENOENT")
+        throw error;
     }
-    const parsed = editorialDraftSchema.parse({ ...draft, updatedAt: now.toISOString() }) as T;
+    if (current && current.revision !== expectedRevision) {
+      throw new StaleDraftError();
+    }
+    const parsed = editorialDraftSchema.parse({
+      ...draft,
+      revision: (current?.revision ?? 0) + 1,
+      updatedAt: now.toISOString(),
+    }) as T;
     const target = this.file(parsed.id);
 
     try {
+      if (current) {
+        await atomicWriteJson(
+          resolve(this.directory, ".backups", `${parsed.id}.previous.json`),
+          current,
+        );
+      }
       await atomicWriteJson(target, parsed);
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);

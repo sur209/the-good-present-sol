@@ -6,6 +6,7 @@ import type {
   ProviderCallMetadata,
   StructuredGenerationRequest,
 } from "../../ai-provider.ts";
+import { StaleDraftError } from "../../draft-store.ts";
 import { guideDraftSchema, type GuideDraft } from "../../drafts.ts";
 import {
   completeGuideEditorialMetadata,
@@ -291,7 +292,8 @@ export async function completeGuideAutonomously(
       await dependencies.draftStore.save(completion.draft, now);
       draft = await readGuideDraft(draft.id, dependencies);
       guideWarnings.push(...completion.warnings);
-    } catch {
+    } catch (error) {
+      if (error instanceof StaleDraftError) throw error;
       guideWarnings.push("guide-metadata-save-failed");
     }
   }
@@ -339,7 +341,8 @@ export async function completeGuideAutonomously(
         for (const slot of completion.slots) {
           batchedIdeaWarnings.set(slot.slotId, slot.warnings);
         }
-      } catch {
+      } catch (error) {
+        if (error instanceof StaleDraftError) throw error;
         for (const id of recommendationIds) {
           batchedIdeaWarnings.set(id, ["idea-copy-repair-failed"]);
         }
@@ -389,7 +392,8 @@ export async function completeGuideAutonomously(
         );
         await dependencies.draftStore.save(copy.draft, now);
         warnings.push(...copy.warnings);
-      } catch {
+      } catch (error) {
+        if (error instanceof StaleDraftError) throw error;
         warnings.push("product-copy-completion-failed");
       }
     } else if (options.sourceProducts) {
@@ -418,7 +422,8 @@ export async function completeGuideAutonomously(
         execution.productPendingFallbacks += result.status === "resolved-idea-only" ? 1 : 0;
         warnings.push(...result.warnings);
         if (technicalFallbackReasons.has(result.reasonCode)) warnings.push(result.reasonCode);
-      } catch {
+      } catch (error) {
+        if (error instanceof StaleDraftError) throw error;
         warnings.push("slot-autopilot-execution-failed");
       }
     } else {

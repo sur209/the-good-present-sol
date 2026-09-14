@@ -252,7 +252,7 @@ import {
   type EditorialBrief,
   type EditorialBriefEdits,
 } from "./modules/content-opportunity-lab/review.ts";
-import { REPOSITORY_ROOT, readPublicContent } from "./repository.ts";
+import { REPOSITORY_ROOT, StudioWriterGuard, readPublicContent } from "./repository.ts";
 
 export const STUDIO_HOST = "127.0.0.1";
 const DEFAULT_PORT = 4322;
@@ -338,6 +338,11 @@ function page(title: string, body: string): string {
 </html>`;
 }
 
+function draftPage(draft: EditorialDraft, title: string, body: string): string {
+  const revision = `<input type="hidden" name="revision" value="${draft.revision}">`;
+  return page(title, body.replace(/(<form\b[^>]*\bmethod="post"[^>]*>)/gi, `$1${revision}`));
+}
+
 function send(response: ServerResponse, status: number, body: string): void {
   response.writeHead(status, {
     "content-type": "text/html; charset=utf-8",
@@ -348,25 +353,69 @@ function send(response: ServerResponse, status: number, body: string): void {
   response.end(body);
 }
 
+function sendOperationError(response: ServerResponse, error: unknown): void {
+  if (error instanceof ProviderError) {
+    console.error(`AI provider error: ${error.debugSummary()}`);
+  }
+  const message = error instanceof Error ? error.message : String(error);
+  send(
+    response,
+    error instanceof TypeError || error instanceof RangeError ? 400 : 500,
+    page(
+      "Error",
+      `<h1>No se pudo completar la operación</h1><p class="error">${escapeHtml(message)}</p><p><a href="/">Volver a borradores</a></p>`,
+    ),
+  );
+}
+
 function redirect(response: ServerResponse, location: string): void {
   response.writeHead(303, { location });
   response.end();
 }
 
-async function readForm(request: IncomingMessage): Promise<URLSearchParams> {
-  if (!request.headers["content-type"]?.startsWith("application/x-www-form-urlencoded")) {
-    throw new TypeError("El formulario debe usar application/x-www-form-urlencoded.");
-  }
+const formReads = new WeakMap<IncomingMessage, Promise<URLSearchParams>>();
 
-  const chunks: Buffer[] = [];
-  let size = 0;
-  for await (const chunk of request) {
-    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-    size += buffer.length;
-    if (size > MAX_FORM_BYTES) throw new RangeError("El formulario es demasiado grande.");
-    chunks.push(buffer);
+async function readForm(request: IncomingMessage): Promise<URLSearchParams> {
+  let reading = formReads.get(request);
+  if (!reading) {
+    reading = (async () => {
+      if (!request.headers["content-type"]?.startsWith("application/x-www-form-urlencoded")) {
+        throw new TypeError("El formulario debe usar application/x-www-form-urlencoded.");
+      }
+      const chunks: Buffer[] = [];
+      let size = 0;
+      for await (const chunk of request) {
+        const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+        size += buffer.length;
+        if (size > MAX_FORM_BYTES) throw new RangeError("El formulario es demasiado grande.");
+        chunks.push(buffer);
+      }
+      return new URLSearchParams(Buffer.concat(chunks).toString("utf8"));
+    })();
+    formReads.set(request, reading);
   }
-  return new URLSearchParams(Buffer.concat(chunks).toString("utf8"));
+  return reading;
+}
+
+const draftMutationPaths = [
+  /^\/drafts\/[a-z0-9_-]+\/(?:publish|cluster|groups(?:\/.*)?|guide\/(?:architecture|copy)|questionnaire|autopilot(?:\/products)?|outline\/generate|final\/generate|editorial-review\/apply)$/,
+  /^\/drafts\/[a-z0-9_-]+\/curation\/use-product$/,
+  /^\/drafts\/[a-z0-9_-]+\/recommendations(?:$|\/[a-z0-9_-]+\/(?:autopilot|idea\/generate|regenerate|copy|direct-affiliate|product(?:\/clear)?|up|down|remove))$/,
+  /^\/product-sourcing\/request_[a-z0-9_-]+\/assign$/,
+];
+
+async function expectedRevisionForRequest(
+  request: IncomingMessage,
+  pathname: string,
+): Promise<number | undefined> {
+  if (request.method !== "POST" || !draftMutationPaths.some((pattern) => pattern.test(pathname))) {
+    return undefined;
+  }
+  const raw = requiredValue(await readForm(request), "revision", "La revisión del borrador");
+  if (!/^\d+$/.test(raw) || !Number.isSafeInteger(Number(raw))) {
+    throw new TypeError("La revisión del borrador no es válida.");
+  }
+  return Number(raw);
 }
 
 function optionalValue(form: URLSearchParams, name: string): string | undefined {
@@ -1876,7 +1925,8 @@ function guideCurationPage(
       </section>`;
     })
     .join("");
-  return page(
+  return draftPage(
+    draft,
     `Curación · ${draftName(draft)}`,
     `<p><a href="/drafts/${encodeURIComponent(draft.id)}">← Volver a la guía</a></p><div class="actions"><div><h1>Curación de la guía</h1><p>Elegí Products; los diagnósticos completos quedan en detalles.</p></div><a class="button" href="/drafts/${encodeURIComponent(draft.id)}/preview">Vista previa</a></div>
     <section class="card"><h2>Progreso</h2><div class="actions"><span class="status"><strong>Editorial:</strong> ${progress.editorialReady}/${progress.totalRecommendations} listas</span><span class="status"><strong>Products:</strong> ${progress.productResolved} resueltos · ${progress.productPending} pendientes</span><span class="status"><strong>Afiliación:</strong> ${progress.affiliateReady} listas · ${progress.affiliateDestinationMissing} pendientes</span></div><p><strong>Estado editorial de la guía:</strong> ${progress.editorialComplete ? "completa" : "incompleta"}.</p><details><summary>Otros estados de curación</summary><div class="actions">${progressItems.map(([label, count]) => `<span class="status">${count} ${escapeHtml(label)}</span>`).join("")}</div></details></section>
@@ -1953,6 +2003,7 @@ function productSourcingDetailPage(
   sourceStore: ProductSourceStore,
   fitStore: ProductFitEvaluationStore,
   discoverySource?: ProductDiscoverySource,
+  draftRevision?: number,
 ): string {
   const content = catalog.read();
   const productsById = new Map(content.products.map((product) => [product.id, product]));
@@ -1981,7 +2032,7 @@ function productSourcingDetailPage(
         product,
       ) => `<article class="card"><h3>${escapeHtml(product.name)}</h3><p><code>${escapeHtml(product.id)}</code></p>
         <p><a href="/products/${encodeURIComponent(product.id)}/edit">Abrir Product canónico</a></p>
-        ${request.origin.kind === "recommendation-slot" ? `<form method="post" action="/product-sourcing/${encodeURIComponent(request.id)}/assign"><input type="hidden" name="productId" value="${escapeHtml(product.id)}"><label><input type="checkbox" name="allowDuplicate" value="yes"> Confirmar duplicado si este Product ya ocupa otro slot.</label><button type="submit">Asignar al slot de origen</button></form>` : ""}
+        ${request.origin.kind === "recommendation-slot" ? `<form method="post" action="/product-sourcing/${encodeURIComponent(request.id)}/assign"><input type="hidden" name="revision" value="${draftRevision}"><input type="hidden" name="productId" value="${escapeHtml(product.id)}"><label><input type="checkbox" name="allowDuplicate" value="yes"> Confirmar duplicado si este Product ya ocupa otro slot.</label><button type="submit">Asignar al slot de origen</button></form>` : ""}
       </article>`,
     )
     .join("");
@@ -2725,7 +2776,8 @@ function clusterEditorPage(draft: ClusterDraft): string {
   const newGroupAxes = PRIMARY_AXES.map(
     (axis) => `<option value="${axis}">${escapeHtml(axisLabels[axis])}</option>`,
   ).join("");
-  return page(
+  return draftPage(
+    draft,
     draftName(draft),
     `<p><a href="/">← Borradores</a></p>
      <div class="actions"><div><h1>${escapeHtml(draftName(draft))}</h1><p><code>${escapeHtml(draft.id)}</code> · ${escapeHtml(draft.status)}</p></div><a class="button" href="/drafts/${draft.id}/preview">Vista previa</a><a class="button" href="/drafts/${draft.id}/validate">Validar</a></div>
@@ -2812,7 +2864,8 @@ function clusterPreviewPage(draft: ClusterDraft): string {
 
 function clusterValidationPage(draft: ClusterDraft): string {
   const result = validateClusterDraft(draft, readPublicContent());
-  return page(
+  return draftPage(
+    draft,
     `Validación · ${draftName(draft)}`,
     `<p><a href="/drafts/${draft.id}">← Editar hub</a></p>
      <h1>Validación del hub</h1>
@@ -3361,7 +3414,8 @@ function guideEditorPage(
   const metadata = draft.generationMetadata
     ? `<p class="muted">Última generación: ${escapeHtml(draft.generationMetadata.providerId ?? "proveedor desconocido")} · ${escapeHtml(draft.generationMetadata.modelId ?? "modelo no informado")} · ${escapeHtml(draft.generationMetadata.promptVersion)} · ${escapeHtml(formatDate(draft.generationMetadata.generatedAt))}</p>`
     : "";
-  return page(
+  return draftPage(
+    draft,
     draftName(draft),
     `<p><a href="/">← Borradores</a></p>
      <div class="actions"><div><h1>${escapeHtml(draftName(draft))}</h1><p><code>${escapeHtml(draft.id)}</code> · ${escapeHtml(draft.status)}</p></div><a class="button" href="/drafts/${draft.id}/curation">Buscar productos para slots sin resolver</a><a class="button" href="/drafts/${draft.id}/outline-prompt">${draft.outline ? "Revisar o regenerar esquema" : "Revisar y generar esquema"}</a><a class="button" href="/drafts/${draft.id}/final-prompt">Generación final</a><a class="button" href="/drafts/${draft.id}/preview">Vista previa</a><a class="button" href="/drafts/${draft.id}/validate">Validar</a></div>
@@ -3438,7 +3492,8 @@ async function readGuideDraft(store: DraftStore, id: string): Promise<GuideDraft
 function outlinePromptPage(draft: GuideDraft, provider: GuideGenerationProvider): string {
   const prepared = prepareOutlinePrompt(draft, readPublicContent());
   const blockedReason = outlineRegenerationBlockReason(draft);
-  return page(
+  return draftPage(
+    draft,
     `Prompt de esquema · ${draftName(draft)}`,
     `<p><a href="/drafts/${draft.id}">← Editar guía</a></p>
      <h1>Revisar prompt de esquema</h1>
@@ -3452,7 +3507,8 @@ function outlinePromptPage(draft: GuideDraft, provider: GuideGenerationProvider)
 
 function finalPromptPage(draft: GuideDraft, provider: GuideGenerationProvider): string {
   const prepared = prepareFinalPrompt(draft, readPublicContent());
-  return page(
+  return draftPage(
+    draft,
     `Prompt final · ${draftName(draft)}`,
     `<p><a href="/drafts/${draft.id}">← Editar guía</a></p>
      <h1>Revisar prompt de generación final</h1>
@@ -3469,7 +3525,8 @@ function recommendationPromptPage(
   provider: GuideGenerationProvider,
 ): string {
   const prepared = prepareRecommendationPrompt(draft, recommendationId, readPublicContent());
-  return page(
+  return draftPage(
+    draft,
     `Prompt de recomendación · ${draftName(draft)}`,
     `<p><a href="${guideDraftSlotPath(draft.id, recommendationId)}">← Volver al slot</a></p>
      <h1>Regenerar una recomendación</h1>
@@ -3493,7 +3550,8 @@ function ideaRecommendationPromptPage(
     readPublicContent(),
     request,
   );
-  return page(
+  return draftPage(
+    draft,
     `Prompt idea-only · ${draftName(draft)}`,
     `<p><a href="/drafts/${encodeURIComponent(draft.id)}/curation">← Volver a curación</a></p>
      <h1>Generar una recomendación idea-only</h1>
@@ -3559,7 +3617,8 @@ function guidePreviewPage(draft: GuideDraft): string {
 function guideValidationPage(draft: GuideDraft): string {
   const result = validateGuideDraft(draft, readPublicContent());
   const { readiness } = result;
-  return page(
+  return draftPage(
+    draft,
     `Validación · ${draftName(draft)}`,
     `<p><a href="/drafts/${draft.id}">← Editar guía</a></p>
      <h1>Validación de la guía</h1>
@@ -3571,12 +3630,17 @@ function guideValidationPage(draft: GuideDraft): string {
   );
 }
 
-function publicationResultPage(draft: EditorialDraft, result: PublicationResult): string {
+function publicationResultPage(
+  draft: EditorialDraft,
+  result: PublicationResult,
+  feedbackWarning?: string,
+): string {
   return page(
     `Publicado · ${draftName(draft)}`,
     `<p><a href="/drafts/${draft.id}">← Volver al borrador</a></p>
      <h1>Contenido ${result.action === "created" ? "creado" : "actualizado"}</h1>
      <p class="notice">Se escribió y validó el archivo canónico.</p>
+     ${feedbackWarning ? `<p class="error">${escapeHtml(feedbackWarning)}</p>` : ""}
      <dl><dt>ID estable</dt><dd><code>${escapeHtml(result.id)}</code></dd><dt>Archivo</dt><dd><code>${escapeHtml(result.file)}</code></dd><dt>Ruta</dt><dd><code>${escapeHtml(result.route)}</code></dd></dl>
      <p><strong>Publicar crea o actualiza el contenido del repositorio. Para publicarlo en Internet todavía hay que hacer commit y push.</strong></p>`,
   );
@@ -3742,7 +3806,7 @@ export function createStudioServer(
       });
     }
   };
-  return createServer(async (request, response) => {
+  const handleRequest = async (request: IncomingMessage, response: ServerResponse) => {
     try {
       const method = request.method ?? "GET";
       const url = new URL(request.url ?? "/", `http://${STUDIO_HOST}`);
@@ -3865,9 +3929,14 @@ export function createStudioServer(
         if (draft.status !== "ready-to-publish") {
           throw new TypeError("Validá el borrador antes de publicarlo.");
         }
-        const result = await publisher.publish(draft);
-        await recordPublicationEvents(draft);
-        send(response, 200, publicationResultPage(draft, result));
+        const result = await publisher.publish(draft, new Date(), store);
+        let feedbackWarning: string | undefined;
+        try {
+          await recordPublicationEvents(draft);
+        } catch (error) {
+          feedbackWarning = `La publicación se completó, pero falló el registro secundario de feedback: ${error instanceof Error ? error.message : String(error)}`;
+        }
+        send(response, 200, publicationResultPage(draft, result, feedbackWarning));
         return;
       }
       const saveClusterMatch =
@@ -4861,16 +4930,22 @@ export function createStudioServer(
       const productSourcingMatch =
         method === "GET" ? /^\/product-sourcing\/(request_[a-z0-9_-]+)$/.exec(url.pathname) : null;
       if (productSourcingMatch?.[1]) {
+        const sourcingRequest = sourcingStore.get(productSourcingMatch[1]);
+        const originDraft =
+          sourcingRequest.origin.kind === "recommendation-slot"
+            ? await readGuideDraft(store, sourcingRequest.origin.guideDraftId)
+            : undefined;
         send(
           response,
           200,
           productSourcingDetailPage(
-            sourcingStore.get(productSourcingMatch[1]),
+            sourcingRequest,
             url,
             catalog,
             sourceStore,
             fitStore,
             discoverySource,
+            originDraft?.revision,
           ),
         );
         return;
@@ -5742,20 +5817,24 @@ export function createStudioServer(
 
       send(response, 404, page("No encontrado", "<h1>No encontramos esa pantalla</h1>"));
     } catch (error) {
-      if (error instanceof ProviderError) {
-        console.error(`AI provider error: ${error.debugSummary()}`);
-      }
-      const message = error instanceof Error ? error.message : String(error);
-      send(
-        response,
-        error instanceof TypeError || error instanceof RangeError ? 400 : 500,
-        page(
-          "Error",
-          `<h1>No se pudo completar la operación</h1><p class="error">${escapeHtml(message)}</p><p><a href="/">Volver a borradores</a></p>`,
-        ),
-      );
+      sendOperationError(response, error);
+    }
+  };
+  const writerGuard = new StudioWriterGuard(store.repositoryRoot);
+  const server = createServer(async (request, response) => {
+    try {
+      writerGuard.acquire();
+      const pathname = new URL(request.url ?? "/", `http://${STUDIO_HOST}`).pathname;
+      const expectedRevision = await expectedRevisionForRequest(request, pathname);
+      if (expectedRevision === undefined) await handleRequest(request, response);
+      else
+        await store.withExpectedRevision(expectedRevision, () => handleRequest(request, response));
+    } catch (error) {
+      sendOperationError(response, error);
     }
   });
+  server.on("close", () => writerGuard.release());
+  return server;
 }
 
 function configuredPort(value = process.env.STUDIO_PORT): number {

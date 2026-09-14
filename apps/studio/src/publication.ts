@@ -13,6 +13,7 @@ import {
 
 import { readPublicContentSources } from "../../../scripts/content-files.ts";
 import { validateClusterDraft } from "./cluster-editor.ts";
+import { DraftStore, StaleDraftError } from "./draft-store.ts";
 import type { ClusterDraft, EditorialDraft, GuideDraft } from "./drafts.ts";
 import { validateGuideDraft } from "./guide-editor.ts";
 import {
@@ -21,6 +22,7 @@ import {
   atomicWriteJson,
   readPublicContent,
   replaceSourceRecord,
+  runRepositoryMutation,
 } from "./repository.ts";
 
 export interface PublicationResult {
@@ -133,45 +135,80 @@ export class Publisher {
     return readPublicContent(this.repositoryRoot);
   }
 
-  async publish(draft: EditorialDraft, now = new Date()): Promise<PublicationResult> {
+  async publish(
+    draft: EditorialDraft,
+    now = new Date(),
+    draftStore?: DraftStore,
+  ): Promise<PublicationResult> {
     return draft.draftType === "cluster-hub"
-      ? this.publishCluster(draft, now)
-      : this.publishGuide(draft, now);
+      ? this.publishCluster(draft, now, draftStore)
+      : this.publishGuide(draft, now, draftStore);
   }
 
-  async publishCluster(draft: ClusterDraft, now = new Date()): Promise<PublicationResult> {
-    const content = this.read();
-    const existing = content.clusters.some((cluster) => cluster.id === draft.id);
-    const record = clusterDraftToPublic(draft, content, now);
-    const file = `${PUBLIC_CONTENT_DIRECTORIES.clusters}/${record.id}.json`;
-    const sources = readPublicContentSources(this.repositoryRoot);
-    replaceSourceRecord(sources.clusters, file, record);
-    assertPublicContentCandidate(sources, "La publicación dejaría inválido el contenido canónico.");
-    // ponytail: one local editor writes one canonical record at a time; add locking only for concurrency.
-    await atomicWriteJson(resolve(this.repositoryRoot, file), record);
-    return {
-      action: existing ? "updated" : "created",
-      file,
-      id: record.id,
-      route: clusterPath(record.slug),
-    };
+  async publishCluster(
+    draft: ClusterDraft,
+    now = new Date(),
+    draftStore?: DraftStore,
+  ): Promise<PublicationResult> {
+    return runRepositoryMutation(this.repositoryRoot, async () => {
+      await this.assertCurrentDraft(draft, draftStore);
+      const content = this.read();
+      const existing = content.clusters.some((cluster) => cluster.id === draft.id);
+      const record = clusterDraftToPublic(draft, content, now);
+      const file = `${PUBLIC_CONTENT_DIRECTORIES.clusters}/${record.id}.json`;
+      const sources = readPublicContentSources(this.repositoryRoot);
+      replaceSourceRecord(sources.clusters, file, record);
+      assertPublicContentCandidate(
+        sources,
+        "La publicación dejaría inválido el contenido canónico.",
+      );
+      await atomicWriteJson(resolve(this.repositoryRoot, file), record);
+      return {
+        action: existing ? "updated" : "created",
+        file,
+        id: record.id,
+        route: clusterPath(record.slug),
+      };
+    });
   }
 
-  async publishGuide(draft: GuideDraft, now = new Date()): Promise<PublicationResult> {
-    const content = this.read();
-    const existing = content.guides.some((guide) => guide.id === draft.id);
-    const record = guideDraftToPublic(draft, content, now);
-    const cluster = content.clusters.find((item) => item.id === record.clusterId)!;
-    const file = `${PUBLIC_CONTENT_DIRECTORIES.guides}/${record.id}.json`;
-    const sources = readPublicContentSources(this.repositoryRoot);
-    replaceSourceRecord(sources.guides, file, record);
-    assertPublicContentCandidate(sources, "La publicación dejaría inválido el contenido canónico.");
-    await atomicWriteJson(resolve(this.repositoryRoot, file), record);
-    return {
-      action: existing ? "updated" : "created",
-      file,
-      id: record.id,
-      route: guidePath(cluster.slug, record.slug),
-    };
+  async publishGuide(
+    draft: GuideDraft,
+    now = new Date(),
+    draftStore?: DraftStore,
+  ): Promise<PublicationResult> {
+    return runRepositoryMutation(this.repositoryRoot, async () => {
+      await this.assertCurrentDraft(draft, draftStore);
+      const content = this.read();
+      const existing = content.guides.some((guide) => guide.id === draft.id);
+      const record = guideDraftToPublic(draft, content, now);
+      const cluster = content.clusters.find((item) => item.id === record.clusterId)!;
+      const file = `${PUBLIC_CONTENT_DIRECTORIES.guides}/${record.id}.json`;
+      const sources = readPublicContentSources(this.repositoryRoot);
+      replaceSourceRecord(sources.guides, file, record);
+      assertPublicContentCandidate(
+        sources,
+        "La publicación dejaría inválido el contenido canónico.",
+      );
+      await atomicWriteJson(resolve(this.repositoryRoot, file), record);
+      return {
+        action: existing ? "updated" : "created",
+        file,
+        id: record.id,
+        route: guidePath(cluster.slug, record.slug),
+      };
+    });
+  }
+
+  private async assertCurrentDraft(
+    draft: EditorialDraft,
+    store: DraftStore | undefined,
+  ): Promise<void> {
+    if (!store) return;
+    if (store.repositoryRoot !== resolve(this.repositoryRoot)) {
+      throw new TypeError("El borrador y la publicación deben usar el mismo repositorio.");
+    }
+    store.assertExpectedRevision(draft.revision);
+    if ((await store.read(draft.id)).revision !== draft.revision) throw new StaleDraftError();
   }
 }
