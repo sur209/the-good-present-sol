@@ -23,6 +23,16 @@ import {
 } from "./ai-provider.ts";
 import { DraftStore } from "./draft-store.ts";
 import {
+  EditorialReviewStore,
+  applyEditorialCorrections,
+  canReviewEditorially,
+  editorialIssueCanApply,
+  editorialReviewIsStale,
+  reviewGuideEditorially,
+  summarizeEditorialReviews,
+  type EditorialReview,
+} from "./editorial-review.ts";
+import {
   addGuideToGroup,
   addNavigationGroup,
   moveGuideInGroup,
@@ -320,7 +330,7 @@ function page(title: string, body: string): string {
 <body>
   <header>
     <a href="/">The Good Present · Studio</a>
-    <nav aria-label="Principal"><a href="/">Borradores</a><a href="/drafts/new">Crear</a><a href="/products">Productos</a><a href="/product-intelligence">Cobertura</a><a href="/product-sourcing">Sourcing</a><a href="/opportunities">Oportunidades</a><a href="/products/intake">Ingreso asistido</a><a href="/affiliate-programs">Programas afiliados</a><a href="/affiliate-operations">QA afiliados</a></nav>
+    <nav aria-label="Principal"><a href="/">Borradores</a><a href="/drafts/new">Crear</a><a href="/products">Productos</a><a href="/product-intelligence">Cobertura</a><a href="/product-sourcing">Sourcing</a><a href="/opportunities">Oportunidades</a><a href="/products/intake">Ingreso asistido</a><a href="/affiliate-programs">Programas afiliados</a><a href="/affiliate-operations">QA afiliados</a><a href="/editorial-feedback">Feedback editorial</a></nav>
   </header>
   <main>${body}</main>
 </body>
@@ -3241,6 +3251,75 @@ function recommendationSelectionSection(
   </section>`;
 }
 
+function editorialReviewSection(
+  draft: GuideDraft,
+  reviews: EditorialReview[],
+  selectedId?: string,
+): string {
+  const review = reviews.find(({ id }) => id === selectedId) ?? reviews[0];
+  const path = `/drafts/${encodeURIComponent(draft.id)}`;
+  const stale = review ? editorialReviewIsStale(draft, review) : false;
+  const applicable =
+    review?.status === "completed" &&
+    !stale &&
+    review.issues.some((issue) => editorialIssueCanApply(draft, issue));
+  const report = review
+    ? `
+    <p><strong>${review.status === "failed" ? "Revisión fallida" : stale ? "Informe desactualizado" : "Informe vigente"}</strong> · ${escapeHtml(formatDate(review.createdAt))} · ${escapeHtml(review.providerId)}${review.modelId ? ` · ${escapeHtml(review.modelId)}` : ""}</p>
+    ${review.providerId === "mock" ? '<p class="notice">Modo simulado: no se evaluó la calidad editorial. Configurá un proveedor real para revisar la guía.</p>' : ""}
+    ${stale ? '<p class="notice">El contenido cambió desde esta revisión. Volvé a revisar la guía para aplicar más correcciones.</p>' : ""}
+    ${review.error ? `<p class="error">${escapeHtml(review.error)}</p>` : ""}
+    <p class="muted">Revisión: ${review.metrics.reviewInvocations} · Reparación/reintento: ${review.metrics.repairInvocations} · Tokens entrada/salida/total: ${review.metrics.inputTokens ?? "—"} / ${review.metrics.outputTokens ?? "—"} / ${review.metrics.totalTokens ?? "—"}</p>
+    ${review.status === "completed" && !review.issues.length && review.providerId !== "mock" ? "<p>No editorial issues found.</p>" : ""}
+    ${
+      review.issues.length
+        ? `<form method="post" action="${path}/editorial-review/apply">
+      <input type="hidden" name="reviewId" value="${escapeHtml(review.id)}">
+      <p class="muted">Elegí como máximo una propuesta por campo. Se reemplaza el texto completo de cada campo seleccionado.</p>
+      ${review.issues
+        .map((issue) => {
+          const canApply =
+            !stale && review.status === "completed" && editorialIssueCanApply(draft, issue);
+          const slot = draft.recommendations.find(({ id }) => id === issue.recommendationId);
+          return `<article class="card" id="${escapeHtml(issue.id)}">
+          <label><span><input type="checkbox" name="issueId" value="${escapeHtml(issue.id)}"${canApply ? "" : " disabled"}> ${escapeHtml(issue.type)} · ${escapeHtml(issue.severity)}</span></label>
+          <p>${issue.location === "guide" ? "Guía" : `Recomendación: ${escapeHtml(slot?.heading ?? slot?.slotLabel ?? issue.recommendationId ?? "—")}`} · <code>${escapeHtml(issue.field)}</code>${issue.recommendationId ? ` · <code>${escapeHtml(issue.recommendationId)}</code>` : ""}</p>
+          <p>${escapeHtml(issue.explanation)}</p>
+          <p><strong>Texto original</strong></p><pre>${escapeHtml(issue.originalText)}</pre>
+          ${issue.replacementText ? `<p><strong>Reemplazo sugerido</strong></p><pre>${escapeHtml(issue.replacementText)}</pre>` : ""}
+          <p class="muted">${issue.appliedAt ? `Aplicada · ${escapeHtml(formatDate(issue.appliedAt))}` : stale ? "Pendiente · informe desactualizado" : canApply ? "Corrección localizada disponible" : "Sólo orientación: requiere edición manual."}</p>
+        </article>`;
+        })
+        .join("")}
+      <button type="submit"${applicable ? "" : " disabled"}>Aplicar correcciones seleccionadas</button>
+    </form>`
+        : ""
+    }`
+    : '<p class="muted">Todavía no hay revisiones de esta guía.</p>';
+  return `<section class="card" id="editorial-review"><h2>Revisión editorial</h2>
+    <p>Guardá tus cambios antes de revisar. La revisión analiza la copia guardada y propone correcciones para que las selecciones.</p>
+    <form method="post" action="${path}/editorial-review"><button type="submit"${canReviewEditorially(draft) ? "" : " disabled"}>Revisar editorialmente</button></form>
+    ${!canReviewEditorially(draft) ? '<p class="muted">Completá la introducción, el extracto y las recomendaciones antes de revisar.</p>' : ""}
+    ${report}
+    ${reviews.length ? `<details><summary>Historial de revisiones (${reviews.length})</summary><ul>${reviews.map((item) => `<li><a href="${path}?review=${encodeURIComponent(item.id)}#editorial-review">${escapeHtml(formatDate(item.createdAt))}</a> · ${item.issues.length} problemas · ${item.status === "failed" ? "fallida" : "completada"}</li>`).join("")}</ul></details>` : ""}
+    <p><a href="/editorial-feedback">Feedback editorial</a></p>
+  </section>`;
+}
+
+function editorialFeedbackPage(reviews: EditorialReview[]): string {
+  const summary = summarizeEditorialReviews(reviews);
+  return page(
+    "Feedback editorial",
+    `<h1>Feedback editorial</h1>
+    <p>Historial de problemas encontrados para decidir futuras mejoras editoriales. Los recuentos incluyen cada revisión, aunque vuelva a encontrar un problema pendiente.</p>
+    <dl><dt>Revisiones ejecutadas</dt><dd>${summary.reviewsRun}</dd><dt>Revisiones fallidas</dt><dd>${summary.failedReviews}</dd><dt>Problemas detectados</dt><dd>${summary.totalIssues}</dd><dt>Correcciones aplicadas</dt><dd>${summary.applied}</dd><dt>Sin corrección aplicada</dt><dd>${summary.unresolved}</dd></dl>
+    <section class="card"><h2>Problemas por tipo</h2><ul>${Object.entries(summary.byType)
+      .map(([type, count]) => `<li>${escapeHtml(type)}: ${count}</li>`)
+      .join("")}</ul></section>
+    <section class="card"><h2>Problemas recientes</h2>${summary.recentIssues.length ? `<ul>${summary.recentIssues.map((issue) => `<li><a href="/drafts/${encodeURIComponent(issue.guideId)}?review=${encodeURIComponent(issue.reviewId)}#${encodeURIComponent(issue.id)}">${escapeHtml(issue.guideId)}</a> · ${escapeHtml(issue.type)} · ${escapeHtml(issue.severity)} · ${escapeHtml(issue.recommendationId ?? "guía")} / ${escapeHtml(issue.field)} · ${issue.appliedAt ? "aplicada" : "sin aplicar"} · ${escapeHtml(formatDate(issue.createdAt))}<br>${escapeHtml(issue.explanation)}</li>`).join("")}</ul>` : "<p>No hay problemas registrados.</p>"}</section>`,
+  );
+}
+
 function guideEditorPage(
   draft: GuideDraft,
   url: URL,
@@ -3248,6 +3327,7 @@ function guideEditorPage(
   sourcingStore: ProductSourcingRequestStore,
   briefStore: EditorialBriefStore,
   benchmarkStore: EditorialBenchmarkStore,
+  reviews: EditorialReview[],
 ): string {
   const content = catalog.read();
   const clusters = content.clusters
@@ -3285,6 +3365,7 @@ function guideEditorPage(
     `<p><a href="/">← Borradores</a></p>
      <div class="actions"><div><h1>${escapeHtml(draftName(draft))}</h1><p><code>${escapeHtml(draft.id)}</code> · ${escapeHtml(draft.status)}</p></div><a class="button" href="/drafts/${draft.id}/curation">Buscar productos para slots sin resolver</a><a class="button" href="/drafts/${draft.id}/outline-prompt">${draft.outline ? "Revisar o regenerar esquema" : "Revisar y generar esquema"}</a><a class="button" href="/drafts/${draft.id}/final-prompt">Generación final</a><a class="button" href="/drafts/${draft.id}/preview">Vista previa</a><a class="button" href="/drafts/${draft.id}/validate">Validar</a></div>
      <section class="card"><h2>Completar guía</h2><p>Completa la metadata y la copia editorial; no requiere Products.</p><div class="actions"><form method="post" action="/drafts/${encodeURIComponent(draft.id)}/autopilot"><button type="submit">Completar guía automáticamente</button></form><a class="button" href="/drafts/${encodeURIComponent(draft.id)}/curation">Curación de Products (opcional)</a></div></section>
+     ${editorialReviewSection(draft, reviews, url.searchParams.get("review") ?? undefined)}
      <aside class="notice"><strong>Cómo funciona la arquitectura editorial</strong><p>Las taxonomías clasifican contenido; no crean URLs. Una ruta pública existe sólo al publicar un hub o una guía. Cada guía hija pertenece a un cluster válido. Las guías relacionadas son enlaces editoriales, no jerarquía. “Nurse Gifts Under $25” es una guía con eje <code>budget</code>, no un filtro generado.</p></aside>
      <form method="post" action="/drafts/${draft.id}/guide/architecture" class="card">
        <h2>Arquitectura de la guía</h2>
@@ -3621,6 +3702,7 @@ export function createStudioServer(
   const sourcingStore = new ProductSourcingRequestStore(catalog.root);
   const fitStore = new ProductFitEvaluationStore(catalog.root);
   const benchmarkStore = new EditorialBenchmarkStore(catalog.root);
+  const reviewStore = new EditorialReviewStore(catalog.root);
   const currentApprovedBriefs = () => [
     ...new Map(
       [...approvedBriefs, ...editorialBriefComparisonRecords(briefStore.list())].map((brief) => [
@@ -3665,6 +3747,40 @@ export function createStudioServer(
     try {
       const method = request.method ?? "GET";
       const url = new URL(request.url ?? "/", `http://${STUDIO_HOST}`);
+
+      if (method === "GET" && url.pathname === "/editorial-feedback") {
+        send(response, 200, editorialFeedbackPage(await reviewStore.list()));
+        return;
+      }
+      const editorialReviewMatch =
+        method === "POST"
+          ? /^\/drafts\/([a-z0-9_-]+)\/editorial-review(\/apply)?$/.exec(url.pathname)
+          : null;
+      if (editorialReviewMatch?.[1]) {
+        const form = await readForm(request);
+        const draft = await readGuideDraft(store, editorialReviewMatch[1]);
+        let review: EditorialReview;
+        if (editorialReviewMatch[2]) {
+          review = await reviewStore.read(requiredValue(form, "reviewId", "La revisión"));
+          const corrected = applyEditorialCorrections(draft, review, form.getAll("issueId"));
+          await store.save(corrected.draft, new Date(), draft);
+          try {
+            review = await reviewStore.save(corrected.review);
+          } catch (error) {
+            throw new Error(
+              "Las correcciones se guardaron en la guía, pero no se pudo actualizar el historial. El informe anterior queda desactualizado; revisá el almacenamiento antes de continuar.",
+              { cause: error },
+            );
+          }
+        } else {
+          review = await reviewStore.save(await reviewGuideEditorially(draft, provider));
+        }
+        redirect(
+          response,
+          `/drafts/${draft.id}?review=${encodeURIComponent(review.id)}#editorial-review`,
+        );
+        return;
+      }
 
       if (method === "GET" && url.pathname === "/") {
         send(response, 200, await home(store));
@@ -5612,7 +5728,15 @@ export function createStudioServer(
           200,
           draft.draftType === "cluster-hub"
             ? clusterEditorPage(draft)
-            : guideEditorPage(draft, url, catalog, sourcingStore, briefStore, benchmarkStore),
+            : guideEditorPage(
+                draft,
+                url,
+                catalog,
+                sourcingStore,
+                briefStore,
+                benchmarkStore,
+                (await reviewStore.list()).filter((review) => review.guideId === draft.id),
+              ),
         );
         return;
       }

@@ -19,6 +19,8 @@ export function assertSafeDraftId(id: string): void {
 
 export class DraftStore {
   private readonly directory: string;
+  // ponytail: one local save queue; use per-draft queues if Studio write throughput matters.
+  private pendingSave: Promise<unknown> = Promise.resolve();
 
   constructor(directory = DEFAULT_DRAFT_DIRECTORY) {
     this.directory = directory;
@@ -72,7 +74,18 @@ export class DraftStore {
     }
   }
 
-  async save<T extends EditorialDraft>(draft: T, now = new Date()): Promise<T> {
+  async save<T extends EditorialDraft>(draft: T, now = new Date(), expected?: T): Promise<T> {
+    const saving = this.pendingSave.then(() => this.write(draft, now, expected));
+    this.pendingSave = saving.catch(() => undefined);
+    return saving;
+  }
+
+  private async write<T extends EditorialDraft>(draft: T, now: Date, expected?: T): Promise<T> {
+    if (expected && JSON.stringify(await this.read(draft.id)) !== JSON.stringify(expected)) {
+      throw new TypeError(
+        "El borrador cambió mientras se guardaba. Recargá y volvé a revisar las correcciones.",
+      );
+    }
     const parsed = editorialDraftSchema.parse({ ...draft, updatedAt: now.toISOString() }) as T;
     const target = this.file(parsed.id);
 

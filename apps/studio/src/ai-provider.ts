@@ -52,6 +52,8 @@ export interface StructuredGenerationRequest<T> {
     | "idea-recommendation"
     | "idea-recommendation-batch"
     | "idea-recommendation-batch-repair"
+    | "editorial-review"
+    | "editorial-review-repair"
     | "opportunity-candidates"
     | "opportunity-evaluations"
     | "product-search-plans"
@@ -60,6 +62,7 @@ export interface StructuredGenerationRequest<T> {
   prompt: string;
   input: unknown;
   schema: z.ZodType<T>;
+  onCallMetadata?: (metadata: ProviderCallMetadata) => void;
 }
 
 export interface GuideGenerationProvider {
@@ -417,6 +420,7 @@ class OpenAiCompatibleGuideGenerationProvider implements GuideGenerationProvider
       ...(usage?.completion_tokens !== undefined ? { outputTokens: usage.completion_tokens } : {}),
       ...(usage?.total_tokens !== undefined ? { totalTokens: usage.total_tokens } : {}),
     };
+    request.onCallMetadata?.(this.lastCallMetadata);
     if (envelope.data.choices.length === 0) {
       throw new ProviderError("El proveedor no devolvió ninguna opción.", "empty-response");
     }
@@ -478,6 +482,12 @@ export class MockGuideGenerationProvider implements GuideGenerationProvider {
   readonly modelId = "mock-editorial-v1";
 
   async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+    if (
+      request.operation === "editorial-review" ||
+      request.operation === "editorial-review-repair"
+    ) {
+      return request.schema.parse({ issues: [] });
+    }
     if (request.operation === "product-editorial-copy") {
       return request.schema.parse(
         mockProductEditorialCopy(productEditorialCopyPromptInputSchema.parse(request.input)),
