@@ -14,7 +14,12 @@ import {
   type StructuredGenerationRequest,
 } from "./ai-provider.ts";
 import { DraftStore } from "./draft-store.ts";
-import { createGuideDraft, guideDraftSchema } from "./drafts.ts";
+import {
+  clusterDraftSchema,
+  createClusterDraft,
+  createGuideDraft,
+  guideDraftSchema,
+} from "./drafts.ts";
 import { completeGuideEditorially } from "./editorial-completion.ts";
 import { resolveProductClassProfile } from "./editorial-guidance.ts";
 import {
@@ -71,6 +76,197 @@ async function createEditorialRoot(): Promise<string> {
   );
   return repository;
 }
+
+async function writePublishedGuide(
+  repository: string,
+  id: string,
+  recommendation: { productId?: string } = {},
+): Promise<void> {
+  await writeFile(
+    join(repository, "content", "guides", `${id}.json`),
+    `${JSON.stringify(
+      {
+        schemaVersion: 1,
+        id,
+        pageType: "gift-guide",
+        clusterId,
+        slug: id.replace(/^guide_/, "").replaceAll("_", "-"),
+        language: "en-US",
+        title: `${id} title`,
+        excerpt: "A focused guide fixture for editorial isolation.",
+        introduction: "Choose around the recipient's routine and stated preferences.",
+        primaryAxis: "general",
+        primaryIntent: "Help someone choose a thoughtful gift.",
+        seoTitle: `${id} | The Good Present`,
+        seoDescription: "A focused guide fixture for editorial isolation coverage.",
+        status: "published",
+        publishedAt: "2026-09-14",
+        updatedAt: "2026-09-14",
+        recommendations: [
+          {
+            id: `${id}_idea`,
+            position: 1,
+            ...recommendation,
+            ...(recommendation.productId ? {} : { productResolution: "unresolved" }),
+            editorialDescription: "A useful option chosen around an everyday routine.",
+            whyItFits: "It addresses a clear need without overcomplicating the gift.",
+            ...(recommendation.productId ? {} : { heading: "A useful everyday idea" }),
+            editorialStatus: "ready",
+          },
+        ],
+      },
+      null,
+      2,
+    )}\n`,
+  );
+}
+
+async function startStudio(repository: string) {
+  const store = new DraftStore(join(repository, "drafts"), repository);
+  const server = createStudioServer(
+    store,
+    new ProductCatalog(repository),
+    new MockGuideGenerationProvider(),
+    new Publisher(repository),
+  );
+  server.listen(0, STUDIO_HOST);
+  await once(server, "listening");
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  return { store, server, origin: `http://${STUDIO_HOST}:${address.port}` };
+}
+
+test("post-Stage-4 cleanup: cluster routes and Product-free reopening stay editorial-only", async (context) => {
+  const repository = await createEditorialRoot();
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  const reopenClusterId = "cluster_custom-root-reopen";
+  const publishedCluster = JSON.parse(
+    await readFile(join(repository, "content", "clusters", `${clusterId}.json`), "utf8"),
+  );
+  await writeFile(
+    join(repository, "content", "clusters", `${reopenClusterId}.json`),
+    `${JSON.stringify(
+      {
+        ...publishedCluster,
+        id: reopenClusterId,
+        slug: "custom-root-reopen",
+        title: "Custom Root Reopen",
+        navigationGroups: [],
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  await writePublishedGuide(repository, "guide_editorial-only");
+  const { store, server, origin } = await startStudio(repository);
+  context.after(() => server.close());
+  const clusterDraft = await store.save(
+    clusterDraftSchema.parse({
+      ...createClusterDraft(clusterId, checkpointDate),
+      slug: "editorial-isolation",
+      title: "Editorial Isolation Gifts",
+      excerpt: "Gift ideas developed without requiring Products.",
+      introduction: "A focused collection of practical gift ideas.",
+      seoTitle: "Editorial Isolation Gift Ideas",
+      seoDescription: "Explore practical gift ideas developed independently from Products.",
+      navigationGroups: [
+        { id: "group_editorial-guides", label: "Editorial guides", axis: "general", guideIds: [] },
+      ],
+    }),
+    checkpointDate,
+  );
+
+  const editor = await fetch(`${origin}/drafts/${clusterDraft.id}`);
+  assert.equal(editor.status, 200);
+  assert.match(await editor.text(), /guide_editorial-only title/);
+  await assert.rejects(readFile(join(repository, "content", "products")), /ENOENT/);
+
+  const addGuide = await fetch(
+    `${origin}/drafts/${clusterDraft.id}/groups/group_editorial-guides/guides`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        revision: String(clusterDraft.revision),
+        guideId: "guide_editorial-only",
+      }),
+      redirect: "manual",
+    },
+  );
+  assert.equal(addGuide.status, 303);
+  const updatedCluster = await store.read(clusterDraft.id);
+  assert.equal(updatedCluster.draftType, "cluster-hub");
+  assert.deepEqual(
+    updatedCluster.draftType === "cluster-hub" ? updatedCluster.navigationGroups[0]?.guideIds : [],
+    ["guide_editorial-only"],
+  );
+
+  await mkdir(join(repository, "content", "products"), { recursive: true });
+  await writeFile(join(repository, "content", "products", "product_broken.json"), "{ malformed");
+
+  for (const path of [
+    `/drafts/${clusterDraft.id}/preview`,
+    `/drafts/${clusterDraft.id}/validate`,
+  ]) {
+    const response = await fetch(`${origin}${path}`);
+    assert.equal(response.status, 200, path);
+  }
+
+  const reopenCluster = await fetch(`${origin}/drafts/reopen/cluster/${reopenClusterId}`, {
+    method: "POST",
+    redirect: "manual",
+  });
+  assert.equal(reopenCluster.status, 303);
+  assert.equal((await store.read(reopenClusterId)).draftType, "cluster-hub");
+
+  const reopenGuide = await fetch(`${origin}/drafts/reopen/guide/guide_editorial-only`, {
+    method: "POST",
+    redirect: "manual",
+  });
+  assert.equal(reopenGuide.status, 303);
+  assert.equal((await store.read("guide_editorial-only")).draftType, "gift-guide");
+
+  const products = await fetch(`${origin}/products`);
+  assert.equal(products.status, 500);
+  assert.match(await products.text(), /product_broken\.json|malformed/i);
+
+  const productRepository = await createEditorialRoot();
+  context.after(() => rm(productRepository, { recursive: true, force: true }));
+  await mkdir(join(productRepository, "content", "products"), { recursive: true });
+  await writeFile(
+    join(productRepository, "content", "products", "product_reopen-fixture.json"),
+    `${JSON.stringify(
+      {
+        schemaVersion: 1,
+        id: "product_reopen-fixture",
+        name: "Repository-root Product Name",
+        merchant: "Repository-root Merchant",
+        shortDescription:
+          "A valid Product fixture used only by the Product-backed reopening branch.",
+        status: "active",
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  await writePublishedGuide(productRepository, "guide_product-backed", {
+    productId: "product_reopen-fixture",
+  });
+  const productStudio = await startStudio(productRepository);
+  context.after(() => productStudio.server.close());
+  const reopenProductGuide = await fetch(
+    `${productStudio.origin}/drafts/reopen/guide/guide_product-backed`,
+    { method: "POST", redirect: "manual" },
+  );
+  assert.equal(reopenProductGuide.status, 303);
+  const reopened = await productStudio.store.read("guide_product-backed");
+  assert.equal(reopened.draftType, "gift-guide");
+  assert.equal(reopened.recommendations[0]?.slotLabel, "Repository-root Product Name");
+  assert.deepEqual(reopened.recommendations[0]?.searchTerms, [
+    "Repository-root Product Name",
+    "Repository-root Merchant",
+  ]);
+});
 
 test("Stage 4 checkpoint: an eight-idea guide completes and publishes with optional stores absent or malformed", async (context) => {
   const repository = await createEditorialRoot();

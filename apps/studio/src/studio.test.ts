@@ -6110,7 +6110,8 @@ test("agrega, ordena y quita sólo hijos publicados del cluster", () => {
 
 test("reabre, previsualiza y valida un hub por HTTP", async (context) => {
   const directory = await mkdtemp(join(tmpdir(), "good-present-cluster-http-"));
-  const store = new DraftStore(directory);
+  await cp(join(REPOSITORY_ROOT, "content"), join(directory, "content"), { recursive: true });
+  const store = new DraftStore(join(directory, "drafts"));
   const server = createStudioServer(store);
   server.listen(0, STUDIO_HOST);
   await once(server, "listening");

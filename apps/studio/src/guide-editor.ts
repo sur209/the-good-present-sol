@@ -2051,11 +2051,11 @@ export function validateGuideDraft(
 
 export function reopenGuideDraft(
   guide: GiftGuide,
-  content: ValidatedPublicContent,
+  content: ValidatedEditorialContent & { products?: Product[] },
   now = new Date(),
 ): GuideDraft {
   const timestamp = now.toISOString();
-  const products = new Map(content.products.map((product) => [product.id, product]));
+  const products = new Map((content.products ?? []).map((product) => [product.id, product]));
   return guideDraftSchema.parse({
     schemaVersion: 1,
     id: guide.id,

@@ -13,6 +13,7 @@ import {
   recommendationDestination,
   type PrimaryAxis,
   type Product,
+  type ValidatedEditorialContent,
 } from "@the-good-present/content-schema";
 
 import {
@@ -2733,8 +2734,7 @@ function newDraftPage(content: ReturnType<typeof readEditorialContent>): string 
   );
 }
 
-function clusterEditorPage(draft: ClusterDraft): string {
-  const content = readPublicContent();
+function clusterEditorPage(draft: ClusterDraft, content: ValidatedEditorialContent): string {
   const guides = content.guides.filter((guide) => guide.clusterId === draft.id);
   const guidesById = new Map(guides.map((guide) => [guide.id, guide]));
   const groups = draft.navigationGroups
@@ -2837,8 +2837,7 @@ function updateClusterFromForm(draft: ClusterDraft, form: URLSearchParams): Clus
   });
 }
 
-function clusterPreviewPage(draft: ClusterDraft): string {
-  const content = readPublicContent();
+function clusterPreviewPage(draft: ClusterDraft, content: ValidatedEditorialContent): string {
   const validation = validateClusterDraft(draft, content);
   const guides = new Map(content.guides.map((guide) => [guide.id, guide]));
   const clusterRoute = validation.route ?? "(ruta incompleta)";
@@ -2870,8 +2869,8 @@ function clusterPreviewPage(draft: ClusterDraft): string {
   );
 }
 
-function clusterValidationPage(draft: ClusterDraft): string {
-  const result = validateClusterDraft(draft, readPublicContent());
+function clusterValidationPage(draft: ClusterDraft, content: ValidatedEditorialContent): string {
+  const result = validateClusterDraft(draft, content);
   return draftPage(
     draft,
     `Validación · ${draftName(draft)}`,
@@ -3597,7 +3596,7 @@ export function createStudioServer(
           redirect(response, `/drafts/${existing.id}`);
           return;
         }
-        const cluster = readPublicContent().clusters.find(
+        const cluster = readEditorialContent(store.repositoryRoot).clusters.find(
           (item) => item.id === reopenClusterMatch[1],
         );
         if (!cluster) throw new TypeError("El hub publicado no existe.");
@@ -3618,9 +3617,12 @@ export function createStudioServer(
           redirect(response, `/drafts/${existing.id}`);
           return;
         }
-        const content = readPublicContent();
-        const guide = content.guides.find((item) => item.id === reopenGuideMatch[1]);
+        const editorialContent = readEditorialContent(store.repositoryRoot);
+        const guide = editorialContent.guides.find((item) => item.id === reopenGuideMatch[1]);
         if (!guide) throw new TypeError("La guía publicada no existe.");
+        const content = guide.recommendations.some(({ productId }) => productId)
+          ? readPublicContent(store.repositoryRoot)
+          : editorialContent;
         const draft = await store.save(reopenGuideDraft(guide, content));
         redirect(response, `/drafts/${draft.id}`);
         return;
@@ -3633,7 +3635,7 @@ export function createStudioServer(
           response,
           200,
           draft.draftType === "cluster-hub"
-            ? clusterPreviewPage(draft)
+            ? clusterPreviewPage(draft, readEditorialContent(store.repositoryRoot))
             : guidePreviewPage(draft, store.repositoryRoot),
         );
         return;
@@ -3643,10 +3645,11 @@ export function createStudioServer(
       if (validationMatch?.[1]) {
         let draft = await store.read(validationMatch[1]);
         if (draft.draftType === "cluster-hub") {
-          const validation = validateClusterDraft(draft, readPublicContent());
+          const content = readEditorialContent(store.repositoryRoot);
+          const validation = validateClusterDraft(draft, content);
           const status = validation.errors.length === 0 ? "ready-to-publish" : "editing";
           if (draft.status !== status) draft = await store.save({ ...draft, status });
-          send(response, 200, clusterValidationPage(draft));
+          send(response, 200, clusterValidationPage(draft, content));
         } else {
           const content = draft.recommendations.some(({ productId }) => productId)
             ? readPublicContent(store.repositoryRoot)
@@ -3751,7 +3754,7 @@ export function createStudioServer(
             draft,
             addGuideMatch[2],
             requiredValue(form, "guideId", "La guía"),
-            readPublicContent(),
+            readEditorialContent(store.repositoryRoot),
           ),
         );
         redirect(response, `/drafts/${draft.id}`);
@@ -5541,7 +5544,7 @@ export function createStudioServer(
           response,
           200,
           draft.draftType === "cluster-hub"
-            ? clusterEditorPage(draft)
+            ? clusterEditorPage(draft, readEditorialContent(store.repositoryRoot))
             : guideEditorPage(
                 draft,
                 url,
