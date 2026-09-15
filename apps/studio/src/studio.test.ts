@@ -489,6 +489,54 @@ async function writeOpportunityContentFixture(repository: string) {
   return readPublicContent(repository);
 }
 
+function productBackedContentFixture(): ValidatedPublicContent {
+  const base = opportunityContentFixture();
+  const product = base.products[0]!;
+  const recommendation = base.guides[0]!.recommendations[0]!;
+  const { productResolution: _productResolution, ...copy } = recommendation;
+  return {
+    ...base,
+    products: [
+      { ...product, productUrl: "https://merchant.test/care-kit" },
+      productSchema.parse({
+        ...product,
+        id: "product_fixture-travel-kit",
+        name: "Travel organization kit",
+        productUrl: "https://merchant.test/travel-kit",
+        affiliateUrl: "https://merchant.test/travel-kit?affid=fixture",
+      }),
+    ],
+    guides: [
+      {
+        ...base.guides[0]!,
+        recommendations: [
+          { ...copy, productId: product.id },
+          {
+            ...copy,
+            id: "practical_fixture-travel-kit",
+            position: 2,
+            productId: "product_fixture-travel-kit",
+          },
+        ],
+      },
+    ],
+  };
+}
+
+async function writeProductBackedContentFixture(repository: string) {
+  const content = productBackedContentFixture();
+  for (const [directory, records] of [
+    ["products", content.products],
+    ["guides", content.guides],
+    ["clusters", content.clusters],
+  ] as const) {
+    for (const record of records) {
+      await atomicWriteJson(join(repository, "content", directory, `${record.id}.json`), record);
+    }
+  }
+  return readPublicContent(repository);
+}
+
 function configuredAmazonProgram() {
   return affiliateProgramSchema.parse({
     id: "amazon-us",
@@ -578,7 +626,7 @@ function manualProductIntakeForm(
 }
 
 function productCoverageFixture() {
-  const base = readPublicContent();
+  const base = productBackedContentFixture();
   const template = base.products[0]!;
   const product = (id: string, overrides: Partial<Product> = {}): Product => ({
     ...template,
@@ -1060,7 +1108,7 @@ test("applies explicit thresholds and preserves editorial signals with an empty 
 
 test("shows traceability in Studio and excludes product intelligence from the public build", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-product-intelligence-"));
-  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  await writeOpportunityContentFixture(repository);
   const draftStore = new DraftStore(join(repository, "drafts"));
   const { draft, report } = productCoverageFixture();
   const sentinel = "INTERNAL_COVERAGE_SENTINEL_20260809";
@@ -2611,7 +2659,22 @@ test("muestra el estado de afiliados sólo dentro del Studio", async (context) =
 });
 
 test("reporta cobertura, tracking, programas, hosts, disclosure y protocolos con severidades distintas", async (context) => {
-  const base = readPublicContent();
+  const fixture = productBackedContentFixture();
+  const ids = [
+    "product_badge-reel",
+    "product_coffee-card",
+    "product_compression-socks",
+    "product_sleep-mask",
+    "product_pocket-notebook",
+    "product_hand-cream",
+    "product_rechargeable-penlight",
+    "product_insulated-tumbler",
+    "product_shift-tote",
+  ];
+  const base = {
+    ...fixture,
+    products: ids.map((id) => ({ ...fixture.products[0]!, id, name: id })),
+  };
   const productById = (id: string) => base.products.find((product) => product.id === id)!;
   const withoutUrls = (id: string) => {
     const { affiliateUrl: _affiliateUrl, productUrl: _productUrl, ...product } = productById(id);
@@ -2713,7 +2776,7 @@ test("reporta cobertura, tracking, programas, hosts, disclosure y protocolos con
   });
   const siteDistRoot = await mkdtemp(join(tmpdir(), "good-present-affiliate-qa-output-"));
   context.after(() => rm(siteDistRoot, { recursive: true, force: true }));
-  const routeDirectory = join(siteDistRoot, "nurse-gifts", "graduation");
+  const routeDirectory = join(siteDistRoot, "nurse-gifts", "practical");
   await mkdir(routeDirectory, { recursive: true });
   await writeFile(
     join(routeDirectory, "index.html"),
@@ -3029,7 +3092,7 @@ test("guarda el intake Amazon solo despues de confirmacion explicita", async (co
 test("escribe productos por ID y bloquea desactivar uno publicado", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-catalog-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
-  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  await writeProductBackedContentFixture(repository);
   const catalog = new ProductCatalog(repository);
   const product = await catalog.save({
     schemaVersion: 1,
@@ -8603,7 +8666,7 @@ test("transforma borradores completos al esquema público sin campos editoriales
 test("publica y renderiza una idea sin Product ni CTA, conservando QA e I.0", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-unresolved-build-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
-  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  await writeProductBackedContentFixture(repository);
   const publisher = new Publisher(repository);
   const content = publisher.read();
   const existing = content.guides[0]!;
