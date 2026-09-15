@@ -1,4 +1,4 @@
-import { primaryAxisSchema, type ValidatedPublicContent } from "@the-good-present/content-schema";
+import { primaryAxisSchema } from "@the-good-present/content-schema";
 import { z } from "zod";
 
 import {
@@ -7,8 +7,7 @@ import {
   guideQuestionnaireSchema,
   type GuideDraft,
 } from "./drafts.ts";
-import { resolveProductClassProfile } from "./modules/product-intelligence/fit.ts";
-import type { ProductSourcingRequest } from "./modules/product-intelligence/sourcing.ts";
+import { resolveProductClassProfile } from "./editorial-guidance.ts";
 
 export const IDEA_RECOMMENDATION_PROMPT_VERSION = "idea-recommendation-v5";
 export const IDEA_RECOMMENDATION_BATCH_PROMPT_VERSION = "idea-recommendation-batch-v1";
@@ -92,49 +91,9 @@ export interface PreparedIdeaRecommendationBatchPrompt {
   prompt: string;
 }
 
-function normalized(value: string): string {
-  return value.trim().toLocaleLowerCase("en-US");
-}
-
-function catalogSpecific(value: string, content: ValidatedPublicContent): boolean {
-  const text = normalized(value);
-  return content.products.some(
-    (product) => text.includes(normalized(product.name)) || text === normalized(product.merchant),
-  );
-}
-
-function sourceSpecific(
-  value: string,
-  content: ValidatedPublicContent,
-  request?: ProductSourcingRequest,
-): boolean {
-  if (
-    catalogSpecific(value, content) ||
-    /(?:https?:\/\/|www\.|\b(?:asin\s*)?b0[a-z0-9]{8}\b)/i.test(value)
-  ) {
-    return true;
-  }
-  const text = normalized(value);
-  return Boolean(
-    request?.sourceCandidates.some((candidate) =>
-      [
-        candidate.name,
-        candidate.brand,
-        candidate.merchant,
-        candidate.marketplace,
-        candidate.externalId,
-      ]
-        .map((term) => normalized(term ?? ""))
-        .some((term) => term.length >= 4 && text.includes(term)),
-    ),
-  );
-}
-
 export function createIdeaRecommendationPromptInput(
   draft: GuideDraft,
   recommendationId: string,
-  content: ValidatedPublicContent,
-  request?: ProductSourcingRequest,
 ): IdeaRecommendationPromptInput {
   if (!draft.primaryAxis) throw new TypeError("Elegí un eje principal antes de generar la idea.");
   if (!draft.primaryIntent) throw new TypeError("Definí la intención principal antes de generar.");
@@ -143,23 +102,10 @@ export function createIdeaRecommendationPromptInput(
   if (slot.productId) {
     throw new TypeError("La generación idea-only sólo acepta un slot sin Product.");
   }
-  if (
-    request &&
-    (request.origin.kind !== "recommendation-slot" ||
-      request.origin.guideDraftId !== draft.id ||
-      request.origin.recommendationSlotId !== slot.id)
-  ) {
-    throw new TypeError("La solicitud I.2 no pertenece a este slot.");
-  }
-
-  const planned = request?.searchPlan;
-  const rawProductClass = planned?.productClass ?? request?.requiredCategory ?? slot.slotLabel;
-  const productClass = sourceSpecific(rawProductClass, content, request)
-    ? "Gift idea"
-    : rawProductClass;
+  const productClass = slot.slotLabel;
   const profile = resolveProductClassProfile(productClass);
   const whatToLookFor = [
-    ...(slot.searchTerms ?? []).filter((term) => !sourceSpecific(term, content, request)),
+    ...(slot.searchTerms ?? []),
     ...profile.importantAttributes,
     ...profile.requiredAttributes,
     ...profile.giftabilityConsiderations,
@@ -187,10 +133,8 @@ export function createIdeaRecommendationPromptInput(
     recommendation: {
       id: slot.id,
       position: slot.position,
-      slotLabel: sourceSpecific(slot.slotLabel, content, request) ? productClass : slot.slotLabel,
-      ...(slot.slotIntent && !sourceSpecific(slot.slotIntent, content, request)
-        ? { slotIntent: slot.slotIntent }
-        : {}),
+      slotLabel: slot.slotLabel,
+      ...(slot.slotIntent ? { slotIntent: slot.slotIntent } : {}),
       productClass,
       productClassProfile: {
         classId: profile.classId,
@@ -203,12 +147,10 @@ export function createIdeaRecommendationPromptInput(
         evaluationGuidance: profile.evaluationGuidance,
         version: profile.version,
       },
-      ...(request?.audience || draft.questionnaire.recipient
-        ? { audience: request?.audience ?? draft.questionnaire.recipient }
-        : {}),
-      ...(request?.budgetContext || slot.budgetHint || draft.questionnaire.budget
+      ...(draft.questionnaire.recipient ? { audience: draft.questionnaire.recipient } : {}),
+      ...(slot.budgetHint || draft.questionnaire.budget
         ? {
-            budgetContext: request?.budgetContext ?? slot.budgetHint ?? draft.questionnaire.budget,
+            budgetContext: slot.budgetHint ?? draft.questionnaire.budget,
           }
         : {}),
       whatToLookFor: [...new Set(whatToLookFor)].slice(0, 20),
@@ -300,10 +242,8 @@ ${JSON.stringify(validated, null, 2)}`;
 export function prepareIdeaRecommendationPrompt(
   draft: GuideDraft,
   recommendationId: string,
-  content: ValidatedPublicContent,
-  request?: ProductSourcingRequest,
 ): PreparedIdeaRecommendationPrompt {
-  const input = createIdeaRecommendationPromptInput(draft, recommendationId, content, request);
+  const input = createIdeaRecommendationPromptInput(draft, recommendationId);
   return {
     version: IDEA_RECOMMENDATION_PROMPT_VERSION,
     input,
@@ -314,13 +254,9 @@ export function prepareIdeaRecommendationPrompt(
 export function prepareIdeaRecommendationBatchPrompt(
   draft: GuideDraft,
   recommendationIds: readonly string[],
-  content: ValidatedPublicContent,
-  requests: ReadonlyMap<string, ProductSourcingRequest> = new Map(),
 ): PreparedIdeaRecommendationBatchPrompt {
   if (!recommendationIds.length) throw new TypeError("The idea-only batch cannot be empty.");
-  const inputs = recommendationIds.map((id) =>
-    createIdeaRecommendationPromptInput(draft, id, content, requests.get(id)),
-  );
+  const inputs = recommendationIds.map((id) => createIdeaRecommendationPromptInput(draft, id));
   const input = ideaRecommendationBatchPromptInputSchema.parse({
     language: "en-US",
     guide: inputs[0]!.guide,
@@ -331,4 +267,26 @@ export function prepareIdeaRecommendationBatchPrompt(
     input,
     prompt: buildIdeaRecommendationBatchPrompt(input),
   };
+}
+
+export function mockIdeaRecommendation(
+  recommendation: IdeaRecommendationPromptInput["recommendation"],
+): GeneratedIdeaRecommendation {
+  const attributes = recommendation.whatToLookFor.slice(0, 3);
+  const productClass = recommendation.productClass.toLocaleLowerCase("en-US");
+  return generatedIdeaRecommendationSchema.parse({
+    id: recommendation.id,
+    position: recommendation.position,
+    heading: `${recommendation.productClass} for Everyday Use`,
+    editorialDescription: `${recommendation.productClass} can make a thoughtful gift when it suits the recipient's real routine and preferences.`,
+    whyItFits:
+      "This kind of gift adds practical value without depending on a particular brand or model.",
+    bestFor: "Someone likely to use it regularly",
+    selectionGuidance: attributes.length
+      ? `Look for ${attributes.join(", ")}, then favor the choice that best suits everyday use.`
+      : `Compare ${productClass} choices for fit, care, and suitability for the recipient's routine.`,
+    considerations: recommendation.exclusions.length
+      ? `Avoid ${recommendation.exclusions.join(" and ")}.`
+      : "Personal preferences and ease of care may matter more than extra features.",
+  });
 }

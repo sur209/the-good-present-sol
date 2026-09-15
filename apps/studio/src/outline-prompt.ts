@@ -1,4 +1,7 @@
-import { primaryAxisSchema, type ValidatedPublicContent } from "@the-good-present/content-schema";
+import {
+  primaryAxisSchema,
+  type ValidatedEditorialContent,
+} from "@the-good-present/content-schema";
 import { z } from "zod";
 
 import {
@@ -9,6 +12,29 @@ import {
 } from "./drafts.ts";
 
 export const OUTLINE_PROMPT_VERSION = "outline-v2";
+
+const mockOutlineGiftClasses = [
+  "Portable Phone Charger",
+  "Travel Umbrella",
+  "Recipe Journal",
+  "Picnic Blanket",
+  "Adjustable Desk Lamp",
+  "Plant Mister",
+  "Strategy Board Game",
+  "Canvas Tool Roll",
+  "Cable Organizer",
+  "Reading Pillow",
+  "Insulated Lunch Cooler",
+  "Tea Infuser",
+  "Travel Wallet",
+  "Bluetooth Key Finder",
+  "Bath Towel Set",
+  "Zippered Pencil Case",
+  "Garden Gloves",
+  "Leather Card Holder",
+  "Rechargeable Bike Light",
+  "Wooden Serving Tray",
+] as const;
 
 const abstractLabelWords = new Set([
   "after",
@@ -213,7 +239,7 @@ ${JSON.stringify(validated, null, 2)}`;
 
 export function prepareOutlinePrompt(
   draft: GuideDraft,
-  content: ValidatedPublicContent,
+  content: ValidatedEditorialContent,
 ): PreparedOutlinePrompt {
   if (!draft.clusterId) throw new TypeError("Elegí un cluster antes de generar el esquema.");
   const cluster = content.clusters.find((item) => item.id === draft.clusterId);
@@ -242,4 +268,27 @@ export function prepareOutlinePrompt(
     slotIds: stableSlotIds(draft),
   });
   return { version: OUTLINE_PROMPT_VERSION, input, prompt: buildOutlinePrompt(input) };
+}
+
+export function mockGuideOutline(input: OutlinePromptInput) {
+  const audience =
+    input.questionnaire.recipient ?? input.taxonomies?.recipients?.[0] ?? "the intended recipient";
+  const budgetHint = input.budgetContext?.label ?? input.questionnaire.budget;
+  return {
+    provisionalTitle: `${input.cluster.title}: ${input.primaryIntent}`,
+    audienceSummary: `A focused guide for someone choosing a gift for ${audience}.`,
+    editorialAngle: `Use ${input.primaryAxis} as the primary lens while keeping every slot aligned with the stated intent.`,
+    recommendationCount: input.requestedRecommendationCount,
+    slots: Array.from({ length: input.requestedRecommendationCount }, (_, index) => {
+      const label = mockOutlineGiftClasses[index]!;
+      const productClass = label.toLocaleLowerCase("en-US");
+      return {
+        id: input.slotIds[index]!,
+        label,
+        intent: `A distinct, practical option that supports: ${input.primaryIntent}`,
+        searchTerms: [productClass, `${productClass} for ${audience}`],
+        ...(budgetHint ? { budgetHint } : {}),
+      };
+    }),
+  };
 }

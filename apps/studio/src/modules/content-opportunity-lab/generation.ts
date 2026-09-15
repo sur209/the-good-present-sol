@@ -1024,6 +1024,7 @@ export async function generateDivergentOpportunities(
       prompt: prepared.prompt,
       input: prepared.input,
       schema: exactResponseSchema,
+      mockResponse: () => mockOpportunityGeneration(prepared.input),
     }),
   );
   assertNoProtectedOutput(generated, context.content);

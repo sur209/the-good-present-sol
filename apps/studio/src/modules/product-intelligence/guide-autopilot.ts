@@ -13,6 +13,7 @@ import {
   guideEditorialMetadataIsComplete,
   guideDraftReadiness,
   generateIdeaOnlyRecommendationBatchWithRecovery,
+  ideaOnlyRecommendationNeedsCopyRepair,
   productClaimContext,
   productBackedCopyNeedsVerifiedFactsRepair,
   recommendationIsEditoriallyReady,
@@ -20,7 +21,6 @@ import {
 import {
   autopilotResolutionOutcomeSchema,
   completeProductBackedRecommendationCopy,
-  ideaOnlyRecommendationNeedsCopyRepair,
   resolveRecommendationSlotAutonomously,
   type AutopilotDependencies,
   type AutopilotResolutionOutcome,
@@ -300,40 +300,22 @@ export async function completeGuideAutonomously(
 
   const batchedIdeaWarnings = new Map<string, string[]>();
   if (!options.sourceProducts) {
-    const content = dependencies.catalog.read();
     const recommendationIds = [...draft.recommendations]
       .sort((left, right) => left.position - right.position)
       .filter((slot) => {
         if (slot.productId) return false;
-        const request = findProductSourcingRequestForDraftSlot(
-          dependencies.sourcingStore.list(),
-          draft.id,
-          slot.id,
-        );
         return (
-          ideaOnlyRecommendationNeedsCopyRepair(draft, slot.id, content, request) ||
+          ideaOnlyRecommendationNeedsCopyRepair(draft, slot.id) ||
           !recommendationIsEditoriallyReady(slot)
         );
       })
       .map(({ id }) => id);
     if (recommendationIds.length) {
-      const requests = new Map(
-        recommendationIds.flatMap((id) => {
-          const request = findProductSourcingRequestForDraftSlot(
-            dependencies.sourcingStore.list(),
-            draft.id,
-            id,
-          );
-          return request ? [[id, request] as const] : [];
-        }),
-      );
       try {
         const completion = await generateIdeaOnlyRecommendationBatchWithRecovery(
           draft,
           recommendationIds,
-          content,
           trackedDependencies.provider,
-          requests,
           now,
         );
         await dependencies.draftStore.save(completion.draft, now);

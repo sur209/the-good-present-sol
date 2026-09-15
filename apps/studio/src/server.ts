@@ -23,6 +23,11 @@ import {
 } from "./ai-provider.ts";
 import { DraftStore } from "./draft-store.ts";
 import {
+  completeGuideEditorially,
+  type EditorialCompletionOutcome,
+} from "./editorial-completion.ts";
+import { resolveProductClassProfile } from "./editorial-guidance.ts";
+import {
   EditorialReviewStore,
   applyEditorialCorrections,
   canReviewEditorially,
@@ -162,7 +167,6 @@ import {
   PRODUCT_FIT_RANKING_POLICY_VERSION,
   ProductFitEvaluationStore,
   evaluateProductFitBatch,
-  resolveProductClassProfile,
 } from "./modules/product-intelligence/fit.ts";
 import {
   EDITORIAL_FEEDBACK_REASONS,
@@ -252,7 +256,12 @@ import {
   type EditorialBrief,
   type EditorialBriefEdits,
 } from "./modules/content-opportunity-lab/review.ts";
-import { REPOSITORY_ROOT, StudioWriterGuard, readPublicContent } from "./repository.ts";
+import {
+  REPOSITORY_ROOT,
+  StudioWriterGuard,
+  readEditorialContent,
+  readPublicContent,
+} from "./repository.ts";
 
 export const STUDIO_HOST = "127.0.0.1";
 const DEFAULT_PORT = 4322;
@@ -2663,8 +2672,7 @@ async function home(store: DraftStore): Promise<string> {
   );
 }
 
-function newDraftPage(): string {
-  const content = readPublicContent();
+function newDraftPage(content: ReturnType<typeof readEditorialContent>): string {
   const clusterOptions = content.clusters
     .map(
       (cluster) =>
@@ -2894,8 +2902,11 @@ function guideWorkflowStatus(draft: GuideDraft): GuideDraft["status"] {
   return draft.outline ? "outline-ready" : "questionnaire";
 }
 
-function guideArchitectureFromForm(draft: GuideDraft, form: URLSearchParams): GuideDraft {
-  const content = readPublicContent();
+function guideArchitectureFromForm(
+  draft: GuideDraft,
+  form: URLSearchParams,
+  content: ReturnType<typeof readEditorialContent>,
+): GuideDraft {
   const clusterId = optionalValue(form, "clusterId");
   if (clusterId && !content.clusters.some((cluster) => cluster.id === clusterId)) {
     throw new TypeError("El cluster elegido no está publicado.");
@@ -3000,236 +3011,12 @@ function recommendationCopyFromForm(
   );
 }
 
-function productChoiceForm(
-  draft: GuideDraft,
-  recommendationId: string,
-  product: Product,
-  duplicate: boolean,
-  replacing: boolean,
-  evidence?: { score: number; threshold: number; usedInGuide: boolean },
-): string {
-  const resolveThroughSourcing = !replacing;
-  const action = resolveThroughSourcing
-    ? `/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(recommendationId)}/catalog`
-    : `/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(recommendationId)}/product`;
-  const evidenceHtml = evidence
-    ? `<p class="muted">I.0: ${evidence.score} tokens compartidos - umbral ${evidence.threshold}. Esto es evidencia determinista, no encaje editorial. ${evidence.usedInGuide ? "Ya se usa en esta guia." : "No se usa en esta guia."}</p>`
-    : "";
-  return `<form method="post" action="${action}" class="card">
-    <input type="hidden" name="productId" value="${product.id}">
-    ${resolveThroughSourcing ? '<input type="hidden" name="fulfillmentStatus" value="fulfilled">' : ""}
-    <strong>${escapeHtml(product.name)}</strong>
-    <span class="muted">${escapeHtml(product.merchant)}</span>
-    <p>${escapeHtml(product.shortDescription)}</p>
-    ${evidenceHtml}
-    ${duplicate ? '<label><input type="checkbox" name="allowDuplicate" value="yes" required> Confirmo que quiero repetir este producto en la guía.</label>' : ""}
-    <button type="submit">${resolveThroughSourcing ? "Seleccionar para este requisito" : replacing ? "Reemplazar con este producto" : "Seleccionar"}</button>
-  </form>`;
-}
-
-const benchmarkReasonLabels: Record<(typeof EDITORIAL_BENCHMARK_REASONS)[number], string> = {
-  "more-specific": "mas especifico",
-  "correct-class": "clase correcta",
-  "stronger-real-world-use": "mejor uso real",
-  "better-gift-desirability": "mas deseable como regalo",
-  "easier-to-choose": "mas facil de elegir",
-  "better-presentation": "mejor presentacion",
-  "better-value": "mejor valor",
-  "better-context-fit": "mejor encaje contextual",
-  "less-generic": "menos generico",
-};
-
-function editorialBenchmarkSection(
-  draft: GuideDraft,
-  recommendation: GuideDraft["recommendations"][number],
-  product: Product,
-  benchmarks: readonly EditorialBenchmark[],
-): string {
-  const existing = benchmarks.filter(
-    ({ canonicalProductId, context, status }) =>
-      canonicalProductId === product.id &&
-      context.guideId === draft.id &&
-      context.recommendationSlotId === recommendation.id &&
-      status === "active",
-  );
-  if (existing.length) {
-    return `<details><summary>Referencia editorial (${existing.length})</summary>${existing.map((benchmark) => `<p><code>${escapeHtml(benchmark.id)}</code> - ${escapeHtml(benchmark.productClass)} v${benchmark.version}<br>${escapeHtml(benchmark.editorRationale)}<br><span class="muted">${benchmark.strongFitReasons.map((reason) => escapeHtml(benchmarkReasonLabels[reason])).join("; ")}</span></p><form method="post" action="/editorial-benchmarks/${encodeURIComponent(benchmark.id)}/retire"><button type="submit">Retirar referencia</button></form>`).join("")}</details>`;
-  }
-  const audience = draft.questionnaire.recipient ?? draft.taxonomies?.recipients?.join(", ") ?? "";
-  const contextTags = [
-    draft.questionnaire.occasion,
-    draft.primaryAxis,
-    ...(draft.taxonomies?.careerStages ?? []),
-    ...(draft.taxonomies?.workContexts ?? []),
-  ].filter((value): value is string => Boolean(value));
-  return `<details><summary>Marcar como referencia editorial</summary>
-    <form method="post" action="/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(recommendation.id)}/benchmark" class="card">
-      <input type="hidden" name="productId" value="${escapeHtml(product.id)}">
-      <label>Clase de Product<input name="productClass" value="${escapeHtml(recommendation.slotLabel)}" required></label>
-      <label>Audiencia - tags separados por coma<input name="audienceTags" value="${escapeHtml(audience)}"></label>
-      <label>Contexto - tags separados por coma<input name="contextTags" value="${escapeHtml(contextTags.join(", "))}"></label>
-      <fieldset><legend>Razones estructuradas</legend>${EDITORIAL_BENCHMARK_REASONS.map((reason) => `<label><input type="checkbox" name="strongFitReason" value="${reason}"> ${escapeHtml(benchmarkReasonLabels[reason])}</label>`).join("")}</fieldset>
-      <label>Razon editorial breve<textarea name="editorRationale" rows="2" required></textarea></label>
-      <label>Atributos o razones - uno por linea<textarea name="attributesOrReasons" rows="3"></textarea></label>
-      <button type="submit">Marcar como referencia editorial</button>
-    </form>
-    <p class="muted">Referencia interna y consultiva: no selecciona, rankea ni fuerza reuso.</p>
-  </details>`;
-}
-
-function recommendationSelectionSection(
-  draft: GuideDraft,
-  url: URL,
-  catalog: ProductCatalog,
-  sourcingStore: ProductSourcingRequestStore,
-  benchmarkStore: EditorialBenchmarkStore,
-  brief?: EditorialBrief,
-): string {
-  const content = catalog.read();
-  const benchmarks = benchmarkStore.list(content.products);
-  const sourcingRequests = sourcingStore.list();
-  const productsById = new Map(content.products.map((product) => [product.id, product]));
-  const searchSlot = url.searchParams.get("slot");
-  const productQuery = url.searchParams.get("productQ") ?? "";
-  const duplicates = duplicateProductIds(draft);
-  const duplicateWarning = duplicates.length
-    ? `<div class="error"><strong>Productos repetidos confirmados:</strong> ${duplicates.map((id) => escapeHtml(productsById.get(id)?.name ?? id)).join(", ")}</div>`
-    : "";
-  const orderedRecommendations = [...draft.recommendations].sort(
-    (left, right) => left.position - right.position,
-  );
-  const coverage = analyzeProductCoverage(content, [draft]);
-  const slotsWithoutDeterministicMatch = new Set(
-    coverage.editorialCoverage.draftSlotsWithoutSuitableProducts.map(({ slotId }) => slotId),
-  );
-  const activeSourcingStatuses: ProductSourcingRequestStatus[] = ["open", "partially-fulfilled"];
-  const triage = orderedRecommendations
-    .map((recommendation) => {
-      const selected = recommendation.productId
-        ? productsById.get(recommendation.productId)
-        : undefined;
-      const possibleMatch =
-        !recommendation.productId && !slotsWithoutDeterministicMatch.has(recommendation.id)
-          ? suggestProductsForSlot(content.products, recommendation, 1)[0]
-          : undefined;
-      const selectedMatchTokens = selected
-        ? productSlotMatchScore(selected, recommendation)
-        : undefined;
-      const assignedNeedsFitReview =
-        Boolean(recommendation.productId) &&
-        (!selected || (selectedMatchTokens ?? 0) < coverage.thresholds.minimumSlotMatchTokenCount);
-      const activeRequests = sourcingRequests.filter(
-        ({ origin, status }) =>
-          activeSourcingStatuses.includes(status) &&
-          origin.kind === "recommendation-slot" &&
-          origin.guideDraftId === draft.id &&
-          origin.recommendationSlotId === recommendation.id,
-      );
-      const amazonMonetizationPending =
-        Boolean(selected) && isAmazonProduct(selected!) && !productDestination(selected!);
-      const state = recommendation.productId
-        ? amazonMonetizationPending
-          ? "Producto resuelto · monetización Amazon pendiente"
-          : assignedNeedsFitReview
-            ? "Producto asignado · revisar encaje"
-            : recommendation.editorialStatus === "needs-generation"
-              ? "Listo para generar recomendación"
-              : "Asignado"
-        : recommendation.editorialStatus === "ready"
-          ? "Editorialmente lista · Product pendiente"
-          : possibleMatch
-            ? "Posible coincidencia determinista"
-            : "Sin coincidencia determinista · sourcing probable";
-      const evidence = selected
-        ? `${escapeHtml(selected.name)} · I.0: ${selectedMatchTokens} tokens compartidos`
-        : recommendation.productId
-          ? `<code>${escapeHtml(recommendation.productId)}</code> · no disponible en catálogo`
-          : possibleMatch
-            ? escapeHtml(possibleMatch.name)
-            : `I.0: menos de ${coverage.thresholds.minimumSlotMatchTokenCount} tokens compartidos`;
-      const sourcing = activeRequests.length
-        ? activeRequests
-            .map(
-              (request) =>
-                `<a href="/product-sourcing/${encodeURIComponent(request.id)}">Sourcing activo · <code>${escapeHtml(request.id)}</code></a>`,
-            )
-            .join("<br>")
-        : "—";
-      const monetizationAction = amazonMonetizationPending
-        ? `<br><a href="/products/${encodeURIComponent(selected!.id)}/edit">Agregar link de afiliado</a>`
-        : "";
-      return `<tr><td>${recommendation.position}. ${escapeHtml(recommendation.slotLabel)}</td><td><span class="status">${escapeHtml(state)}</span><br><span class="muted">${evidence}</span></td><td>${sourcing}</td><td><a href="#slot-${encodeURIComponent(recommendation.id)}">Abrir slot</a>${recommendation.productId && recommendation.editorialStatus === "needs-generation" ? `<br><a href="/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(recommendation.id)}/prompt">Generar recomendación</a>` : ""}${monetizationAction}</td></tr>`;
-    })
-    .join("");
-  const recommendations = orderedRecommendations
+function recommendationEditorialSection(draft: GuideDraft): string {
+  const recommendations = [...draft.recommendations]
+    .sort((left, right) => left.position - right.position)
     .map((recommendation, index) => {
-      const selected = recommendation.productId
-        ? productsById.get(recommendation.productId)
-        : undefined;
-      const isDuplicate = (productId: string) =>
-        draft.recommendations.some(
-          (item) => item.id !== recommendation.id && item.productId === productId,
-        );
-      const matchEvidence = (product: Product) => ({
-        score: productSlotMatchScore(product, recommendation),
-        threshold: coverage.thresholds.minimumSlotMatchTokenCount,
-        usedInGuide:
-          draft.recommendations.some(
-            (item) => item.id !== recommendation.id && item.productId === product.id,
-          ) ||
-          content.guides.some(
-            (guide) =>
-              guide.id === draft.id &&
-              guide.recommendations.some(({ productId }) => productId === product.id),
-          ),
-      });
-      const suggestions = suggestProductsForSlot(content.products, recommendation, 3)
-        .filter((product) => product.id !== recommendation.productId)
-        .map((product) =>
-          productChoiceForm(
-            draft,
-            recommendation.id,
-            product,
-            isDuplicate(product.id),
-            Boolean(selected),
-            matchEvidence(product),
-          ),
-        )
-        .join("");
-      const results =
-        searchSlot === recommendation.id
-          ? matchProducts(content.products, productQuery, "active")
-              .filter((product) => product.id !== recommendation.productId)
-              .map((product) =>
-                productChoiceForm(
-                  draft,
-                  recommendation.id,
-                  product,
-                  isDuplicate(product.id),
-                  Boolean(selected),
-                  matchEvidence(product),
-                ),
-              )
-              .join("")
-          : "";
-      const replacementWarning =
-        recommendation.editorialStatus === "needs-review"
-          ? '<p class="error"><strong>Revisión obligatoria:</strong> el texto existente puede describir el producto anterior. Podés conservarlo temporalmente, pero la publicación queda bloqueada hasta editarlo o regenerar sólo esta recomendación.</p>'
-          : "";
-      const slotRequests = sourcingRequests.filter(
-        ({ origin }) =>
-          origin.kind === "recommendation-slot" &&
-          origin.guideDraftId === draft.id &&
-          origin.recommendationSlotId === recommendation.id,
-      );
-      const prefill = productSourcingPrefillForDraftSlot(draft, recommendation, brief);
-      const slotPath = guideDraftSlotPath(draft.id, recommendation.id);
-      const directAffiliatePath = `/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(recommendation.id)}/direct-affiliate`;
-      const fastResolution = `<section class="card"><h4>Resolver Product con I.2</h4>
-        ${slotRequests.length ? `<ul>${slotRequests.map((request) => `<li><a href="/product-sourcing/${encodeURIComponent(request.id)}"><code>${escapeHtml(request.id)}</code></a> - ${request.status === "completed-idea-only" ? "intento completo · Product pendiente" : escapeHtml(request.status)}</li>`).join("")}</ul>` : '<p class="muted">La solicitud I.2 se crea automaticamente al elegir una coincidencia o pegar una URL.</p>'}
-        ${!selected ? `<form method="post" action="${slotPath}/resolve-url" class="card"><label>URL de producto o afiliado<input type="url" name="url" required placeholder="https://..."></label><label>Destino afiliado separado (opcional)<input type="url" name="affiliateUrl" placeholder="https://..."></label><label>Tracking ID conocido (opcional)<input name="trackingId"></label><button type="submit">Pegar URL de producto/afiliado</button></form>` : ""}
-        <details><summary>Contexto I.2 heredado automaticamente</summary><div class="grid"><label>Audiencia<input value="${value(prefill.audience)}" readonly></label><label>Ocasion o contexto<input value="${value(prefill.occasion)}" readonly></label><label>Presupuesto<input value="${value(prefill.budgetContext)}" readonly></label><label class="wide">Exclusiones<textarea rows="2" readonly>${listText(prefill.exclusions, "\n")}</textarea></label><label class="wide">Terminos de busqueda<input value="${listText(prefill.searchTerms)}" readonly></label></div></details>
-      </section>`;
+      const actionPath = `/drafts/${encodeURIComponent(draft.id)}/recommendations/${encodeURIComponent(recommendation.id)}`;
+      const directAffiliatePath = `${actionPath}/direct-affiliate`;
       const directAffiliateInspection = recommendation.directAffiliateUrl
         ? inspectAmazonUrl("affiliate", recommendation.directAffiliateUrl)
         : undefined;
@@ -3239,69 +3026,39 @@ function recommendationSelectionSection(
             ? "No se detectó un tag afiliado; no se agregará automáticamente."
             : undefined))
         : undefined;
-      const directAffiliate = `<section class="card"><h4>Monetización</h4>
-        <form method="post" action="${directAffiliatePath}"><label>Amazon affiliate link<input type="url" name="directAffiliateUrl" value="${value(recommendation.directAffiliateUrl)}" placeholder="https://www.amazon.com/..."></label><button type="submit">Guardar enlace</button></form>
-        ${recommendation.directAffiliateUrl ? `<p class="muted">Guardado: <code>${escapeHtml(recommendation.directAffiliateUrl)}</code></p><form method="post" action="${directAffiliatePath}"><button type="submit">Quitar enlace</button></form>` : '<p class="muted">Sin enlace afiliado</p>'}
-        ${directAffiliateWarning ? `<p class="notice">${escapeHtml(directAffiliateWarning)}</p>` : ""}
-      </section>`;
       return `<article class="card" id="slot-${escapeHtml(recommendation.id)}">
-        <div class="actions"><h3>${recommendation.position}. ${escapeHtml(recommendation.slotLabel)}</h3><span class="status">${escapeHtml(recommendation.editorialStatus)} · ${selected ? "Product resuelto" : "Product pendiente"}</span></div>
+        <div class="actions"><h3>${recommendation.position}. ${escapeHtml(recommendation.heading ?? recommendation.slotLabel)}</h3><span class="status">${escapeHtml(recommendation.editorialStatus)} · ${recommendation.productId ? "Product adjunto" : "idea editorial"}</span></div>
         ${recommendation.slotIntent ? `<p>${escapeHtml(recommendation.slotIntent)}</p>` : ""}
-        ${recommendation.searchTerms?.length ? `<p class="muted">Búsqueda sugerida: ${escapeHtml(recommendation.searchTerms.join(", "))}</p>` : ""}
+        ${recommendation.searchTerms?.length ? `<p class="muted">Criterios sugeridos: ${escapeHtml(recommendation.searchTerms.join(", "))}</p>` : ""}
         ${recommendation.budgetHint ? `<p class="muted">Presupuesto: ${escapeHtml(recommendation.budgetHint)}</p>` : ""}
         <div class="actions">
           <form method="post" action="/drafts/${draft.id}/recommendations/${recommendation.id}/up"><button type="submit"${index === 0 ? " disabled" : ""}>Subir</button></form>
           <form method="post" action="/drafts/${draft.id}/recommendations/${recommendation.id}/down"><button type="submit"${index === draft.recommendations.length - 1 ? " disabled" : ""}>Bajar</button></form>
-          <form method="post" action="/drafts/${draft.id}/recommendations/${recommendation.id}/remove"><button type="submit">Eliminar slot</button></form>
+          <form method="post" action="/drafts/${draft.id}/recommendations/${recommendation.id}/remove"><button type="submit">Eliminar idea</button></form>
         </div>
-        <section>
-          <h4>${selected ? "Producto seleccionado" : "Sin producto asignado"}</h4>
-          ${selected ? `<p><strong>${escapeHtml(selected.name)}</strong> · ${escapeHtml(selected.merchant)}${selected.status === "inactive" ? ' · <span class="error">Inactivo</span>' : ""}</p><p>${escapeHtml(selected.shortDescription)}</p>` : '<p class="notice">Podés completar y publicar esta idea sin Product; no tendrá datos comerciales ni CTA.</p>'}
-          ${replacementWarning}
-          ${selected ? `<form method="post" action="/drafts/${draft.id}/recommendations/${recommendation.id}/product/clear"><button type="submit">Quitar selección</button></form>` : ""}
-          ${selected ? editorialBenchmarkSection(draft, recommendation, selected, benchmarks) : ""}
-        </section>
-        <form method="post" action="/drafts/${draft.id}/recommendations/${recommendation.id}/copy" class="card">
-          <h4>${selected ? "Editar esta recomendación" : "Editar idea editorial"}</h4>
+        ${recommendation.productId ? `<p class="muted">Enriquecimiento adjunto: <code>${escapeHtml(recommendation.productId)}</code>. <a href="/drafts/${encodeURIComponent(draft.id)}/curation">Abrir curación de Products</a>.</p>` : '<p class="notice">Esta idea se puede completar y publicar sin Product.</p>'}
+        <form method="post" action="${actionPath}/copy" class="card">
+          <h4>Editar recomendación</h4>
           <label>Encabezado<input name="heading" value="${value(recommendation.heading)}"></label>
           <label>Descripción editorial<textarea name="editorialDescription" rows="4">${value(recommendation.editorialDescription)}</textarea></label>
           <label>Por qué encaja<textarea name="whyItFits" rows="3">${value(recommendation.whyItFits)}</textarea></label>
           <label>Ideal para<input name="bestFor" value="${value(recommendation.bestFor)}"></label>
           <label>Guía de selección<textarea name="selectionGuidance" rows="3">${value(recommendation.selectionGuidance)}</textarea></label>
           <label>Consideraciones<textarea name="considerations" rows="3">${value(recommendation.considerations)}</textarea></label>
-          <label><input type="checkbox" name="markReady" value="yes"> ${selected ? "Revisé el producto actual" : "Revisé que esta idea no contenga nombres, comercios, precios ni datos específicos de un Product"} y quiero marcar esta recomendación como lista.</label>
-          <div class="actions"><button type="submit">Guardar recomendación</button>${selected ? `<a href="/drafts/${draft.id}/recommendations/${recommendation.id}/prompt">Ver prompt y regenerar sólo esta recomendación</a>` : `<a href="/drafts/${draft.id}/recommendations/${recommendation.id}/idea-prompt">Generar guía de selección idea-only</a>`}</div>
+          <label><input type="checkbox" name="markReady" value="yes"> Revisé esta copia y quiero marcarla como lista.</label>
+          <div class="actions"><button type="submit">Guardar recomendación</button><a href="${recommendation.productId ? `${actionPath}/prompt` : `${actionPath}/idea-prompt`}">${recommendation.productId ? "Regenerar desde el Product adjunto" : "Generar sólo esta idea"}</a></div>
         </form>
-        ${directAffiliate}
-        <details open>
-          <summary>${selected ? "Reemplazar producto" : "Sugerencias del catálogo"}</summary>
-          <div class="grid">${suggestions || '<p class="muted">No hay coincidencias sugeridas.</p>'}</div>
-        </details>
-        <h4>Buscar en catalogo</h4>
-        <form method="get" action="${slotPath}" class="card">
-          <input type="hidden" name="slot" value="${recommendation.id}">
-          <label>Buscar en todo el catálogo<input type="search" name="productQ" value="${searchSlot === recommendation.id ? escapeHtml(productQuery) : ""}"></label>
-          <button type="submit">Buscar</button>
-        </form>
-        ${searchSlot === recommendation.id ? `<section><h4>Resultados del catálogo</h4><div class="grid">${results || '<p class="notice">No hay productos activos que coincidan.</p>'}</div></section>` : ""}
-        ${fastResolution}
-        <p><a href="/products/new?returnTo=${encodeURIComponent(slotPath)}">Crear un producto nuevo y volver a este slot</a> · <a href="/products/intake?returnTo=${encodeURIComponent(slotPath)}">ingreso asistido</a></p>
+        <section class="card"><h4>Monetización directa</h4>
+          <form method="post" action="${directAffiliatePath}"><label>Amazon affiliate link<input type="url" name="directAffiliateUrl" value="${value(recommendation.directAffiliateUrl)}" placeholder="https://www.amazon.com/..."></label><button type="submit">Guardar enlace</button></form>
+          ${recommendation.directAffiliateUrl ? `<p class="muted">Guardado: <code>${escapeHtml(recommendation.directAffiliateUrl)}</code></p><form method="post" action="${directAffiliatePath}"><button type="submit">Quitar enlace</button></form>` : '<p class="muted">Sin enlace afiliado</p>'}
+          ${directAffiliateWarning ? `<p class="notice">${escapeHtml(directAffiliateWarning)}</p>` : ""}
+        </section>
       </article>`;
     })
     .join("");
-  return `<section>
-    <h2>Selección de productos</h2>
-    <p>Actualizar un producto cambia el catálogo compartido y todas sus guías. Reemplazarlo aquí cambia sólo este slot y conserva su ID, posición y propósito.</p>
-    ${triage ? `<section class="card"><h3>Resumen de slots</h3><p class="muted">El umbral determinista I.0 es de ${coverage.thresholds.minimumSlotMatchTokenCount} tokens compartidos; no evalúa el encaje editorial ni selecciona productos.</p><table><thead><tr><th>Slot</th><th>Estado</th><th>Sourcing</th><th>Ir a</th></tr></thead><tbody>${triage}</tbody></table></section>` : ""}
-    ${duplicateWarning}
-    <div class="grid">${recommendations || `<p class="notice">No hay slots. <a href="/drafts/${draft.id}/outline-prompt">Revisá y generá el esquema</a> para crearlos con el flujo editorial, o agregá uno manualmente.</p>`}</div>
-    <form method="post" action="/drafts/${draft.id}/recommendations" class="card">
-      <h3>Agregar slot manual</h3>
-      <label>Nombre del slot<input name="slotLabel" required></label>
-      <label>Propósito (opcional)<textarea name="slotIntent" rows="2"></textarea></label>
-      <label>Términos de búsqueda, separados por coma<input name="searchTerms"></label>
-      <button type="submit">Agregar slot</button>
-    </form>
+  return `<section class="card"><div class="actions"><div><h2>Recomendaciones editoriales</h2><p>La curación de Products es opcional y se abre por separado.</p></div><a class="button" href="/drafts/${encodeURIComponent(draft.id)}/curation">Curación de Products</a></div>
+    ${recommendations || '<p class="notice">Generá un esquema o agregá una idea manual.</p>'}
+    <form method="post" action="/drafts/${draft.id}/recommendations" class="card"><h3>Agregar idea manual</h3><label>Concepto<input name="slotLabel" required></label><label>Propósito<textarea name="slotIntent" rows="2"></textarea></label><label>Criterios, separados por coma<input name="searchTerms"></label><button type="submit">Agregar idea</button></form>
   </section>`;
 }
 
@@ -3377,13 +3134,9 @@ function editorialFeedbackPage(reviews: EditorialReview[]): string {
 function guideEditorPage(
   draft: GuideDraft,
   url: URL,
-  catalog: ProductCatalog,
-  sourcingStore: ProductSourcingRequestStore,
-  briefStore: EditorialBriefStore,
-  benchmarkStore: EditorialBenchmarkStore,
+  content: ReturnType<typeof readEditorialContent>,
   reviews: EditorialReview[],
 ): string {
-  const content = catalog.read();
   const clusters = content.clusters
     .map(
       (cluster) =>
@@ -3471,14 +3224,7 @@ function guideEditorPage(
        </div>
        <button type="submit">Guardar cuestionario</button>
      </form>
-       ${metadata}${outline}${recommendationSelectionSection(
-         draft,
-         url,
-         catalog,
-         sourcingStore,
-         benchmarkStore,
-         briefStore.list().find(({ guideDraftId }) => guideDraftId === draft.id),
-       )}`,
+       ${metadata}${outline}${recommendationEditorialSection(draft)}`,
   );
 }
 
@@ -3489,8 +3235,12 @@ async function readGuideDraft(store: DraftStore, id: string): Promise<GuideDraft
   return draft;
 }
 
-function outlinePromptPage(draft: GuideDraft, provider: GuideGenerationProvider): string {
-  const prepared = prepareOutlinePrompt(draft, readPublicContent());
+function outlinePromptPage(
+  draft: GuideDraft,
+  provider: GuideGenerationProvider,
+  content: ReturnType<typeof readEditorialContent>,
+): string {
+  const prepared = prepareOutlinePrompt(draft, content);
   const blockedReason = outlineRegenerationBlockReason(draft);
   return draftPage(
     draft,
@@ -3541,15 +3291,8 @@ function ideaRecommendationPromptPage(
   draft: GuideDraft,
   recommendationId: string,
   provider: GuideGenerationProvider,
-  sourcingStore: ProductSourcingRequestStore,
 ): string {
-  const request = guideSourcingRequestForSlot(sourcingStore.list(), draft.id, recommendationId);
-  const prepared = prepareIdeaRecommendationPrompt(
-    draft,
-    recommendationId,
-    readPublicContent(),
-    request,
-  );
+  const prepared = prepareIdeaRecommendationPrompt(draft, recommendationId);
   return draftPage(
     draft,
     `Prompt idea-only · ${draftName(draft)}`,
@@ -3562,8 +3305,10 @@ function ideaRecommendationPromptPage(
   );
 }
 
-function guidePreviewPage(draft: GuideDraft): string {
-  const content = readPublicContent();
+function guidePreviewPage(draft: GuideDraft, repositoryRoot = REPOSITORY_ROOT): string {
+  const content = draft.recommendations.some(({ productId }) => productId)
+    ? readPublicContent(repositoryRoot)
+    : { ...readEditorialContent(repositoryRoot), products: [] };
   const validation = validateGuideDraft(draft, content);
   const cluster = content.clusters.find((item) => item.id === draft.clusterId);
   const products = new Map(content.products.map((product) => [product.id, product]));
@@ -3614,8 +3359,11 @@ function guidePreviewPage(draft: GuideDraft): string {
   );
 }
 
-function guideValidationPage(draft: GuideDraft): string {
-  const result = validateGuideDraft(draft, readPublicContent());
+function guideValidationPage(draft: GuideDraft, repositoryRoot = REPOSITORY_ROOT): string {
+  const content = draft.recommendations.some(({ productId }) => productId)
+    ? readPublicContent(repositoryRoot)
+    : readEditorialContent(repositoryRoot);
+  const result = validateGuideDraft(draft, content);
   const { readiness } = result;
   return draftPage(
     draft,
@@ -3630,17 +3378,12 @@ function guideValidationPage(draft: GuideDraft): string {
   );
 }
 
-function publicationResultPage(
-  draft: EditorialDraft,
-  result: PublicationResult,
-  feedbackWarning?: string,
-): string {
+function publicationResultPage(draft: EditorialDraft, result: PublicationResult): string {
   return page(
     `Publicado · ${draftName(draft)}`,
     `<p><a href="/drafts/${draft.id}">← Volver al borrador</a></p>
      <h1>Contenido ${result.action === "created" ? "creado" : "actualizado"}</h1>
      <p class="notice">Se escribió y validó el archivo canónico.</p>
-     ${feedbackWarning ? `<p class="error">${escapeHtml(feedbackWarning)}</p>` : ""}
      <dl><dt>ID estable</dt><dd><code>${escapeHtml(result.id)}</code></dd><dt>Archivo</dt><dd><code>${escapeHtml(result.file)}</code></dd><dt>Ruta</dt><dd><code>${escapeHtml(result.route)}</code></dd></dl>
      <p><strong>Publicar crea o actualiza el contenido del repositorio. Para publicarlo en Internet todavía hay que hacer commit y push.</strong></p>`,
   );
@@ -3689,6 +3432,26 @@ function autopilotResultPage(draft: GuideDraft, result: AutopilotResolutionOutco
      <details><summary>Evidencia compacta de ejecución</summary><dl><dt>Reutilización de catálogo</dt><dd><code>${escapeHtml(evidence.catalogReuseResult)}</code></dd><dt>Catálogo considerado</dt><dd>${evidence.catalogCandidatesConsidered}</dd><dt>Candidatos recientes considerados</dt><dd>${evidence.recentSourceCandidatesConsidered}</dd><dt>Amazon intentado</dt><dd>${evidence.amazonDiscoveryAttempted ? "sí" : "no"}</dd><dt>Llamadas al proveedor</dt><dd>${evidence.providerCallCount}</dd><dt>Candidatos devueltos</dt><dd>${evidence.candidatesReturned}</dd><dt>Candidatos evaluados</dt><dd>${evidence.candidatesEvaluated}</dd><dt>Llamadas P.2</dt><dd>${evidence.p2ProviderCallCount}</dd><dt>Recuperación P.2/discovery</dt><dd>${evidence.recoveryUsed ? "sí" : "no"}</dd><dt>Presupuesto agotado</dt><dd>${evidence.sourcingBudgetExhausted ? "sí" : "no"}</dd>${bestCandidate ? `<dt>Mejor candidato evaluado</dt><dd>${escapeHtml(bestCandidate.name)} (<code>${escapeHtml(bestCandidate.candidateId)}</code>)</dd>` : ""}</dl>${bestCandidate?.p2GateFailures.length ? `<p>Fallos P.2 del mejor candidato:</p><ul>${bestCandidate.p2GateFailures.map((failure) => `<li><code>${escapeHtml(failure)}</code></li>`).join("")}</ul>` : ""}${attempts}${p2Attempts}${evaluationFailures}</details>
      ${result.productNotUsedBecause.length ? `<details><summary>Por qué no se usó un Product</summary><ul>${result.productNotUsedBecause.map((reason) => `<li>${escapeHtml(reason)}</li>`).join("")}</ul></details>` : ""}
      ${result.warnings.length ? `<details><summary>Advertencias no bloqueantes</summary><ul>${result.warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul></details>` : ""}`,
+  );
+}
+
+function editorialCompletionResultPage(
+  draft: GuideDraft,
+  result: EditorialCompletionOutcome,
+): string {
+  const heading =
+    result.status === "failed"
+      ? "La guía no pudo completarse"
+      : result.status === "completed-with-warnings"
+        ? "✓ Guía editorial completa con advertencias"
+        : "✓ Guía editorial completada";
+  return page(
+    `Completar guía · ${draftName(draft)}`,
+    `<p><a href="/drafts/${encodeURIComponent(draft.id)}">← Volver a la guía</a></p>
+     <h1>${heading}</h1>
+     <p class="${result.status === "failed" ? "error" : "notice"}"><strong>Editorial:</strong> ${result.counts.editorialReady}/${result.counts.totalRecommendations} listas.</p>
+     <dl><dt>Llamadas editoriales</dt><dd>${result.execution.editorialCalls}</dd><dt>Lotes editoriales</dt><dd>${result.execution.editorialBatchCalls}</dd><dt>Reparaciones editoriales</dt><dd>${result.execution.editorialRepairCalls}</dd><dt>Llamadas de metadata</dt><dd>${result.execution.guideMetadataCalls}</dd><dt>Discovery</dt><dd>0</dd><dt>P.2</dt><dd>0</dd><dt>Creación de Products</dt><dd>0</dd></dl>
+     ${result.warnings.length ? `<details><summary>Advertencias</summary><ul>${result.warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul></details>` : ""}`,
   );
 }
 
@@ -3774,38 +3537,6 @@ export function createStudioServer(
       ]),
     ).values(),
   ];
-  const recordPublicationEvents = async (draft: EditorialDraft): Promise<void> => {
-    if (draft.draftType !== "gift-guide") return;
-    const existing = feedbackStore.list();
-    const requests = sourcingStore.list();
-    for (const recommendation of draft.recommendations) {
-      const request = guideSourcingRequestForSlot(requests, draft.id, recommendation.id);
-      const context = feedbackContext(request);
-      const references = {
-        guideId: draft.id,
-        recommendationId: recommendation.id,
-        ...(request ? { requestId: request.id, ...sourcingFeedbackReferences(request) } : {}),
-        ...(recommendation.productId ? { canonicalProductId: recommendation.productId } : {}),
-        ...context,
-      };
-      if (
-        !recommendation.productId &&
-        !existing.some(
-          (event) =>
-            event.eventType === "recommendation-left-idea-only" &&
-            event.guideId === draft.id &&
-            event.recommendationId === recommendation.id,
-        )
-      ) {
-        await feedbackStore.record({ eventType: "recommendation-left-idea-only", ...references });
-      }
-      await feedbackStore.record({
-        eventType: "recommendation-published",
-        ...references,
-        publicationResolution: recommendation.productId ? "product-backed" : "idea-only",
-      });
-    }
-  };
   const handleRequest = async (request: IncomingMessage, response: ServerResponse) => {
     try {
       const method = request.method ?? "GET";
@@ -3850,7 +3581,7 @@ export function createStudioServer(
         return;
       }
       if (method === "GET" && url.pathname === "/drafts/new") {
-        send(response, 200, newDraftPage());
+        send(response, 200, newDraftPage(readEditorialContent(store.repositoryRoot)));
         return;
       }
       const reopenClusterMatch =
@@ -3901,7 +3632,9 @@ export function createStudioServer(
         send(
           response,
           200,
-          draft.draftType === "cluster-hub" ? clusterPreviewPage(draft) : guidePreviewPage(draft),
+          draft.draftType === "cluster-hub"
+            ? clusterPreviewPage(draft)
+            : guidePreviewPage(draft, store.repositoryRoot),
         );
         return;
       }
@@ -3915,10 +3648,13 @@ export function createStudioServer(
           if (draft.status !== status) draft = await store.save({ ...draft, status });
           send(response, 200, clusterValidationPage(draft));
         } else {
-          const validation = validateGuideDraft(draft, readPublicContent());
+          const content = draft.recommendations.some(({ productId }) => productId)
+            ? readPublicContent(store.repositoryRoot)
+            : readEditorialContent(store.repositoryRoot);
+          const validation = validateGuideDraft(draft, content);
           const status = validation.errors.length === 0 ? "ready-to-publish" : "editing";
           if (draft.status !== status) draft = await store.save({ ...draft, status });
-          send(response, 200, guideValidationPage(draft));
+          send(response, 200, guideValidationPage(draft, store.repositoryRoot));
         }
         return;
       }
@@ -3930,13 +3666,7 @@ export function createStudioServer(
           throw new TypeError("Validá el borrador antes de publicarlo.");
         }
         const result = await publisher.publish(draft, new Date(), store);
-        let feedbackWarning: string | undefined;
-        try {
-          await recordPublicationEvents(draft);
-        } catch (error) {
-          feedbackWarning = `La publicación se completó, pero falló el registro secundario de feedback: ${error instanceof Error ? error.message : String(error)}`;
-        }
-        send(response, 200, publicationResultPage(draft, result, feedbackWarning));
+        send(response, 200, publicationResultPage(draft, result));
         return;
       }
       const saveClusterMatch =
@@ -4059,7 +3789,13 @@ export function createStudioServer(
           : null;
       if (saveGuideArchitectureMatch?.[1]) {
         const draft = await readGuideDraft(store, saveGuideArchitectureMatch[1]);
-        await store.save(guideArchitectureFromForm(draft, await readForm(request)));
+        await store.save(
+          guideArchitectureFromForm(
+            draft,
+            await readForm(request),
+            readEditorialContent(store.repositoryRoot),
+          ),
+        );
         redirect(response, `/drafts/${draft.id}`);
         return;
       }
@@ -4283,6 +4019,19 @@ export function createStudioServer(
           : null;
       if (guideAutopilotMatch?.[1]) {
         const draft = await readGuideDraft(store, guideAutopilotMatch[1]);
+        if (!guideAutopilotMatch[2]) {
+          const result = await completeGuideEditorially(draft, {
+            draftStore: store,
+            content: readEditorialContent(store.repositoryRoot),
+            provider,
+          });
+          send(
+            response,
+            result.status === "failed" ? 500 : 200,
+            editorialCompletionResultPage(draft, result),
+          );
+          return;
+        }
         const content = catalog.read();
         const result = await completeGuideAutonomously(
           draft,
@@ -4296,7 +4045,7 @@ export function createStudioServer(
             discoverySource,
             benchmarks: benchmarkStore.list(content.products),
           },
-          { sourceProducts: Boolean(guideAutopilotMatch[2]) },
+          { sourceProducts: true },
         );
         send(
           response,
@@ -4333,7 +4082,11 @@ export function createStudioServer(
         send(
           response,
           200,
-          outlinePromptPage(await readGuideDraft(store, outlinePromptMatch[1]), provider),
+          outlinePromptPage(
+            await readGuideDraft(store, outlinePromptMatch[1]),
+            provider,
+            readEditorialContent(store.repositoryRoot),
+          ),
         );
         return;
       }
@@ -4357,7 +4110,11 @@ export function createStudioServer(
           throw new TypeError("Revisá el prompt vigente antes de ejecutar la generación.");
         }
         const draft = await readGuideDraft(store, generateOutlineMatch[1]);
-        const generated = await generateGuideOutline(draft, readPublicContent(), provider);
+        const generated = await generateGuideOutline(
+          draft,
+          readEditorialContent(store.repositoryRoot),
+          provider,
+        );
         await store.save(generated);
         redirect(response, `/drafts/${draft.id}`);
         return;
@@ -4404,7 +4161,6 @@ export function createStudioServer(
             await readGuideDraft(store, ideaRecommendationPromptMatch[1]),
             ideaRecommendationPromptMatch[2],
             provider,
-            sourcingStore,
           ),
         );
         return;
@@ -4421,29 +4177,13 @@ export function createStudioServer(
           throw new TypeError("Revisá el prompt idea-only vigente antes de generar.");
         }
         const draft = await readGuideDraft(store, generateIdeaRecommendationMatch[1]);
-        const sourcingRequest = guideSourcingRequestForSlot(
-          sourcingStore.list(),
-          draft.id,
-          generateIdeaRecommendationMatch[2],
-        );
         const updatedDraft = await generateIdeaOnlyRecommendation(
           draft,
           generateIdeaRecommendationMatch[2],
-          catalog.read(),
           provider,
-          sourcingRequest,
         );
         await store.save(updatedDraft);
-        const reason = feedbackReasonValue(form);
-        await feedbackStore.record({
-          eventType: "recommendation-left-idea-only",
-          guideId: draft.id,
-          recommendationId: generateIdeaRecommendationMatch[2],
-          ...(sourcingRequest ? { requestId: sourcingRequest.id } : {}),
-          ...(reason ? { reason } : {}),
-          ...feedbackContext(sourcingRequest),
-        });
-        redirect(response, `/drafts/${encodeURIComponent(draft.id)}/curation`);
+        redirect(response, guideDraftSlotPath(draft.id, generateIdeaRecommendationMatch[2]));
         return;
       }
       const regenerateRecommendationMatch =
@@ -5805,10 +5545,7 @@ export function createStudioServer(
             : guideEditorPage(
                 draft,
                 url,
-                catalog,
-                sourcingStore,
-                briefStore,
-                benchmarkStore,
+                readEditorialContent(store.repositoryRoot),
                 (await reviewStore.list()).filter((review) => review.guideId === draft.id),
               ),
         );

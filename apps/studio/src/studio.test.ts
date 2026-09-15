@@ -63,9 +63,11 @@ import {
   generateIdeaOnlyRecommendationWithRecovery,
   generateProductBackedRecommendationWithRecovery,
   guideDraftReadiness,
+  ideaOnlyRecommendationNeedsCopyRepair,
   moveRecommendation,
   normalizeQuestionnaire,
   productBackedCopyFailureReason,
+  recommendationHasLegacyIdeaFallback,
   regenerateRecommendation,
   removeRecommendation,
   reopenGuideDraft,
@@ -150,8 +152,6 @@ import {
   chooseAutomaticProductCandidate,
   completeIdeaOnlyRecommendationCopy,
   completeProductBackedRecommendationCopy,
-  ideaOnlyRecommendationNeedsCopyRepair,
-  recommendationHasLegacyIdeaFallback,
   resolveRecommendationSlotAutonomously,
 } from "./modules/product-intelligence/autopilot.ts";
 import {
@@ -181,7 +181,6 @@ import {
   summarizeEditorialFeedback,
 } from "./modules/product-intelligence/feedback.ts";
 import {
-  PRODUCT_CLASS_PROFILES,
   PRODUCT_FIT_RANKING_POLICY_V1,
   ProductFitEvaluationStore,
   evaluateProductFitBatch,
@@ -191,9 +190,9 @@ import {
   prepareProductFitEvaluationPrompt,
   productFitEvaluationBatchSchema,
   productFitPromptInputSchema,
-  resolveProductClassProfile,
   type ProductFitEvaluation,
 } from "./modules/product-intelligence/fit.ts";
+import { PRODUCT_CLASS_PROFILES, resolveProductClassProfile } from "./editorial-guidance.ts";
 import {
   ProductSourcingRequestStore,
   addProductSourceCandidates,
@@ -236,6 +235,7 @@ import {
   OPPORTUNITY_GENERATION_PROMPT_VERSION,
   generateDivergentOpportunities,
   generatedOpportunityBatchSchema,
+  mockOpportunityGeneration,
   opportunityCoverageSignals,
   opportunityGenerationRequestSchema,
   opportunityGenerationSessionPath,
@@ -1492,6 +1492,7 @@ test("construye un prompt divergente determinista y rechaza evidencia o campos p
     prompt: first.prompt,
     input: first.input,
     schema: generatedOpportunityBatchSchema,
+    mockResponse: () => mockOpportunityGeneration(first.input),
   });
   assert.equal(generated.candidates.length, 2);
   assert.ok(
@@ -2407,7 +2408,7 @@ test("expone lista y detalle internos, guarda la decisión y excluye candidatos 
     draftHtml,
     new RegExp(`/drafts/${guideDraftId}/outline-prompt">Revisar y generar esquema`),
   );
-  assert.match(draftHtml, /Revisá y generá el esquema/);
+  assert.match(draftHtml, /Generá un esquema o agregá una idea manual/);
 
   const outlinePromptResponse = await fetch(`${origin}${draftLocation}/outline-prompt`);
   const outlinePromptHtml = await outlinePromptResponse.text();
@@ -3510,26 +3511,24 @@ test("resume ocho slots con matching I.0 y sourcing sin tomar decisiones editori
   assert.ok(address && typeof address !== "string");
   const origin = `http://${STUDIO_HOST}:${address.port}`;
 
-  const html = await (await fetch(`${origin}/drafts/${draft.id}`)).text();
-  assert.match(html, /Resumen de slots/);
-  assert.match(html, /Asignado/);
-  assert.match(html, /Listo para generar recomendación/);
-  assert.match(html, /Posible coincidencia determinista/);
-  assert.match(html, /Sin coincidencia determinista · sourcing probable/);
-  assert.match(html, /Producto asignado · revisar encaje/);
+  const html = await (await fetch(`${origin}/drafts/${draft.id}/curation`)).text();
+  assert.match(html, /Progreso/);
+  assert.match(html, /Product resuelto · copia lista/);
+  assert.match(html, /Product resuelto · copia necesita revisión/);
+  assert.match(html, /Candidatos del catálogo/);
+  assert.match(html, /Todavía no hay una shortlist/);
   assert.doesNotMatch(html, /coincidencia creíble/i);
-  assert.match(html, /Sourcing activo/);
-  assert.match(html, /El umbral determinista I\.0 es de 2 tokens compartidos/);
-  assert.match(html, /Structured Shift Tote · I\.0: 0 tokens compartidos/);
+  assert.match(html, /Sourcing integrado: open/);
+  assert.match(html, /señales textuales compartidas/);
+  assert.match(html, /Structured Shift Tote/);
   assert.match(
     html,
     new RegExp(`/drafts/${draft.id}/recommendations/slot_triage-review-fit/prompt`),
   );
   for (const recommendation of recommendations) {
-    assert.match(html, new RegExp(`href="#slot-${recommendation.id}"`));
-    assert.match(html, new RegExp(`id="slot-${recommendation.id}"`));
+    assert.match(html, new RegExp(recommendation.id));
   }
-  assert.match(html, new RegExp(`/product-sourcing/${request.id}`));
+  assert.match(html, new RegExp(request.id));
 
   const unchangedDraft = guideDraftSchema.parse(await draftStore.read(draft.id));
   assert.deepEqual(unchangedDraft.recommendations, recommendations);
@@ -3591,11 +3590,11 @@ test("muestra la brecha de monetización Amazon y la acción existente sin desre
   assert.ok(address && typeof address !== "string");
 
   const html = await (
-    await fetch(`http://${STUDIO_HOST}:${address.port}/drafts/${draft.id}`)
+    await fetch(`http://${STUDIO_HOST}:${address.port}/drafts/${draft.id}/curation`)
   ).text();
-  assert.match(html, /Producto resuelto · monetización Amazon pendiente/);
-  assert.match(html, /Agregar link de afiliado/);
-  assert.match(html, new RegExp(`/products/${product.id}/edit`));
+  assert.match(html, /Product resuelto · copia lista/);
+  assert.match(html, /Afiliación:<\/strong> 0 listas · 1 pendientes/);
+  assert.match(html, new RegExp(`/drafts/${draft.id}/recommendations/slot_amazon-pending/prompt`));
   assert.match(html, new RegExp(product.name));
 });
 
@@ -3634,11 +3633,12 @@ test("resuelve una coincidencia de catÃ¡logo por I.2 y exige asignaciÃ³n exa
   const address = server.address();
   assert.ok(address && typeof address !== "string");
   const origin = `http://${STUDIO_HOST}:${address.port}`;
-  const editor = await (await fetch(`${origin}/drafts/${draft.id}`)).text();
-  assert.match(editor, /Buscar en catalogo/);
-  assert.match(editor, /Pegar URL de producto\/afiliado/);
-  assert.match(editor, /evidencia determinista, no encaje editorial/);
-  assert.match(editor, /value="Inherited audience"/);
+  const mainEditor = await (await fetch(`${origin}/drafts/${draft.id}`)).text();
+  assert.match(mainEditor, /value="Inherited audience"/);
+  const editor = await (await fetch(`${origin}/drafts/${draft.id}/curation`)).text();
+  assert.match(editor, /Candidatos del catálogo/);
+  assert.match(editor, /Pegar URL/);
+  assert.match(editor, /señales textuales compartidas/);
   assert.doesNotMatch(editor, /Crear solicitud para este slot/);
 
   const selection = await fetch(
@@ -5801,9 +5801,9 @@ test("crea, cumple y asigna una solicitud al slot exacto por HTTP", async (conte
   const editorHtml = await (await fetch(`${origin}/drafts/${draft.id}`)).text();
   assert.match(editorHtml, /value="Inherited draft audience"/);
   assert.match(editorHtml, /value="Inherited draft occasion"/);
-  assert.match(editorHtml, /value="Inherited slot budget"/);
-  assert.match(editorHtml, />Inherited draft exclusion<\/textarea>/);
-  assert.match(editorHtml, /value="insulated, tumbler"/);
+  assert.match(editorHtml, /Presupuesto: Inherited slot budget/);
+  assert.match(editorHtml, /value="Inherited draft exclusion"/);
+  assert.match(editorHtml, /Criterios sugeridos: insulated, tumbler/);
 
   const createResponse = await fetch(`${origin}/product-sourcing`, {
     method: "POST",
@@ -6398,7 +6398,8 @@ test("rechaza IDs de recomendación elegidos por el proveedor", async () => {
 
 test("muestra el prompt antes de generar un esquema mock por HTTP", async (context) => {
   const directory = await mkdtemp(join(tmpdir(), "good-present-outline-http-"));
-  const store = new DraftStore(directory);
+  await cp(join(REPOSITORY_ROOT, "content"), join(directory, "content"), { recursive: true });
+  const store = new DraftStore(join(directory, "drafts"));
   const content = new ProductCatalog().read();
   const initial = await store.save(
     guideDraftSchema.parse({
@@ -6410,7 +6411,7 @@ test("muestra el prompt antes de generar un esquema mock por HTTP", async (conte
       questionnaire: normalizeQuestionnaire({ giftCount: "3" }),
     }),
   );
-  const server = createStudioServer(store);
+  const server = createStudioServer(store, new ProductCatalog(directory));
   server.listen(0, STUDIO_HOST);
   await once(server, "listening");
   context.after(async () => {
@@ -6776,7 +6777,6 @@ test("bloquea reducir el esquema si eliminaría una recomendación editada", asy
   const generated = await generateIdeaOnlyRecommendation(
     draft,
     editedId,
-    content,
     new MockGuideGenerationProvider(),
   );
   const edited = guideDraftSchema.parse({
@@ -6859,10 +6859,10 @@ test("selecciona, reemplaza y vuelve desde alta de producto por HTTP", async (co
   const firstProduct = catalog.read().products[0]!;
   const secondProduct = catalog.read().products[1]!;
 
-  const search = await fetch(`${origin}/drafts/${draft.id}?slot=${firstSlot}&productQ=tumbler`);
+  const search = await fetch(`${origin}/drafts/${draft.id}/curation`);
   const searchHtml = await search.text();
-  assert.match(searchHtml, /Resultados del catálogo/);
-  assert.match(searchHtml, /Crear un producto nuevo y volver/);
+  assert.match(searchHtml, /Candidatos del catálogo/);
+  assert.match(searchHtml, /Pegar URL/);
 
   const selected = await fetch(
     `${origin}/drafts/${draft.id}/recommendations/${firstSlot}/product`,
@@ -6919,7 +6919,10 @@ test("selecciona, reemplaza y vuelve desde alta de producto por HTTP", async (co
   const replaced = await store.read(draft.id);
   assert.equal(replaced.draftType, "gift-guide");
   assert.equal(replaced.recommendations[0]!.editorialStatus, "needs-review");
-  assert.match(await (await fetch(`${origin}/drafts/${draft.id}`)).text(), /Revisión obligatoria/);
+  assert.match(
+    await (await fetch(`${origin}/drafts/${draft.id}/curation`)).text(),
+    /Product resuelto · copia necesita revisión/,
+  );
 
   const newProductPage = await fetch(
     `${origin}/products/new?returnTo=${encodeURIComponent(`/drafts/${draft.id}`)}`,
@@ -7537,7 +7540,7 @@ test("genera idea-only segura con contexto heredado y deja Stage 2 Product-backe
       plannedAt: "2026-08-11T12:00:00.000Z",
     },
   });
-  const prepared = prepareIdeaRecommendationPrompt(draft, slot.id, content, request);
+  const prepared = prepareIdeaRecommendationPrompt(draft, slot.id);
   const serializedInput = JSON.stringify(prepared.input);
   assert.doesNotMatch(serializedInput, /merchant|affiliate|productUrl|sourceCandidates/);
   assert.doesNotMatch(
@@ -7556,9 +7559,7 @@ test("genera idea-only segura con contexto heredado y deja Stage 2 Product-backe
   const generated = await generateIdeaOnlyRecommendation(
     draft,
     slot.id,
-    content,
     new MockGuideGenerationProvider(),
-    request,
   );
   const idea = generated.recommendations[0]!;
   assert.equal(idea.id, slot.id);
@@ -7571,7 +7572,6 @@ test("genera idea-only segura con contexto heredado y deja Stage 2 Product-backe
   assert.throws(() => prepareFinalPrompt(generated, content), /no tiene producto/);
 
   for (const unsafeCopy of [
-    content.products[0]!.name,
     "$29.99",
     "4.8 rating",
     "20 oz",
@@ -7594,10 +7594,7 @@ test("genera idea-only segura con contexto heredado y deja Stage 2 Product-backe
         } as T;
       },
     };
-    await assert.rejects(
-      generateIdeaOnlyRecommendation(draft, slot.id, content, unsafe, request),
-      /no puede/,
-    );
+    await assert.rejects(generateIdeaOnlyRecommendation(draft, slot.id, unsafe), /no puede/);
   }
   assert.throws(() =>
     generatedIdeaRecommendationSchema.parse({
@@ -7703,7 +7700,6 @@ test("el repair agotado usa fallback sin reescribir afiliación ni identidad", a
   const completed = await generateIdeaOnlyRecommendationBatchWithRecovery(
     monetized,
     [before.id],
-    content,
     provider,
   );
   const after = completed.draft.recommendations[0]!;
@@ -7742,7 +7738,7 @@ test("recupera copy idea-only campo por campo y reporta diagnósticos compactos"
       return response as T;
     },
   });
-  const prepared = prepareIdeaRecommendationPrompt(draft, slot.id, content);
+  const prepared = prepareIdeaRecommendationPrompt(draft, slot.id);
   assert.match(prepared.prompt, /bestFor: required non-empty string, at most 120 characters/);
   assert.match(prepared.prompt, /selectionGuidance: required non-empty string, at most 500/);
   assert.match(prepared.prompt, /considerations: optional non-empty string/);
@@ -7758,7 +7754,6 @@ test("recupera copy idea-only campo por campo y reporta diagnósticos compactos"
   assert.doesNotThrow(() => generatedIdeaRecommendationSchema.parse(base));
 
   const valid = await completeIdeaOnlyRecommendationCopy(draft, slot.id, {
-    catalog: new ProductCatalog(),
     provider: providerFor(base),
   });
   assert.deepEqual(valid.actionsPerformed, ["generated-idea-only-copy"]);
@@ -7767,7 +7762,6 @@ test("recupera copy idea-only campo por campo y reporta diagnósticos compactos"
 
   for (const considerations of [null, undefined]) {
     const normalized = await completeIdeaOnlyRecommendationCopy(draft, slot.id, {
-      catalog: new ProductCatalog(),
       provider: providerFor({ ...base, considerations }),
     });
     assert.deepEqual(normalized.warnings, []);
@@ -7775,7 +7769,7 @@ test("recupera copy idea-only campo por campo y reporta diagnósticos compactos"
   }
 
   for (const [field, value, diagnostic] of [
-    ["editorialDescription", content.products[0]!.name, "idea-copy-product-leak"],
+    ["editorialDescription", "See https://example.com/product", "idea-copy-product-leak"],
     ["whyItFits", "Available from Amazon for this gift.", "idea-copy-merchant-leak"],
     ["considerations", "Compare ASIN B0ABCDEF12 before choosing.", "idea-copy-asin-leak"],
     ["bestFor", "The audience described by this slot in Studio.", "idea-copy-internal-terminology"],
@@ -7784,7 +7778,6 @@ test("recupera copy idea-only campo por campo y reporta diagnósticos compactos"
     const recovery = await generateIdeaOnlyRecommendationWithRecovery(
       draft,
       slot.id,
-      content,
       providerFor({ ...base, [field]: value }),
     );
     assert.equal(recovery.usedDeterministicFallback, false);
@@ -7799,7 +7792,6 @@ test("recupera copy idea-only campo por campo y reporta diagnósticos compactos"
   const wrongType = await generateIdeaOnlyRecommendationWithRecovery(
     draft,
     slot.id,
-    content,
     providerFor({ ...base, selectionGuidance: 42 }),
   );
   assert.equal(wrongType.usedDeterministicFallback, false);
@@ -7825,7 +7817,6 @@ test("recupera copy idea-only campo por campo y reporta diagnósticos compactos"
     const recovery = await generateIdeaOnlyRecommendationWithRecovery(
       draft,
       slot.id,
-      content,
       providerFor({ ...base, [invalid.field]: invalid.value }),
     );
     assert.deepEqual(recovery.diagnostics, ["idea-copy-schema-invalid"]);
@@ -7854,7 +7845,6 @@ test("recupera copy idea-only campo por campo y reporta diagnósticos compactos"
     ],
   ] as const) {
     const completion = await completeIdeaOnlyRecommendationCopy(draft, slot.id, {
-      catalog: new ProductCatalog(),
       provider,
     });
     assert.deepEqual(completion.actionsPerformed, ["generated-safe-idea-only-fallback"]);
@@ -9121,7 +9111,9 @@ test("el botón Publicar escribe contenido canónico y explica commit y push", a
     guideDraftSchema.parse({ ...complete, status: "ready-to-publish" }),
   );
   const feedbackStore = new EditorialFeedbackStore(repository);
+  let feedbackCalls = 0;
   feedbackStore.record = async (..._args: Parameters<EditorialFeedbackStore["record"]>) => {
+    feedbackCalls++;
     throw new Error("fixture feedback failure");
   };
   const server = createStudioServer(
@@ -9161,7 +9153,7 @@ test("el botón Publicar escribe contenido canónico y explica commit y push", a
   assert.equal(response.status, 200);
   assert.match(html, /Contenido creado/);
   assert.match(html, /todavía hay que hacer commit y push/);
-  assert.match(html, /La publicación se completó, pero falló el registro secundario de feedback/);
+  assert.equal(feedbackCalls, 0, "ordinary publication must not touch Product feedback state");
   assert.match(html, new RegExp(`content/guides/${complete.id}\\.json`));
   assert.doesNotThrow(() => readPublicContent(repository));
 });
@@ -11673,7 +11665,7 @@ test("Guide Autopilot preserva una guía resuelta, omite sourcing y muestra un r
   assert.match(curation, new RegExp(`/drafts/${saved.id}/autopilot`));
   assert.match(curation, /Regeneración enfocada/);
   assert.match(curation, /Buscar alternativas/);
-  const response = await fetch(`${origin}/drafts/${saved.id}/autopilot`, {
+  const response = await fetch(`${origin}/drafts/${saved.id}/autopilot/products`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ revision: String(saved.revision) }),
@@ -12732,11 +12724,7 @@ test("Guide Autopilot conserva hermanos válidos y repara sólo los slots fallid
   assert.deepEqual(result.slots[4]!.warnings, []);
   for (const index of [0, 1, 3, 4]) {
     assert.equal(
-      ideaOnlyRecommendationNeedsCopyRepair(
-        completed,
-        completed.recommendations[index]!.id,
-        catalog.read(),
-      ),
+      ideaOnlyRecommendationNeedsCopyRepair(completed, completed.recommendations[index]!.id),
       false,
     );
   }

@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   PUBLIC_CONTENT_DIRECTORIES,
+  type EditorialContentSources,
   type PublicContentSources,
   type SourceRecord,
 } from "@the-good-present/content-schema";
@@ -42,6 +43,15 @@ export function readPublicContentSources(
 ): PublicContentSources {
   return {
     products: readJsonDirectory(repositoryRoot, PUBLIC_CONTENT_DIRECTORIES.products),
+    clusters: readJsonDirectory(repositoryRoot, PUBLIC_CONTENT_DIRECTORIES.clusters),
+    guides: readJsonDirectory(repositoryRoot, PUBLIC_CONTENT_DIRECTORIES.guides),
+  };
+}
+
+export function readEditorialContentSources(
+  repositoryRoot = DEFAULT_REPOSITORY_ROOT,
+): EditorialContentSources {
+  return {
     clusters: readJsonDirectory(repositoryRoot, PUBLIC_CONTENT_DIRECTORIES.clusters),
     guides: readJsonDirectory(repositoryRoot, PUBLIC_CONTENT_DIRECTORIES.guides),
   };

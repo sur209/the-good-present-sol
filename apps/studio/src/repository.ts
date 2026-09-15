@@ -5,14 +5,20 @@ import { basename, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
+  assertValidEditorialContent,
   assertValidPublicContent,
   formatValidationIssues,
+  validateEditorialContent,
   validatePublicContent,
   type PublicContentSources,
+  type EditorialContentSources,
   type SourceRecord,
 } from "@the-good-present/content-schema";
 
-import { readPublicContentSources } from "../../../scripts/content-files.ts";
+import {
+  readEditorialContentSources,
+  readPublicContentSources,
+} from "../../../scripts/content-files.ts";
 
 export const REPOSITORY_ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 
@@ -120,6 +126,10 @@ export function readPublicContent(repositoryRoot = REPOSITORY_ROOT) {
   return assertValidPublicContent(readPublicContentSources(repositoryRoot));
 }
 
+export function readEditorialContent(repositoryRoot = REPOSITORY_ROOT) {
+  return assertValidEditorialContent(readEditorialContentSources(repositoryRoot));
+}
+
 export function replaceSourceRecord<T extends { id: string }>(
   sources: SourceRecord[],
   file: string,
@@ -138,6 +148,16 @@ export function replaceSourceRecord<T extends { id: string }>(
 
 export function assertPublicContentCandidate(sources: PublicContentSources, message: string): void {
   const validation = validatePublicContent(sources);
+  if (!validation.success) {
+    throw new TypeError(`${message}\n${formatValidationIssues(validation.issues)}`);
+  }
+}
+
+export function assertEditorialContentCandidate(
+  sources: EditorialContentSources,
+  message: string,
+): void {
+  const validation = validateEditorialContent(sources);
   if (!validation.success) {
     throw new TypeError(`${message}\n${formatValidationIssues(validation.issues)}`);
   }

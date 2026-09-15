@@ -6,6 +6,7 @@ import {
   productDisplayName,
   type GiftGuide,
   type Product,
+  type ValidatedEditorialContent,
   type ValidatedPublicContent,
 } from "@the-good-present/content-schema";
 import { z } from "zod";
@@ -30,21 +31,25 @@ import {
   generatedGuideSchema,
   generatedGuideMetadataSchema,
   FINAL_PROMPT_VERSION,
+  mockFinalGuide,
+  mockGuideMetadata,
   prepareGuideMetadataPrompt,
   prepareFinalPrompt,
   type GeneratedGuide,
 } from "./final-prompt.ts";
-import { outlineQualityIssues, prepareOutlinePrompt } from "./outline-prompt.ts";
+import { mockGuideOutline, outlineQualityIssues, prepareOutlinePrompt } from "./outline-prompt.ts";
 import {
   generatedIdeaRecommendationSchema,
   IDEA_RECOMMENDATION_BATCH_PROMPT_VERSION,
   IDEA_RECOMMENDATION_PROMPT_VERSION,
+  mockIdeaRecommendation,
   prepareIdeaRecommendationBatchPrompt,
   prepareIdeaRecommendationPrompt,
   type GeneratedIdeaRecommendation,
 } from "./idea-prompt.ts";
-import type { ProductSourcingRequest } from "./modules/product-intelligence/sourcing.ts";
 import {
+  mockRecommendation,
+  mockRecommendationFieldRepair,
   prepareRecommendationFieldRepairPrompt,
   prepareRecommendationPrompt,
   productBackedCopyFieldSchema,
@@ -185,7 +190,7 @@ function generationMetadata(
 
 export async function generateGuideOutline(
   draft: GuideDraft,
-  content: ValidatedPublicContent,
+  content: ValidatedEditorialContent,
   provider: GuideGenerationProvider,
   now = new Date(),
 ): Promise<GuideDraft> {
@@ -197,6 +202,7 @@ export async function generateGuideOutline(
     prompt: prepared.prompt,
     input: prepared.input,
     schema: guideOutlineSchema,
+    mockResponse: () => mockGuideOutline(prepared.input),
   });
   const outline = guideOutlineSchema.parse(generated);
   const qualityIssues = outlineQualityIssues(outline);
@@ -434,6 +440,7 @@ export async function generateFinalGuide(
       prompt: prepared.prompt,
       input: prepared.input,
       schema: generatedGuideSchema,
+      mockResponse: () => mockFinalGuide(prepared.input),
     }),
   );
   rejectGeneratedUrls(generated);
@@ -496,7 +503,7 @@ export function guideEditorialMetadataIsComplete(draft: GuideDraft): boolean {
 
 function deterministicGuideMetadata(
   draft: GuideDraft,
-  content: ValidatedPublicContent,
+  content: ValidatedEditorialContent,
 ): GuideDraft {
   const cluster = content.clusters.find(({ id }) => id === draft.clusterId);
   const title = draft.title ?? draft.outline?.provisionalTitle ?? cluster?.title ?? "Gift Guide";
@@ -760,7 +767,7 @@ export function productBackedCopyNeedsVerifiedFactsRepair(
 
 export async function completeGuideEditorialMetadata(
   draft: GuideDraft,
-  content: ValidatedPublicContent,
+  content: ValidatedEditorialContent,
   provider: GuideGenerationProvider,
   now = new Date(),
 ): Promise<GuideMetadataCompletion> {
@@ -776,18 +783,13 @@ export async function completeGuideEditorialMetadata(
           prompt: prepared.prompt,
           input: prepared.input,
           schema: generatedGuideMetadataSchema.partial(),
+          mockResponse: () => mockGuideMetadata(prepared.input),
         }),
       );
       if (prepared.input.missingFields.some((field) => !generated[field])) {
         throw new ProviderError("guide-metadata-missing-fields", "invalid-schema");
       }
       rejectGeneratedUrls(generated);
-      const generatedCopy = Object.values(generated).join(" ").toLocaleLowerCase("en-US");
-      if (
-        content.products.some(({ name }) => generatedCopy.includes(name.toLocaleLowerCase("en-US")))
-      ) {
-        throw new TypeError("La metadata de guía no puede incluir Products específicos.");
-      }
       return {
         draft: guideDraftSchema.parse({
           ...draft,
@@ -831,8 +833,7 @@ export function applyDeterministicProductCopyFallback(
   const copy = Object.fromEntries(
     ideaOnlyCopyFields.flatMap((field) => {
       const existing = slot[field];
-      const value =
-        existing && !ideaOnlyCopyDiagnostic(existing, content) ? existing : ideaFallback[field];
+      const value = existing && !ideaOnlyCopyDiagnostic(existing) ? existing : ideaFallback[field];
       return value ? [[field, value]] : [];
     }),
   );
@@ -902,6 +903,7 @@ export async function regenerateRecommendation(
     prompt: prepared.prompt,
     input: prepared.input,
     schema: generatedRecommendationSchema,
+    mockResponse: () => mockRecommendation(prepared.input),
   });
   const parsed = generatedRecommendationSchema.safeParse(response);
   if (!parsed.success) {
@@ -987,6 +989,7 @@ async function repairProductBackedRecommendationField(
     prompt: prepared.prompt,
     input: prepared.input,
     schema: recommendationFieldRepairSchema,
+    mockResponse: () => mockRecommendationFieldRepair(prepared.input),
   });
   const parsed = recommendationFieldRepairSchema.safeParse(response);
   if (!parsed.success) {
@@ -1012,6 +1015,7 @@ export async function generateProductBackedRecommendationWithRecovery(
     prompt: prepared.prompt,
     input: prepared.input,
     schema: generatedRecommendationSchema,
+    mockResponse: () => mockRecommendation(prepared.input),
   });
   const parsed = generatedRecommendationSchema.safeParse(response);
   if (!parsed.success) {
@@ -1213,10 +1217,6 @@ export function recommendationCopyFailureDiagnostics(
   ];
 }
 
-function normalizedTerm(value: string | undefined): string {
-  return value?.trim().toLocaleLowerCase("en-US") ?? "";
-}
-
 const ideaOnlyNumericClaimPattern =
   /[$€£]\s?\d+(?:\.\d+)?|\b\d+(?:\.\d+)?\s*%|\b\d+(?:\.\d+)?\s?(?:[-–—]\s*)?(?:count|pack|mg|g|kg|oz|ounces?|ml|liters?|inches?|cm|mm|hours?|watts?|volts?|mah|gb|calories?|grams?|servings?|percent(?:age)?s?)\b/gi;
 
@@ -1251,8 +1251,6 @@ export function ideaOnlyEditorialContext(
 
 export function ideaOnlyCopyDiagnostic(
   value: string,
-  content: ValidatedPublicContent,
-  request?: ProductSourcingRequest,
   editorialContext: readonly string[] = [],
 ): IdeaCopyDiagnosticCode | undefined {
   const copy = value.toLocaleLowerCase("en-US");
@@ -1264,34 +1262,10 @@ export function ideaOnlyCopyDiagnostic(
   ) {
     return "idea-copy-internal-terminology";
   }
-  const merchantTerms = [
-    ...content.products.map(({ merchant }) => merchant),
-    ...(request?.sourceCandidates.flatMap(({ merchant, marketplace }) => [merchant, marketplace]) ??
-      []),
-  ];
-  if (
-    merchantTerms.some((term) => {
-      const normalized = normalizedTerm(term);
-      return normalized.length >= 4 && copy.includes(normalized);
-    })
-  ) {
+  if (/\b(?:amazon|ebay|etsy|target|walmart)\b/i.test(copy)) {
     return "idea-copy-merchant-leak";
   }
-  const productTerms = [
-    ...content.products.flatMap(({ name, brand }) => [name, brand]),
-    ...(request?.sourceCandidates.flatMap(({ name, brand, externalId }) => [
-      name,
-      brand,
-      externalId,
-    ]) ?? []),
-  ];
-  if (
-    productTerms.some((term) => {
-      const normalized = normalizedTerm(term);
-      return normalized.length >= 4 && copy.includes(normalized);
-    }) ||
-    /(?:https?:\/\/|www\.)/i.test(copy)
-  ) {
+  if (/(?:https?:\/\/|www\.)/i.test(copy)) {
     return "idea-copy-product-leak";
   }
   if (
@@ -1314,16 +1288,50 @@ export function ideaOnlyCopyDiagnostic(
 
 export function ideaOnlyCopyHasUnsupportedClaims(
   generated: IdeaOnlyEditorialCopy,
-  content: ValidatedPublicContent,
-  request?: ProductSourcingRequest,
   editorialContext: readonly string[] = [],
 ): boolean {
   return ideaOnlyCopyFields.some((field) => {
     const value = generated[field];
-    return value
-      ? Boolean(ideaOnlyCopyDiagnostic(value, content, request, editorialContext))
-      : false;
+    return value ? Boolean(ideaOnlyCopyDiagnostic(value, editorialContext)) : false;
   });
+}
+
+const legacyGenericIdeaHeading = "A practical gift idea";
+const legacyGenericConsiderations =
+  "Confirm personal fit, compatibility, and care requirements before choosing.";
+
+function normalizedEditorialText(value: string | undefined): string {
+  return value?.trim().toLocaleLowerCase("en-US") ?? "";
+}
+
+export function recommendationHasLegacyIdeaFallback(
+  slot: GuideDraft["recommendations"][number],
+  audience?: string,
+): boolean {
+  const normalizedAudience = normalizedEditorialText(audience);
+  return Boolean(
+    slot.editorialPromptVersion === SAFE_IDEA_COPY_VERSION ||
+    normalizedEditorialText(slot.heading) === normalizedEditorialText(legacyGenericIdeaHeading) ||
+    normalizedEditorialText(slot.editorialDescription) ===
+      normalizedEditorialText(
+        `${slot.slotLabel} can make a thoughtful gift when it matches the recipient's real routine and preferences.`,
+      ) ||
+    /^choose among\b/i.test(slot.editorialDescription ?? "") ||
+    /^it supports this recommendation'?s purpose:/i.test(slot.whyItFits ?? "") ||
+    normalizedEditorialText(slot.considerations) ===
+      normalizedEditorialText(legacyGenericConsiderations) ||
+    (normalizedAudience.length >= 20 &&
+      normalizedEditorialText(slot.heading).includes(normalizedAudience)),
+  );
+}
+
+export function ideaOnlyRecommendationNeedsCopyRepair(draft: GuideDraft, slotId: string): boolean {
+  const slot = draft.recommendations.find(({ id }) => id === slotId);
+  if (!slot || slot.productId) return Boolean(slot?.productId);
+  return (
+    recommendationHasLegacyIdeaFallback(slot, draft.questionnaire.recipient) ||
+    ideaOnlyCopyHasUnsupportedClaims(slot, ideaOnlyEditorialContext(draft, slot))
+  );
 }
 
 export function applyDeterministicIdeaCopyFallback(
@@ -1469,12 +1477,10 @@ function ideaFailureDiagnostics(
 export async function generateIdeaOnlyRecommendationWithRecovery(
   draft: GuideDraft,
   recommendationId: string,
-  content: ValidatedPublicContent,
   provider: GuideGenerationProvider,
-  request?: ProductSourcingRequest,
   now = new Date(),
 ): Promise<IdeaOnlyCopyGeneration> {
-  const prepared = prepareIdeaRecommendationPrompt(draft, recommendationId, content, request);
+  const prepared = prepareIdeaRecommendationPrompt(draft, recommendationId);
   let raw: z.infer<typeof recoverableIdeaRecommendationSchema>;
   try {
     const response = await provider.generateStructured({
@@ -1482,6 +1488,7 @@ export async function generateIdeaOnlyRecommendationWithRecovery(
       prompt: prepared.prompt,
       input: prepared.input,
       schema: recoverableIdeaRecommendationSchema,
+      mockResponse: () => mockIdeaRecommendation(prepared.input.recommendation),
     });
     const parsed = recoverableIdeaRecommendationSchema.safeParse(response);
     if (!parsed.success) {
@@ -1526,7 +1533,7 @@ export async function generateIdeaOnlyRecommendationWithRecovery(
     if (field === "considerations" && parsed.success && parsed.data === undefined) continue;
     const diagnostic =
       parsed.success && parsed.data !== undefined
-        ? ideaOnlyCopyDiagnostic(parsed.data, content, request, editorialContext)
+        ? ideaOnlyCopyDiagnostic(parsed.data, editorialContext)
         : "idea-copy-schema-invalid";
     if (diagnostic) {
       diagnostics.push(diagnostic);
@@ -1584,9 +1591,7 @@ interface IdeaBatchAttempt {
 function validateIdeaBatchItem(
   value: unknown,
   expected: { id: string; position: number },
-  content: ValidatedPublicContent,
   provider: GuideGenerationProvider,
-  request?: ProductSourcingRequest,
   editorialContext: readonly string[] = [],
 ): GeneratedIdeaRecommendation | GenerationContractDiagnostic[] {
   const parsed = recoverableIdeaRecommendationSchema.safeParse(value);
@@ -1621,7 +1626,7 @@ function validateIdeaBatchItem(
     }
     const diagnostic =
       fieldResult.success && fieldResult.data !== undefined
-        ? ideaOnlyCopyDiagnostic(fieldResult.data, content, request, editorialContext)
+        ? ideaOnlyCopyDiagnostic(fieldResult.data, editorialContext)
         : "idea-copy-schema-invalid";
     if (diagnostic) {
       const issue = !fieldResult.success
@@ -1650,17 +1655,10 @@ function validateIdeaBatchItem(
 async function generateIdeaBatchAttempt(
   draft: GuideDraft,
   recommendationIds: readonly string[],
-  content: ValidatedPublicContent,
   provider: GuideGenerationProvider,
-  requests: ReadonlyMap<string, ProductSourcingRequest>,
   operation: "idea-recommendation-batch" | "idea-recommendation-batch-repair",
 ): Promise<IdeaBatchAttempt> {
-  const prepared = prepareIdeaRecommendationBatchPrompt(
-    draft,
-    recommendationIds,
-    content,
-    requests,
-  );
+  const prepared = prepareIdeaRecommendationBatchPrompt(draft, recommendationIds);
   const valid = new Map<string, GeneratedIdeaRecommendation>();
   const failures = new Map<string, GenerationContractDiagnostic[]>();
   try {
@@ -1669,6 +1667,9 @@ async function generateIdeaBatchAttempt(
       prompt: prepared.prompt,
       input: prepared.input,
       schema: recoverableIdeaRecommendationBatchSchema,
+      mockResponse: () => ({
+        recommendations: prepared.input.recommendations.map(mockIdeaRecommendation),
+      }),
     });
     const parsed = recoverableIdeaRecommendationBatchSchema.safeParse(response);
     if (!parsed.success) {
@@ -1711,9 +1712,7 @@ async function generateIdeaBatchAttempt(
       const result = validateIdeaBatchItem(
         matches[0],
         recommendation,
-        content,
         provider,
-        requests.get(recommendation.id),
         ideaOnlyEditorialContext(
           draft,
           draft.recommendations[recommendationIndex(draft, recommendation.id)]!,
@@ -1744,9 +1743,7 @@ export interface IdeaOnlyBatchCopyGeneration {
 export async function generateIdeaOnlyRecommendationBatchWithRecovery(
   draft: GuideDraft,
   recommendationIds: readonly string[],
-  content: ValidatedPublicContent,
   provider: GuideGenerationProvider,
-  requests: ReadonlyMap<string, ProductSourcingRequest> = new Map(),
   now = new Date(),
 ): Promise<IdeaOnlyBatchCopyGeneration> {
   let completed = draft;
@@ -1754,9 +1751,7 @@ export async function generateIdeaOnlyRecommendationBatchWithRecovery(
   const primary = await generateIdeaBatchAttempt(
     completed,
     recommendationIds,
-    content,
     provider,
-    requests,
     "idea-recommendation-batch",
   );
   for (const id of recommendationIds) {
@@ -1783,9 +1778,7 @@ export async function generateIdeaOnlyRecommendationBatchWithRecovery(
     ? await generateIdeaBatchAttempt(
         completed,
         failedIds,
-        content,
         provider,
-        requests,
         "idea-recommendation-batch-repair",
       )
     : undefined;
@@ -1821,12 +1814,10 @@ export async function generateIdeaOnlyRecommendationBatchWithRecovery(
 
 function rejectUnsafeIdeaOnlyClaims(
   generated: GeneratedIdeaRecommendation,
-  content: ValidatedPublicContent,
-  request?: ProductSourcingRequest,
   editorialContext: readonly string[] = [],
 ): void {
   rejectGeneratedUrls(generated);
-  if (ideaOnlyCopyHasUnsupportedClaims(generated, content, request, editorialContext)) {
+  if (ideaOnlyCopyHasUnsupportedClaims(generated, editorialContext)) {
     throw new TypeError(
       "La idea generada no puede afirmar Products, comercios, precios, disponibilidad ni especificaciones sin respaldo.",
     );
@@ -1836,28 +1827,22 @@ function rejectUnsafeIdeaOnlyClaims(
 export async function generateIdeaOnlyRecommendation(
   draft: GuideDraft,
   recommendationId: string,
-  content: ValidatedPublicContent,
   provider: GuideGenerationProvider,
-  request?: ProductSourcingRequest,
   now = new Date(),
 ): Promise<GuideDraft> {
-  const prepared = prepareIdeaRecommendationPrompt(draft, recommendationId, content, request);
+  const prepared = prepareIdeaRecommendationPrompt(draft, recommendationId);
   const generated = generatedIdeaRecommendationSchema.parse(
     await provider.generateStructured({
       operation: "idea-recommendation",
       prompt: prepared.prompt,
       input: prepared.input,
       schema: generatedIdeaRecommendationSchema,
+      mockResponse: () => mockIdeaRecommendation(prepared.input.recommendation),
     }),
   );
   const index = recommendationIndex(draft, recommendationId);
   const existing = draft.recommendations[index]!;
-  rejectUnsafeIdeaOnlyClaims(
-    generated,
-    content,
-    request,
-    ideaOnlyEditorialContext(draft, existing),
-  );
+  rejectUnsafeIdeaOnlyClaims(generated, ideaOnlyEditorialContext(draft, existing));
   if (generated.id !== existing.id || generated.position !== existing.position) {
     throw new TypeError("La respuesta cambió la identidad de la idea.");
   }
@@ -1982,7 +1967,7 @@ export function guideDraftReadiness(draft: GuideDraft): GuideDraftReadiness {
 
 export function validateGuideDraft(
   draft: GuideDraft,
-  content: ValidatedPublicContent,
+  content: ValidatedEditorialContent & { products?: Product[] },
 ): GuideDraftValidation {
   const errors: string[] = [];
   const readiness = guideDraftReadiness(draft);
@@ -2054,7 +2039,7 @@ export function validateGuideDraft(
       errors.push(`La idea "${recommendation.slotLabel}" necesita guía de selección.`);
     }
     if (recommendation.productId) {
-      const product = content.products.find((item) => item.id === recommendation.productId);
+      const product = content.products?.find((item) => item.id === recommendation.productId);
       if (!product || product.status !== "active") {
         errors.push(`El producto "${recommendation.productId}" no existe o está inactivo.`);
       }

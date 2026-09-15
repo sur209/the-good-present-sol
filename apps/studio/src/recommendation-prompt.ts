@@ -6,6 +6,7 @@ import {
   createFinalPromptInput,
   finalPromptInputSchema,
   finalRecommendationInputSchema,
+  mockProductBackedRecommendation,
 } from "./final-prompt.ts";
 
 export const RECOMMENDATION_PROMPT_VERSION = "single-recommendation-v4";
@@ -174,4 +175,20 @@ Rules:
 Structured input:
 ${JSON.stringify(input, null, 2)}`;
   return { version: RECOMMENDATION_FIELD_REPAIR_PROMPT_VERSION, input, prompt };
+}
+
+export function mockRecommendation(input: RecommendationPromptInput) {
+  return mockProductBackedRecommendation(input.recommendation);
+}
+
+export function mockRecommendationFieldRepair(input: RecommendationFieldRepairInput) {
+  const productClass = input.productClass.toLocaleLowerCase("en-US");
+  const values = {
+    heading: input.product.name,
+    editorialDescription: `${input.product.name} is a ${productClass} choice for this guide.`,
+    whyItFits: `This ${productClass} matches the guide's editorial focus.`,
+    bestFor: "Someone whose interests align with this gift category",
+    considerations: "Consider how this gift category fits the recipient's preferences.",
+  };
+  return { value: values[input.field] };
 }

@@ -22,6 +22,8 @@ export interface PublicContentSources {
   guides: SourceRecord[];
 }
 
+export type EditorialContentSources = Pick<PublicContentSources, "clusters" | "guides">;
+
 export interface ValidationIssue {
   file: string;
   recordId: string;
@@ -34,6 +36,8 @@ export interface ValidatedPublicContent {
   clusters: ClusterHub[];
   guides: GiftGuide[];
 }
+
+export type ValidatedEditorialContent = Pick<ValidatedPublicContent, "clusters" | "guides">;
 
 export type ValidationResult =
   { success: true; data: ValidatedPublicContent } | { success: false; issues: ValidationIssue[] };
@@ -211,7 +215,6 @@ function validateGuideRelations(
   guides: LocatedRecord<GiftGuide>[],
   clustersById: Map<string, ClusterHub>,
   guidesById: Map<string, GiftGuide>,
-  productsById: Map<string, Product>,
   issues: ValidationIssue[],
 ): void {
   for (const { file, record: guide } of guides) {
@@ -287,7 +290,17 @@ function validateGuideRelations(
         });
       }
       positions.add(recommendation.position);
+    });
+  }
+}
 
+function validateGuideProductRelations(
+  guides: LocatedRecord<GiftGuide>[],
+  productsById: Map<string, Product>,
+  issues: ValidationIssue[],
+): void {
+  for (const { file, record: guide } of guides) {
+    guide.recommendations.forEach((recommendation, index) => {
       if (!recommendation.productId) return;
       const product = productsById.get(recommendation.productId);
       if (!product) {
@@ -309,24 +322,13 @@ function validateGuideRelations(
   }
 }
 
-export function validatePublicContent(sources: PublicContentSources): ValidationResult {
+function validateEditorialRecords(sources: EditorialContentSources) {
   const issues: ValidationIssue[] = [];
-  const products = parseRecords(sources.products, productSchema, issues);
   const clusters = parseRecords(sources.clusters, clusterHubSchema, issues);
   const guides = parseRecords(sources.guides, giftGuideSchema, issues);
 
-  validateFilenames(products, issues);
   validateFilenames(clusters, issues);
   validateFilenames(guides, issues);
-
-  addDuplicateIssues(
-    products,
-    (record) => record.id,
-    (record) => record.id,
-    "id",
-    "product ID",
-    issues,
-  );
   addDuplicateIssues(
     clusters,
     (record) => record.id,
@@ -371,11 +373,50 @@ export function validatePublicContent(sources: PublicContentSources): Validation
     }
   }
 
-  const productsById = indexFirstById(products);
   const clustersById = indexFirstById(clusters);
   const guidesById = indexFirstById(guides);
   validateClusterRelations(clusters, guidesById, issues);
-  validateGuideRelations(guides, clustersById, guidesById, productsById, issues);
+  validateGuideRelations(guides, clustersById, guidesById, issues);
+  return { issues, clusters, guides };
+}
+
+export function validateEditorialContent(
+  sources: EditorialContentSources,
+):
+  | { success: true; data: ValidatedEditorialContent }
+  | { success: false; issues: ValidationIssue[] } {
+  const { issues, clusters, guides } = validateEditorialRecords(sources);
+  return issues.length
+    ? { success: false, issues }
+    : {
+        success: true,
+        data: {
+          clusters: clusters.map(({ record }) => record),
+          guides: guides.map(({ record }) => record),
+        },
+      };
+}
+
+export function validatePublicContent(sources: PublicContentSources): ValidationResult {
+  const editorial = validateEditorialRecords(sources);
+  const issues = editorial.issues;
+  const products = parseRecords(sources.products, productSchema, issues);
+  const { clusters, guides } = editorial;
+
+  validateFilenames(products, issues);
+
+  addDuplicateIssues(
+    products,
+    (record) => record.id,
+    (record) => record.id,
+    "id",
+    "product ID",
+    issues,
+  );
+  const productsById = indexFirstById(products);
+  const clustersById = indexFirstById(clusters);
+  const guidesById = indexFirstById(guides);
+  validateGuideProductRelations(guides, productsById, issues);
 
   if (issues.length > 0) return { success: false, issues };
 
@@ -402,6 +443,14 @@ export function formatValidationIssues(issues: ValidationIssue[]): string {
 
 export function assertValidPublicContent(sources: PublicContentSources): ValidatedPublicContent {
   const result = validatePublicContent(sources);
+  if (!result.success) throw new Error(formatValidationIssues(result.issues));
+  return result.data;
+}
+
+export function assertValidEditorialContent(
+  sources: EditorialContentSources,
+): ValidatedEditorialContent {
+  const result = validateEditorialContent(sources);
   if (!result.success) throw new Error(formatValidationIssues(result.issues));
   return result.data;
 }

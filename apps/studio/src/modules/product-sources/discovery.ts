@@ -272,6 +272,7 @@ export async function generateProductSearchPlans(
     prompt: prepared.prompt,
     input: prepared.input,
     schema: plannedProductSearchBatchSchema,
+    mockResponse: () => mockProductSearchPlanning(prepared.input),
   });
   const expectedIds = requests.map(({ id }) => id).sort();
   const actualIds = generated.plans.map(({ requestId: id }) => id).sort();

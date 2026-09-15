@@ -105,6 +105,7 @@ export async function generateProductEditorialCopy(
     prompt: prepared.prompt,
     input: prepared.input,
     schema: productEditorialCopyOutputSchema,
+    mockResponse: () => mockProductEditorialCopy(prepared.input),
   });
   const parsed = productEditorialCopyOutputSchema.safeParse(generated);
   if (!parsed.success) {

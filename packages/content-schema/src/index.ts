@@ -37,13 +37,17 @@ export type {
 } from "./schemas.ts";
 
 export {
+  assertValidEditorialContent,
   assertValidPublicContent,
   formatValidationIssues,
+  validateEditorialContent,
   validatePublicContent,
 } from "./validation.ts";
 export type {
+  EditorialContentSources,
   PublicContentSources,
   SourceRecord,
+  ValidatedEditorialContent,
   ValidatedPublicContent,
   ValidationIssue,
   ValidationResult,

@@ -426,6 +426,7 @@ export async function evaluateConvergentOpportunities(
       prompt: prepared.prompt,
       input: prepared.input,
       schema: exactResponseSchema,
+      mockResponse: () => mockOpportunityEvaluation(prepared.input),
     }),
   );
   const now = context.now ?? new Date();

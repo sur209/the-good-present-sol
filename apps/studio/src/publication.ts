@@ -8,18 +8,25 @@ import {
   guidePath,
   type ClusterHub,
   type GiftGuide,
+  type Product,
+  type ValidatedEditorialContent,
   type ValidatedPublicContent,
 } from "@the-good-present/content-schema";
 
-import { readPublicContentSources } from "../../../scripts/content-files.ts";
+import {
+  readEditorialContentSources,
+  readPublicContentSources,
+} from "../../../scripts/content-files.ts";
 import { validateClusterDraft } from "./cluster-editor.ts";
 import { DraftStore, StaleDraftError } from "./draft-store.ts";
 import type { ClusterDraft, EditorialDraft, GuideDraft } from "./drafts.ts";
 import { validateGuideDraft } from "./guide-editor.ts";
 import {
   REPOSITORY_ROOT,
+  assertEditorialContentCandidate,
   assertPublicContentCandidate,
   atomicWriteJson,
+  readEditorialContent,
   readPublicContent,
   replaceSourceRecord,
   runRepositoryMutation,
@@ -38,7 +45,7 @@ function publicDate(now: Date): string {
 
 export function clusterDraftToPublic(
   draft: ClusterDraft,
-  content: ValidatedPublicContent,
+  content: ValidatedEditorialContent,
   now = new Date(),
 ): ClusterHub {
   const validation = validateClusterDraft(draft, content);
@@ -67,7 +74,7 @@ export function clusterDraftToPublic(
 
 export function guideDraftToPublic(
   draft: GuideDraft,
-  content: ValidatedPublicContent,
+  content: ValidatedEditorialContent & { products?: Product[] },
   now = new Date(),
 ): GiftGuide {
   const validation = validateGuideDraft(draft, content);
@@ -135,6 +142,10 @@ export class Publisher {
     return readPublicContent(this.repositoryRoot);
   }
 
+  readEditorial(): ValidatedEditorialContent {
+    return readEditorialContent(this.repositoryRoot);
+  }
+
   async publish(
     draft: EditorialDraft,
     now = new Date(),
@@ -152,13 +163,13 @@ export class Publisher {
   ): Promise<PublicationResult> {
     return runRepositoryMutation(this.repositoryRoot, async () => {
       await this.assertCurrentDraft(draft, draftStore);
-      const content = this.read();
+      const content = this.readEditorial();
       const existing = content.clusters.some((cluster) => cluster.id === draft.id);
       const record = clusterDraftToPublic(draft, content, now);
       const file = `${PUBLIC_CONTENT_DIRECTORIES.clusters}/${record.id}.json`;
-      const sources = readPublicContentSources(this.repositoryRoot);
+      const sources = readEditorialContentSources(this.repositoryRoot);
       replaceSourceRecord(sources.clusters, file, record);
-      assertPublicContentCandidate(
+      assertEditorialContentCandidate(
         sources,
         "La publicación dejaría inválido el contenido canónico.",
       );
@@ -179,17 +190,27 @@ export class Publisher {
   ): Promise<PublicationResult> {
     return runRepositoryMutation(this.repositoryRoot, async () => {
       await this.assertCurrentDraft(draft, draftStore);
-      const content = this.read();
+      const productBacked = draft.recommendations.some(({ productId }) => productId);
+      const content = productBacked ? this.read() : this.readEditorial();
       const existing = content.guides.some((guide) => guide.id === draft.id);
       const record = guideDraftToPublic(draft, content, now);
       const cluster = content.clusters.find((item) => item.id === record.clusterId)!;
       const file = `${PUBLIC_CONTENT_DIRECTORIES.guides}/${record.id}.json`;
-      const sources = readPublicContentSources(this.repositoryRoot);
+      const sources = productBacked
+        ? readPublicContentSources(this.repositoryRoot)
+        : readEditorialContentSources(this.repositoryRoot);
       replaceSourceRecord(sources.guides, file, record);
-      assertPublicContentCandidate(
-        sources,
-        "La publicación dejaría inválido el contenido canónico.",
-      );
+      if (productBacked) {
+        assertPublicContentCandidate(
+          sources as ReturnType<typeof readPublicContentSources>,
+          "La publicación dejaría inválido el contenido canónico.",
+        );
+      } else {
+        assertEditorialContentCandidate(
+          sources,
+          "La publicación dejaría inválido el contenido editorial canónico.",
+        );
+      }
       await atomicWriteJson(resolve(this.repositoryRoot, file), record);
       return {
         action: existing ? "updated" : "created",

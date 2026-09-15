@@ -209,6 +209,7 @@ export async function reviewGuideEditorially(
               : ""),
           input: editorialSnapshot(draft),
           schema: editorialReviewResponseSchema,
+          mockResponse: () => ({ issues: [] }),
           onCallMetadata: (metadata) => {
             callMetadata = metadata;
           },

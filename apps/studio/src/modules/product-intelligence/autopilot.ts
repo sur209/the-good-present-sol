@@ -11,13 +11,12 @@ import type { GuideGenerationProvider } from "../../ai-provider.ts";
 import { StaleDraftError, type DraftStore } from "../../draft-store.ts";
 import { guideDraftSchema, type GuideDraft } from "../../drafts.ts";
 import {
-  SAFE_IDEA_COPY_VERSION,
   applyDeterministicProductCopyFallback,
   formatGenerationContractDiagnostic,
   generateIdeaOnlyRecommendationWithRecovery,
   generateProductBackedRecommendationWithRecovery,
-  ideaOnlyCopyHasUnsupportedClaims,
-  ideaOnlyEditorialContext,
+  ideaOnlyRecommendationNeedsCopyRepair,
+  recommendationHasLegacyIdeaFallback,
   recommendationCopyFailureDiagnostics,
   recommendationIsEditoriallyReady,
 } from "../../guide-editor.ts";
@@ -779,56 +778,16 @@ export async function completeProductBackedRecommendationCopy(
   }
 }
 
-const legacyGenericIdeaHeading = "A practical gift idea";
-const legacyGenericConsiderations =
-  "Confirm personal fit, compatibility, and care requirements before choosing.";
-
-export function recommendationHasLegacyIdeaFallback(
-  slot: GuideDraft["recommendations"][number],
-  audience?: string,
-): boolean {
-  const normalizedAudience = normalized(audience);
-  return Boolean(
-    slot.editorialPromptVersion === SAFE_IDEA_COPY_VERSION ||
-    normalized(slot.heading) === normalized(legacyGenericIdeaHeading) ||
-    normalized(slot.editorialDescription) ===
-      normalized(
-        `${slot.slotLabel} can make a thoughtful gift when it matches the recipient's real routine and preferences.`,
-      ) ||
-    /^choose among\b/i.test(slot.editorialDescription ?? "") ||
-    /^it supports this recommendation'?s purpose:/i.test(slot.whyItFits ?? "") ||
-    normalized(slot.considerations) === normalized(legacyGenericConsiderations) ||
-    (normalizedAudience.length >= 20 && normalized(slot.heading).includes(normalizedAudience)),
-  );
-}
-
-export function ideaOnlyRecommendationNeedsCopyRepair(
-  draft: GuideDraft,
-  slotId: string,
-  content: ValidatedPublicContent,
-  request?: ProductSourcingRequest,
-): boolean {
-  const slot = draft.recommendations.find(({ id }) => id === slotId)!;
-  if (slot.productId) return true;
-  return (
-    recommendationHasLegacyIdeaFallback(slot, draft.questionnaire.recipient) ||
-    ideaOnlyCopyHasUnsupportedClaims(slot, content, request, ideaOnlyEditorialContext(draft, slot))
-  );
-}
-
 export async function completeIdeaOnlyRecommendationCopy(
   draft: GuideDraft,
   slotId: string,
-  dependencies: Pick<AutopilotDependencies, "catalog" | "provider">,
-  request?: ProductSourcingRequest,
+  dependencies: Pick<AutopilotDependencies, "provider">,
   now = new Date(),
 ): Promise<ProductBackedCopyCompletion> {
   const generation = await generateIdeaOnlyRecommendationWithRecovery(
     draft,
     slotId,
-    dependencies.catalog.read(),
     dependencies.provider,
-    request,
     now,
   );
   if (generation.usedDeterministicFallback) {
@@ -1039,13 +998,7 @@ async function completeIdeaOnly(
     completedDraft = draft;
     actions.push("preserved-ready-idea-copy");
   } else {
-    const copy = await completeIdeaOnlyRecommendationCopy(
-      draft,
-      slotId,
-      dependencies,
-      request,
-      now,
-    );
+    const copy = await completeIdeaOnlyRecommendationCopy(draft, slotId, dependencies, now);
     completedDraft = copy.draft;
     actions.push(...copy.actionsPerformed);
     warnings.push(...copy.warnings);

@@ -4,7 +4,7 @@ import {
   clusterPath,
   type ClusterHub,
   type PrimaryAxis,
-  type ValidatedPublicContent,
+  type ValidatedEditorialContent,
 } from "@the-good-present/content-schema";
 
 import { clusterDraftSchema, type ClusterDraft } from "./drafts.ts";
@@ -80,7 +80,7 @@ export function addGuideToGroup(
   draft: ClusterDraft,
   groupId: string,
   guideId: string,
-  content: ValidatedPublicContent,
+  content: ValidatedEditorialContent,
 ): ClusterDraft {
   const index = groupIndex(draft, groupId);
   const guide = content.guides.find((item) => item.id === guideId);
@@ -130,7 +130,7 @@ export function moveGuideInGroup(
 
 export function validateClusterDraft(
   draft: ClusterDraft,
-  content: ValidatedPublicContent,
+  content: ValidatedEditorialContent,
 ): ClusterDraftValidation {
   const errors: string[] = [];
   const warnings: string[] = [];

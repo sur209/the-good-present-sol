@@ -1,6 +1,7 @@
 import {
   primaryAxisSchema,
   productDisplayName,
+  type ValidatedEditorialContent,
   type ValidatedPublicContent,
 } from "@the-good-present/content-schema";
 import { z } from "zod";
@@ -294,7 +295,7 @@ export function prepareFinalPrompt(
   return { version: FINAL_PROMPT_VERSION, input, prompt: buildFinalPrompt(input) };
 }
 
-export function prepareGuideMetadataPrompt(draft: GuideDraft, content: ValidatedPublicContent) {
+export function prepareGuideMetadataPrompt(draft: GuideDraft, content: ValidatedEditorialContent) {
   if (!draft.clusterId) throw new TypeError("Elegí un cluster antes de generar metadata.");
   const cluster = content.clusters.find(({ id }) => id === draft.clusterId);
   if (!cluster) throw new TypeError("El cluster elegido no está publicado.");
@@ -354,4 +355,68 @@ Return exactly one JSON object containing only the fields listed in missingField
 Structured input:
 ${JSON.stringify(input, null, 2)}`;
   return { version: GUIDE_METADATA_PROMPT_VERSION, input, prompt };
+}
+
+export function mockGuideMetadata(input: GuideMetadataPromptInput) {
+  const audience = (
+    input.guide.questionnaire.recipient ??
+    input.guide.taxonomies?.recipients?.[0] ??
+    "the intended recipient"
+  ).split(/[.,;]/)[0]!;
+  const topic = input.guide.primaryIntent.replace(/[.!?]+$/, "").toLocaleLowerCase("en-US");
+  const generated = {
+    excerpt:
+      input.guide.existingCopy.excerpt ??
+      `A practical gift guide for ${audience}, focused on how to ${topic}.`,
+    introduction:
+      input.guide.existingCopy.introduction ??
+      `Choosing for ${audience} is easier when each idea fits the way they live and work. This guide emphasizes everyday usefulness, personal fit, and sensible tradeoffs so the final choice feels thoughtful rather than generic.`,
+    seoTitle: input.guide.existingCopy.seoTitle ?? input.title.slice(0, 70),
+    seoDescription:
+      input.guide.existingCopy.seoDescription ??
+      `Explore practical gift ideas for ${audience}, chosen around everyday usefulness, personal fit, and the guide's focused purpose.`,
+  };
+  return Object.fromEntries(input.missingFields.map((field) => [field, generated[field]]));
+}
+
+export function mockProductBackedRecommendation(
+  recommendation: FinalPromptInput["recommendations"][number],
+) {
+  const productClass = recommendation.slotLabel.toLocaleLowerCase("en-US");
+  return {
+    id: recommendation.recommendationId,
+    productId: recommendation.product.id,
+    position: recommendation.position,
+    heading: recommendation.product.name,
+    editorialDescription: `This ${productClass} offers a practical choice shaped around the recipient's everyday routine.`,
+    whyItFits: `${recommendation.slotLabel} connects the gift to something the recipient can use in everyday life.`,
+    bestFor: "Someone likely to use it regularly",
+    ...(recommendation.product.verifiedFacts?.length
+      ? { considerations: `Verified details: ${recommendation.product.verifiedFacts.join("; ")}.` }
+      : {}),
+  };
+}
+
+export function mockFinalGuide(input: FinalPromptInput): GeneratedGuide {
+  const title =
+    input.guide.existingCopy.title ??
+    input.guide.approvedOutline.provisionalTitle ??
+    `${input.cluster.title} Gift Guide`;
+  return generatedGuideSchema.parse({
+    title,
+    excerpt:
+      input.guide.existingCopy.excerpt ??
+      `A focused selection for readers who want to ${input.guide.primaryIntent.toLocaleLowerCase("en-US")}`,
+    introduction:
+      input.guide.existingCopy.introduction ??
+      `This guide uses ${input.guide.primaryAxis} as its primary lens and evaluates each selected product against one distinct editorial purpose.`,
+    conclusion:
+      input.guide.existingCopy.conclusion ??
+      "Choose the option that best reflects the recipient's routines, preferences, and the moment you want to mark.",
+    seoTitle: input.guide.existingCopy.seoTitle ?? `${title} | The Good Present`,
+    seoDescription:
+      input.guide.existingCopy.seoDescription ??
+      `Explore a focused ${input.cluster.title.toLocaleLowerCase("en-US")} guide with carefully selected products and original editorial context.`,
+    recommendations: input.recommendations.map(mockProductBackedRecommendation),
+  });
 }
