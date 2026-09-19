@@ -78,8 +78,11 @@ import {
 } from "./guide-editor.ts";
 import {
   generatedRecommendationSchema,
+  generatedGuideMetadataSchema,
+  GUIDE_METADATA_PROMPT_VERSION,
   guideMetadataPromptInputSchema,
   prepareFinalPrompt,
+  prepareGuideMetadataPrompt,
 } from "./final-prompt.ts";
 import {
   OUTLINE_PROMPT_VERSION,
@@ -7032,6 +7035,79 @@ test("el prompt final contiene sólo datos seleccionados y ninguna URL", async (
     assert.equal("shortDescription" in recommendation.product, false);
     assert.equal("priceLabel" in recommendation.product, false);
   }
+});
+
+test("el prompt de metadata pide introducciones centradas en el lector", async () => {
+  const content = new ProductCatalog().read();
+  const prepared = prepareGuideMetadataPrompt(
+    await generatedGuideDraft("guide_reader-facing"),
+    content,
+  );
+
+  assert.match(
+    prepared.prompt,
+    /For the introduction, open with a concrete shopper\/recipient scenario or need/i,
+  );
+  assert.match(
+    prepared.prompt,
+    /speak directly about the recipient, occasion, routine, or buying decision/i,
+  );
+});
+
+test("el prompt de metadata prohíbe el encuadre meta-procesal", async () => {
+  const content = new ProductCatalog().read();
+  const prepared = prepareGuideMetadataPrompt(
+    await generatedGuideDraft("guide_reader-facing-prohibitions"),
+    content,
+  );
+
+  assert.match(
+    prepared.prompt,
+    /Never describe "this guide," "the guide," "the editorial approach," "the recommendations," or "the list,"/i,
+  );
+  assert.match(
+    prepared.prompt,
+    /never explain how items were selected, grouped, assembled, organized, researched, or generated/i,
+  );
+});
+
+test("el contrato de generación de metadata permanece intacto", async () => {
+  const content = new ProductCatalog().read();
+  const prepared = prepareGuideMetadataPrompt(
+    await generatedGuideDraft("guide_reader-facing-contract"),
+    content,
+  );
+
+  assert.equal(prepared.version, GUIDE_METADATA_PROMPT_VERSION);
+  assert.deepEqual(prepared.input.missingFields, [
+    "excerpt",
+    "introduction",
+    "seoTitle",
+    "seoDescription",
+  ]);
+  assert.deepEqual(Object.keys(prepared.input).sort(), [
+    "cluster",
+    "guide",
+    "language",
+    "missingFields",
+    "title",
+  ]);
+  assert.deepEqual(Object.keys(generatedGuideMetadataSchema.shape).sort(), [
+    "excerpt",
+    "introduction",
+    "seoDescription",
+    "seoTitle",
+  ]);
+  assert.doesNotThrow(() => guideMetadataPromptInputSchema.parse(prepared.input));
+  assert.doesNotThrow(() =>
+    generatedGuideMetadataSchema.parse({
+      excerpt: "A concise gift guide excerpt.",
+      introduction:
+        "When you are choosing for a busy recipient, start with the moment you want to make easier.",
+      seoTitle: "Useful Gifts for Busy Recipients",
+      seoDescription: "Thoughtful gift ideas shaped around real routines and occasions.",
+    }),
+  );
 });
 
 test("el mock genera una guía completa lista con IDs y orden intactos", async () => {

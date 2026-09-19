@@ -350,7 +350,7 @@ export function prepareGuideMetadataPrompt(draft: GuideDraft, content: Validated
   });
   const prompt = `Complete the missing public metadata for one gift guide.
 
-Return exactly one JSON object containing only the fields listed in missingFields. Write natural US English. Describe the audience, editorial angle, and practical selection criteria without listing Products. Do not make safety, medical, operational, price, rating, availability, or Product-specific claims. Avoid keyword repetition. Keep the SEO title concise and do not append a site name.
+Return exactly one JSON object containing only the fields listed in missingFields. Write natural US English. Describe the audience, editorial angle, and practical selection criteria without listing Products. For the introduction, open with a concrete shopper/recipient scenario or need and speak directly about the recipient, occasion, routine, or buying decision. Never describe "this guide," "the guide," "the editorial approach," "the recommendations," or "the list," and never explain how items were selected, grouped, assembled, organized, researched, or generated. Do not make safety, medical, operational, price, rating, availability, or Product-specific claims. Avoid keyword repetition. Keep the SEO title concise and do not append a site name.
 
 Structured input:
 ${JSON.stringify(input, null, 2)}`;
