@@ -817,6 +817,13 @@ test("crea borradores incompletos válidos con identidad estable", () => {
   assert.equal(guide.status, "questionnaire");
 });
 
+test("lee GuideDrafts anteriores sin resumen de ejecución editorial", () => {
+  const legacy = JSON.parse(JSON.stringify(createGuideDraft("guide_without-completion-summary")));
+  const parsed = guideDraftSchema.parse(legacy);
+
+  assert.equal(parsed.latestEditorialCompletion, undefined);
+});
+
 test("limita la cantidad de regalos entre 3 y 20", () => {
   const guide = createGuideDraft("guide_test");
   assert.equal(

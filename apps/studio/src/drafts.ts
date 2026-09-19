@@ -43,6 +43,39 @@ export const generationMetadataSchema = z.strictObject({
   }),
 });
 
+const providerUsageSchema = z.strictObject({
+  inputTokens: z.number().int().nonnegative().optional(),
+  outputTokens: z.number().int().nonnegative().optional(),
+  totalTokens: z.number().int().nonnegative().optional(),
+});
+
+export const editorialCompletionStatusSchema = z.enum([
+  "completed",
+  "completed-with-warnings",
+  "failed",
+]);
+
+export const editorialCompletionExecutionSchema = z.strictObject({
+  editorialCalls: z.number().int().nonnegative(),
+  editorialBatchCalls: z.number().int().nonnegative(),
+  editorialRepairCalls: z.number().int().nonnegative(),
+  guideMetadataCalls: z.number().int().nonnegative(),
+  providerUsage: z
+    .strictObject({
+      editorial: providerUsageSchema.optional(),
+      guideMetadata: providerUsageSchema.optional(),
+    })
+    .optional(),
+});
+
+export const editorialCompletionSummarySchema = z.strictObject({
+  completedAt: timestampSchema,
+  policyVersion: z.string().trim().min(1),
+  status: editorialCompletionStatusSchema,
+  execution: editorialCompletionExecutionSchema,
+  warnings: z.array(z.string().trim().min(1)),
+});
+
 export const guideOutlineSlotSchema = z.strictObject({
   id: contentIdSchema,
   label: z.string().trim().min(1),
@@ -174,6 +207,7 @@ export const guideDraftSchema = z.strictObject({
   relatedGuideIds: z.array(contentIdSchema),
   questionnaire: guideQuestionnaireSchema,
   generationMetadata: generationMetadataSchema.optional(),
+  latestEditorialCompletion: editorialCompletionSummarySchema.optional(),
   outline: guideOutlineSchema.optional(),
   title: optionalText,
   excerpt: optionalText,

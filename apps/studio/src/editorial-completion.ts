@@ -7,7 +7,12 @@ import type {
   StructuredGenerationRequest,
 } from "./ai-provider.ts";
 import { StaleDraftError, type DraftStore } from "./draft-store.ts";
-import { guideDraftSchema, type GuideDraft } from "./drafts.ts";
+import {
+  editorialCompletionExecutionSchema,
+  editorialCompletionStatusSchema,
+  guideDraftSchema,
+  type GuideDraft,
+} from "./drafts.ts";
 import {
   completeGuideEditorialMetadata,
   generateIdeaOnlyRecommendationBatchWithRecovery,
@@ -19,17 +24,11 @@ import {
 
 export const EDITORIAL_COMPLETION_POLICY_VERSION = "editorial-completion-v1";
 
-const providerUsageSchema = z.strictObject({
-  inputTokens: z.number().int().nonnegative().optional(),
-  outputTokens: z.number().int().nonnegative().optional(),
-  totalTokens: z.number().int().nonnegative().optional(),
-});
-
 export const editorialCompletionOutcomeSchema = z.strictObject({
   schemaVersion: z.literal(1),
   policyVersion: z.literal(EDITORIAL_COMPLETION_POLICY_VERSION),
   guideId: z.string().trim().min(1),
-  status: z.enum(["completed", "completed-with-warnings", "failed"]),
+  status: editorialCompletionStatusSchema,
   reasonCode: z.enum([
     "guide-completed",
     "guide-completed-with-warnings",
@@ -40,18 +39,7 @@ export const editorialCompletionOutcomeSchema = z.strictObject({
     totalRecommendations: z.number().int().nonnegative(),
     editorialReady: z.number().int().nonnegative(),
   }),
-  execution: z.strictObject({
-    editorialCalls: z.number().int().nonnegative(),
-    editorialBatchCalls: z.number().int().nonnegative(),
-    editorialRepairCalls: z.number().int().nonnegative(),
-    guideMetadataCalls: z.number().int().nonnegative(),
-    providerUsage: z
-      .strictObject({
-        editorial: providerUsageSchema.optional(),
-        guideMetadata: providerUsageSchema.optional(),
-      })
-      .optional(),
-  }),
+  execution: editorialCompletionExecutionSchema,
   slots: z.array(
     z.strictObject({
       slotId: z.string().trim().min(1),
@@ -225,7 +213,7 @@ export async function completeGuideEditorially(
         : "completed";
   const usage = providerUsage(counters);
 
-  return editorialCompletionOutcomeSchema.parse({
+  const outcome = editorialCompletionOutcomeSchema.parse({
     schemaVersion: 1,
     policyVersion: EDITORIAL_COMPLETION_POLICY_VERSION,
     guideId: draft.id,
@@ -251,4 +239,19 @@ export async function completeGuideEditorially(
     slots,
     warnings,
   });
+  await dependencies.draftStore.save(
+    {
+      ...draft,
+      latestEditorialCompletion: {
+        completedAt: now.toISOString(),
+        policyVersion: outcome.policyVersion,
+        status: outcome.status,
+        execution: outcome.execution,
+        warnings: outcome.warnings,
+      },
+    },
+    now,
+    draft,
+  );
+  return outcome;
 }

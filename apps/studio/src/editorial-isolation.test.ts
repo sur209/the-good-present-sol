@@ -11,16 +11,22 @@ import { promisify } from "node:util";
 import {
   MockGuideGenerationProvider,
   type GuideGenerationProvider,
+  type ProviderCallMetadata,
   type StructuredGenerationRequest,
 } from "./ai-provider.ts";
-import { DraftStore } from "./draft-store.ts";
+import { DraftStore, StaleDraftError } from "./draft-store.ts";
 import {
   clusterDraftSchema,
   createClusterDraft,
   createGuideDraft,
   guideDraftSchema,
+  type EditorialDraft,
+  type GuideDraft,
 } from "./drafts.ts";
-import { completeGuideEditorially } from "./editorial-completion.ts";
+import {
+  EDITORIAL_COMPLETION_POLICY_VERSION,
+  completeGuideEditorially,
+} from "./editorial-completion.ts";
 import { resolveProductClassProfile } from "./editorial-guidance.ts";
 import {
   EditorialReviewStore,
@@ -134,6 +140,29 @@ async function startStudio(repository: string) {
   const address = server.address();
   assert.ok(address && typeof address !== "string");
   return { store, server, origin: `http://${STUDIO_HOST}:${address.port}` };
+}
+
+function incompleteEditorialDraft(id: string): GuideDraft {
+  return guideDraftSchema.parse({
+    ...createGuideDraft(id, checkpointDate),
+    title: "A focused editorial guide",
+    primaryAxis: "general",
+    primaryIntent: "Help someone choose a useful everyday gift.",
+    excerpt: "A concise guide to a useful everyday gift.",
+    introduction: "Choose around the recipient's routine and preferences.",
+    seoTitle: "A Focused Editorial Guide",
+    seoDescription: "Practical guidance for choosing a useful everyday gift.",
+    recommendations: [
+      {
+        id: `${id}_slot-1`,
+        position: 1,
+        slotLabel: "A useful everyday idea",
+        slotIntent: "Support a familiar routine.",
+        searchTerms: ["useful everyday gift"],
+        editorialStatus: "needs-generation",
+      },
+    ],
+  });
 }
 
 test("post-Stage-4 cleanup: cluster routes and Product-free reopening stay editorial-only", async (context) => {
@@ -339,6 +368,14 @@ test("Stage 4 checkpoint: an eight-idea guide completes and publishes with optio
   assert.equal(completion.execution.editorialBatchCalls, 1);
   assert.equal(completion.execution.guideMetadataCalls, 1);
   let completed = guideDraftSchema.parse(await store.read(fresh.id));
+  assert.deepEqual(completed.latestEditorialCompletion, {
+    completedAt: checkpointDate.toISOString(),
+    policyVersion: EDITORIAL_COMPLETION_POLICY_VERSION,
+    status: "completed",
+    execution: completion.execution,
+    warnings: [],
+  });
+  assert.equal(completed.latestEditorialCompletion.execution.providerUsage, undefined);
   assert.equal(
     completed.recommendations.every(({ editorialStatus }) => editorialStatus === "ready"),
     true,
@@ -439,6 +476,10 @@ test("Stage 4 checkpoint: an eight-idea guide completes and publishes with optio
   });
   assert.equal(defaultCompletion.status, 200);
   assert.match(await defaultCompletion.text(), /Guía editorial completada/);
+  const editorAfterCompletion = await fetch(`${origin}/drafts/${completed.id}`);
+  assert.equal(editorAfterCompletion.status, 200);
+  assert.match(await editorAfterCompletion.text(), /Última ejecución editorial/);
+  completed = guideDraftSchema.parse(await store.read(completed.id));
 
   const publication = await fetch(`${origin}/drafts/${completed.id}/publish`, {
     method: "POST",
@@ -470,6 +511,101 @@ test("Stage 4 checkpoint: an eight-idea guide completes and publishes with optio
     operations.some((operation) => /product|fit|search|opportunity/.test(operation)),
     false,
   );
+});
+
+test("persiste reparaciones, uso de tokens, advertencias y estado de la última completitud", async (context) => {
+  const repository = await createEditorialRoot();
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  const store = new DraftStore(join(repository, "drafts"), repository);
+  const draft = await store.save(
+    incompleteEditorialDraft("guide_completion-observability"),
+    checkpointDate,
+  );
+  const mock = new MockGuideGenerationProvider();
+  let calls = 0;
+  const provider: GuideGenerationProvider & {
+    lastCallMetadata: ProviderCallMetadata | undefined;
+  } = {
+    providerId: "observed-completion-fixture",
+    modelId: "observed-model",
+    lastCallMetadata: undefined,
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      calls++;
+      this.lastCallMetadata = {
+        inputTokens: calls * 10,
+        outputTokens: calls * 5,
+        totalTokens: calls * 15,
+      };
+      if (request.operation === "idea-recommendation-batch") return {} as T;
+      return mock.generateStructured(request);
+    },
+  };
+
+  const outcome = await completeGuideEditorially(
+    draft,
+    { content: readEditorialContent(repository), draftStore: store, provider },
+    checkpointDate,
+  );
+  const completed = guideDraftSchema.parse(await store.read(draft.id));
+  const summary = completed.latestEditorialCompletion;
+
+  assert.ok(summary);
+  assert.equal(summary.status, "completed-with-warnings");
+  assert.equal(summary.execution.editorialCalls, 2);
+  assert.equal(summary.execution.editorialBatchCalls, 1);
+  assert.equal(summary.execution.editorialRepairCalls, 1);
+  assert.equal(summary.execution.guideMetadataCalls, 0);
+  assert.deepEqual(summary.execution.providerUsage, {
+    editorial: { inputTokens: 30, outputTokens: 15, totalTokens: 45 },
+  });
+  assert.ok(summary.warnings.length > 0);
+  assert.deepEqual(summary.warnings, outcome.warnings);
+});
+
+test("una completitud obsoleta no sobrescribe un GuideDraft más nuevo", async (context) => {
+  const repository = await createEditorialRoot();
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  class MetricsRaceStore extends DraftStore {
+    saveCalls = 0;
+
+    override async save<T extends EditorialDraft>(
+      draft: T,
+      now = new Date(),
+      expected?: T,
+    ): Promise<T> {
+      this.saveCalls++;
+      if (this.saveCalls === 3) {
+        const current = await this.read(draft.id);
+        await super.save(
+          { ...current, title: "Newer editor state" },
+          new Date("2026-09-14T12:01:00.000Z"),
+          current,
+        );
+      }
+      return super.save(draft, now, expected);
+    }
+  }
+  const store = new MetricsRaceStore(join(repository, "drafts"), repository);
+  const draft = await store.save(
+    incompleteEditorialDraft("guide_stale-completion"),
+    checkpointDate,
+  );
+
+  await assert.rejects(
+    completeGuideEditorially(
+      draft,
+      {
+        content: readEditorialContent(repository),
+        draftStore: store,
+        provider: new MockGuideGenerationProvider(),
+      },
+      checkpointDate,
+    ),
+    StaleDraftError,
+  );
+  const current = guideDraftSchema.parse(await store.read(draft.id));
+  assert.equal(current.title, "Newer editor state");
+  assert.equal(current.latestEditorialCompletion, undefined);
 });
 
 test("Stage 4 policy: catalog names and sourcing history cannot redefine idea-only copy", () => {

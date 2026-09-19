@@ -3166,12 +3166,20 @@ function guideEditorPage(
   const metadata = draft.generationMetadata
     ? `<p class="muted">Última generación: ${escapeHtml(draft.generationMetadata.providerId ?? "proveedor desconocido")} · ${escapeHtml(draft.generationMetadata.modelId ?? "modelo no informado")} · ${escapeHtml(draft.generationMetadata.promptVersion)} · ${escapeHtml(formatDate(draft.generationMetadata.generatedAt))}</p>`
     : "";
+  const completion = draft.latestEditorialCompletion;
+  const completionSummary = completion
+    ? `<details><summary>Última ejecución editorial · ${escapeHtml(completion.status)}</summary>
+       <p class="muted">${escapeHtml(formatDate(completion.completedAt))} · ${escapeHtml(completion.policyVersion)}</p>
+       <dl><dt>Llamadas editoriales</dt><dd>${completion.execution.editorialCalls}</dd><dt>Lotes</dt><dd>${completion.execution.editorialBatchCalls}</dd><dt>Reparaciones</dt><dd>${completion.execution.editorialRepairCalls}</dd><dt>Metadata</dt><dd>${completion.execution.guideMetadataCalls}</dd><dt>Tokens editoriales (entrada/salida/total)</dt><dd>${completion.execution.providerUsage?.editorial?.inputTokens ?? "—"} / ${completion.execution.providerUsage?.editorial?.outputTokens ?? "—"} / ${completion.execution.providerUsage?.editorial?.totalTokens ?? "—"}</dd><dt>Tokens de metadata (entrada/salida/total)</dt><dd>${completion.execution.providerUsage?.guideMetadata?.inputTokens ?? "—"} / ${completion.execution.providerUsage?.guideMetadata?.outputTokens ?? "—"} / ${completion.execution.providerUsage?.guideMetadata?.totalTokens ?? "—"}</dd></dl>
+       ${completion.warnings.length ? `<p>Advertencias:</p><ul>${completion.warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul>` : '<p class="muted">Sin advertencias.</p>'}
+      </details>`
+    : "";
   return draftPage(
     draft,
     draftName(draft),
     `<p><a href="/">← Borradores</a></p>
      <div class="actions"><div><h1>${escapeHtml(draftName(draft))}</h1><p><code>${escapeHtml(draft.id)}</code> · ${escapeHtml(draft.status)}</p></div><a class="button" href="/drafts/${draft.id}/curation">Buscar productos para slots sin resolver</a><a class="button" href="/drafts/${draft.id}/outline-prompt">${draft.outline ? "Revisar o regenerar esquema" : "Revisar y generar esquema"}</a><a class="button" href="/drafts/${draft.id}/final-prompt">Generación final</a><a class="button" href="/drafts/${draft.id}/preview">Vista previa</a><a class="button" href="/drafts/${draft.id}/validate">Validar</a></div>
-     <section class="card"><h2>Completar guía</h2><p>Completa la metadata y la copia editorial; no requiere Products.</p><div class="actions"><form method="post" action="/drafts/${encodeURIComponent(draft.id)}/autopilot"><button type="submit">Completar guía automáticamente</button></form><a class="button" href="/drafts/${encodeURIComponent(draft.id)}/curation">Curación de Products (opcional)</a></div></section>
+     <section class="card"><h2>Completar guía</h2><p>Completa la metadata y la copia editorial; no requiere Products.</p><div class="actions"><form method="post" action="/drafts/${encodeURIComponent(draft.id)}/autopilot"><button type="submit">Completar guía automáticamente</button></form><a class="button" href="/drafts/${encodeURIComponent(draft.id)}/curation">Curación de Products (opcional)</a></div>${completionSummary}</section>
      ${editorialReviewSection(draft, reviews, url.searchParams.get("review") ?? undefined)}
      <aside class="notice"><strong>Cómo funciona la arquitectura editorial</strong><p>Las taxonomías clasifican contenido; no crean URLs. Una ruta pública existe sólo al publicar un hub o una guía. Cada guía hija pertenece a un cluster válido. Las guías relacionadas son enlaces editoriales, no jerarquía. “Nurse Gifts Under $25” es una guía con eje <code>budget</code>, no un filtro generado.</p></aside>
      <form method="post" action="/drafts/${draft.id}/guide/architecture" class="card">
