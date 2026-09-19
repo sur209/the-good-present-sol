@@ -1,3 +1,9 @@
+import { spawn } from "node:child_process";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import type { Readable, Writable } from "node:stream";
+
 import { z } from "zod";
 
 export interface ProviderCallMetadata {
@@ -46,11 +52,13 @@ const AI_VENDOR_BASE_URLS = {
 type AiVendor = keyof typeof AI_VENDOR_BASE_URLS;
 type ProviderErrorCode =
   | "authentication"
+  | "configuration"
   | "empty-response"
   | "invalid-json"
   | "invalid-response"
   | "invalid-schema"
   | "network"
+  | "process"
   | "rate-limit"
   | "refusal"
   | "status"
@@ -157,6 +165,12 @@ export class ProviderError extends Error {
 type AiConfiguration =
   | { provider: "mock" }
   | {
+      provider: "codex-cli";
+      model: string;
+      reasoningEffort: string;
+      timeoutMs: number;
+    }
+  | {
       provider: "openai-compatible";
       vendor: AiVendor;
       baseUrl: string;
@@ -187,10 +201,18 @@ function configuredBaseUrl(value: string | undefined, vendor: AiVendor): string 
 export function resolveAiConfiguration(
   environment: Record<string, string | undefined> = process.env,
 ): AiConfiguration {
-  const provider = environment.AI_PROVIDER?.trim() || "mock";
+  const provider = environment.AI_PROVIDER?.trim() || "codex-cli";
   if (provider === "mock") return { provider };
+  if (provider === "codex-cli") {
+    return {
+      provider,
+      model: environment.AI_MODEL?.trim() || "gpt-5.6-luna",
+      reasoningEffort: environment.AI_REASONING_EFFORT?.trim() || "max",
+      timeoutMs: configuredTimeout(environment.AI_TIMEOUT_MS, 300_000),
+    };
+  }
   if (provider !== "openai-compatible") {
-    throw new TypeError('AI_PROVIDER debe ser "mock" u "openai-compatible".');
+    throw new TypeError('AI_PROVIDER debe ser "codex-cli", "mock" u "openai-compatible".');
   }
   const vendor = environment.AI_VENDOR?.trim() || "openai";
   if (vendor !== "openai" && vendor !== "deepseek") {
@@ -200,18 +222,22 @@ export function resolveAiConfiguration(
   if (!apiKey) throw new TypeError("AI_API_KEY es obligatoria para el proveedor real.");
   const model = environment.AI_MODEL?.trim();
   if (!model) throw new TypeError("AI_MODEL es obligatorio para el proveedor real.");
-  const timeoutMs = Number(environment.AI_TIMEOUT_MS?.trim() || "60000");
-  if (!Number.isInteger(timeoutMs) || timeoutMs < 1) {
-    throw new TypeError("AI_TIMEOUT_MS debe ser un entero positivo.");
-  }
   return {
     provider,
     vendor,
     baseUrl: configuredBaseUrl(environment.AI_BASE_URL, vendor),
     apiKey,
     model,
-    timeoutMs,
+    timeoutMs: configuredTimeout(environment.AI_TIMEOUT_MS, 60_000),
   };
+}
+
+function configuredTimeout(value: string | undefined, defaultValue: number): number {
+  const timeoutMs = Number(value?.trim() || defaultValue);
+  if (!Number.isInteger(timeoutMs) || timeoutMs < 1) {
+    throw new TypeError("AI_TIMEOUT_MS debe ser un entero positivo.");
+  }
+  return timeoutMs;
 }
 
 const chatCompletionSchema = z
@@ -302,6 +328,245 @@ function statusError(response: Response): ProviderError {
 }
 
 type CompatibleConfiguration = Extract<AiConfiguration, { provider: "openai-compatible" }>;
+type CodexConfiguration = Extract<AiConfiguration, { provider: "codex-cli" }>;
+
+interface CodexChildProcess {
+  stdin: Writable;
+  stdout: Readable;
+  stderr: Readable;
+  once(event: "error", listener: (error: Error) => void): this;
+  once(event: "close", listener: (code: number | null) => void): this;
+  kill(): boolean;
+}
+
+export type CodexSpawn = (
+  command: string,
+  args: readonly string[],
+  options: {
+    cwd: string;
+    env: NodeJS.ProcessEnv;
+    stdio: ["pipe", "pipe", "pipe"];
+    windowsHide: true;
+  },
+) => CodexChildProcess;
+
+function codexEnvironment(source: Record<string, string | undefined>): NodeJS.ProcessEnv {
+  const allowed = new Set([
+    "appdata",
+    "codex_home",
+    "home",
+    "homedrive",
+    "homepath",
+    "https_proxy",
+    "http_proxy",
+    "lang",
+    "localappdata",
+    "no_proxy",
+    "path",
+    "pathext",
+    "ssl_cert_file",
+    "systemroot",
+    "temp",
+    "tmp",
+    "userprofile",
+    "windir",
+  ]);
+  return Object.fromEntries(
+    Object.entries(source).filter(
+      ([key, value]) => value !== undefined && allowed.has(key.toLowerCase()),
+    ),
+  );
+}
+
+function codexMetadata(stdout: string): ProviderCallMetadata {
+  let requestId: string | undefined;
+  let usage: Record<string, unknown> | undefined;
+  for (const line of stdout.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    try {
+      const event = JSON.parse(line) as Record<string, unknown>;
+      if (event.type === "thread.started" && typeof event.thread_id === "string") {
+        requestId = event.thread_id;
+      }
+      if (
+        event.type === "turn.completed" &&
+        typeof event.usage === "object" &&
+        event.usage !== null
+      ) {
+        usage = event.usage as Record<string, unknown>;
+      }
+    } catch {
+      // Ignore non-event output; the final response comes from --output-last-message.
+    }
+  }
+  const count = (key: string): number | undefined => {
+    const value = usage?.[key];
+    return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : undefined;
+  };
+  const inputTokens = count("input_tokens");
+  const outputTokens = count("output_tokens");
+  const totalTokens = count("total_tokens");
+  return {
+    ...(requestId ? { requestId } : {}),
+    ...(inputTokens !== undefined ? { inputTokens } : {}),
+    ...(outputTokens !== undefined ? { outputTokens } : {}),
+    ...(totalTokens !== undefined ? { totalTokens } : {}),
+  };
+}
+
+function codexExitError(stderr: string, code: number | null): ProviderError {
+  const cause = new Error(`Codex CLI exited with code ${code ?? "unknown"}`);
+  if (/not logged in|login required|authentication|unauthorized|sign in/i.test(stderr)) {
+    return new ProviderError(
+      "Codex CLI no está autenticado. Ejecutá `codex login` e iniciá sesión con ChatGPT.",
+      "authentication",
+      { cause },
+    );
+  }
+  if (/model.{0,80}(not found|not available|unsupported|unknown|does not exist)/i.test(stderr)) {
+    return new ProviderError(
+      "El modelo configurado no está disponible en Codex CLI. Revisá AI_MODEL.",
+      "configuration",
+      { cause },
+    );
+  }
+  if (/reasoning.{0,80}(invalid|unsupported|unknown|not available)/i.test(stderr)) {
+    return new ProviderError(
+      "El esfuerzo de razonamiento no es compatible. Revisá AI_REASONING_EFFORT.",
+      "configuration",
+      { cause },
+    );
+  }
+  return new ProviderError(
+    "Codex CLI no pudo completar la generación. Revisá el modelo y la configuración local.",
+    "process",
+    { cause },
+  );
+}
+
+export class CodexCliGenerationProvider implements GuideGenerationProvider {
+  readonly providerId = "codex-cli";
+  readonly modelId: string;
+  lastCallMetadata: ProviderCallMetadata | undefined;
+  private readonly configuration: CodexConfiguration;
+  private readonly spawnImplementation: CodexSpawn;
+  private readonly environment: Record<string, string | undefined>;
+
+  constructor(
+    configuration: CodexConfiguration,
+    spawnImplementation: CodexSpawn = spawn as CodexSpawn,
+    environment: Record<string, string | undefined> = process.env,
+  ) {
+    this.configuration = configuration;
+    this.spawnImplementation = spawnImplementation;
+    this.environment = environment;
+    this.modelId = configuration.model;
+  }
+
+  async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+    this.lastCallMetadata = undefined;
+    const workingDirectory = await mkdtemp(join(tmpdir(), "the-good-present-codex-"));
+    const outputPath = join(workingDirectory, "final.json");
+    const args = [
+      "exec",
+      "--model",
+      this.configuration.model,
+      "--sandbox",
+      "read-only",
+      "--ephemeral",
+      "--ignore-user-config",
+      "--ignore-rules",
+      "--skip-git-repo-check",
+      "--color",
+      "never",
+      "--json",
+      "--output-last-message",
+      outputPath,
+      "--strict-config",
+      "--config",
+      `approval_policy=${JSON.stringify("never")}`,
+      "--config",
+      `model_reasoning_effort=${JSON.stringify(this.configuration.reasoningEffort)}`,
+      "-",
+    ];
+
+    try {
+      const { stdout, stderr, code, timedOut } = await new Promise<{
+        stdout: string;
+        stderr: string;
+        code: number | null;
+        timedOut: boolean;
+      }>((resolve, reject) => {
+        let child: CodexChildProcess;
+        try {
+          child = this.spawnImplementation("codex", args, {
+            cwd: workingDirectory,
+            env: codexEnvironment(this.environment),
+            stdio: ["pipe", "pipe", "pipe"],
+            windowsHide: true,
+          });
+        } catch (cause) {
+          reject(cause);
+          return;
+        }
+        let stdout = "";
+        let stderr = "";
+        let timedOut = false;
+        child.stdout.setEncoding("utf8");
+        child.stderr.setEncoding("utf8");
+        child.stdout.on("data", (chunk: string) => {
+          stdout += chunk;
+        });
+        child.stderr.on("data", (chunk: string) => {
+          if (stderr.length < 16_384) stderr += chunk;
+        });
+        child.stdin.on("error", () => undefined);
+        child.once("error", reject);
+        const timer = setTimeout(() => {
+          timedOut = true;
+          child.kill();
+        }, this.configuration.timeoutMs);
+        child.once("close", (code) => {
+          clearTimeout(timer);
+          resolve({ stdout, stderr, code, timedOut });
+        });
+        child.stdin.end(request.prompt);
+      }).catch((cause: unknown) => {
+        const error = cause as NodeJS.ErrnoException;
+        if (error?.code === "ENOENT") {
+          throw new ProviderError(
+            "No se encontró Codex CLI. Instalalo y verificá que `codex` esté disponible en PATH.",
+            "configuration",
+            { cause },
+          );
+        }
+        throw new ProviderError("No se pudo iniciar Codex CLI.", "process", { cause });
+      });
+
+      if (timedOut) {
+        throw new ProviderError(
+          "Codex CLI tardó demasiado en responder. Probá de nuevo.",
+          "timeout",
+        );
+      }
+      if (code !== 0) throw codexExitError(`${stderr}\n${stdout}`, code);
+
+      this.lastCallMetadata = codexMetadata(stdout);
+      request.onCallMetadata?.(this.lastCallMetadata);
+      let content = "";
+      try {
+        content = await readFile(outputPath, "utf8");
+      } catch (cause) {
+        throw new ProviderError("Codex CLI no devolvió contenido final.", "empty-response", {
+          cause,
+        });
+      }
+      return parseExactStructuredContent(content, request.schema);
+    } finally {
+      await rm(workingDirectory, { recursive: true, force: true });
+    }
+  }
+}
 
 class OpenAiCompatibleGuideGenerationProvider implements GuideGenerationProvider {
   readonly providerId: string;
@@ -413,11 +678,14 @@ class OpenAiCompatibleGuideGenerationProvider implements GuideGenerationProvider
 export function createGuideGenerationProvider(
   environment: Record<string, string | undefined> = process.env,
   fetchImplementation: typeof fetch = fetch,
+  spawnImplementation: CodexSpawn = spawn as CodexSpawn,
 ): GuideGenerationProvider {
   const configuration = resolveAiConfiguration(environment);
-  return configuration.provider === "mock"
-    ? new MockGuideGenerationProvider()
-    : new OpenAiCompatibleGuideGenerationProvider(configuration, fetchImplementation);
+  if (configuration.provider === "mock") return new MockGuideGenerationProvider();
+  if (configuration.provider === "codex-cli") {
+    return new CodexCliGenerationProvider(configuration, spawnImplementation, environment);
+  }
+  return new OpenAiCompatibleGuideGenerationProvider(configuration, fetchImplementation);
 }
 
 export class MockGuideGenerationProvider implements GuideGenerationProvider {

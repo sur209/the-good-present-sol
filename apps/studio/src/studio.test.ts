@@ -9439,8 +9439,28 @@ test("publicar una guía y enlazarla desde su hub produce ambas páginas reales"
   );
 });
 
-test("configura mock, OpenAI y DeepSeek sin asumir un modelo real", () => {
-  assert.deepEqual(resolveAiConfiguration({}), { provider: "mock" });
+test("configura Codex por defecto y conserva mock, OpenAI y DeepSeek", () => {
+  assert.deepEqual(resolveAiConfiguration({}), {
+    provider: "codex-cli",
+    model: "gpt-5.6-luna",
+    reasoningEffort: "max",
+    timeoutMs: 300_000,
+  });
+  assert.deepEqual(resolveAiConfiguration({ AI_PROVIDER: "mock" }), { provider: "mock" });
+  assert.deepEqual(
+    resolveAiConfiguration({
+      AI_PROVIDER: "codex-cli",
+      AI_MODEL: "configured-model",
+      AI_REASONING_EFFORT: "high",
+      AI_TIMEOUT_MS: "1234",
+    }),
+    {
+      provider: "codex-cli",
+      model: "configured-model",
+      reasoningEffort: "high",
+      timeoutMs: 1234,
+    },
+  );
   const shared = {
     AI_PROVIDER: "openai-compatible",
     AI_API_KEY: "test-secret",
@@ -9459,6 +9479,10 @@ test("configura mock, OpenAI y DeepSeek sin asumir un modelo real", () => {
   assert.throws(
     () => resolveAiConfiguration({ ...shared, AI_MODEL: "" }),
     /AI_MODEL es obligatorio/,
+  );
+  assert.throws(
+    () => resolveAiConfiguration({ ...shared, AI_API_KEY: "" }),
+    /AI_API_KEY es obligatoria/,
   );
   assert.throws(
     () => resolveAiConfiguration({ ...shared, AI_BASE_URL: "https://user:secret@example.com" }),

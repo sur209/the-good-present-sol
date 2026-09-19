@@ -1,22 +1,34 @@
 # AI providers
 
-The Studio defaults to a deterministic mock provider. Real generation is an explicit server-side opt-in through one OpenAI-compatible Chat Completions adapter; OpenAI and DeepSeek are configuration profiles, not separate implementations.
+The Studio defaults to the local Codex CLI, using the existing ChatGPT login. The deterministic mock and the existing OpenAI-compatible adapter remain explicit alternatives; OpenAI and DeepSeek are configuration profiles for the latter.
 
 ## Configure
 
 Copy `.env.example` to `.env`, edit it locally, and run `npm run studio`. The Studio uses Node's built-in env-file loader. `.env` and its variants are git-ignored; `.env.example` is the credential-free template.
 
-| Variable        | Meaning                                                              | Default          |
-| --------------- | -------------------------------------------------------------------- | ---------------- |
-| `AI_PROVIDER`   | `mock` or `openai-compatible`                                        | `mock`           |
-| `AI_VENDOR`     | `openai` or `deepseek` when real mode is enabled                     | `openai`         |
-| `AI_BASE_URL`   | Optional absolute HTTP(S) compatible base URL, without query or auth | Profile base URL |
-| `AI_API_KEY`    | Required only for real mode                                          | none             |
-| `AI_MODEL`      | Required explicit provider model identifier in real mode             | none             |
-| `AI_TIMEOUT_MS` | Positive integer request timeout                                     | `60000`          |
-| `STUDIO_PORT`   | Optional local Studio port                                           | `4322`           |
+| Variable              | Meaning                                                              | Default          |
+| --------------------- | -------------------------------------------------------------------- | ---------------- |
+| `AI_PROVIDER`         | `codex-cli`, `mock` or `openai-compatible`                           | `codex-cli`      |
+| `AI_VENDOR`           | `openai` or `deepseek` for the compatible provider                   | `openai`         |
+| `AI_BASE_URL`         | Optional absolute HTTP(S) compatible base URL, without query or auth | Profile base URL |
+| `AI_API_KEY`          | Required only for the compatible provider                            | none             |
+| `AI_MODEL`            | Provider model identifier                                            | `gpt-5.6-luna`*  |
+| `AI_REASONING_EFFORT` | Codex CLI reasoning effort                                           | `max`*           |
+| `AI_TIMEOUT_MS`       | Positive integer request timeout                                     | `300000`*        |
+| `STUDIO_PORT`         | Optional local Studio port                                           | `4322`           |
 
-No model is hard-coded as universally available. Choose an identifier enabled for the provider account and verify it against that provider's current documentation.
+\* Codex CLI defaults. The compatible provider continues to require an explicit model and defaults to a 60-second timeout.
+
+### Codex CLI (default)
+
+```env
+AI_PROVIDER=codex-cli
+AI_MODEL=gpt-5.6-luna
+AI_REASONING_EFFORT=max
+AI_TIMEOUT_MS=300000
+```
+
+No API key is used. Install the local `codex` executable and run `codex login` once to sign in with ChatGPT. Each generation is an ephemeral, non-interactive `codex exec` process in a fresh empty OS temporary directory, with a read-only sandbox and approval prompts disabled. The prompt is sent over stdin; only the final-message file is parsed as editorial JSON. User configuration and repository rules are ignored for the subprocess.
 
 ### Offline mock
 
@@ -46,8 +58,8 @@ AI_PROVIDER=openai-compatible
 AI_VENDOR=deepseek
 AI_BASE_URL=
 AI_API_KEY=replace-locally
-AI_MODEL=replace-with-an-enabled-model-id
-AI_TIMEOUT_MS=60000
+AI_MODEL=deepseek-flash
+AI_TIMEOUT_MS=180000
 ```
 
 A blank base URL resolves to `https://api.deepseek.com`; the adapter posts to `/chat/completions`. DeepSeek documents the same `response_format: { "type": "json_object" }` mode and notes that content can occasionally be empty, which the Studio reports rather than repairing. See the official [DeepSeek JSON Output guide](https://api-docs.deepseek.com/guides/json_mode/).
@@ -56,7 +68,7 @@ A blank base URL resolves to `https://api.deepseek.com`; the adapter posts to `/
 
 ## Structured-output contract
 
-Every operation builds a deterministic prompt that says `JSON`, includes a compact object-shape example, and requires exactly one object with no prose or Markdown. The adapter sends JSON mode, takes only the first choice's message content, and rejects:
+Every operation builds a deterministic prompt that says `JSON`, includes a compact object-shape example, and requires exactly one object with no prose or Markdown. The compatible adapter uses JSON mode and takes only the first choice's message content. The Codex adapter captures only `--output-last-message`. Both reject:
 
 - empty choices or content;
 - refusals and content-filter failures;
@@ -72,17 +84,19 @@ For `opportunity-evaluations`, the deterministic prompt supplies candidate facts
 
 ## Credentials and diagnostics
 
-The API key exists only in the local server process and the outbound Authorization header. It is never rendered in the browser, passed to Astro, written to a draft, included in generation metadata, logged, or published. Complete provider responses and provider error bodies are not persisted or logged.
+For Codex CLI, authentication remains in the user's local Codex installation. The Studio does not read, copy, or store its credentials; if authentication is missing it asks the user to run `codex login`. For the compatible provider, the API key exists only in the local server process and the outbound Authorization header. It is never rendered in the browser, passed to Astro, written to a draft, included in generation metadata, logged, or published. Complete provider responses and provider error bodies are not persisted or logged.
 
 The Studio shows short Spanish errors. Its terminal logs only a safe code plus HTTP status, request ID when available, and cause type. The thrown `ProviderError` retains its original `cause` for an attached local debugger without exposing that cause to the browser.
 
-| Symptom                        | Check                                                                  |
-| ------------------------------ | ---------------------------------------------------------------------- |
-| Missing configuration at start | Set provider/vendor values exactly; real mode needs both key and model |
-| Credentials rejected           | Check the selected vendor and rotate/replace the local key             |
-| Rate limit                     | Wait and retry later; inspect provider account limits                  |
-| Timeout or network failure     | Check connectivity, trusted base URL, and `AI_TIMEOUT_MS`              |
-| Empty or refused output        | Review the safe UI message and prompt preview; retry deliberately      |
-| Invalid JSON/schema            | Keep the draft, inspect the prompt, and retry or use mock/manual copy  |
+| Symptom                      | Check                                                                 |
+| ---------------------------- | --------------------------------------------------------------------- |
+| Missing Codex authentication | Run `codex login` and sign in with ChatGPT                            |
+| Missing Codex executable     | Install Codex CLI and ensure `codex` is available in `PATH`           |
+| Missing compatible config    | Set provider/vendor values exactly; compatible mode needs key + model |
+| Credentials rejected         | Check the selected vendor and rotate/replace the local key            |
+| Rate limit                   | Wait and retry later; inspect provider account limits                 |
+| Timeout or network failure   | Check connectivity, trusted base URL, and `AI_TIMEOUT_MS`             |
+| Empty or refused output      | Review the safe UI message and prompt preview; retry deliberately     |
+| Invalid JSON/schema          | Keep the draft, inspect the prompt, and retry or use mock/manual copy |
 
-There is no automatic retry, streaming, provider SDK, tool calling, Responses API, Assistants API, embedding, ranking, automatic editorial decision, or vendor-specific agent behavior in this MVP.
+There is no automatic retry, streaming, provider SDK, Responses API, Assistants API, embedding, ranking, automatic editorial decision, or provider fallback in this MVP.
