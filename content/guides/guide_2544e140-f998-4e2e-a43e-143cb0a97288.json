@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 1,
+  "id": "guide_2544e140-f998-4e2e-a43e-143cb0a97288",
+  "pageType": "gift-guide",
+  "clusterId": "cluster_nurse-gifts",
+  "slug": "funny-gifts-for-nurses",
+  "language": "en-US",
+  "title": "Funny Gifts for Nurses",
+  "excerpt": "Playful, useful gift ideas for nurses and nursing students, with tasteful humor for birthdays, appreciation, celebrations, and everyday encouragement.",
+  "introduction": "Shopping for a nurse’s birthday, graduation, or appreciation moment? Choose something that fits the recipient’s real rhythm—shift days, packed meals, shared break-room laughs, personal style, or a comfortable home routine—while keeping the joke clever enough to enjoy beyond one occasion. Look for usable, distinctive, or personalized touches connected to nursing life without relying on a generic slogan or disposable gag.",
+  "primaryAxis": "gift-style",
+  "primaryIntent": "Help friends, relatives, partners, coworkers, nursing students, and colleagues choose one of 10 funny gifts for a nurse where the humor is tasteful, recognizable, and connected to nursing life while the item remains genuinely usable, distinctive, personalized, shareable, or comfortable for home and break-room use.",
+  "taxonomies": {
+    "occasions": [
+      "Birthdays",
+      "holidays",
+      "nurse appreciation",
+      "coworker celebrations",
+      "graduation follow-ups",
+      "and just-because gifts"
+    ],
+    "recipients": [
+      "Friends",
+      "relatives",
+      "partners",
+      "coworkers",
+      "nursing students",
+      "and colleagues"
+    ],
+    "careerStages": ["Nursing students", "new nurses", "and experienced nurses"],
+    "workContexts": [
+      "Shift work",
+      "hospital or clinic routines",
+      "break rooms",
+      "home workspaces",
+      "and off-duty comfort"
+    ],
+    "giftStyles": [
+      "Funny",
+      "playful",
+      "useful",
+      "personalized",
+      "wearable",
+      "shareable",
+      "and home-comfort gifts"
+    ],
+    "budgetLabels": ["Small gifts", "mid-range gifts", "group gifts", "and occasional splurges"]
+  },
+  "budgetContext": {
+    "currency": "USD",
+    "label": "Mixed price range"
+  },
+  "relatedGuideIds": [
+    "guide_096afebb-cdbd-4577-98c2-8aaf3b195889",
+    "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f",
+    "guide_da3a6205-a952-4f6a-95c4-abce5a35b7ef",
+    "guide_eb314f33-a0e3-4f51-937e-e7a3dde5cd6e"
+  ],
+  "seoTitle": "Funny Nurse Gifts That Are Actually Useful",
+  "seoDescription": "Explore tasteful, useful humor for nurses and nursing students, with gift ideas suited to birthdays, appreciation, celebrations, and everyday encouragement.",
+  "status": "published",
+  "publishedAt": "2026-09-20",
+  "updatedAt": "2026-09-20",
+  "recommendations": [
+    {
+      "id": "guide_2544e140-f998-4e2e-a43e-143cb0a97288_slot-1",
+      "productResolution": "unresolved",
+      "position": 1,
+      "heading": "A Badge Reel With a Quiet Nursing Wink",
+      "editorialDescription": "An everyday badge reel can add a small moment of personality to the workday. Look for a clever illustration, subtle nursing reference, or custom detail that feels recognizable to the recipient without leaning on a generic slogan.",
+      "whyItFits": "It keeps the humor close to daily work while remaining workplace-appropriate and genuinely useful.",
+      "bestFor": "Nurses or students who enjoy subtle, wearable humor",
+      "selectionGuidance": "Prioritize a smooth retractable design, clear attachment details, and artwork that reads as playful rather than loud. Check how the reel attaches and whether the recipient’s badge setup can accommodate it before gifting.",
+      "considerations": "Attachment styles and workplace preferences vary, so a quick personal check can prevent a well-meant mismatch.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_2544e140-f998-4e2e-a43e-143cb0a97288_slot-2",
+      "productResolution": "unresolved",
+      "position": 2,
+      "heading": "A Personalized Lunch Bag for Break-Time Humor",
+      "editorialDescription": "For a packed-meal routine, a custom lunch bag makes a break feel more personal, with the joke carried by a witty illustration, initials, or a nursing-life reference. It remains useful in a break room and beyond the hospital.",
+      "whyItFits": "It turns a familiar shift routine into a thoughtful laugh without becoming disposable novelty.",
+      "bestFor": "Nurses and students who bring meals to class or work",
+      "selectionGuidance": "Choose an easy-to-clean lining, comfortable handles or strap, enough room for the recipient’s usual meal, and customization that stays legible without dominating the design. Favor humor tied to breaks and nursing life rather than generic slogans.",
+      "considerations": "Personalization can make exchanges harder, so verify spelling and the recipient’s preferred name style first.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_2544e140-f998-4e2e-a43e-143cb0a97288_slot-3",
+      "productResolution": "unresolved",
+      "position": 3,
+      "heading": "Playful Compression Socks for Shift Days",
+      "editorialDescription": "Bring nursing-themed personality to a wearable chosen for long shifts and off-duty comfort. The strongest designs keep the joke tasteful and feel like something the recipient would actually wear.",
+      "whyItFits": "They combine recognizable nursing humor with a practical wearable, provided the recipient already likes this type of sock.",
+      "bestFor": "Nurses who already wear compression socks and enjoy patterned accessories",
+      "selectionGuidance": "Confirm the recipient’s size, preferred compression level, and fabric preferences before choosing. Compare care instructions and overall feel, then select a design that feels fun rather than slogan-driven.",
+      "considerations": "Fit and compression preference are personal; ask before making this a surprise if you do not know what they already wear.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_2544e140-f998-4e2e-a43e-143cb0a97288_slot-4",
+      "productResolution": "unresolved",
+      "position": 4,
+      "heading": "A Desk Calendar With Nursing-Life Humor",
+      "editorialDescription": "On a desk or study shelf, a compact calendar can make a workspace feel more personal while giving a student or working nurse an easy place to track dates. Choose clever observations, illustrated scenes, or light wordplay over recycled slogans.",
+      "whyItFits": "It adds a daily laugh to a home workspace, study area, or break room and earns its space through practical use.",
+      "bestFor": "Students and nurses who like paper planning at their desk",
+      "selectionGuidance": "Look for clear date layouts, readable type, sturdy standing support, and humor that stays warm and recognizable. A format with room for brief permitted task reminders or study notes is more useful than pages that are all decoration.",
+      "considerations": "Keep any notes to permitted reminders or learning points, never confidential workplace details.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_2544e140-f998-4e2e-a43e-143cb0a97288_slot-5",
+      "productResolution": "unresolved",
+      "position": 5,
+      "heading": "A Phone Case With a Nursing-Life Wink",
+      "editorialDescription": "Turn an everyday phone case into a small piece of nursing-life humor that works on and off duty. Favor a smart illustration, visual pun, or subtle custom touch over a large profession label.",
+      "whyItFits": "It feels distinctive without being confined to the workplace, making the joke part of everyday style.",
+      "bestFor": "Nurses or students who enjoy expressive everyday accessories",
+      "selectionGuidance": "Confirm the exact phone model and preferred case profile before choosing. Compare grip, button access, edge coverage, and print style, then select humor that still feels good outside a clinical setting.",
+      "considerations": "Model compatibility is essential, and personal style varies widely, so this works best when you know both.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_2544e140-f998-4e2e-a43e-143cb0a97288_slot-6",
+      "productResolution": "unresolved",
+      "position": 6,
+      "heading": "A Tote With a Clever Nursing-Life Detail",
+      "editorialDescription": "For work-to-home routines, a reusable tote offers a practical canvas for humor, whether the personality comes from an illustration, a custom name, or a sharp but tasteful nursing reference. It can carry class materials, a change of clothes, or everyday essentials.",
+      "whyItFits": "It is useful across work, school, and off-duty life while leaving room for humor that feels personal rather than generic.",
+      "bestFor": "Nurses and students who carry essentials between places",
+      "selectionGuidance": "Compare comfortable handles, a useful opening, interior organization, and fabric suited to the recipient’s routine. Choose visual wit or personalization, and avoid a slogan that makes the bag feel disposable after the joke lands.",
+      "considerations": "Think about how much the recipient carries and whether they prefer a structured or foldable bag.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_2544e140-f998-4e2e-a43e-143cb0a97288_slot-7",
+      "productResolution": "unresolved",
+      "position": 7,
+      "heading": "A Small Pin With an Inside Joke",
+      "editorialDescription": "A funny enamel pin offers a low-commitment way to wear nursing humor on a jacket, lanyard, tote, or pouch. The best concepts feel like an inside joke about the workday without making anyone else the punchline.",
+      "whyItFits": "It is compact, easy to include in a group gift, and lets the recipient decide how visible the humor should be.",
+      "bestFor": "Nurses and students who enjoy collectible, subtle accessories",
+      "selectionGuidance": "Choose a crisp illustration or original visual gag, a secure clasp, and a size that suits the places the recipient might wear it. A small set can work for a group, but each pin should have its own idea rather than repeating the same label.",
+      "considerations": "The recipient may prefer to keep it on a personal bag or jacket rather than a uniform.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_2544e140-f998-4e2e-a43e-143cb0a97288_slot-8",
+      "productResolution": "unresolved",
+      "position": 8,
+      "heading": "Illustrated Nursing Humor for the Wall",
+      "editorialDescription": "On a home-office or break-room wall, a playful art print can bring nursing-life humor without resorting to a tired slogan. Look for an illustration or scene with enough visual character to feel like decor first and a profession reference second.",
+      "whyItFits": "It creates a distinctive accent that can be enjoyed long after a one-line joke has worn thin.",
+      "bestFor": "Nurses or students who personalize their walls and workspace",
+      "selectionGuidance": "Consider the recipient’s decor, preferred color palette, and likely display setting. Favor artwork with a clear concept, thoughtful typography, and a format that is easy to frame; avoid anything crude, overly clinical, or dependent on a generic slogan.",
+      "considerations": "Wall art is taste-sensitive, so a design connected to a known interest or shared joke is a more reliable choice than a broad profession reference.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_2544e140-f998-4e2e-a43e-143cb0a97288_slot-9",
+      "productResolution": "unresolved",
+      "position": 9,
+      "heading": "A Nursing-Themed Snack Box to Open and Share",
+      "editorialDescription": "Open a snack gift box whose humor comes through the packaging, naming, or nursing-life theme rather than novelty alone. Choose a mix that works for solo treats or casual sharing in a break-room setting.",
+      "whyItFits": "It suits celebrations, appreciation moments, and just-because surprises while keeping the experience social and easy to enjoy.",
+      "bestFor": "Nurses, students, or teams who like shareable treats",
+      "selectionGuidance": "Look for a varied assortment, clear ingredient information, packaging that travels well, and a presentation that feels playful without relying on shock value. For a group, choose broadly approachable flavors rather than assuming one person’s preferences.",
+      "considerations": "Food preferences and allergies vary, so confirm relevant dietary needs before making the box the centerpiece of a group gift.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "slot_c91eecb6-65ab-488c-8677-b928374ad0dc",
+      "productResolution": "unresolved",
+      "position": 10,
+      "heading": "A Caricature Built Around Their Shift Personality",
+      "editorialDescription": "Commission a warm, playful portrait that captures a recognizable habit, favorite shift detail, or nursing-student milestone. The humor comes from the personal reference and expressive style, making it suitable for a home wall, desk, or shared celebration rather than another generic profession slogan.",
+      "whyItFits": "It turns nursing life into an inside joke that feels personal, while the artwork can remain a keepsake after the occasion. A thoughtful detail gives the humor staying power without relying on crude workplace jokes or a generic nurse label.",
+      "bestFor": "Nurses or nursing students who enjoy personal humor and display-worthy keepsakes.",
+      "selectionGuidance": "Base the design on a detail the recipient will recognize, such as a favorite shift ritual, workday accessory, or study milestone. Choose an expressive style that feels affectionate rather than mocking, and make sure the giver can easily provide relevant reference details for the intended desk or wall setting.",
+      "considerations": "Caricature humor is personal: avoid exaggerated details that could embarrass the recipient, and confirm they would enjoy a display piece before choosing it.",
+      "editorialStatus": "ready"
+    }
+  ]
+}
