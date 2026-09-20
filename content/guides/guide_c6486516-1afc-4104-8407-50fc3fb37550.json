@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "id": "guide_c6486516-1afc-4104-8407-50fc3fb37550",
+  "pageType": "gift-guide",
+  "clusterId": "cluster_nurse-gifts",
+  "slug": "gifts-for-female-nurses",
+  "language": "en-US",
+  "title": "Gifts for Female Nurses: Thoughtful, Useful Ideas",
+  "excerpt": "Thoughtful gift ideas for partners, friends, family, coworkers, classmates, and mentors celebrating a female nurse with something personal, useful, and true to her routine.",
+  "introduction": "Her birthday, promotion, or nurse appreciation moment is coming up, and you want to celebrate the nurse in your life with something more personal than a profession-themed keepsake. Notice what makes her days easier or her time off more enjoyable—her commute, home routine, favorite interests, and preferred ways to unwind—then choose a fitting expression of thanks that suits the occasion and your relationship.",
+  "primaryAxis": "recipient",
+  "primaryIntent": "Help shoppers choose thoughtful gifts for female nurses that respect individual taste and focus on the recipient's routines, interests, work life, and off-shift life rather than gendered cliches.",
+  "taxonomies": {
+    "occasions": [
+      "birthdays",
+      "nurse appreciation",
+      "thank-yous",
+      "promotions",
+      "holidays",
+      "everyday encouragement"
+    ],
+    "recipients": ["female nurses", "nurses"],
+    "careerStages": ["new nurses", "experienced nurses", "nursing students"],
+    "workContexts": ["workday", "commuting", "off-shift", "home"],
+    "giftStyles": [
+      "practical",
+      "comfort",
+      "food and drink",
+      "organization",
+      "hobbies and interests",
+      "experiences",
+      "personal"
+    ],
+    "budgetLabels": ["varied budgets"]
+  },
+  "budgetContext": {
+    "currency": "USD",
+    "label": "Mixed price points"
+  },
+  "seoTitle": "Thoughtful Gifts for Female Nurses",
+  "seoDescription": "Find thoughtful gifts for female nurses that respect personal taste and fit workday routines, off-shift interests, home life, and meaningful occasions.",
+  "status": "published",
+  "publishedAt": "2026-09-20",
+  "updatedAt": "2026-09-20",
+  "recommendations": [
+    {
+      "id": "guide_c6486516-1afc-4104-8407-50fc3fb37550_slot-3",
+      "productResolution": "unresolved",
+      "position": 1,
+      "heading": "A Bottle for Her Actual Routine",
+      "editorialDescription": "A reusable insulated bottle can fit neatly into a busy shift or commute when it matches the way she carries and uses it. Think about her preferred size, lid style, and everyday carry habits so the choice feels personal without leaning on profession branding.",
+      "whyItFits": "It brings practical support to a workday or commute while leaving room for her own taste.",
+      "bestFor": "A nurse who carries drinks through shifts or commutes",
+      "selectionGuidance": "Use her bag, vehicle, and carry routine as clues. Compare the size and lid style she prefers, then choose a finish she would enjoy using rather than a novelty nurse design.",
+      "considerations": "An attractive bottle will still miss the mark if its size or lid style does not suit her routine.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_c6486516-1afc-4104-8407-50fc3fb37550_slot-5",
+      "productResolution": "unresolved",
+      "position": 2,
+      "heading": "A Set for Off-Shift Unwinding",
+      "editorialDescription": "A loungewear set marks the transition from work to home with something she can wear for ordinary evenings and days off. Let her existing style guide the fabric, fit, and silhouette so it feels like her, not a stereotyped idea of what she should like.",
+      "whyItFits": "It makes comfort part of off-shift life and respects individual taste more than a gendered default.",
+      "bestFor": "A nurse who values comfortable, everyday homewear",
+      "selectionGuidance": "Use familiar clothing as clues for fit, fabric preferences, and color. Look for a set that suits how she relaxes and is easy to care for; avoid guessing at a style she does not usually wear.",
+      "considerations": "Sizing and fit are personal, so this works best when her preferences are known.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_c6486516-1afc-4104-8407-50fc3fb37550_slot-6",
+      "productResolution": "unresolved",
+      "position": 3,
+      "heading": "Quiet Time, Her Way",
+      "editorialDescription": "Noise-canceling headphones can support a commute, a favorite podcast, music, or quiet time away from work. Choose them around how she actually listens and travels, so they feel like an off-shift interest rather than another work accessory.",
+      "whyItFits": "It supports individual interests without relying on a nurse theme or assuming how she spends her downtime.",
+      "bestFor": "A nurse who commutes or enjoys music, podcasts, or quiet time",
+      "selectionGuidance": "Consider her usual listening device, preferred headphone style, portability, and comfort for longer listening. The best choice will fit the way she travels or unwinds and the controls she is likely to use.",
+      "considerations": "Headphones are a personal fit and tech choice; check her preferences discreetly before choosing.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_c6486516-1afc-4104-8407-50fc3fb37550_slot-10",
+      "productResolution": "unresolved",
+      "position": 4,
+      "heading": "Room to Choose Her Next Read",
+      "editorialDescription": "A bookstore gift card lets her choose a title that matches her taste, whether she wants an absorbing read, something connected to an interest, or simply a break from work. It keeps the gesture personal without asking you to guess a genre.",
+      "whyItFits": "It respects individual taste and avoids guessing which genres or authors she prefers.",
+      "bestFor": "A reader whose current tastes or wish list you do not know",
+      "selectionGuidance": "Choose a bookstore that suits her reading habits, then present the card with a short note tied to a genre, author, or reading ritual she enjoys. A flexible choice feels more thoughtful when the note shows you know what she likes.",
+      "considerations": "It can feel impersonal for someone who rarely reads, so use a known reading interest as your cue.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "slot_ca99d6c5-f446-4aed-93db-b3f92876de56",
+      "productResolution": "unresolved",
+      "position": 5,
+      "heading": "Sound for Home and Time Off",
+      "editorialDescription": "A portable Bluetooth speaker gives music, podcasts, or shared home listening a place in her off-shift routine. Match it to where she would use it and whether she prefers personal downtime or sound for time with friends.",
+      "whyItFits": "It centers a real off-shift interest rather than adding another work accessory.",
+      "bestFor": "A nurse who enjoys music, podcasts, or shared listening at home",
+      "selectionGuidance": "Think about the spaces and routines that matter to her, then compare portability, the controls she prefers, and compatibility with her usual listening device. A simple design that fits her home will feel more natural to use.",
+      "considerations": "This is less useful if she mainly listens privately or already has a home setup she loves.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "slot_3b8a96a2-d2e5-4350-9495-ac832850f38a",
+      "productResolution": "unresolved",
+      "position": 6,
+      "heading": "A Calmer Commute Setup",
+      "editorialDescription": "For a nurse who drives, a trunk organizer can separate groceries, commute supplies, and everyday essentials instead of letting them become a loose pile. It earns its place when the gift reflects her actual vehicle routine.",
+      "whyItFits": "It responds to a specific commute habit and makes daily transitions feel more orderly.",
+      "bestFor": "A nurse who drives and carries supplies or groceries",
+      "selectionGuidance": "Start with the vehicle's available cargo space and the kinds of items she carries. Favor an arrangement that matches groceries, commute supplies, or small daily essentials instead of choosing storage without a clear use.",
+      "considerations": "Skip this idea if she rarely drives, has little cargo space, or already keeps the car organized.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "slot_1576304a-8862-4b68-97b7-1fcd88c6ea78",
+      "productResolution": "unresolved",
+      "position": 7,
+      "heading": "Seasonings Matched to Her Kitchen",
+      "editorialDescription": "A gourmet spice set turns an interest in cooking into something useful at home. Choose around the flavors she already enjoys and the meals she likes to make, so the set adds to her kitchen rather than becoming attractive clutter.",
+      "whyItFits": "It connects with a home hobby and offers something useful beyond the workday.",
+      "bestFor": "A nurse who cooks and enjoys exploring flavors at home",
+      "selectionGuidance": "Look for a mix that matches her cooking habits and includes seasonings she will realistically use. Clear ingredient information and a considered presentation can make the set feel both practical and gift-worthy.",
+      "considerations": "Taste is highly individual; avoid a broad assortment when you do not know what she cooks or already keeps stocked.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "slot_542142bf-d0d6-4b3b-b590-a77b66364dcb",
+      "productResolution": "unresolved",
+      "position": 8,
+      "heading": "A Blanket for Days Off Outdoors",
+      "editorialDescription": "A picnic blanket supports park visits, outdoor concerts, reading breaks, or casual time with friends on a day off. Choose for the way she actually gets outside, whether she needs something easy to carry or a comfortable base for lingering.",
+      "whyItFits": "It supports an off-shift interest and creates room for shared time without assuming a particular style.",
+      "bestFor": "A nurse who enjoys parks, concerts, reading, or casual outdoor time",
+      "selectionGuidance": "Match the blanket's portability and setup to her plans, then consider the surfaces she usually visits and a look she would be happy to bring outdoors. A packable option suits outings; a more substantial one may suit relaxed gatherings.",
+      "considerations": "Confirm that outdoor time is part of her routine before choosing a gift built around it.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "slot_2580ed1c-c59e-4244-bc33-1db7a056812a",
+      "productResolution": "unresolved",
+      "position": 9,
+      "heading": "Fresh Herbs for the Kitchen",
+      "editorialDescription": "An indoor herb garden kit gives a cooking-minded recipient a small home hobby tied to fresh ingredients. It is most appealing when she enjoys tending plants or experimenting in the kitchen, not when she wants a completely hands-off gift.",
+      "whyItFits": "It connects off-shift time, home life, and cooking in a way that reflects her interests rather than her job.",
+      "bestFor": "A nurse who enjoys cooking, plants, or hands-on home hobbies",
+      "selectionGuidance": "Choose a setup that fits her countertop, cooking habits, and willingness to tend it. Consider whether she wants a simple starting point or a more involved project, and avoid duplicating a setup she already owns.",
+      "considerations": "Light, space, and maintenance preferences can make this a poor match, so check those details first.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "slot_c22109a6-5b2c-474d-a47f-c76a454c99a3",
+      "productResolution": "unresolved",
+      "position": 10,
+      "heading": "A Year of Local Discovery",
+      "editorialDescription": "A membership connected to art, history, or science can create flexible off-shift plans without adding another obligation. It feels especially thoughtful when it reflects her curiosity, a place she already enjoys, or an interest she has mentioned exploring.",
+      "whyItFits": "It recognizes her as an individual and offers a low-pressure way to enjoy interests beyond work, either alone or with someone she chooses.",
+      "bestFor": "Nurses who enjoy culture, learning, or local outings",
+      "selectionGuidance": "Start with the kind of place she would genuinely visit, then compare location, ease of use, flexibility, and overall value. Choose an option that fits her schedule and interests, and present it in a way that makes activation or planning simple.",
+      "considerations": "This may be less useful if she lives far away, prefers home-based downtime, or already has similar access.",
+      "editorialStatus": "ready"
+    }
+  ]
+}

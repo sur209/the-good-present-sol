@@ -1,0 +1,19 @@
+{
+  "id": "review_80da80d7-9a68-4331-8a96-b32aed275f8d",
+  "guideId": "guide_c6486516-1afc-4104-8407-50fc3fb37550",
+  "createdAt": "2026-09-20T07:07:57.206Z",
+  "contentFingerprint": "2821836bc44e451a71fec11f1142bc9a6627bb63c0a9e81b3c043fb572691d10",
+  "providerId": "codex-cli",
+  "modelId": "gpt-5.6-luna",
+  "promptVersion": "editorial-review-v1",
+  "status": "failed",
+  "error": "La revisión falló (timeout). Podés volver a intentarlo.",
+  "metrics": {
+    "reviewInvocations": 1,
+    "repairInvocations": 0,
+    "inputTokens": null,
+    "outputTokens": null,
+    "totalTokens": null
+  },
+  "issues": []
+}
