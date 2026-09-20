@@ -157,7 +157,6 @@ test("Codex usa argumentos configurados, cwd aislado y el entorno de autenticaci
     "--sandbox",
     "read-only",
     "--ephemeral",
-    "--ignore-user-config",
     "--ignore-rules",
     "--skip-git-repo-check",
     "--color",

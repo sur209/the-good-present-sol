@@ -467,7 +467,6 @@ export class CodexCliGenerationProvider implements GuideGenerationProvider {
       "--sandbox",
       "read-only",
       "--ephemeral",
-      "--ignore-user-config",
       "--ignore-rules",
       "--skip-git-repo-check",
       "--color",
