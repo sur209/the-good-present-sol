@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 1,
+  "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f",
+  "pageType": "gift-guide",
+  "clusterId": "cluster_nurse-gifts",
+  "slug": "thank-you-gifts-for-nurse-preceptors-and-mentors",
+  "language": "en-US",
+  "title": "Thank You Gifts for Nurse Preceptors and Mentors",
+  "excerpt": "Thoughtful, workplace-appropriate ways to thank the preceptor or mentor who supported a nursing student or new nurse.",
+  "introduction": "You’ve finished orientation or a clinical placement and want to thank the preceptor who helped you find your footing. Let the message carry the meaning, then choose a modest, professional gesture that suits the relationship, occasion, and recipient’s routine. Shared appreciation can work well for a cohort, while a small desk or home keepsake may feel right for an individual; keep the sentiment personal, the choice non-clinical, and any workplace gift policies in mind.",
+  "primaryAxis": "recipient",
+  "primaryIntent": "Help nursing students, new nurses, and coworkers choose thoughtful, workplace-appropriate thank-you gifts for nurse preceptors, mentors, and experienced nurses who supported their learning or transition into practice.",
+  "taxonomies": {
+    "occasions": [
+      "end of orientation",
+      "clinical placement completion",
+      "preceptorship completion",
+      "graduation transition",
+      "first-job mentorship",
+      "professional gratitude"
+    ],
+    "recipients": [
+      "nurse preceptors",
+      "nurse mentors",
+      "experienced nurses",
+      "clinical instructor-like mentors"
+    ],
+    "careerStages": ["nursing students", "newly licensed nurses", "new nurses", "coworkers"],
+    "workContexts": ["orientation", "clinical placement", "preceptorship", "first nursing job"],
+    "giftStyles": [
+      "note-centered",
+      "modest",
+      "consumable",
+      "comfort",
+      "desk or home",
+      "group",
+      "experience"
+    ],
+    "budgetLabels": ["modest", "mixed budget"]
+  },
+  "seoTitle": "Thank-You Gifts for Nurse Preceptors and Mentors",
+  "seoDescription": "Thoughtful, workplace-appropriate appreciation ideas for nurse preceptors and mentors after orientation, clinical placement, graduation, or a first nursing job.",
+  "status": "published",
+  "publishedAt": "2026-09-20",
+  "updatedAt": "2026-09-20",
+  "recommendations": [
+    {
+      "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-1",
+      "productResolution": "unresolved",
+      "position": 1,
+      "heading": "A Handwritten Thank-You Card",
+      "editorialDescription": "A handwritten card gives the preceptor or mentor a lasting record of what their guidance meant. Mention one teaching moment, practical lesson, or piece of encouragement; specificity is more meaningful than decorative design.",
+      "whyItFits": "It keeps gratitude at the center and remains thoughtful when the budget is small.",
+      "bestFor": "Anyone thanking one mentor or preceptor",
+      "selectionGuidance": "A professional card should leave room for a personal message and use a design that feels warm without relying on generic nurse imagery. The handwritten message should carry more weight than the preprinted wording.",
+      "considerations": "Keep the message appreciative and professional when the relationship is workplace-based.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-2",
+      "productResolution": "unresolved",
+      "position": 2,
+      "heading": "A Framed Note of Appreciation",
+      "editorialDescription": "Turn a specific thank-you into a simple keepsake for a mentor’s desk or home. Choose wording that recalls a meaningful lesson, moment, or quality you valued, then pair it with a clean, understated frame.",
+      "whyItFits": "It gives a preceptor or mentor a lasting reminder of the guidance they offered without becoming overly personal or elaborate.",
+      "bestFor": "A mentor who appreciates written thanks and simple keepsakes",
+      "selectionGuidance": "Prioritize a sincere message over generic nursing imagery. Look for legible typography, a neutral frame, and a display-friendly format. Proofread names and wording, especially when several people contribute.",
+      "considerations": "Keep the tone professional and confirm whether the workplace has gift-value or ethics rules.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-3",
+      "productResolution": "unresolved",
+      "position": 3,
+      "heading": "A Coffee Tasting Set",
+      "editorialDescription": "A small coffee assortment offers a shareable or at-home treat without asking you to guess at a hobby. It can accompany a note of thanks and acknowledge the steady support a preceptor or mentor gave during a demanding transition.",
+      "whyItFits": "It is easy to give, modest in spirit, and suitable for a professional relationship when preferences are unknown.",
+      "bestFor": "Coffee drinkers or teams sharing a thank-you",
+      "selectionGuidance": "Choose a giftable assortment with clear flavor descriptions, tidy presentation, and formats suited to the recipient’s usual preparation routine. Favor variety over a large single selection, and keep the note—not the treat—as the centerpiece.",
+      "considerations": "Confirm that coffee is appropriate for the recipient; a shared workplace setting can make the choice more flexible.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-4",
+      "productResolution": "unresolved",
+      "position": 4,
+      "heading": "A Shareable Cookie Assortment",
+      "editorialDescription": "A well-presented assortment of cookies offers a warm thank-you for one mentor or a small team. It requires no knowledge of hobbies or sizing and can be enjoyed during a break or taken home.",
+      "whyItFits": "The gesture feels generous while staying modest, flexible, and appropriate for professional appreciation.",
+      "bestFor": "A preceptor, mentor, or small team with broadly shared tastes",
+      "selectionGuidance": "Clear ingredient information, sturdy packaging, and portions suited to the intended recipient or group matter most. Favor varied, broadly appealing flavors and a presentation that is easy to share.",
+      "considerations": "It may be less suitable when you do not know whether the recipient or team enjoys sweets; keep workplace sharing and gift-value rules in mind.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-5",
+      "productResolution": "unresolved",
+      "position": 5,
+      "heading": "A Personalized Catchall Tray",
+      "editorialDescription": "A small ceramic tray gives a mentor a simple place for keys, jewelry, badge accessories, or desk items, with room for a short name or thank-you message. The personalization makes it feel intentional without turning it into clinical equipment or novelty merchandise.",
+      "whyItFits": "It combines a useful home or desk function with a modest, relationship-focused keepsake.",
+      "bestFor": "Mentors who appreciate useful personalized gifts",
+      "selectionGuidance": "Choose a neutral shape and finish, a short inscription that is easy to read, and a size suited to a desk or entryway. Confirm spelling and personalization details, and avoid wording that assumes the recipient wants a nursing-themed design.",
+      "considerations": "A personalized item is less flexible to exchange, so keep the message simple and verify details beforehand.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-6",
+      "productResolution": "unresolved",
+      "position": 6,
+      "heading": "A Small Desk Plant",
+      "editorialDescription": "A small plant can mark a new professional chapter with a calm touch for a desk or home. It offers appreciation without guessing at clothing sizes, clinical preferences, or personal hobbies.",
+      "whyItFits": "It is modest, distinct from nurse novelty gifts, and works for a mentor who enjoys a simple workspace accent.",
+      "bestFor": "A mentor with a suitable desk or home spot",
+      "selectionGuidance": "Look for a compact, easy-to-place option with clear care guidance and a container that feels professional rather than themed. Consider whether the recipient will use it at work or home, and choose presentation that travels easily.",
+      "considerations": "Some workplaces may not allow plants or may have limited desk space; home placement can avoid that mismatch.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-7",
+      "productResolution": "unresolved",
+      "position": 7,
+      "heading": "A Soft Throw for Off-Duty Comfort",
+      "editorialDescription": "A cozy throw acknowledges the effort behind teaching and supporting a new nurse while keeping the gift centered on off-duty comfort. Choose a calm, broadly appealing style that feels appreciative rather than intimate.",
+      "whyItFits": "It offers practical comfort away from work without relying on sizing or clinical gear.",
+      "bestFor": "A mentor who enjoys quiet time at home",
+      "selectionGuidance": "Favor a neutral color or restrained pattern, a soft feel, and straightforward care instructions. Choose a presentation that is easy to carry and a style that suits a broad range of homes when décor preferences are unknown.",
+      "considerations": "Because softness and décor are personal, this works best when you know the recipient well enough to make a general style choice.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-8",
+      "productResolution": "unresolved",
+      "position": 8,
+      "heading": "A Neat Desk Organizer",
+      "editorialDescription": "A desk organizer gives a preceptor or mentor a place for notes, pens, and small essentials after a busy teaching period. It keeps the gesture practical and professional without requiring you to choose clinical equipment or guess at the recipient’s size.",
+      "whyItFits": "It connects naturally to the planning and teaching that shaped a student’s or new nurse’s transition.",
+      "bestFor": "Mentors who use a desk at work or home",
+      "selectionGuidance": "A clean, neutral design with room for notes, pens, and small essentials is easiest to place. Consider whether it is intended for a work desk or home workspace, and avoid prominent profession branding.",
+      "considerations": "Desk space varies, so a compact, flexible design is safer than a large multi-compartment piece.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-9",
+      "productResolution": "unresolved",
+      "position": 9,
+      "heading": "A Shared Memory Photo Book",
+      "editorialDescription": "Gather brief messages, approved photos, and milestones from a cohort into one collective thank-you. A thoughtfully edited book can reflect the learning and encouragement a preceptor or mentor provided throughout a placement or transition.",
+      "whyItFits": "It turns many individual thanks into a keepsake that reflects the mentor’s broader influence on the group.",
+      "bestFor": "A cohort or team thanking a preceptor together",
+      "selectionGuidance": "Use a simple layout that keeps messages readable and leaves room for different contributors. Proofread names and dates, choose a consistent opening or closing message, and include only photos approved for sharing.",
+      "considerations": "Obtain consent for contributed photos and omit patient-identifying, confidential, or workplace-sensitive content.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-10",
+      "productResolution": "unresolved",
+      "position": 10,
+      "heading": "An Engraved Desk Nameplate",
+      "editorialDescription": "An engraved nameplate creates a polished desk or home-office keepsake that recognizes a preceptor or mentor’s teaching role. A short, sincere line makes it personal without falling into generic nurse novelty merchandise.",
+      "whyItFits": "It honors the professional relationship and creates a lasting reminder of guidance received.",
+      "bestFor": "A mentor with a dedicated desk or office",
+      "selectionGuidance": "Keep the inscription concise, legible, and centered on mentorship or thanks. Choose a restrained finish that suits a workplace, confirm the spelling and wording, and consider whether it will be displayed at work or home.",
+      "considerations": "Check workplace policies before giving a prominently displayed personalized item; a home-office version may be more flexible.",
+      "editorialStatus": "ready"
+    }
+  ]
+}
