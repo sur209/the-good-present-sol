@@ -477,29 +477,38 @@ function resolveCodexLaunch(
 ): { command: string; args: readonly string[]; windowsVerbatimArguments?: true } {
   if (platform !== "win32") return { command: "codex", args };
 
-  let launcher: string | undefined;
-  for (const entry of environmentValue(environment, "PATH")?.split(";") ?? []) {
-    const directory = entry.trim().replace(/^"(.*)"$/, "$1");
-    if (!directory) continue;
-    const candidate = join(directory, "codex.cmd");
-    try {
-      if (statSync(candidate).isFile()) {
-        launcher = candidate;
-        break;
+  let launcher: { path: string; kind: "cmd" | "exe" } | undefined;
+  const pathEntries = environmentValue(environment, "PATH")?.split(";") ?? [];
+  for (const [name, kind] of [
+    ["codex.exe", "exe"],
+    ["codex.cmd", "cmd"],
+  ] as const) {
+    for (const entry of pathEntries) {
+      const directory = entry.trim().replace(/^"(.*)"$/, "$1");
+      if (!directory) continue;
+      const candidate = join(directory, name);
+      try {
+        if (statSync(candidate).isFile()) {
+          launcher = { path: candidate, kind };
+          break;
+        }
+      } catch {
+        // Keep searching PATH.
       }
-    } catch {
-      // Keep searching PATH.
     }
+    if (launcher) break;
   }
   if (!launcher) {
     throw new ProviderError(
-      "No se encontró Codex CLI para Windows. Instalalo y verificá que `codex.cmd` esté disponible en PATH.",
+      "No se encontró Codex CLI para Windows. Instalalo y verificá que `codex.cmd` o `codex.exe` esté disponible en PATH.",
       "configuration",
     );
   }
 
+  if (launcher.kind === "exe") return { command: launcher.path, args };
+
   const command = environmentValue(environment, "ComSpec")?.trim() || "cmd.exe";
-  const escapedLauncher = launcher.replace(WINDOWS_CMD_META_CHARACTERS, "^$1");
+  const escapedLauncher = launcher.path.replace(WINDOWS_CMD_META_CHARACTERS, "^$1");
   const commandLine = `"${[escapedLauncher, ...args.map(escapeWindowsCommandArgument)].join(" ")}"`;
   return {
     command,

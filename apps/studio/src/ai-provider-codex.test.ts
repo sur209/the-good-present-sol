@@ -259,6 +259,65 @@ test("Codex en Windows resuelve codex.cmd y lo ejecuta con cmd.exe sin exponer e
   await assert.rejects(access(fake.observation.cwd!));
 });
 
+test("Codex en Windows resuelve codex.exe y lo ejecuta directamente", async (t) => {
+  const launcherDirectory = await mkdtemp(join(tmpdir(), "codex-launcher-"));
+  t.after(() => rm(launcherDirectory, { recursive: true, force: true }));
+  const launcherPath = join(launcherDirectory, "codex.exe");
+  await writeFile(launcherPath, "", "utf8");
+  const fake = fakeCodex({ output: '{"answer":"ready"}' });
+  const provider = createGuideGenerationProvider(
+    {
+      AI_PROVIDER: "codex-cli",
+      AI_MODEL: "configured-model",
+      AI_REASONING_EFFORT: "high",
+      AI_TIMEOUT_MS: "1000",
+      ComSpec: "C:\\Windows\\System32\\cmd.exe",
+      Path: launcherDirectory,
+      USERPROFILE: "C:\\Users\\test",
+    },
+    fetch,
+    fake.spawn,
+    "win32",
+  );
+
+  const result = await provider.generateStructured(request);
+
+  assert.deepEqual(result, { answer: "ready" });
+  assert.equal(fake.observation.command, launcherPath);
+  assert.deepEqual(fake.observation.args?.slice(0, 2), ["exec", "--model"]);
+  assert.equal(fake.observation.shell, false);
+  assert.equal(fake.observation.windowsVerbatimArguments, undefined);
+  assert.equal(fake.observation.environment?.CODEX_HOME, join("C:\\Users\\test", ".codex"));
+  await assert.rejects(access(fake.observation.cwd!));
+});
+
+test("Codex en Windows usa codex.exe primero cuando ambas formas están disponibles", async (t) => {
+  const launcherDirectory = await mkdtemp(join(tmpdir(), "codex-launcher-"));
+  t.after(() => rm(launcherDirectory, { recursive: true, force: true }));
+  await writeFile(join(launcherDirectory, "codex.cmd"), "@echo off\r\n", "utf8");
+  await writeFile(join(launcherDirectory, "codex.exe"), "", "utf8");
+  const fake = fakeCodex({ output: '{"answer":"ready"}' });
+  const provider = createGuideGenerationProvider(
+    {
+      AI_PROVIDER: "codex-cli",
+      AI_TIMEOUT_MS: "1000",
+      ComSpec: "C:\\Windows\\System32\\cmd.exe",
+      Path: launcherDirectory,
+    },
+    fetch,
+    fake.spawn,
+    "win32",
+  );
+
+  await provider.generateStructured(request);
+
+  assert.equal(fake.observation.command, join(launcherDirectory, "codex.exe"));
+  assert.deepEqual(fake.observation.args?.slice(0, 2), ["exec", "--model"]);
+  assert.equal(fake.observation.shell, false);
+  assert.equal(fake.observation.windowsVerbatimArguments, undefined);
+  await assert.rejects(access(fake.observation.cwd!));
+});
+
 test("Codex conserva un CODEX_HOME explícito", async () => {
   const fake = fakeCodex({ output: '{"answer":"ready"}' });
   const provider = createGuideGenerationProvider(
@@ -363,7 +422,7 @@ test("Codex en Windows distingue un launcher ausente de un proceso que falla", a
   await assert.rejects(missingProvider.generateStructured(request), (error) => {
     assert.ok(error instanceof ProviderError);
     assert.equal(error.code, "configuration");
-    assert.match(error.message, /codex\.cmd.*PATH/i);
+    assert.match(error.message, /codex\.cmd.*codex\.exe.*PATH/i);
     return true;
   });
   assert.equal(spawnCalled, false);
