@@ -46,6 +46,7 @@ function fakeCodex(options: {
     const close = (code: number | null) => {
       if (closed) return;
       closed = true;
+      events.emit("exit", code, null);
       stdout.end();
       stderr.end();
       events.emit("close", code);
@@ -67,13 +68,13 @@ function fakeCodex(options: {
       observation.prompt += chunk;
     });
     stdin.once("finish", () => {
-      if (options.waitForKill) return;
       void (async () => {
         if (options.output !== undefined) {
           await writeFile(join(spawnOptions.cwd, "final.json"), options.output, "utf8");
         }
         if (options.stdout) stdout.write(options.stdout);
         if (options.stderr) stderr.write(options.stderr);
+        if (options.waitForKill) return;
         close(options.code ?? 0);
       })();
     });
@@ -91,11 +92,12 @@ const request = {
 };
 
 test("Codex no Windows usa el ejecutable directo, los argumentos configurados y cwd aislado", async () => {
+  const eventOutput =
+    '{"type":"thread.started","thread_id":"thread-1"}\n' +
+    '{"type":"turn.completed","usage":{"input_tokens":12,"cached_input_tokens":7,"output_tokens":4}}\n';
   const fake = fakeCodex({
     output: '{"answer":"ready"}',
-    stdout:
-      '{"type":"thread.started","thread_id":"thread-1"}\n' +
-      '{"type":"turn.completed","usage":{"input_tokens":12,"cached_input_tokens":7,"output_tokens":4}}\n',
+    stdout: eventOutput,
   });
   let callbackMetadata: unknown;
   const provider = createGuideGenerationProvider(
@@ -148,6 +150,33 @@ test("Codex no Windows usa el ejecutable directo, los argumentos configurados y 
   assert.equal(fake.observation.environment?.Path, "C:\\bin");
   assert.deepEqual(provider.lastCallMetadata, {
     requestId: "thread-1",
+    inputTokens: 12,
+    outputTokens: 4,
+  });
+  const diagnostics = provider.lastCallDiagnostics!;
+  for (const key of [
+    "spawnRequestedMs",
+    "spawnReturnedMs",
+    "stdinEndCalledMs",
+    "stdinFinishedMs",
+    "firstStdoutMs",
+    "threadStartedObservedMs",
+    "turnCompletedObservedMs",
+    "finalOutputFileFirstObservedMs",
+    "exitMs",
+    "closeMs",
+    "parseStartMs",
+    "parseEndMs",
+  ] as const) {
+    assert.equal(typeof diagnostics.timings[key], "number", key);
+  }
+  assert.equal(diagnostics.stdoutBytes, Buffer.byteLength(eventOutput, "utf8"));
+  assert.equal(diagnostics.stderrBytes, 0);
+  assert.equal(diagnostics.finalOutputFileSize, Buffer.byteLength('{"answer":"ready"}', "utf8"));
+  assert.equal(diagnostics.exitCode, 0);
+  assert.equal(diagnostics.closeCode, 0);
+  assert.deepEqual(diagnostics.usage, {
+    status: "successful",
     inputTokens: 12,
     outputTokens: 4,
   });
@@ -364,5 +393,67 @@ test("Codex termina el proceso al vencer AI_TIMEOUT_MS", async () => {
     (error) => error instanceof ProviderError && error.code === "timeout",
   );
   assert.equal(fake.observation.killed, true);
+  assert.equal(provider.lastCallDiagnostics?.timeoutPhase, "no-output");
+  assert.equal(provider.lastCallDiagnostics?.usage.status, "unavailable");
+  assert.equal(typeof provider.lastCallDiagnostics?.timings.killRequestedMs, "number");
+  assert.equal(typeof provider.lastCallDiagnostics?.timings.killCompletedMs, "number");
   await assert.rejects(access(fake.observation.cwd!));
+});
+
+test("Codex conserva usage observado antes de un timeout sin marcarlo como exitoso", async () => {
+  const fake = fakeCodex({
+    waitForKill: true,
+    stdout:
+      '{"type":"thread.started","thread_id":"thread-timeout"}\n' +
+      '{"type":"turn.completed","usage":{"input_tokens":12,"output_tokens":4,"total_tokens":16}}\n',
+  });
+  const provider = createGuideGenerationProvider(
+    { AI_PROVIDER: "codex-cli", AI_TIMEOUT_MS: "50" },
+    fetch,
+    fake.spawn,
+    "linux",
+  );
+
+  await assert.rejects(
+    provider.generateStructured({
+      ...request,
+      prompt: "PRIVATE_GUIDE_CONTENT must never appear in diagnostics.",
+    }),
+    (error) => {
+      assert.ok(error instanceof ProviderError);
+      assert.equal(error.code, "timeout");
+      assert.equal(error.diagnostics?.timeoutPhase, "turn-completed-awaiting-close");
+      assert.deepEqual(error.diagnostics?.usage, {
+        status: "observed-before-failed-completion",
+        inputTokens: 12,
+        outputTokens: 4,
+        totalTokens: 16,
+      });
+      assert.doesNotMatch(JSON.stringify(error.diagnostics), /PRIVATE_GUIDE_CONTENT/);
+      return true;
+    },
+  );
+  assert.equal(provider.lastCallMetadata, undefined);
+  assert.equal(provider.lastCallDiagnostics?.usage.status, "observed-before-failed-completion");
+});
+
+test("Codex distingue output final listo mientras close está pendiente", async () => {
+  const output = '{"answer":"ready"}';
+  const fake = fakeCodex({ output, waitForKill: true });
+  const provider = createGuideGenerationProvider(
+    { AI_PROVIDER: "codex-cli", AI_TIMEOUT_MS: "50" },
+    fetch,
+    fake.spawn,
+    "linux",
+  );
+
+  await assert.rejects(provider.generateStructured(request), (error) => {
+    assert.ok(error instanceof ProviderError);
+    assert.equal(error.code, "timeout");
+    assert.equal(error.diagnostics?.timeoutPhase, "output-file-ready-awaiting-close");
+    assert.equal(error.diagnostics?.finalOutputFileSize, Buffer.byteLength(output, "utf8"));
+    assert.equal(typeof error.diagnostics?.timings.finalOutputFileFirstObservedMs, "number");
+    return true;
+  });
+  assert.equal(fake.observation.killed, true);
 });

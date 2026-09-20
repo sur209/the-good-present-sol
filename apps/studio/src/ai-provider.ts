@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { statSync } from "node:fs";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
+import { performance } from "node:perf_hooks";
 import { join } from "node:path";
 import type { Readable, Writable } from "node:stream";
 
@@ -12,6 +13,62 @@ export interface ProviderCallMetadata {
   inputTokens?: number;
   outputTokens?: number;
   totalTokens?: number;
+}
+
+export type CodexTimeoutPhase =
+  | "spawn-pending"
+  | "no-output"
+  | "generating"
+  | "turn-completed-awaiting-close"
+  | "output-file-ready-awaiting-close"
+  | "process-exited-awaiting-close"
+  | "unknown";
+
+export type CodexUsageStatus = "successful" | "observed-before-failed-completion" | "unavailable";
+
+export interface CodexSubprocessTimings {
+  spawnRequestedMs?: number;
+  spawnReturnedMs?: number;
+  stdinEndCalledMs?: number;
+  stdinFinishedMs?: number;
+  stdinErrorMs?: number;
+  firstStdoutMs?: number;
+  firstStderrMs?: number;
+  threadStartedObservedMs?: number;
+  turnCompletedObservedMs?: number;
+  finalOutputFileFirstObservedMs?: number;
+  exitMs?: number;
+  closeMs?: number;
+  parseStartMs?: number;
+  parseEndMs?: number;
+  killRequestedMs?: number;
+  killCompletedMs?: number;
+}
+
+export interface CodexUsageDiagnostics {
+  status: CodexUsageStatus;
+  inputTokens?: number;
+  outputTokens?: number;
+  totalTokens?: number;
+}
+
+export interface CodexProcessStateAfterKill {
+  killed?: boolean;
+  exitCode?: number | null;
+  signalCode?: NodeJS.Signals | null;
+}
+
+export interface CodexSubprocessDiagnostics {
+  timeoutPhase?: CodexTimeoutPhase;
+  timings: CodexSubprocessTimings;
+  stdoutBytes: number;
+  stderrBytes: number;
+  finalOutputFileSize?: number;
+  exitCode?: number | null;
+  closeCode?: number | null;
+  killReturned?: boolean;
+  processStateAfterKill?: CodexProcessStateAfterKill;
+  usage: CodexUsageDiagnostics;
 }
 
 export interface StructuredGenerationRequest<T> {
@@ -44,6 +101,7 @@ export interface GuideGenerationProvider {
   readonly modelId?: string;
   readonly editorialReviewTimeoutMs?: number;
   readonly lastCallMetadata?: ProviderCallMetadata | undefined;
+  readonly lastCallDiagnostics?: CodexSubprocessDiagnostics | undefined;
   generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T>;
 }
 
@@ -126,12 +184,14 @@ export class ProviderError extends Error {
   readonly requestId?: string;
   readonly status?: number;
   readonly schemaIssues?: SafeSchemaIssue[];
+  readonly diagnostics?: CodexSubprocessDiagnostics;
 
   constructor(
     message: string,
     code: ProviderErrorCode,
     options: {
       cause?: unknown;
+      diagnostics?: CodexSubprocessDiagnostics;
       requestId?: string;
       schemaIssues?: SafeSchemaIssue[];
       status?: number;
@@ -140,6 +200,7 @@ export class ProviderError extends Error {
     super(message, { cause: options.cause });
     this.name = "ProviderError";
     this.code = code;
+    if (options.diagnostics !== undefined) this.diagnostics = options.diagnostics;
     if (options.requestId !== undefined) this.requestId = options.requestId;
     if (options.schemaIssues?.length) this.schemaIssues = options.schemaIssues;
     if (options.status !== undefined) this.status = options.status;
@@ -161,6 +222,7 @@ export class ProviderError extends Error {
           .join("; ")}`,
       );
     }
+    if (this.diagnostics) details.push(`diagnostics=${JSON.stringify(this.diagnostics)}`);
     return details.join(" ");
   }
 }
@@ -348,7 +410,11 @@ interface CodexChildProcess {
   stdout: Readable;
   stderr: Readable;
   once(event: "error", listener: (error: Error) => void): this;
+  once(event: "exit", listener: (code: number | null, signal: NodeJS.Signals | null) => void): this;
   once(event: "close", listener: (code: number | null) => void): this;
+  readonly killed?: boolean;
+  readonly exitCode?: number | null;
+  readonly signalCode?: NodeJS.Signals | null;
   kill(): boolean;
 }
 
@@ -442,9 +508,32 @@ function resolveCodexLaunch(
   };
 }
 
+type CodexTokenUsage = Pick<ProviderCallMetadata, "inputTokens" | "outputTokens" | "totalTokens">;
+
+function codexTokenUsage(usage: unknown): CodexTokenUsage {
+  const values = usage as Record<string, unknown> | null;
+  if (typeof values !== "object" || values === null) return {};
+  const count = (key: string): number | undefined => {
+    const value = values[key];
+    return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : undefined;
+  };
+  const inputTokens = count("input_tokens");
+  const outputTokens = count("output_tokens");
+  const totalTokens = count("total_tokens");
+  return {
+    ...(inputTokens !== undefined ? { inputTokens } : {}),
+    ...(outputTokens !== undefined ? { outputTokens } : {}),
+    ...(totalTokens !== undefined ? { totalTokens } : {}),
+  };
+}
+
+function hasCodexTokenUsage(usage: CodexTokenUsage): boolean {
+  return Object.keys(usage).length > 0;
+}
+
 function codexMetadata(stdout: string): ProviderCallMetadata {
   let requestId: string | undefined;
-  let usage: Record<string, unknown> | undefined;
+  let usage: unknown;
   for (const line of stdout.split(/\r?\n/)) {
     if (!line.trim()) continue;
     try {
@@ -457,54 +546,77 @@ function codexMetadata(stdout: string): ProviderCallMetadata {
         typeof event.usage === "object" &&
         event.usage !== null
       ) {
-        usage = event.usage as Record<string, unknown>;
+        usage = event.usage;
       }
     } catch {
       // Ignore non-event output; the final response comes from --output-last-message.
     }
   }
-  const count = (key: string): number | undefined => {
-    const value = usage?.[key];
-    return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : undefined;
-  };
-  const inputTokens = count("input_tokens");
-  const outputTokens = count("output_tokens");
-  const totalTokens = count("total_tokens");
   return {
     ...(requestId ? { requestId } : {}),
-    ...(inputTokens !== undefined ? { inputTokens } : {}),
-    ...(outputTokens !== undefined ? { outputTokens } : {}),
-    ...(totalTokens !== undefined ? { totalTokens } : {}),
+    ...codexTokenUsage(usage),
   };
 }
 
-function codexExitError(stderr: string, code: number | null): ProviderError {
+type CodexTimingKey = keyof CodexSubprocessTimings;
+
+function markCodexTiming(
+  timings: CodexSubprocessTimings,
+  key: CodexTimingKey,
+  elapsedMs: number,
+): void {
+  if (timings[key] === undefined) timings[key] = elapsedMs;
+}
+
+function codexTimeoutPhase(diagnostics: CodexSubprocessDiagnostics): CodexTimeoutPhase {
+  const { timings } = diagnostics;
+  if (timings.spawnReturnedMs === undefined) return "spawn-pending";
+  if (timings.turnCompletedObservedMs !== undefined) return "turn-completed-awaiting-close";
+  if (timings.finalOutputFileFirstObservedMs !== undefined) {
+    return "output-file-ready-awaiting-close";
+  }
+  if (timings.exitMs !== undefined) return "process-exited-awaiting-close";
+  if (timings.firstStdoutMs === undefined && timings.firstStderrMs === undefined) {
+    return "no-output";
+  }
+  if (timings.firstStdoutMs !== undefined || timings.firstStderrMs !== undefined) {
+    return "generating";
+  }
+  return "unknown";
+}
+
+function codexExitError(
+  stderr: string,
+  code: number | null,
+  diagnostics?: CodexSubprocessDiagnostics,
+): ProviderError {
   const cause = new Error(`Codex CLI exited with code ${code ?? "unknown"}`);
+  const options = diagnostics ? { cause, diagnostics } : { cause };
   if (/not logged in|login required|authentication|unauthorized|sign in/i.test(stderr)) {
     return new ProviderError(
       "Codex CLI no está autenticado. Ejecutá `codex login` e iniciá sesión con ChatGPT.",
       "authentication",
-      { cause },
+      options,
     );
   }
   if (/model.{0,80}(not found|not available|unsupported|unknown|does not exist)/i.test(stderr)) {
     return new ProviderError(
       "El modelo configurado no está disponible en Codex CLI. Revisá AI_MODEL.",
       "configuration",
-      { cause },
+      options,
     );
   }
   if (/reasoning.{0,80}(invalid|unsupported|unknown|not available)/i.test(stderr)) {
     return new ProviderError(
       "El esfuerzo de razonamiento no es compatible. Revisá AI_REASONING_EFFORT.",
       "configuration",
-      { cause },
+      options,
     );
   }
   return new ProviderError(
     "Codex CLI no pudo completar la generación. Revisá el modelo y la configuración local.",
     "process",
-    { cause },
+    options,
   );
 }
 
@@ -513,6 +625,7 @@ export class CodexCliGenerationProvider implements GuideGenerationProvider {
   readonly modelId: string;
   readonly editorialReviewTimeoutMs: number;
   lastCallMetadata: ProviderCallMetadata | undefined;
+  lastCallDiagnostics: CodexSubprocessDiagnostics | undefined;
   private readonly configuration: CodexConfiguration;
   private readonly spawnImplementation: CodexSpawn;
   private readonly environment: Record<string, string | undefined>;
@@ -534,6 +647,7 @@ export class CodexCliGenerationProvider implements GuideGenerationProvider {
 
   async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
     this.lastCallMetadata = undefined;
+    this.lastCallDiagnostics = undefined;
     const workingDirectory = await mkdtemp(join(tmpdir(), "the-good-present-codex-"));
     const outputPath = join(workingDirectory, "final.json");
     const args = [
@@ -557,9 +671,63 @@ export class CodexCliGenerationProvider implements GuideGenerationProvider {
       `model_reasoning_effort=${JSON.stringify(this.configuration.reasoningEffort)}`,
       "-",
     ];
+    const startedAt = performance.now();
+    const diagnostics: CodexSubprocessDiagnostics = {
+      timings: {},
+      stdoutBytes: 0,
+      stderrBytes: 0,
+      usage: { status: "unavailable" },
+    };
+    this.lastCallDiagnostics = diagnostics;
+    const elapsed = () => Math.round(performance.now() - startedAt);
+    const observeFinalOutputFile = () => {
+      try {
+        const stats = statSync(outputPath);
+        if (!stats.isFile()) return;
+        markCodexTiming(diagnostics.timings, "finalOutputFileFirstObservedMs", elapsed());
+        diagnostics.finalOutputFileSize = stats.size;
+      } catch {
+        // The file may not exist yet.
+      }
+    };
 
     try {
       const launch = resolveCodexLaunch(args, this.environment, this.platform);
+      let timeoutRequested = false;
+      let observedUsage: CodexTokenUsage = {};
+      let stdoutEventBuffer = "";
+      const observeCodexEvent = (line: string) => {
+        if (!line.trim()) return;
+        try {
+          const event = JSON.parse(line) as Record<string, unknown>;
+          if (event.type === "thread.started") {
+            markCodexTiming(diagnostics.timings, "threadStartedObservedMs", elapsed());
+          }
+          if (event.type === "turn.completed") {
+            markCodexTiming(diagnostics.timings, "turnCompletedObservedMs", elapsed());
+            const usage = codexTokenUsage(event.usage);
+            if (hasCodexTokenUsage(usage) && !timeoutRequested) {
+              observedUsage = { ...observedUsage, ...usage };
+              diagnostics.usage = {
+                status: "observed-before-failed-completion",
+                ...observedUsage,
+              };
+            }
+          }
+        } catch {
+          // Ignore non-event output; the final response comes from --output-last-message.
+        }
+      };
+      const observeStdoutEvents = (chunk: string) => {
+        stdoutEventBuffer += chunk;
+        const lines = stdoutEventBuffer.split(/\r?\n/);
+        stdoutEventBuffer = lines.pop() ?? "";
+        for (const line of lines) observeCodexEvent(line);
+      };
+      const observeStdoutRemainder = () => {
+        observeCodexEvent(stdoutEventBuffer);
+        stdoutEventBuffer = "";
+      };
       const { stdout, stderr, code, timedOut } = await new Promise<{
         stdout: string;
         stderr: string;
@@ -568,6 +736,7 @@ export class CodexCliGenerationProvider implements GuideGenerationProvider {
       }>((resolve, reject) => {
         let child: CodexChildProcess;
         try {
+          markCodexTiming(diagnostics.timings, "spawnRequestedMs", elapsed());
           child = this.spawnImplementation(launch.command, launch.args, {
             cwd: workingDirectory,
             env: codexEnvironment(this.environment, this.platform),
@@ -576,6 +745,7 @@ export class CodexCliGenerationProvider implements GuideGenerationProvider {
             ...(launch.windowsVerbatimArguments ? { windowsVerbatimArguments: true } : {}),
             windowsHide: true,
           });
+          markCodexTiming(diagnostics.timings, "spawnReturnedMs", elapsed());
         } catch (cause) {
           reject(cause);
           return;
@@ -585,22 +755,60 @@ export class CodexCliGenerationProvider implements GuideGenerationProvider {
         let timedOut = false;
         child.stdout.setEncoding("utf8");
         child.stderr.setEncoding("utf8");
-        child.stdout.on("data", (chunk: string) => {
-          stdout += chunk;
+        child.stdout.on("data", (chunk: string | Buffer) => {
+          const text = typeof chunk === "string" ? chunk : chunk.toString("utf8");
+          markCodexTiming(diagnostics.timings, "firstStdoutMs", elapsed());
+          diagnostics.stdoutBytes += Buffer.byteLength(text, "utf8");
+          stdout += text;
+          observeStdoutEvents(text);
         });
-        child.stderr.on("data", (chunk: string) => {
-          if (stderr.length < 16_384) stderr += chunk;
+        child.stderr.on("data", (chunk: string | Buffer) => {
+          const text = typeof chunk === "string" ? chunk : chunk.toString("utf8");
+          markCodexTiming(diagnostics.timings, "firstStderrMs", elapsed());
+          diagnostics.stderrBytes += Buffer.byteLength(text, "utf8");
+          if (stderr.length < 16_384) stderr += text;
         });
-        child.stdin.on("error", () => undefined);
+        child.stdin.on("error", () => {
+          markCodexTiming(diagnostics.timings, "stdinErrorMs", elapsed());
+        });
         child.once("error", reject);
-        const timer = setTimeout(() => {
-          timedOut = true;
-          child.kill();
-        }, request.timeoutMs ?? this.configuration.timeoutMs);
-        child.once("close", (code) => {
-          clearTimeout(timer);
-          resolve({ stdout, stderr, code, timedOut });
+        child.stdin.once("finish", () => {
+          markCodexTiming(diagnostics.timings, "stdinFinishedMs", elapsed());
         });
+        child.once("exit", (exitCode, signalCode) => {
+          markCodexTiming(diagnostics.timings, "exitMs", elapsed());
+          diagnostics.exitCode = exitCode;
+          if (diagnostics.timings.killRequestedMs !== undefined && signalCode !== null) {
+            diagnostics.processStateAfterKill = { signalCode };
+          }
+        });
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        child.once("close", (closeCode) => {
+          observeStdoutRemainder();
+          observeFinalOutputFile();
+          markCodexTiming(diagnostics.timings, "closeMs", elapsed());
+          diagnostics.closeCode = closeCode;
+          if (timer !== undefined) clearTimeout(timer);
+          resolve({ stdout, stderr, code: closeCode, timedOut });
+        });
+        timer = setTimeout(() => {
+          timedOut = true;
+          observeStdoutRemainder();
+          timeoutRequested = true;
+          observeFinalOutputFile();
+          diagnostics.timeoutPhase = codexTimeoutPhase(diagnostics);
+          markCodexTiming(diagnostics.timings, "killRequestedMs", elapsed());
+          diagnostics.killReturned = child.kill();
+          markCodexTiming(diagnostics.timings, "killCompletedMs", elapsed());
+          const processStateAfterKill: CodexProcessStateAfterKill = {};
+          if (child.killed !== undefined) processStateAfterKill.killed = child.killed;
+          if (child.exitCode !== undefined) processStateAfterKill.exitCode = child.exitCode;
+          if (child.signalCode !== undefined) processStateAfterKill.signalCode = child.signalCode;
+          if (Object.keys(processStateAfterKill).length) {
+            diagnostics.processStateAfterKill = processStateAfterKill;
+          }
+        }, request.timeoutMs ?? this.configuration.timeoutMs);
+        markCodexTiming(diagnostics.timings, "stdinEndCalledMs", elapsed());
         child.stdin.end(request.prompt);
       }).catch((cause: unknown) => {
         const error = cause as NodeJS.ErrnoException;
@@ -610,31 +818,50 @@ export class CodexCliGenerationProvider implements GuideGenerationProvider {
               ? "No se pudo iniciar el procesador de comandos de Windows para Codex CLI. Revisá ComSpec."
               : "No se encontró Codex CLI. Instalalo y verificá que `codex` esté disponible en PATH.",
             "configuration",
-            { cause },
+            { cause, diagnostics },
           );
         }
-        throw new ProviderError("No se pudo iniciar Codex CLI.", "process", { cause });
+        throw new ProviderError("No se pudo iniciar Codex CLI.", "process", { cause, diagnostics });
       });
 
       if (timedOut) {
-        throw new ProviderError(
+        const error = new ProviderError(
           "Codex CLI tardó demasiado en responder. Probá de nuevo.",
           "timeout",
+          { diagnostics },
         );
+        console.error(`Codex CLI timeout diagnostics: ${JSON.stringify(diagnostics)}`);
+        throw error;
       }
-      if (code !== 0) throw codexExitError(`${stderr}\n${stdout}`, code);
+      if (code !== 0) throw codexExitError(`${stderr}\n${stdout}`, code, diagnostics);
 
       this.lastCallMetadata = codexMetadata(stdout);
+      const successfulUsage = codexTokenUsage({
+        input_tokens: this.lastCallMetadata.inputTokens,
+        output_tokens: this.lastCallMetadata.outputTokens,
+        total_tokens: this.lastCallMetadata.totalTokens,
+      });
+      diagnostics.usage = {
+        status: hasCodexTokenUsage(successfulUsage) ? "successful" : "unavailable",
+        ...successfulUsage,
+      };
       request.onCallMetadata?.(this.lastCallMetadata);
       let content = "";
       try {
+        observeFinalOutputFile();
         content = await readFile(outputPath, "utf8");
       } catch (cause) {
         throw new ProviderError("Codex CLI no devolvió contenido final.", "empty-response", {
           cause,
+          diagnostics,
         });
       }
-      return parseExactStructuredContent(content, request.schema);
+      markCodexTiming(diagnostics.timings, "parseStartMs", elapsed());
+      try {
+        return parseExactStructuredContent(content, request.schema);
+      } finally {
+        markCodexTiming(diagnostics.timings, "parseEndMs", elapsed());
+      }
     } finally {
       await rm(workingDirectory, { recursive: true, force: true });
     }
