@@ -3078,7 +3078,9 @@ function editorialReviewSection(
     <p><strong>${review.status === "failed" ? "Revisión fallida" : stale ? "Informe desactualizado" : "Informe vigente"}</strong> · ${escapeHtml(formatDate(review.createdAt))} · ${escapeHtml(review.providerId)}${review.modelId ? ` · ${escapeHtml(review.modelId)}` : ""}</p>
     ${review.providerId === "mock" ? '<p class="notice">Modo simulado: no se evaluó la calidad editorial. Configurá un proveedor real para revisar la guía.</p>' : ""}
     ${stale ? '<p class="notice">El contenido cambió desde esta revisión. Volvé a revisar la guía para aplicar más correcciones.</p>' : ""}
+    ${review.status === "failed" ? '<p class="error">Revisión no disponible: no se encontraron problemas editoriales confiables.</p>' : ""}
     ${review.error ? `<p class="error">${escapeHtml(review.error)}</p>` : ""}
+    ${review.failure ? `<p class="muted">Diagnóstico: ${escapeHtml(review.failure.category)} · intentos: ${review.failure.attemptCount} · código: ${escapeHtml(review.failure.code)}${review.failure.timeoutMs ? ` · timeout: ${review.failure.timeoutMs} ms` : ""}</p>` : ""}
     <p class="muted">Revisión: ${review.metrics.reviewInvocations} · Reparación/reintento: ${review.metrics.repairInvocations} · Tokens entrada/salida/total: ${review.metrics.inputTokens ?? "—"} / ${review.metrics.outputTokens ?? "—"} / ${review.metrics.totalTokens ?? "—"}</p>
     ${review.status === "completed" && !review.issues.length && review.providerId !== "mock" ? "<p>No editorial issues found.</p>" : ""}
     ${
@@ -3111,7 +3113,7 @@ function editorialReviewSection(
     <form method="post" action="${path}/editorial-review"><button type="submit"${canReviewEditorially(draft) ? "" : " disabled"}>Revisar editorialmente</button></form>
     ${!canReviewEditorially(draft) ? '<p class="muted">Completá la introducción, el extracto y las recomendaciones antes de revisar.</p>' : ""}
     ${report}
-    ${reviews.length ? `<details><summary>Historial de revisiones (${reviews.length})</summary><ul>${reviews.map((item) => `<li><a href="${path}?review=${encodeURIComponent(item.id)}#editorial-review">${escapeHtml(formatDate(item.createdAt))}</a> · ${item.issues.length} problemas · ${item.status === "failed" ? "fallida" : "completada"}</li>`).join("")}</ul></details>` : ""}
+    ${reviews.length ? `<details><summary>Historial de revisiones (${reviews.length})</summary><ul>${reviews.map((item) => `<li><a href="${path}?review=${encodeURIComponent(item.id)}#editorial-review">${escapeHtml(formatDate(item.createdAt))}</a> · ${item.status === "failed" ? "revisión no disponible" : `${item.issues.length} problemas · completada`}</li>`).join("")}</ul></details>` : ""}
     <p><a href="/editorial-feedback">Feedback editorial</a></p>
   </section>`;
 }
@@ -3122,7 +3124,7 @@ function editorialFeedbackPage(reviews: EditorialReview[]): string {
     "Feedback editorial",
     `<h1>Feedback editorial</h1>
     <p>Historial de problemas encontrados para decidir futuras mejoras editoriales. Los recuentos incluyen cada revisión, aunque vuelva a encontrar un problema pendiente.</p>
-    <dl><dt>Revisiones ejecutadas</dt><dd>${summary.reviewsRun}</dd><dt>Revisiones fallidas</dt><dd>${summary.failedReviews}</dd><dt>Problemas detectados</dt><dd>${summary.totalIssues}</dd><dt>Correcciones aplicadas</dt><dd>${summary.applied}</dd><dt>Sin corrección aplicada</dt><dd>${summary.unresolved}</dd></dl>
+    <dl><dt>Revisiones ejecutadas</dt><dd>${summary.reviewsRun}</dd><dt>Revisiones completadas</dt><dd>${summary.completedReviews}</dd><dt>Revisiones fallidas</dt><dd>${summary.failedReviews}</dd><dt>Completadas con problemas</dt><dd>${summary.completedReviewsWithIssues}</dd><dt>Completadas sin problemas</dt><dd>${summary.completedReviewsWithoutIssues}</dd><dt>Guías con problemas</dt><dd>${summary.guidesWithIssues}</dd><dt>Problemas detectados</dt><dd>${summary.totalIssues}</dd><dt>Correcciones aplicadas</dt><dd>${summary.applied}</dd><dt>Sin corrección aplicada</dt><dd>${summary.unresolved}</dd></dl>
     <section class="card"><h2>Problemas por tipo</h2><ul>${Object.entries(summary.byType)
       .map(([type, count]) => `<li>${escapeHtml(type)}: ${count}</li>`)
       .join("")}</ul></section>

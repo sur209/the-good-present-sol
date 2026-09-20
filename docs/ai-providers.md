@@ -17,7 +17,7 @@ Copy `.env.example` to `.env`, edit it locally, and run `npm run studio`. The St
 | `AI_TIMEOUT_MS`       | Positive integer request timeout                                     | `300000`*        |
 | `STUDIO_PORT`         | Optional local Studio port                                           | `4322`           |
 
-\* Codex CLI defaults. The compatible provider continues to require an explicit model and defaults to a 60-second timeout.
+\* Codex CLI defaults. The compatible provider continues to require an explicit model and defaults to a 60-second timeout for other operations. Editorial Review uses `AI_EDITORIAL_REVIEW_TIMEOUT_MS` (default `600000`) unless overridden.
 
 ### Codex CLI (default)
 
@@ -26,6 +26,7 @@ AI_PROVIDER=codex-cli
 AI_MODEL=gpt-5.6-luna
 AI_REASONING_EFFORT=max
 AI_TIMEOUT_MS=300000
+AI_EDITORIAL_REVIEW_TIMEOUT_MS=600000
 ```
 
 No API key is used. Install the local `codex` executable and run `codex login` once to sign in with ChatGPT. Each generation is an ephemeral, non-interactive `codex exec` process in a fresh empty OS temporary directory, with a read-only sandbox and approval prompts disabled. The prompt is sent over stdin; only the final-message file is parsed as editorial JSON. User configuration remains available for the existing Codex authentication, while repository rules are ignored and provider-relevant settings are explicitly overridden.
@@ -99,4 +100,6 @@ The Studio shows short Spanish errors. Its terminal logs only a safe code plus H
 | Empty or refused output      | Review the safe UI message and prompt preview; retry deliberately     |
 | Invalid JSON/schema          | Keep the draft, inspect the prompt, and retry or use mock/manual copy |
 
-There is no automatic retry, streaming, provider SDK, Responses API, Assistants API, embedding, ranking, automatic editorial decision, or provider fallback in this MVP.
+For Editorial Review timeouts, check `AI_EDITORIAL_REVIEW_TIMEOUT_MS` as well.
+
+There is no open-ended retry, streaming, provider SDK, Responses API, Assistants API, embedding, ranking, automatic editorial decision, or provider fallback in this MVP. Editorial Review alone allows one bounded technical retry.

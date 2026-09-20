@@ -34,6 +34,7 @@ export interface StructuredGenerationRequest<T> {
   prompt: string;
   input: unknown;
   schema: z.ZodType<T>;
+  timeoutMs?: number;
   mockResponse?: () => unknown;
   onCallMetadata?: (metadata: ProviderCallMetadata) => void;
 }
@@ -41,6 +42,7 @@ export interface StructuredGenerationRequest<T> {
 export interface GuideGenerationProvider {
   readonly providerId: string;
   readonly modelId?: string;
+  readonly editorialReviewTimeoutMs?: number;
   readonly lastCallMetadata?: ProviderCallMetadata | undefined;
   generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T>;
 }
@@ -170,6 +172,7 @@ type AiConfiguration =
       model: string;
       reasoningEffort: string;
       timeoutMs: number;
+      editorialReviewTimeoutMs: number;
     }
   | {
       provider: "openai-compatible";
@@ -178,6 +181,7 @@ type AiConfiguration =
       apiKey: string;
       model: string;
       timeoutMs: number;
+      editorialReviewTimeoutMs: number;
     };
 
 function configuredBaseUrl(value: string | undefined, vendor: AiVendor): string {
@@ -210,6 +214,10 @@ export function resolveAiConfiguration(
       model: environment.AI_MODEL?.trim() || "gpt-5.6-luna",
       reasoningEffort: environment.AI_REASONING_EFFORT?.trim() || "max",
       timeoutMs: configuredTimeout(environment.AI_TIMEOUT_MS, 300_000),
+      editorialReviewTimeoutMs: configuredTimeout(
+        environment.AI_EDITORIAL_REVIEW_TIMEOUT_MS,
+        600_000,
+      ),
     };
   }
   if (provider !== "openai-compatible") {
@@ -230,6 +238,10 @@ export function resolveAiConfiguration(
     apiKey,
     model,
     timeoutMs: configuredTimeout(environment.AI_TIMEOUT_MS, 60_000),
+    editorialReviewTimeoutMs: configuredTimeout(
+      environment.AI_EDITORIAL_REVIEW_TIMEOUT_MS,
+      600_000,
+    ),
   };
 }
 
@@ -499,6 +511,7 @@ function codexExitError(stderr: string, code: number | null): ProviderError {
 export class CodexCliGenerationProvider implements GuideGenerationProvider {
   readonly providerId = "codex-cli";
   readonly modelId: string;
+  readonly editorialReviewTimeoutMs: number;
   lastCallMetadata: ProviderCallMetadata | undefined;
   private readonly configuration: CodexConfiguration;
   private readonly spawnImplementation: CodexSpawn;
@@ -516,6 +529,7 @@ export class CodexCliGenerationProvider implements GuideGenerationProvider {
     this.environment = environment;
     this.platform = platform;
     this.modelId = configuration.model;
+    this.editorialReviewTimeoutMs = configuration.editorialReviewTimeoutMs;
   }
 
   async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
@@ -582,7 +596,7 @@ export class CodexCliGenerationProvider implements GuideGenerationProvider {
         const timer = setTimeout(() => {
           timedOut = true;
           child.kill();
-        }, this.configuration.timeoutMs);
+        }, request.timeoutMs ?? this.configuration.timeoutMs);
         child.once("close", (code) => {
           clearTimeout(timer);
           resolve({ stdout, stderr, code, timedOut });
@@ -630,6 +644,7 @@ export class CodexCliGenerationProvider implements GuideGenerationProvider {
 class OpenAiCompatibleGuideGenerationProvider implements GuideGenerationProvider {
   readonly providerId: string;
   readonly modelId: string;
+  readonly editorialReviewTimeoutMs: number;
   lastCallMetadata: ProviderCallMetadata | undefined;
   private readonly configuration: CompatibleConfiguration;
   private readonly fetchImplementation: typeof fetch;
@@ -639,11 +654,12 @@ class OpenAiCompatibleGuideGenerationProvider implements GuideGenerationProvider
     this.fetchImplementation = fetchImplementation;
     this.providerId = `openai-compatible:${configuration.vendor}`;
     this.modelId = configuration.model;
+    this.editorialReviewTimeoutMs = configuration.editorialReviewTimeoutMs;
   }
 
   async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
     this.lastCallMetadata = undefined;
-    const signal = AbortSignal.timeout(this.configuration.timeoutMs);
+    const signal = AbortSignal.timeout(request.timeoutMs ?? this.configuration.timeoutMs);
     let response: Response;
     try {
       response = await this.fetchImplementation(`${this.configuration.baseUrl}/chat/completions`, {

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { once } from "node:events";
-import { cp, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import { cp, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -413,8 +413,14 @@ test("editorial review: request-local token usage wins over a concurrent call's 
   assert.equal(review.metrics.totalTokens, 15);
 });
 
-test("editorial review: no retry for network, credentials, rate limits or refusals; incomplete guides never call provider", async () => {
-  for (const code of ["network", "authentication", "rate-limit", "refusal", "timeout"] as const) {
+test("editorial review: retries only bounded technical failures; incomplete guides never call provider", async () => {
+  for (const [code, expectedCalls, category] of [
+    ["network", 2, "provider-network"],
+    ["timeout", 2, "timeout"],
+    ["authentication", 1, "other-technical"],
+    ["rate-limit", 1, "other-technical"],
+    ["refusal", 1, "other-technical"],
+  ] as const) {
     let calls = 0;
     const provider: GuideGenerationProvider = {
       providerId: "test",
@@ -424,17 +430,79 @@ test("editorial review: no retry for network, credentials, rate limits or refusa
       },
     };
     const report = await reviewGuideEditorially(fixture(), provider);
-    assert.equal(calls, 1);
+    assert.equal(calls, expectedCalls);
     assert.equal(report.status, "failed");
-    assert.equal(report.metrics.repairInvocations, 0);
+    assert.equal(report.metrics.repairInvocations, expectedCalls - 1);
     assert.equal(report.metrics.totalTokens, null);
+    assert.equal(report.failure?.category, category);
+    assert.equal(report.failure?.attemptCount, expectedCalls);
     assert.doesNotMatch(JSON.stringify(report), /SECRET_TRACE/);
     await assert.rejects(reviewGuideEditorially(createGuideDraft(), provider), /Completá/);
     const incomplete = fixture();
     delete incomplete.recommendations[1]!.selectionGuidance;
     await assert.rejects(reviewGuideEditorially(incomplete, provider), /Completá/);
-    assert.equal(calls, 1);
+    assert.equal(calls, expectedCalls);
   }
+});
+
+test("editorial review: timeout retries once, can recover, and never mutates the guide", async () => {
+  const draft = fixture();
+  const before = structuredClone(draft);
+  let calls = 0;
+  const provider: GuideGenerationProvider = {
+    providerId: "retry-test",
+    modelId: "retry-model",
+    editorialReviewTimeoutMs: 321,
+    async generateStructured(request) {
+      calls++;
+      assert.equal(request.timeoutMs, 321);
+      if (calls === 1) throw new ProviderError("SECRET_TIMEOUT", "timeout");
+      return request.schema.parse({ issues: [] });
+    },
+  };
+  const review = await reviewGuideEditorially(draft, provider);
+  assert.equal(review.status, "completed");
+  assert.deepEqual(review.issues, []);
+  assert.deepEqual(review.metrics, {
+    reviewInvocations: 1,
+    repairInvocations: 1,
+    inputTokens: null,
+    outputTokens: null,
+    totalTokens: null,
+  });
+  assert.equal(review.failure, undefined);
+  assert.deepEqual(draft, before);
+});
+
+test("editorial review: double technical failure stays failed with compact diagnostics", async () => {
+  let calls = 0;
+  const provider: GuideGenerationProvider = {
+    providerId: "retry-test",
+    modelId: "retry-model",
+    editorialReviewTimeoutMs: 456,
+    async generateStructured() {
+      calls++;
+      throw new ProviderError("SECRET_TIMEOUT", "timeout");
+    },
+  };
+  const review = await reviewGuideEditorially(
+    fixture(),
+    provider,
+    new Date("2026-09-20T00:00:00.000Z"),
+  );
+  assert.equal(calls, 2);
+  assert.equal(review.status, "failed");
+  assert.deepEqual(review.issues, []);
+  assert.deepEqual(review.failure, {
+    category: "timeout",
+    code: "timeout",
+    attemptCount: 2,
+    providerId: "retry-test",
+    modelId: "retry-model",
+    timeoutMs: 456,
+    occurredAt: "2026-09-20T00:00:00.000Z",
+  });
+  assert.doesNotMatch(JSON.stringify(review), /SECRET_TIMEOUT/);
 });
 
 test("editorial review: history persists stable IDs, detected/applied state, failed and zero-issue reviews", async (t) => {
@@ -454,7 +522,12 @@ test("editorial review: history persists stable IDs, detected/applied state, fai
   await store.save(await reviewGuideEditorially(draft, bad.provider));
   const summary = summarizeEditorialReviews(await store.list());
   assert.equal(summary.reviewsRun, 3);
+  assert.equal(summary.completedReviews, 2);
   assert.equal(summary.failedReviews, 1);
+  assert.equal(summary.completedReviewsWithIssues, 1);
+  assert.equal(summary.completedReviewsWithoutIssues, 1);
+  assert.equal(summary.guidesWithIssues, 1);
+  assert.deepEqual(summary.issueRate, { numerator: 1, denominator: 2 });
   assert.equal(summary.totalIssues, 2);
   assert.equal(summary.applied, 1);
   assert.equal(summary.unresolved, 1);
@@ -473,6 +546,47 @@ test("editorial review: history persists stable IDs, detected/applied state, fai
     /PRIVATE_GENERATION_TRACE|product_existing|directAffiliateUrl|questionnaire/,
   );
   await assert.rejects(store.read("../outside"), /ID/);
+});
+
+test("editorial review: failed reruns preserve history and legacy reports remain readable", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "editorial-review-rerun-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const store = new EditorialReviewStore(root);
+  const draft = fixture();
+  const before = structuredClone(draft);
+  const failed = await reviewGuideEditorially(
+    draft,
+    {
+      providerId: "historical-test",
+      async generateStructured() {
+        throw new ProviderError("secret", "timeout");
+      },
+    },
+    new Date("2026-09-20T00:00:00.000Z"),
+  );
+  await store.save(failed);
+  const successful = await reviewGuideEditorially(
+    draft,
+    respondingProvider([{ issues: [] }]).provider,
+    new Date("2026-09-20T00:01:00.000Z"),
+  );
+  await store.save(successful);
+  assert.deepEqual(draft, before);
+  assert.equal((await store.list()).length, 2);
+  assert.equal((await store.read(successful.id)).status, "completed");
+  assert.equal(summarizeEditorialReviews(await store.list()).completedReviewsWithoutIssues, 1);
+
+  const legacy = structuredClone(failed) as Record<string, unknown>;
+  delete legacy.status;
+  delete legacy.failure;
+  await writeFile(
+    join(store.directory, `${failed.id}.json`),
+    `${JSON.stringify(legacy)}\n`,
+    "utf8",
+  );
+  const readable = await store.read(failed.id);
+  assert.equal(readable.status, "failed");
+  assert.equal(readable.failure, undefined);
 });
 
 test("editorial review: compare-before-save rejects competing corrections without losing sibling changes", async (t) => {

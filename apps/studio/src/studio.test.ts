@@ -9445,6 +9445,7 @@ test("configura Codex por defecto y conserva mock, OpenAI y DeepSeek", () => {
     model: "gpt-5.6-luna",
     reasoningEffort: "max",
     timeoutMs: 300_000,
+    editorialReviewTimeoutMs: 600_000,
   });
   assert.deepEqual(resolveAiConfiguration({ AI_PROVIDER: "mock" }), { provider: "mock" });
   assert.deepEqual(
@@ -9459,6 +9460,7 @@ test("configura Codex por defecto y conserva mock, OpenAI y DeepSeek", () => {
       model: "configured-model",
       reasoningEffort: "high",
       timeoutMs: 1234,
+      editorialReviewTimeoutMs: 600_000,
     },
   );
   const shared = {
