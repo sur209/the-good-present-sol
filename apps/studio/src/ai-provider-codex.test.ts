@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
 import { readdirSync } from "node:fs";
-import { access, writeFile } from "node:fs/promises";
+import { access, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import { PassThrough } from "node:stream";
@@ -19,6 +19,8 @@ interface FakeObservation {
   initialFiles?: string[];
   killed: boolean;
   prompt: string;
+  shell?: false;
+  windowsVerbatimArguments?: true;
 }
 
 function fakeCodex(options: {
@@ -34,6 +36,8 @@ function fakeCodex(options: {
     observation.args = args;
     observation.cwd = spawnOptions.cwd;
     observation.environment = spawnOptions.env;
+    observation.shell = spawnOptions.shell;
+    if (spawnOptions.windowsVerbatimArguments) observation.windowsVerbatimArguments = true;
     const stdin = new PassThrough();
     const stdout = new PassThrough();
     const stderr = new PassThrough();
@@ -65,9 +69,8 @@ function fakeCodex(options: {
     stdin.once("finish", () => {
       if (options.waitForKill) return;
       void (async () => {
-        const outputIndex = args.indexOf("--output-last-message");
         if (options.output !== undefined) {
-          await writeFile(args[outputIndex + 1]!, options.output, "utf8");
+          await writeFile(join(spawnOptions.cwd, "final.json"), options.output, "utf8");
         }
         if (options.stdout) stdout.write(options.stdout);
         if (options.stderr) stderr.write(options.stderr);
@@ -87,7 +90,7 @@ const request = {
   schema,
 };
 
-test("Codex usa argumentos configurados, cwd aislado y el entorno de autenticación normal", async () => {
+test("Codex no Windows usa el ejecutable directo, los argumentos configurados y cwd aislado", async () => {
   const fake = fakeCodex({
     output: '{"answer":"ready"}',
     stdout:
@@ -115,6 +118,7 @@ test("Codex usa argumentos configurados, cwd aislado y el entorno de autenticaci
     },
     fetch,
     fake.spawn,
+    "linux",
   );
   const result = await provider.generateStructured({
     ...request,
@@ -140,9 +144,7 @@ test("Codex usa argumentos configurados, cwd aislado y el entorno de autenticaci
   assert.equal(fake.observation.environment?.APPDATA, "C:\\Users\\test\\AppData\\Roaming");
   assert.equal(fake.observation.environment?.LOCALAPPDATA, "C:\\Users\\test\\AppData\\Local");
   assert.equal(fake.observation.environment?.CODEX_INTERNAL_ORIGINATOR_OVERRIDE, "Codex Desktop");
-  if (process.platform === "win32") {
-    assert.equal(fake.observation.environment?.CODEX_HOME, "C:\\Users\\test\\.codex");
-  }
+  assert.equal(fake.observation.environment?.CODEX_HOME, undefined);
   assert.equal(fake.observation.environment?.Path, "C:\\bin");
   assert.deepEqual(provider.lastCallMetadata, {
     requestId: "thread-1",
@@ -174,6 +176,60 @@ test("Codex usa argumentos configurados, cwd aislado y el entorno de autenticaci
   await assert.rejects(access(fake.observation.cwd!));
 });
 
+test("Codex en Windows resuelve codex.cmd y lo ejecuta con cmd.exe sin exponer el prompt", async (t) => {
+  const launcherDirectory = await mkdtemp(join(tmpdir(), "codex-launcher-"));
+  t.after(() => rm(launcherDirectory, { recursive: true, force: true }));
+  const launcherPath = join(launcherDirectory, "codex.cmd");
+  await writeFile(launcherPath, "@echo off\r\n", "utf8");
+  const fake = fakeCodex({ output: '{"answer":"ready"}' });
+  const prompt = 'Prompt privado & sin interpolar. Return {"answer":"ready"}.';
+  const provider = createGuideGenerationProvider(
+    {
+      AI_PROVIDER: "codex-cli",
+      AI_MODEL: "configured-model",
+      AI_REASONING_EFFORT: "high",
+      AI_TIMEOUT_MS: "1000",
+      AI_API_KEY: "must-not-be-forwarded",
+      ComSpec: "C:\\Windows\\System32\\cmd.exe",
+      Path: `"${launcherDirectory}"`,
+      USERPROFILE: "C:\\Users\\test",
+    },
+    fetch,
+    fake.spawn,
+    "win32",
+  );
+
+  const result = await provider.generateStructured({ ...request, prompt });
+
+  assert.deepEqual(result, { answer: "ready" });
+  assert.equal(fake.observation.command, "C:\\Windows\\System32\\cmd.exe");
+  assert.doesNotMatch(fake.observation.command!, /powershell|pwsh/i);
+  assert.deepEqual(fake.observation.args?.slice(0, 3), ["/d", "/s", "/c"]);
+  assert.equal(fake.observation.shell, false);
+  assert.equal(fake.observation.windowsVerbatimArguments, true);
+  const commandLine = fake.observation.args?.[3] ?? "";
+  assert.match(commandLine, /codex\.cmd/i);
+  assert.match(commandLine, /--model/);
+  assert.match(commandLine, /configured-model/);
+  assert.match(commandLine, /--sandbox/);
+  assert.match(commandLine, /read-only/);
+  assert.match(commandLine, /--ephemeral/);
+  assert.match(commandLine, /--skip-git-repo-check/);
+  assert.match(commandLine, /approval_policy/);
+  assert.match(commandLine, /never/);
+  assert.match(commandLine, /model_reasoning_effort/);
+  assert.match(commandLine, /high/);
+  assert.doesNotMatch(commandLine, /--ignore-user-config/);
+  assert.doesNotMatch(commandLine, /Prompt privado/);
+  assert.equal(fake.observation.prompt, prompt);
+  assert.deepEqual(fake.observation.initialFiles, []);
+  assert.ok(fake.observation.cwd?.startsWith(tmpdir()));
+  assert.equal(fake.observation.environment?.CODEX_HOME, join("C:\\Users\\test", ".codex"));
+  assert.equal(fake.observation.environment?.AI_API_KEY, undefined);
+  assert.equal(fake.observation.environment?.Path, `"${launcherDirectory}"`);
+  await assert.rejects(access(fake.observation.cwd!));
+});
+
 test("Codex conserva un CODEX_HOME explícito", async () => {
   const fake = fakeCodex({ output: '{"answer":"ready"}' });
   const provider = createGuideGenerationProvider(
@@ -185,6 +241,7 @@ test("Codex conserva un CODEX_HOME explícito", async () => {
     },
     fetch,
     fake.spawn,
+    "linux",
   );
 
   await provider.generateStructured(request);
@@ -204,6 +261,7 @@ test("Codex valida JSON exacto y el esquema Zod existente", async () => {
       { AI_PROVIDER: "codex-cli", AI_TIMEOUT_MS: "1000" },
       fetch,
       fake.spawn,
+      "linux",
     );
     await assert.rejects(
       provider.generateStructured(request),
@@ -245,6 +303,7 @@ test("Codex informa ejecutable ausente, autenticación, modelo y salida no cero"
       { AI_PROVIDER: "codex-cli", AI_TIMEOUT_MS: "1000" },
       fetch,
       item.spawn,
+      "linux",
     );
     await assert.rejects(provider.generateStructured(request), (error) => {
       assert.ok(error instanceof ProviderError);
@@ -256,12 +315,49 @@ test("Codex informa ejecutable ausente, autenticación, modelo y salida no cero"
   }
 });
 
+test("Codex en Windows distingue un launcher ausente de un proceso que falla", async (t) => {
+  const launcherDirectory = await mkdtemp(join(tmpdir(), "codex-launcher-"));
+  t.after(() => rm(launcherDirectory, { recursive: true, force: true }));
+  let spawnCalled = false;
+  const missingSpawn: CodexSpawn = () => {
+    spawnCalled = true;
+    throw new Error("should not spawn");
+  };
+  const environment = {
+    AI_PROVIDER: "codex-cli",
+    AI_TIMEOUT_MS: "1000",
+    ComSpec: "C:\\Windows\\System32\\cmd.exe",
+    Path: launcherDirectory,
+  };
+  const missingProvider = createGuideGenerationProvider(environment, fetch, missingSpawn, "win32");
+
+  await assert.rejects(missingProvider.generateStructured(request), (error) => {
+    assert.ok(error instanceof ProviderError);
+    assert.equal(error.code, "configuration");
+    assert.match(error.message, /codex\.cmd.*PATH/i);
+    return true;
+  });
+  assert.equal(spawnCalled, false);
+
+  await writeFile(join(launcherDirectory, "codex.cmd"), "@echo off\r\n", "utf8");
+  const failed = fakeCodex({ code: 1, stderr: "unexpected provider failure" });
+  const failedProvider = createGuideGenerationProvider(environment, fetch, failed.spawn, "win32");
+  await assert.rejects(failedProvider.generateStructured(request), (error) => {
+    assert.ok(error instanceof ProviderError);
+    assert.equal(error.code, "process");
+    assert.match(error.message, /no pudo completar/);
+    assert.doesNotMatch(error.message, /No se encontró/);
+    return true;
+  });
+});
+
 test("Codex termina el proceso al vencer AI_TIMEOUT_MS", async () => {
   const fake = fakeCodex({ waitForKill: true });
   const provider = createGuideGenerationProvider(
     { AI_PROVIDER: "codex-cli", AI_TIMEOUT_MS: "5" },
     fetch,
     fake.spawn,
+    "linux",
   );
   await assert.rejects(
     provider.generateStructured(request),

@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { statSync } from "node:fs";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -345,12 +346,24 @@ export type CodexSpawn = (
   options: {
     cwd: string;
     env: NodeJS.ProcessEnv;
+    shell: false;
     stdio: ["pipe", "pipe", "pipe"];
+    windowsVerbatimArguments?: true;
     windowsHide: true;
   },
 ) => CodexChildProcess;
 
-function codexEnvironment(source: Record<string, string | undefined>): NodeJS.ProcessEnv {
+function environmentValue(
+  source: Record<string, string | undefined>,
+  name: string,
+): string | undefined {
+  return Object.entries(source).find(([key]) => key.toLowerCase() === name.toLowerCase())?.[1];
+}
+
+function codexEnvironment(
+  source: Record<string, string | undefined>,
+  platform: NodeJS.Platform,
+): NodeJS.ProcessEnv {
   const environment = Object.fromEntries(
     Object.entries(source).filter(
       ([key, value]) =>
@@ -358,7 +371,7 @@ function codexEnvironment(source: Record<string, string | undefined>): NodeJS.Pr
     ),
   );
   if (
-    process.platform === "win32" &&
+    platform === "win32" &&
     !Object.entries(environment).some(
       ([key, value]) => key.toLowerCase() === "codex_home" && value?.trim(),
     )
@@ -369,6 +382,52 @@ function codexEnvironment(source: Record<string, string | undefined>): NodeJS.Pr
     if (userProfile) environment.CODEX_HOME = join(userProfile, ".codex");
   }
   return environment;
+}
+
+const WINDOWS_CMD_META_CHARACTERS = /([()\][%!^"`<>&|;, *?])/g;
+
+function escapeWindowsCommandArgument(argument: string): string {
+  let escaped = argument.replace(/(?=(\\+?)?)\1"/g, '$1$1\\"').replace(/(?=(\\+?)?)\1$/g, "$1$1");
+  escaped = `"${escaped}"`.replace(WINDOWS_CMD_META_CHARACTERS, "^$1");
+  return escaped.replace(WINDOWS_CMD_META_CHARACTERS, "^$1");
+}
+
+function resolveCodexLaunch(
+  args: readonly string[],
+  environment: Record<string, string | undefined>,
+  platform: NodeJS.Platform,
+): { command: string; args: readonly string[]; windowsVerbatimArguments?: true } {
+  if (platform !== "win32") return { command: "codex", args };
+
+  let launcher: string | undefined;
+  for (const entry of environmentValue(environment, "PATH")?.split(";") ?? []) {
+    const directory = entry.trim().replace(/^"(.*)"$/, "$1");
+    if (!directory) continue;
+    const candidate = join(directory, "codex.cmd");
+    try {
+      if (statSync(candidate).isFile()) {
+        launcher = candidate;
+        break;
+      }
+    } catch {
+      // Keep searching PATH.
+    }
+  }
+  if (!launcher) {
+    throw new ProviderError(
+      "No se encontró Codex CLI para Windows. Instalalo y verificá que `codex.cmd` esté disponible en PATH.",
+      "configuration",
+    );
+  }
+
+  const command = environmentValue(environment, "ComSpec")?.trim() || "cmd.exe";
+  const escapedLauncher = launcher.replace(WINDOWS_CMD_META_CHARACTERS, "^$1");
+  const commandLine = `"${[escapedLauncher, ...args.map(escapeWindowsCommandArgument)].join(" ")}"`;
+  return {
+    command,
+    args: ["/d", "/s", "/c", commandLine],
+    windowsVerbatimArguments: true,
+  };
 }
 
 function codexMetadata(stdout: string): ProviderCallMetadata {
@@ -444,15 +503,18 @@ export class CodexCliGenerationProvider implements GuideGenerationProvider {
   private readonly configuration: CodexConfiguration;
   private readonly spawnImplementation: CodexSpawn;
   private readonly environment: Record<string, string | undefined>;
+  private readonly platform: NodeJS.Platform;
 
   constructor(
     configuration: CodexConfiguration,
     spawnImplementation: CodexSpawn = spawn as CodexSpawn,
     environment: Record<string, string | undefined> = process.env,
+    platform: NodeJS.Platform = process.platform,
   ) {
     this.configuration = configuration;
     this.spawnImplementation = spawnImplementation;
     this.environment = environment;
+    this.platform = platform;
     this.modelId = configuration.model;
   }
 
@@ -483,6 +545,7 @@ export class CodexCliGenerationProvider implements GuideGenerationProvider {
     ];
 
     try {
+      const launch = resolveCodexLaunch(args, this.environment, this.platform);
       const { stdout, stderr, code, timedOut } = await new Promise<{
         stdout: string;
         stderr: string;
@@ -491,10 +554,12 @@ export class CodexCliGenerationProvider implements GuideGenerationProvider {
       }>((resolve, reject) => {
         let child: CodexChildProcess;
         try {
-          child = this.spawnImplementation("codex", args, {
+          child = this.spawnImplementation(launch.command, launch.args, {
             cwd: workingDirectory,
-            env: codexEnvironment(this.environment),
+            env: codexEnvironment(this.environment, this.platform),
+            shell: false,
             stdio: ["pipe", "pipe", "pipe"],
+            ...(launch.windowsVerbatimArguments ? { windowsVerbatimArguments: true } : {}),
             windowsHide: true,
           });
         } catch (cause) {
@@ -527,7 +592,9 @@ export class CodexCliGenerationProvider implements GuideGenerationProvider {
         const error = cause as NodeJS.ErrnoException;
         if (error?.code === "ENOENT") {
           throw new ProviderError(
-            "No se encontró Codex CLI. Instalalo y verificá que `codex` esté disponible en PATH.",
+            this.platform === "win32"
+              ? "No se pudo iniciar el procesador de comandos de Windows para Codex CLI. Revisá ComSpec."
+              : "No se encontró Codex CLI. Instalalo y verificá que `codex` esté disponible en PATH.",
             "configuration",
             { cause },
           );
@@ -671,11 +738,17 @@ export function createGuideGenerationProvider(
   environment: Record<string, string | undefined> = process.env,
   fetchImplementation: typeof fetch = fetch,
   spawnImplementation: CodexSpawn = spawn as CodexSpawn,
+  platform: NodeJS.Platform = process.platform,
 ): GuideGenerationProvider {
   const configuration = resolveAiConfiguration(environment);
   if (configuration.provider === "mock") return new MockGuideGenerationProvider();
   if (configuration.provider === "codex-cli") {
-    return new CodexCliGenerationProvider(configuration, spawnImplementation, environment);
+    return new CodexCliGenerationProvider(
+      configuration,
+      spawnImplementation,
+      environment,
+      platform,
+    );
   }
   return new OpenAiCompatibleGuideGenerationProvider(configuration, fetchImplementation);
 }

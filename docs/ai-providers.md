@@ -28,7 +28,7 @@ AI_REASONING_EFFORT=max
 AI_TIMEOUT_MS=300000
 ```
 
-No API key is used. Install the local `codex` executable and run `codex login` once to sign in with ChatGPT. Each generation is an ephemeral, non-interactive `codex exec` process in a fresh empty OS temporary directory, with a read-only sandbox and approval prompts disabled. The prompt is sent over stdin; only the final-message file is parsed as editorial JSON. User configuration and repository rules are ignored for the subprocess.
+No API key is used. Install the local `codex` executable and run `codex login` once to sign in with ChatGPT. Each generation is an ephemeral, non-interactive `codex exec` process in a fresh empty OS temporary directory, with a read-only sandbox and approval prompts disabled. The prompt is sent over stdin; only the final-message file is parsed as editorial JSON. User configuration remains available for the existing Codex authentication, while repository rules are ignored and provider-relevant settings are explicitly overridden.
 
 ### Offline mock
 
