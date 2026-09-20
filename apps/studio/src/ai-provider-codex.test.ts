@@ -87,7 +87,7 @@ const request = {
   schema,
 };
 
-test("Codex usa argumentos configurados, stdin, cwd aislado y entorno mínimo", async () => {
+test("Codex usa argumentos configurados, cwd aislado y el entorno de autenticación normal", async () => {
   const fake = fakeCodex({
     output: '{"answer":"ready"}',
     stdout:
@@ -102,6 +102,14 @@ test("Codex usa argumentos configurados, stdin, cwd aislado y entorno mínimo", 
       AI_REASONING_EFFORT: "high",
       AI_TIMEOUT_MS: "1000",
       AI_API_KEY: "must-not-be-forwarded",
+      DEEPSEEK_API_KEY: "must-not-be-forwarded",
+      OPENAI_API_KEY: "must-not-be-forwarded",
+      HOME: "C:\\Users\\test",
+      HOMEDRIVE: "C:",
+      HOMEPATH: "\\Users\\test",
+      APPDATA: "C:\\Users\\test\\AppData\\Roaming",
+      LOCALAPPDATA: "C:\\Users\\test\\AppData\\Local",
+      CODEX_INTERNAL_ORIGINATOR_OVERRIDE: "Codex Desktop",
       Path: "C:\\bin",
       USERPROFILE: "C:\\Users\\test",
     },
@@ -124,6 +132,17 @@ test("Codex usa argumentos configurados, stdin, cwd aislado y entorno mínimo", 
   assert.ok(fake.observation.cwd?.startsWith(tmpdir()));
   assert.match(relative(process.cwd(), fake.observation.cwd!), /^\.\./);
   assert.equal(fake.observation.environment?.AI_API_KEY, undefined);
+  assert.equal(fake.observation.environment?.DEEPSEEK_API_KEY, undefined);
+  assert.equal(fake.observation.environment?.OPENAI_API_KEY, undefined);
+  assert.equal(fake.observation.environment?.HOME, "C:\\Users\\test");
+  assert.equal(fake.observation.environment?.HOMEDRIVE, "C:");
+  assert.equal(fake.observation.environment?.HOMEPATH, "\\Users\\test");
+  assert.equal(fake.observation.environment?.APPDATA, "C:\\Users\\test\\AppData\\Roaming");
+  assert.equal(fake.observation.environment?.LOCALAPPDATA, "C:\\Users\\test\\AppData\\Local");
+  assert.equal(fake.observation.environment?.CODEX_INTERNAL_ORIGINATOR_OVERRIDE, "Codex Desktop");
+  if (process.platform === "win32") {
+    assert.equal(fake.observation.environment?.CODEX_HOME, "C:\\Users\\test\\.codex");
+  }
   assert.equal(fake.observation.environment?.Path, "C:\\bin");
   assert.deepEqual(provider.lastCallMetadata, {
     requestId: "thread-1",
@@ -153,6 +172,25 @@ test("Codex usa argumentos configurados, stdin, cwd aislado y entorno mínimo", 
     'model_reasoning_effort="high"',
     "-",
   ]);
+  await assert.rejects(access(fake.observation.cwd!));
+});
+
+test("Codex conserva un CODEX_HOME explícito", async () => {
+  const fake = fakeCodex({ output: '{"answer":"ready"}' });
+  const provider = createGuideGenerationProvider(
+    {
+      AI_PROVIDER: "codex-cli",
+      AI_TIMEOUT_MS: "1000",
+      CODEX_HOME: "D:\\CodexHome",
+      USERPROFILE: "C:\\Users\\test",
+    },
+    fetch,
+    fake.spawn,
+  );
+
+  await provider.generateStructured(request);
+
+  assert.equal(fake.observation.environment?.CODEX_HOME, "D:\\CodexHome");
   await assert.rejects(access(fake.observation.cwd!));
 });
 

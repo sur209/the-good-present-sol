@@ -351,31 +351,24 @@ export type CodexSpawn = (
 ) => CodexChildProcess;
 
 function codexEnvironment(source: Record<string, string | undefined>): NodeJS.ProcessEnv {
-  const allowed = new Set([
-    "appdata",
-    "codex_home",
-    "home",
-    "homedrive",
-    "homepath",
-    "https_proxy",
-    "http_proxy",
-    "lang",
-    "localappdata",
-    "no_proxy",
-    "path",
-    "pathext",
-    "ssl_cert_file",
-    "systemroot",
-    "temp",
-    "tmp",
-    "userprofile",
-    "windir",
-  ]);
-  return Object.fromEntries(
+  const environment = Object.fromEntries(
     Object.entries(source).filter(
-      ([key, value]) => value !== undefined && allowed.has(key.toLowerCase()),
+      ([key, value]) =>
+        value !== undefined && !/(?:api[_-]?key|token|password|secret|credential|auth)/i.test(key),
     ),
   );
+  if (
+    process.platform === "win32" &&
+    !Object.entries(environment).some(
+      ([key, value]) => key.toLowerCase() === "codex_home" && value?.trim(),
+    )
+  ) {
+    const userProfile = Object.entries(environment).find(
+      ([key, value]) => key.toLowerCase() === "userprofile" && value?.trim(),
+    )?.[1];
+    if (userProfile) environment.CODEX_HOME = join(userProfile, ".codex");
+  }
+  return environment;
 }
 
 function codexMetadata(stdout: string): ProviderCallMetadata {
