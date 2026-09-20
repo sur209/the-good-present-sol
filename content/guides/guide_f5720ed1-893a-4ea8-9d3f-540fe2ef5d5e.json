@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e",
+  "pageType": "gift-guide",
+  "clusterId": "cluster_nurse-gifts",
+  "slug": "gifts-for-male-nurses",
+  "language": "en-US",
+  "title": "Gifts for Male Nurses: Thoughtful, Useful Ideas",
+  "excerpt": "Thoughtful gift ideas for male nurses that respect individual taste, support everyday routines, and add comfort or personal meaning.",
+  "introduction": "Whether you are celebrating a birthday, saying thank you, or encouraging a male nurse through a new chapter, start with what he enjoys and how he spends time at work and home. Look for something useful, comfortable, personal, or easy to share without leaning on gendered cliches.",
+  "primaryAxis": "recipient",
+  "primaryIntent": "Help shoppers choose thoughtful, useful gifts for male nurses that respect individual taste and focus on workday utility, off-shift comfort, or personal meaning rather than gendered clichés.",
+  "taxonomies": {
+    "occasions": [
+      "birthdays",
+      "nurse appreciation",
+      "promotions",
+      "thank-yous",
+      "holidays",
+      "everyday encouragement"
+    ],
+    "recipients": ["male nurses", "nurses"],
+    "careerStages": ["nursing students", "new nurses", "experienced nurses"],
+    "workContexts": ["workday", "commuting", "off-shift", "home"],
+    "giftStyles": ["practical", "comfort", "food and drink", "organization", "home", "personal"],
+    "budgetLabels": ["varied budgets"]
+  },
+  "relatedGuideIds": [
+    "guide_096afebb-cdbd-4577-98c2-8aaf3b195889",
+    "guide_2544e140-f998-4e2e-a43e-143cb0a97288",
+    "guide_da3a6205-a952-4f6a-95c4-abce5a35b7ef",
+    "guide_eb314f33-a0e3-4f51-937e-e7a3dde5cd6e",
+    "guide_nurse-under-25"
+  ],
+  "seoTitle": "Thoughtful Gifts for Male Nurses",
+  "seoDescription": "Shop thoughtful gifts for male nurses with individual taste in mind, from everyday usefulness and off-shift comfort to personal meaning.",
+  "status": "published",
+  "publishedAt": "2026-09-20",
+  "updatedAt": "2026-09-20",
+  "recommendations": [
+    {
+      "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-1",
+      "productResolution": "unresolved",
+      "position": 1,
+      "heading": "A lunch bag that fits his workday",
+      "editorialDescription": "An insulated lunch bag makes a packed meal and snacks easier to carry between work, commuting, and home. Choose a straightforward design that fits his style and is easy to carry, store, and use beyond a single shift.",
+      "whyItFits": "It supports workday utility without assuming nursing defines his taste, and it suits a thank-you, birthday, or everyday encouragement.",
+      "bestFor": "A nurse who regularly brings meals or snacks",
+      "selectionGuidance": "Match the size and carrying style to his usual meals, commute, and storage habits. Favor a color or finish that feels personal and a design that works outside a profession-themed setting.",
+      "considerations": "Less suitable if he rarely packs food or already has a dependable lunch setup.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-2",
+      "productResolution": "unresolved",
+      "position": 2,
+      "heading": "A polished commuter backpack",
+      "editorialDescription": "A commuter backpack can gather daily essentials for shifts, errands, and home in one carry. An understated style makes it useful in professional and casual settings, while organization should reflect what he actually brings.",
+      "whyItFits": "It connects workday utility with commuting and home life, making it useful for a partner, friend, family member, coworker, classmate, or mentor.",
+      "bestFor": "A nurse carrying work and personal essentials between places",
+      "selectionGuidance": "Think through what he carries, how he commutes, and whether he needs room for a laptop or other personal items. Compare size, organization, carry comfort, and weather coverage as they relate to his routine.",
+      "considerations": "A backpack is personal; avoid choosing one when his preferred size or carry style is unknown.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-3",
+      "productResolution": "unresolved",
+      "position": 3,
+      "heading": "An organized meal-prep set",
+      "editorialDescription": "A reusable container set makes it simpler to portion, pack, and organize meals for workdays or home. It feels thoughtful when chosen with the recipient’s eating habits in mind rather than treated as a generic work accessory.",
+      "whyItFits": "It combines food-and-drink usefulness with home organization and supports a busy workday without leaning on nursing stereotypes.",
+      "bestFor": "A nurse who prepares meals ahead or packs food for work",
+      "selectionGuidance": "Match the shapes and mix of containers to the meals he tends to pack, available storage, and whether he prefers several smaller pieces or fewer larger ones. Favor an arrangement that is easy for him to keep organized.",
+      "considerations": "Skip it if he usually buys meals at work or already has a well-matched set.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-4",
+      "productResolution": "unresolved",
+      "position": 4,
+      "heading": "A coffee tasting set",
+      "editorialDescription": "A coffee sampler turns a familiar drink into a small ritual, making it suitable for a birthday, thank-you, promotion, or everyday encouragement. Variety lets him explore preferences without committing the gift to one style.",
+      "whyItFits": "It adds a personal food-and-drink touch while leaving room for individual taste, which matters more than a profession-themed design.",
+      "bestFor": "A coffee drinker who enjoys variety or small daily rituals",
+      "selectionGuidance": "Match the format to how he prepares coffee—beans or ground—and use known preferences when you have them. If his taste is unknown, choose an assortment with clear descriptions instead of a highly specialized selection.",
+      "considerations": "Not ideal if he does not drink coffee or already has strong preferences.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-5",
+      "productResolution": "unresolved",
+      "position": 5,
+      "heading": "Comfortable slippers for home",
+      "editorialDescription": "House slippers offer an easy off-shift transition and comfort at home after a demanding workday. Keep the choice grounded in his habits: he may prefer a plush, cozy feel or a simpler slip-on for moving around the house.",
+      "whyItFits": "They bring off-shift comfort into the home category and feel personal when the style reflects him, not a generic idea of what a male nurse should wear.",
+      "bestFor": "A nurse who values comfortable downtime at home",
+      "selectionGuidance": "Confirm his size and notice whether he prefers warmth, a lighter indoor shoe, or an easy slip-on. Choose a color and shape that suit his home style rather than relying on a traditionally masculine look.",
+      "considerations": "Sizing and personal preferences make this harder to choose as a surprise.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-6",
+      "productResolution": "unresolved",
+      "position": 6,
+      "heading": "A shower-time unwind set",
+      "editorialDescription": "A shower steamer set adds a small home ritual after work or on a day off. It feels more considered when the scent profile and presentation match his preferences, making it easy to give for several occasions.",
+      "whyItFits": "It offers an easygoing off-shift gift that does not require a hobby or a clinical connection.",
+      "bestFor": "A nurse who enjoys scented, at-home ways to unwind",
+      "selectionGuidance": "Use any known scent preference as the starting point; otherwise choose a varied set with clear descriptions. Favor straightforward presentation and a format that fits his usual shower routine.",
+      "considerations": "Avoid it if he dislikes fragrances or rarely uses shower products.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-7",
+      "productResolution": "unresolved",
+      "position": 7,
+      "heading": "A tidy bedside charging station",
+      "editorialDescription": "A bedside charging station gives everyday devices a consistent home, helping keep a nightstand or desk more orderly between workdays and time off. It is most thoughtful when it matches the devices and setup he already uses.",
+      "whyItFits": "It brings organization to home life and can feel personal when it solves a real everyday annoyance rather than adding another work-themed item.",
+      "bestFor": "A nurse whose nightstand or desk needs better device organization",
+      "selectionGuidance": "First consider which devices he charges, where the station would live, and whether he prefers a minimal or more organized look. Check compatibility with his existing devices and cable setup; do not assume a multi-device arrangement is useful.",
+      "considerations": "Device and cable compatibility can make this a poor surprise gift when his setup is unknown.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-8",
+      "productResolution": "unresolved",
+      "position": 8,
+      "heading": "A personal landing place for daily essentials",
+      "editorialDescription": "A valet tray gives keys, wallet, watch, and other pocket essentials a clear home at a bedside or desk. Leather can make the idea feel personal, but the best choice suits his décor and habits rather than a generic masculine style.",
+      "whyItFits": "It adds a small piece of home organization with a personal feel, especially if he tends to set keys, a wallet, or a watch down at a bedside or desk.",
+      "bestFor": "A nurse who empties pocket essentials at a bedside or desk",
+      "selectionGuidance": "Start with the setting—bedside, desk, or entryway—then compare size, shape, and finish with his routine and taste. Favor a design that holds what he actually carries without becoming visual clutter.",
+      "considerations": "Skip it if he keeps essentials in a drawer, bag, or shared catchall already.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-9",
+      "productResolution": "unresolved",
+      "position": 9,
+      "heading": "A photo book of shared memories",
+      "editorialDescription": "A custom photo book turns shared moments into a keepsake for a birthday, thank-you, promotion, holiday, or meaningful encouragement. It acknowledges the person behind the profession through photos, captions, and moments that belong to your relationship.",
+      "whyItFits": "It carries personal meaning across relationships, especially when the gift should celebrate the individual rather than nursing as an identity.",
+      "bestFor": "A nurse with shared memories worth preserving",
+      "selectionGuidance": "Build it around a clear story—shared trips, family moments, friendships, or milestones—and edit for a cohesive sequence. Use only photos and details the recipient would be comfortable keeping, then choose a format that fits how he displays or stores keepsakes.",
+      "considerations": "It takes advance preparation and is less suitable when you lack enough shared photos or he prefers practical gifts.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-10",
+      "productResolution": "unresolved",
+      "position": 10,
+      "heading": "A cooperative game for easy connection",
+      "editorialDescription": "A cooperative card game creates a low-pressure way to unwind and spend time with a partner, friends, or family. Its value comes from being genuinely playable by the people around him, not from a profession-themed joke.",
+      "whyItFits": "It adds easygoing fun to off-shift time while creating a shared activity with no assumption about his job-related interests.",
+      "bestFor": "A nurse who enjoys low-key games with others",
+      "selectionGuidance": "Choose around the group he is most likely to play with: consider player count, preferred complexity, play length, and portability. A compact format can suit travel or small gatherings, while approachable rules help occasional players join in.",
+      "considerations": "Avoid it if he rarely plays games or the likely group prefers competitive play.",
+      "editorialStatus": "ready"
+    }
+  ]
+}

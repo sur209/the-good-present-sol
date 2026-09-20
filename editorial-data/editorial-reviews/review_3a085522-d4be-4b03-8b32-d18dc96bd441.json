@@ -1,0 +1,79 @@
+{
+  "id": "review_3a085522-d4be-4b03-8b32-d18dc96bd441",
+  "guideId": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e",
+  "createdAt": "2026-09-20T06:28:41.920Z",
+  "contentFingerprint": "91e1f2450e2427838becb2eca0cc71a89c77998277da6de9ad738adb35613288",
+  "providerId": "codex-cli",
+  "modelId": "gpt-5.6-luna",
+  "promptVersion": "editorial-review-v1",
+  "status": "completed",
+  "metrics": {
+    "reviewInvocations": 1,
+    "repairInvocations": 0,
+    "inputTokens": 19461,
+    "outputTokens": 12720,
+    "totalTokens": null
+  },
+  "issues": [
+    {
+      "type": "overstrong-claim",
+      "severity": "minor",
+      "location": "guide",
+      "recommendationId": null,
+      "field": "title",
+      "explanation": "“They’ll Actually Like” promises a universal reaction that the guide cannot establish.",
+      "originalText": "Gifts for Male Nurses: Useful Ideas They’ll Actually Like",
+      "replacementText": "Gifts for Male Nurses: Thoughtful, Useful Ideas",
+      "id": "review_3a085522-d4be-4b03-8b32-d18dc96bd441_issue-1",
+      "appliedAt": "2026-09-20T06:33:11.397Z"
+    },
+    {
+      "type": "awkward-language",
+      "severity": "minor",
+      "location": "recommendation",
+      "recommendationId": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-3",
+      "field": "editorialDescription",
+      "explanation": "“Chosen around” is an unnatural collocation in this context.",
+      "originalText": "A reusable container set makes it simpler to portion, pack, and organize meals for workdays or home. It feels thoughtful when chosen around the recipient’s eating habits rather than treated as a generic work accessory.",
+      "replacementText": "A reusable container set makes it simpler to portion, pack, and organize meals for workdays or home. It feels thoughtful when chosen with the recipient’s eating habits in mind rather than treated as a generic work accessory.",
+      "id": "review_3a085522-d4be-4b03-8b32-d18dc96bd441_issue-2",
+      "appliedAt": "2026-09-20T06:33:11.397Z"
+    },
+    {
+      "type": "awkward-language",
+      "severity": "minor",
+      "location": "recommendation",
+      "recommendationId": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-6",
+      "field": "editorialDescription",
+      "explanation": "“The return from work” is stiff and less natural than a direct reference to after-work use.",
+      "originalText": "A shower steamer set adds a small home ritual to a day off or the return from work. It feels more considered when the scent profile and presentation match his preferences, while remaining simple to give for several occasions.",
+      "replacementText": "A shower steamer set adds a small home ritual after work or on a day off. It feels more considered when the scent profile and presentation match his preferences, making it easy to give for several occasions.",
+      "id": "review_3a085522-d4be-4b03-8b32-d18dc96bd441_issue-3",
+      "appliedAt": "2026-09-20T06:33:11.397Z"
+    },
+    {
+      "type": "awkward-language",
+      "severity": "minor",
+      "location": "recommendation",
+      "recommendationId": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-7",
+      "field": "heading",
+      "explanation": "“Charging home” is an unnatural noun phrase and obscures the recommendation.",
+      "originalText": "A tidy bedside charging home",
+      "replacementText": "A tidy bedside charging station",
+      "id": "review_3a085522-d4be-4b03-8b32-d18dc96bd441_issue-4",
+      "appliedAt": "2026-09-20T06:33:11.397Z"
+    },
+    {
+      "type": "excessive-repetition",
+      "severity": "minor",
+      "location": "recommendation",
+      "recommendationId": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-8",
+      "field": "whyItFits",
+      "explanation": "This repeats the full relationship list already used in the backpack recommendation, adding little recipient-specific guidance.",
+      "originalText": "It adds a small piece of home organization with a personal feel, making it appropriate for a partner, friend, family member, coworker, classmate, or mentor.",
+      "replacementText": "It adds a small piece of home organization with a personal feel, especially if he tends to set keys, a wallet, or a watch down at a bedside or desk.",
+      "id": "review_3a085522-d4be-4b03-8b32-d18dc96bd441_issue-5",
+      "appliedAt": "2026-09-20T06:33:11.397Z"
+    }
+  ]
+}
