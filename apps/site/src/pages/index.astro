@@ -6,7 +6,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import { clustersById, content } from "../lib/content.js";
 import { websiteStructuredData } from "../lib/structured-data.js";
 
-const featuredCluster = content.clusters[0]!;
+const featuredCluster = content.clusters.find(({ slug }) => slug === "nurse-gifts");
+if (!featuredCluster) {
+  throw new Error('Canonical "nurse-gifts" cluster is missing.');
+}
+const featuredClusterPath = clusterPath("nurse-gifts");
 const latestGuides = [...content.guides]
   .sort((left, right) =>
     (right.updatedAt ?? right.publishedAt).localeCompare(left.updatedAt ?? left.publishedAt),
@@ -29,7 +33,7 @@ const latestGuides = [...content.guides]
         around real moments and routines.
       </p>
       <div class="button-row">
-        <a class="button" href={clusterPath(featuredCluster.slug)}>Explore nurse gifts</a>
+        <a class="button" href={featuredClusterPath}>Explore nurse gifts</a>
         <a class="text-link" href="/about/">How we choose <span aria-hidden="true">→</span></a>
       </div>
     </div>
@@ -51,7 +55,7 @@ const latestGuides = [...content.guides]
         <p class="kicker">Featured cluster</p>
         <h3>{featuredCluster.title}</h3>
         <p>{featuredCluster.excerpt}</p>
-        <a class="text-link" href={clusterPath(featuredCluster.slug)}>
+        <a class="text-link" href={featuredClusterPath}>
           Browse the complete cluster <span aria-hidden="true">→</span>
         </a>
       </div>

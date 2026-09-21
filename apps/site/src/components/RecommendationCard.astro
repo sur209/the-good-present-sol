@@ -74,7 +74,7 @@ const accent = `recommendation--accent-${((recommendation.position - 1) % 4) + 1
       )
     }
     {
-      destination && (
+      destination ? (
         <div class="recommendation__commerce">
           <a
             class="button button--small"
@@ -93,6 +93,10 @@ const accent = `recommendation--accent-${((recommendation.position - 1) % 4) + 1
                 ? `View demo at ${merchantLabel}`
                 : `${isAffiliate ? "View at" : "View product at"} ${product!.merchant}`}
           </a>
+        </div>
+      ) : (
+        <div class="recommendation__commerce">
+          <span>No merchant link available.</span>
         </div>
       )
     }
