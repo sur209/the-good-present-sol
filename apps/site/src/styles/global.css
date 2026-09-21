@@ -1116,6 +1116,12 @@ code {
   font-weight: 800;
 }
 
+.recommendation__availability {
+  margin: 2rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
 .guide-disclosure {
   display: flex;
   margin-bottom: clamp(4rem, 8vw, 7rem);

@@ -8823,6 +8823,7 @@ test("publica y renderiza una idea sin Product ni CTA, conservando QA e I.0", as
   const ideaEnd = html.indexOf("</article>", ideaIndex);
   assert.ok(ideaIndex >= 0 && ideaStart >= 0 && ideaEnd >= 0);
   const ideaCard = html.slice(ideaStart, ideaEnd + "</article>".length);
+  assert.match(ideaCard, /No merchant link available\./);
   assert.doesNotMatch(ideaCard, /href=|recommendation__catalog|recommendation__commerce/);
   assert.doesNotMatch(
     ideaCard,
@@ -8876,6 +8877,68 @@ test("publica y renderiza una idea sin Product ni CTA, conservando QA e I.0", as
   assert.equal(resolvedAgain.id, original.id);
   assert.equal(resolvedAgain.position, original.position);
   assert.equal(resolvedAgain.productId, original.productId);
+});
+
+test("la homepage elige Nurse Gifts aunque otro cluster aparezca primero", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-homepage-order-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+
+  const content = readPublicContent(repository);
+  const canonical = content.clusters.find(({ slug }) => slug === "nurse-gifts")!;
+  await atomicWriteJson(join(repository, "content", "clusters", "cluster_000-leading-gifts.json"), {
+    ...canonical,
+    id: "cluster_000-leading-gifts",
+    slug: "leading-gifts",
+    title: "Leading Gifts",
+    navigationGroups: [],
+  });
+  const ordered = readPublicContent(repository);
+  assert.equal(ordered.clusters[0]?.id, "cluster_000-leading-gifts");
+
+  await execFileAsync(process.execPath, [join(REPOSITORY_ROOT, "scripts", "astro.mjs"), "build"], {
+    cwd: join(REPOSITORY_ROOT, "apps", "site"),
+    env: { ...process.env, CONTENT_REPOSITORY_ROOT: repository },
+    maxBuffer: 10 * 1024 * 1024,
+    windowsHide: true,
+  });
+  const homeHtml = await readFile(
+    join(REPOSITORY_ROOT, "apps", "site", "dist", "index.html"),
+    "utf8",
+  );
+  assert.equal((homeHtml.match(/href="\/nurse-gifts\/"/g) ?? []).length, 2);
+  assert.match(homeHtml, /<h3>Nurse Gifts<\/h3>/);
+  assert.doesNotMatch(homeHtml, /<h3>Leading Gifts<\/h3>/);
+});
+
+test("la homepage falla claramente si falta el cluster canónico Nurse Gifts", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-homepage-missing-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+
+  const canonicalFile = join(repository, "content", "clusters", "cluster_nurse-gifts.json");
+  const canonical = JSON.parse(await readFile(canonicalFile, "utf8")) as Record<string, unknown>;
+  await writeFile(
+    canonicalFile,
+    JSON.stringify({ ...canonical, slug: "nurse-gifts-missing" }, null, 2),
+  );
+
+  await assert.rejects(
+    execFileAsync(process.execPath, [join(REPOSITORY_ROOT, "scripts", "astro.mjs"), "build"], {
+      cwd: join(REPOSITORY_ROOT, "apps", "site"),
+      env: { ...process.env, CONTENT_REPOSITORY_ROOT: repository },
+      maxBuffer: 10 * 1024 * 1024,
+      windowsHide: true,
+    }),
+    (error: unknown) => {
+      const commandError = error as { message?: string; stderr?: string; stdout?: string };
+      const output = [commandError.message, commandError.stderr, commandError.stdout]
+        .filter(Boolean)
+        .join("\n");
+      assert.match(output, /Canonical "nurse-gifts" cluster is missing\./);
+      return true;
+    },
+  );
 });
 
 test("monetiza una recomendación directamente sin Product ni trabajo de sourcing", async (context) => {
@@ -9358,7 +9421,7 @@ test("publicar una guía y enlazarla desde su hub produce ambas páginas reales"
   );
   const afterGuideUpdate = publisher.read();
   const finalGuide = afterGuideUpdate.guides.find((item) => item.id === draft.id)!;
-  const revisedClusterSlug = `${cluster.slug}-revised`;
+  const revisedClusterSlug = cluster.slug;
   await publisher.publishCluster(
     clusterDraftSchema.parse({
       ...reopenClusterDraft(afterGuideUpdate.clusters.find((item) => item.id === cluster.id)!),
