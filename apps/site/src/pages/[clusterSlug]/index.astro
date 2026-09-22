@@ -70,62 +70,81 @@ const navigationGroups = cluster.navigationGroups
     </div>
   </header>
 
-  <section class="hub-paths section shell" aria-labelledby="choose-path">
-    <div class="section-heading section-heading--split">
-      <div>
-        <p class="eyebrow">Choose your way in</p>
-        <h2 id="choose-path">Three needs. Three focused guides.</h2>
-      </div>
-      <p>These groups are selected by editors. Tags do not create extra pages.</p>
-    </div>
-
-    <div class="hub-paths__list">
-      {
-        navigationGroups.map((group, index) => (
-          <section class="hub-path" aria-labelledby={`group-${group.id}`}>
-            <div class="hub-path__number" aria-hidden="true">
-              0{index + 1}
-            </div>
-            <div>
-              <p class="kicker">{primaryAxisLabels[group.axis]}</p>
-              <h3 id={`group-${group.id}`}>{group.label}</h3>
-            </div>
-            <ul>
-              {group.guides.map((guide) => (
-                <li>
-                  <a href={guidePath(cluster.slug, guide.slug)}>
-                    <span>{guide.title}</span>
-                    <span aria-hidden="true">↗</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))
-      }
-    </div>
-  </section>
-
-  <section class="section section--ink" aria-labelledby="featured-guides">
-    <div class="shell">
-      <div class="section-heading section-heading--split">
-        <div>
-          <p class="eyebrow">Featured guides</p>
-          <h2 id="featured-guides">Useful context before product picks.</h2>
+  {
+    navigationGroups.length > 0 ? (
+      <section class="hub-paths section shell" aria-labelledby="choose-path">
+        <div class="section-heading section-heading--split">
+          <div>
+            <p class="eyebrow">Choose your way in</p>
+            <h2 id="choose-path">Start with a focused guide.</h2>
+          </div>
+          <p>These groups are selected by editors. Tags do not create extra pages.</p>
         </div>
-        <a class="text-link text-link--light" href={PUBLIC_PATHS.giftGuides}>
-          All gift guides <span aria-hidden="true">→</span>
-        </a>
-      </div>
-      <div class="guide-grid">
-        {
-          clusterGuides.map((guide, index) => (
-            <GuideCard guide={guide} cluster={cluster} number={index + 1} />
-          ))
-        }
-      </div>
-    </div>
-  </section>
+
+        <div class="hub-paths__list">
+          {navigationGroups.map((group, index) => (
+            <section class="hub-path" aria-labelledby={`group-${group.id}`}>
+              <div class="hub-path__number" aria-hidden="true">
+                0{index + 1}
+              </div>
+              <div>
+                <p class="kicker">{primaryAxisLabels[group.axis]}</p>
+                <h3 id={`group-${group.id}`}>{group.label}</h3>
+              </div>
+              <ul>
+                {group.guides.map((guide) => (
+                  <li>
+                    <a href={guidePath(cluster.slug, guide.slug)}>
+                      <span>{guide.title}</span>
+                      <span aria-hidden="true">↗</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      </section>
+    ) : (
+      <section class="hub-paths section shell" aria-labelledby="empty-guides">
+        <div class="section-heading section-heading--split">
+          <div>
+            <p class="eyebrow">No guides yet</p>
+            <h2 id="empty-guides">No focused guides are published in this cluster.</h2>
+          </div>
+          <p>
+            Browse the published collection for more gift ideas.
+            <a class="text-link" href={PUBLIC_PATHS.giftGuides}>
+              All gift guides <span aria-hidden="true">→</span>
+            </a>
+          </p>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    clusterGuides.length > 0 && (
+      <section class="section section--ink" aria-labelledby="featured-guides">
+        <div class="shell">
+          <div class="section-heading section-heading--split">
+            <div>
+              <p class="eyebrow">Featured guides</p>
+              <h2 id="featured-guides">Useful context before product picks.</h2>
+            </div>
+            <a class="text-link text-link--light" href={PUBLIC_PATHS.giftGuides}>
+              All gift guides <span aria-hidden="true">→</span>
+            </a>
+          </div>
+          <div class="guide-grid">
+            {clusterGuides.map((guide, index) => (
+              <GuideCard guide={guide} cluster={cluster} number={index + 1} />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   <section class="hub-method section shell" aria-labelledby="hub-method-heading">
     <div>
@@ -134,8 +153,8 @@ const navigationGroups = cluster.navigationGroups
     </div>
     <div>
       <p>
-        The hub holds the whole Nurse Gifts collection. Each child guide answers a more specific
-        question with its own criteria and recommendation copy.
+        This hub brings together the whole {cluster.title} collection. Each child guide answers a more
+        specific question with its own criteria and recommendation copy.
       </p>
       <p>
         We do not publish every combination of occasion, recipient, style, and price. If a need is

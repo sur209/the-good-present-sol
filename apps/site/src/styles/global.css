@@ -1410,6 +1410,11 @@ code {
     max-width: 34rem;
   }
 
+  .hub-hero h1 {
+    font-size: clamp(4rem, 12vw, 9.5rem);
+    overflow-wrap: anywhere;
+  }
+
   .hub-path {
     grid-template-columns: 3rem 1fr;
   }

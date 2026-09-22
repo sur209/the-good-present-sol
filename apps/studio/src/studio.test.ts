@@ -8941,6 +8941,36 @@ test("la homepage falla claramente si falta el cluster canónico Nurse Gifts", a
   );
 });
 
+test("renderiza hubs según su cluster y ofrece un estado vacío honesto", async (context) => {
+  const repository = await mkdtemp(join(tmpdir(), "good-present-cluster-hubs-"));
+  context.after(() => rm(repository, { recursive: true, force: true }));
+  await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+
+  await execFileAsync(process.execPath, [join(REPOSITORY_ROOT, "scripts", "astro.mjs"), "build"], {
+    cwd: join(REPOSITORY_ROOT, "apps", "site"),
+    env: { ...process.env, CONTENT_REPOSITORY_ROOT: repository },
+    maxBuffer: 10 * 1024 * 1024,
+    windowsHide: true,
+  });
+  const output = join(REPOSITORY_ROOT, "apps", "site", "dist");
+  const nurseHubHtml = await readFile(join(output, "nurse-gifts", "index.html"), "utf8");
+  const firefighterHubHtml = await readFile(
+    join(output, "firefighter-gifts", "index.html"),
+    "utf8",
+  );
+
+  assert.match(nurseHubHtml, /<h1>Nurse Gifts<\/h1>/);
+  assert.match(nurseHubHtml, /Start with a focused guide\./);
+  assert.match(nurseHubHtml, /href="\/nurse-gifts\/practical\/"/);
+  assert.match(nurseHubHtml, /This hub brings together the whole Nurse Gifts collection\./);
+
+  assert.match(firefighterHubHtml, /<h1>Firefighter Gifts<\/h1>/);
+  assert.match(firefighterHubHtml, /No focused guides are published in this cluster\./);
+  assert.match(firefighterHubHtml, /href="\/gift-guides\/"/);
+  assert.doesNotMatch(firefighterHubHtml, /Nurse Gifts|Choose your way in|Featured guides/);
+  assert.doesNotMatch(firefighterHubHtml, /href="\/firefighter-gifts\/[^"/]+\/"/);
+});
+
 test("monetiza una recomendación directamente sin Product ni trabajo de sourcing", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-direct-affiliate-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
