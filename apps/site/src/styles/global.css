@@ -980,6 +980,25 @@ code {
   background: var(--color-coral);
 }
 
+.recommendation__visual--illustrated::before,
+.recommendation__visual--illustrated::after {
+  display: none;
+}
+
+.recommendation .recommendation__visual--illustrated {
+  min-height: 0;
+  aspect-ratio: 4 / 5;
+  align-self: start;
+}
+
+.recommendation__visual--illustrated img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .recommendation__visual > span {
   position: relative;
   z-index: 1;

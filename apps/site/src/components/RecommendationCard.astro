@@ -9,9 +9,10 @@ import {
 interface Props {
   recommendation: GuideRecommendation;
   product?: Product;
+  illustration?: { src: string; alt: string };
 }
 
-const { recommendation, product } = Astro.props;
+const { recommendation, product, illustration } = Astro.props;
 const destination = recommendationDestination(recommendation, product);
 const isDirectAffiliate = Boolean(recommendation.directAffiliateUrl);
 const isAffiliate =
@@ -36,8 +37,24 @@ const accent = `recommendation--accent-${((recommendation.position - 1) % 4) + 1
 ---
 
 <article class:list={["recommendation", accent]} id={`pick-${recommendation.position}`}>
-  <div class="recommendation__visual" aria-hidden="true">
-    <span>{initials}</span>
+  <div
+    class:list={["recommendation__visual", illustration && "recommendation__visual--illustrated"]}
+    aria-hidden={illustration ? undefined : "true"}
+  >
+    {
+      illustration ? (
+        <img
+          src={illustration.src}
+          alt={illustration.alt}
+          width="960"
+          height="1200"
+          loading="lazy"
+          decoding="async"
+        />
+      ) : (
+        <span>{initials}</span>
+      )
+    }
     <small>Pick {recommendation.position}</small>
   </div>
   <div class="recommendation__body">
