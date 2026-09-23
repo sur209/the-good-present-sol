@@ -996,7 +996,7 @@ code {
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .recommendation__visual > span {
@@ -1052,6 +1052,10 @@ code {
 
 .recommendation--accent-4 .recommendation__visual > span {
   background: var(--color-coral-dark);
+}
+
+.recommendation-list .recommendation__visual--illustrated {
+  background: var(--color-paper);
 }
 
 .recommendation-list > li:nth-child(even) .recommendation__visual {

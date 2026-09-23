@@ -43,14 +43,7 @@ const accent = `recommendation--accent-${((recommendation.position - 1) % 4) + 1
   >
     {
       illustration ? (
-        <img
-          src={illustration.src}
-          alt={illustration.alt}
-          width="960"
-          height="1200"
-          loading="lazy"
-          decoding="async"
-        />
+        <img src={illustration.src} alt={illustration.alt} loading="lazy" decoding="async" />
       ) : (
         <span>{initials}</span>
       )

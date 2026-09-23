@@ -21,6 +21,7 @@ import {
   primaryAxisLabels,
   productsById,
 } from "../../../lib/content.js";
+import { recommendationIllustrations } from "../../../lib/illustrations.js";
 import { breadcrumbStructuredData, guideStructuredData } from "../../../lib/structured-data.js";
 
 export function getStaticPaths() {
@@ -40,32 +41,6 @@ interface Props {
 
 const { cluster, guide } = Astro.props;
 const publicPath = guidePath(cluster.slug, guide.slug);
-const practicalIllustrations: Record<string, { src: string; alt: string }> = {
-  "practical_compression-socks": {
-    src: "/images/practical/compression-socks.webp",
-    alt: "Illustration of a pair of compression socks",
-  },
-  practical_tumbler: {
-    src: "/images/practical/insulated-tumbler.webp",
-    alt: "Illustration of a lidded insulated tumbler",
-  },
-  "practical_lunch-container": {
-    src: "/images/practical/lunch-containers.webp",
-    alt: "Illustration of nesting lunch containers",
-  },
-  "practical_shift-tote": {
-    src: "/images/practical/commute-tote.webp",
-    alt: "Illustration of a commute tote bag",
-  },
-  "practical_hand-cream": {
-    src: "/images/practical/hand-cream.webp",
-    alt: "Illustration of two hand cream tubes",
-  },
-  "practical_sleep-mask": {
-    src: "/images/practical/sleep-mask.webp",
-    alt: "Illustration of a blackout sleep mask",
-  },
-};
 const recommendations = [...guide.recommendations]
   .sort((left, right) => left.position - right.position)
   .map((recommendation) => ({
@@ -187,11 +162,7 @@ const hasDemoLinks = recommendations.some(({ recommendation, product }) => {
               <RecommendationCard
                 recommendation={recommendation}
                 product={product}
-                illustration={
-                  guide.id === "guide_nurse-practical"
-                    ? practicalIllustrations[recommendation.id]
-                    : undefined
-                }
+                illustration={recommendationIllustrations[recommendation.id]}
               />
             </li>
           ))
