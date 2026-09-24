@@ -27,7 +27,7 @@ export const RESEARCH_EXAMPLES = [
   "https://www.goodhousekeeping.com/holidays/gift-ideas/g71085444/nursing-school-graduation-gifts/",
 ];
 
-export const IDEA_RESEARCH_PROMPT_VERSION = "research-v1";
+export const IDEA_RESEARCH_PROMPT_VERSION = "research-v2";
 
 const proposalSchema = z.strictObject({
   giftClass: z.string().trim().min(4).max(120),

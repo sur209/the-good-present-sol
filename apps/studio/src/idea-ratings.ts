@@ -95,12 +95,23 @@ export class IdeaRatingStore {
 }
 
 export function ideaRatingHints(ratings: readonly IdeaRating[], clusterId: string): string[] {
-  return ratings
+  const candidates = ratings
     .filter((rating) => rating.clusterId === clusterId)
     .sort(
       (a, b) =>
-        Math.abs(b.score - 5.5) - Math.abs(a.score - 5.5) || b.updatedAt.localeCompare(a.updatedAt),
-    )
+        Number(Boolean(b.reason)) - Number(Boolean(a.reason)) ||
+        Math.abs(b.score - 5.5) - Math.abs(a.score - 5.5) ||
+        b.updatedAt.localeCompare(a.updatedAt),
+    );
+  const selected = [
+    ...candidates.filter((rating) => rating.score >= 8).slice(0, 3),
+    ...candidates.filter((rating) => rating.score <= 4).slice(0, 3),
+    ...candidates
+      .filter((rating) => rating.score >= 5 && rating.score <= 7 && rating.reason)
+      .slice(0, 2),
+  ];
+  const selectedKeys = new Set(selected.map((rating) => rating.ideaKey));
+  return [...selected, ...candidates.filter((rating) => !selectedKeys.has(rating.ideaKey))]
     .slice(0, 8)
     .map(
       (rating) =>

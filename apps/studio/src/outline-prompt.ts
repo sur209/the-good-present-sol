@@ -11,7 +11,7 @@ import {
   type GuideDraft,
 } from "./drafts.ts";
 
-export const OUTLINE_PROMPT_VERSION = "outline-v3";
+export const OUTLINE_PROMPT_VERSION = "outline-v4";
 
 const mockOutlineGiftClasses = [
   "Portable Phone Charger",

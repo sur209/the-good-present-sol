@@ -6252,7 +6252,7 @@ test("construye un prompt de esquema determinista y sin selección comercial", (
   const second = prepareOutlinePrompt(draft, content);
 
   assert.equal(first.prompt, second.prompt);
-  assert.equal(first.version, "outline-v3");
+  assert.equal(first.version, "outline-v4");
   assert.match(first.prompt, /exactly one JSON object/);
   assert.match(first.prompt, /one concrete, commercially recognizable/);
   assert.match(first.prompt, /broader editorial need or use case in intent/);

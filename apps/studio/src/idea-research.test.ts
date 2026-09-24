@@ -19,7 +19,7 @@ import {
   robotsAllows,
 } from "./idea-research.ts";
 import { ProductCatalog } from "./product-catalog.ts";
-import { IdeaRatingStore, ideaRatingHints } from "./idea-ratings.ts";
+import { IdeaRatingStore, ideaRatingHints, type IdeaRating } from "./idea-ratings.ts";
 import { prepareOutlinePrompt } from "./outline-prompt.ts";
 import { REPOSITORY_ROOT, readEditorialContent, readPublicContent } from "./repository.ts";
 import { STUDIO_HOST, createStudioServer } from "./server.ts";
@@ -66,6 +66,37 @@ test("a compact numeric rating is visible to future idea outlines", () => {
   assert.match(prompt, /scores 8-10 as positive patterns/);
   assert.match(prompt, /Mere usefulness is not enough/);
   assert.match(prompt, /occupation as context/);
+});
+
+test("rating hints keep positive, negative and reasoned middle examples in a small sample", () => {
+  const rating = (label: string, score: number, reason?: string): IdeaRating => ({
+    ideaKey: label,
+    clusterId: "cluster_nurse-gifts",
+    label,
+    score,
+    ...(reason ? { reason } : {}),
+    updatedAt: "2026-09-24T12:00:00.000Z",
+    history: [],
+  });
+  const ratings = [
+    ...Array.from({ length: 10 }, (_, index) => rating(`Low without context ${index}`, 1)),
+    rating("Generic frame", 3, "Too generic for this occasion."),
+    rating("Work notebook", 1, "A phone already covers this."),
+    rating("Occupational trinket", 2, "More cliché than gift."),
+    rating("Desk plant", 8, "Simple and attractive."),
+    rating("Kitchen herbs", 8, "Useful for cooking."),
+    rating("Snack basket", 8, "Enjoyable to share."),
+    rating("Desk organizer", 7, "Useful at home."),
+    rating("Hobby kit", 6, "Good for a known interest."),
+    { ...rating("Other group", 10), clusterId: "cluster_firefighter-gifts" },
+  ];
+  const hints = ideaRatingHints(ratings, "cluster_nurse-gifts");
+  assert.equal(hints.length, 8);
+  assert.equal(hints.filter((hint) => / 8\/10\./.test(hint)).length, 3);
+  assert.equal(hints.filter((hint) => / [1-4]\/10\./.test(hint)).length, 3);
+  assert.equal(hints.filter((hint) => / [5-7]\/10\./.test(hint)).length, 2);
+  assert.ok(hints.every((hint) => hint.includes("Context and reason:")));
+  assert.ok(hints.every((hint) => !hint.includes("Other group")));
 });
 
 test("blocked pages are not fetched", async () => {
@@ -132,7 +163,7 @@ test("research saves only grounded, distinct proposals and needs human approval"
     );
     assert.equal(first.length, 1);
     assert.equal(first[0]!.status, "proposed");
-    assert.equal(first[0]!.promptVersion, "research-v1");
+    assert.equal(first[0]!.promptVersion, "research-v2");
     assert.equal(first[0]!.sourceUrl, article);
     assert.deepEqual(approvedResearchHints(await store.list("cluster_nurse-gifts")), []);
     const accepted = await store.decide(first[0]!.id, "accepted");
@@ -343,8 +374,8 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     assert.match(promptBody, /Plantilla de instrucciones actual/);
     assert.match(promptBody, /Último prompt guardado/);
     assert.match(promptBody, /Esto no es un historial completo/);
-    assert.match(promptBody, /outline-v3/);
-    assert.match(promptBody, /research-v1/);
+    assert.match(promptBody, /outline-v4/);
+    assert.match(promptBody, /research-v2/);
     assert.match(promptBody, /outline-v1/);
     assert.match(promptBody, /Previously saved prompt snapshot/);
     assert.match(promptBody, /Useful at home, not a redundant work tool\./);
