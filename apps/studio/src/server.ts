@@ -405,6 +405,7 @@ interface GiftIdeaRow {
   label: string;
   location: string;
   detail: string;
+  published: boolean;
   image?: { src: string; alt: string };
   link?: string;
   research?: ResearchRecord;
@@ -427,6 +428,7 @@ function giftIdeaRows(
         label: (item.heading ?? "Idea sin título").slice(0, 200),
         location: "Guía pública",
         detail: guide.title,
+        published: true,
         ...(illustration
           ? { image: { src: `/local-assets${illustration.src}`, alt: illustration.alt } }
           : {}),
@@ -448,6 +450,7 @@ function giftIdeaRows(
         label,
         location: "Borrador",
         detail: draft.title ?? draft.id,
+        published: Boolean(published),
         ...(published?.label === label && published.image ? { image: published.image } : {}),
         link: `/drafts/${encodeURIComponent(draft.id)}#slot-${encodeURIComponent(item.id)}`,
       });
@@ -460,6 +463,7 @@ function giftIdeaRows(
       label: record.giftClass,
       location: "Sin guía",
       detail: record.sourceName,
+      published: false,
       link: record.sourceUrl,
       research: record,
     });
@@ -506,18 +510,22 @@ function ideaResearchPage(
         row.research?.status === "proposed"
           ? `<div class="actions"><form method="post" action="/idea-research/${row.research.id}/accept"><button>Aceptar</button></form><form method="post" action="/idea-research/${row.research.id}/reject"><button>Descartar</button></form></div>`
           : "";
-      const status = row.research
+      const baseStatus = row.research
         ? row.research.status === "proposed"
           ? "Pendiente"
           : row.research.status === "accepted"
             ? "Aceptada"
             : "Descartada"
         : "Asignada";
+      const status =
+        row.published && rating?.score !== undefined && rating.score <= 4
+          ? "Marcada para reemplazo"
+          : baseStatus;
       return `<tr><td><div class="idea-preview">${row.image ? `<img src="${escapeHtml(row.image.src)}" alt="${escapeHtml(row.image.alt)}" width="72" height="72" loading="lazy" decoding="async">` : ""}<div><strong>${escapeHtml(row.label)}</strong>${row.research ? `<br><small>${escapeHtml(row.research.fit)} · Encabezado: “${escapeHtml(row.research.evidenceHeading)}”</small>` : ""}</div></div></td>
       <td>${escapeHtml(row.location)}<br><small>${detail}</small></td>
-      <td>${escapeHtml(status)}</td>
+      <td><span data-idea-status data-published="${row.published}" data-base-status="${escapeHtml(baseStatus)}">${escapeHtml(status)}</span></td>
       <td><span data-current-rating>${rating ? `${rating.score}/10` : "Sin puntaje"}</span><small class="rating-note" data-current-reason>${escapeHtml(rating?.reason ?? "")}</small></td>
-      <td><form class="actions" method="post" action="/idea-research/rate" data-idea-rating><input type="hidden" name="ideaKey" value="${escapeHtml(row.ideaKey)}"><input type="hidden" name="clusterId" value="${escapeHtml(row.clusterId)}"><label>Puntaje <select name="score" data-saved-score="${rating?.score ?? ""}" aria-label="Puntaje para ${escapeHtml(row.label)}"><option value=""${rating ? "" : " selected"}>—</option>${options}</select></label><button>Asignar puntajes</button><details class="rating-reason"><summary>Motivo y contexto (opcional)</summary><label>¿Para quién, en qué ocasión y por qué sería —o no— un buen regalo?<textarea name="reason" data-saved-reason="${escapeHtml(rating?.reason ?? "")}" aria-label="Motivo y contexto para ${escapeHtml(row.label)}" maxlength="240" rows="3">${escapeHtml(rating?.reason ?? "")}</textarea></label></details></form>${decision}</td></tr>`;
+      <td><form class="actions" method="post" action="/idea-research/rate" data-idea-rating><input type="hidden" name="ideaKey" value="${escapeHtml(row.ideaKey)}"><input type="hidden" name="clusterId" value="${escapeHtml(row.clusterId)}"><label>Puntaje <select name="score" data-saved-score="${rating?.score ?? ""}" aria-label="Puntaje para ${escapeHtml(row.label)}"><option value=""${rating ? "" : " selected"}>—</option>${options}</select></label><button>Asignar puntajes</button><details class="rating-reason"><summary>Motivo y contexto (opcional)</summary><label>¿Para quién, en qué ocasión y qué cualidad hace que sea —o no— un buen regalo? En notas positivas, describí la cualidad sin repetir el objeto.<textarea name="reason" data-saved-reason="${escapeHtml(rating?.reason ?? "")}" aria-label="Motivo y contexto para ${escapeHtml(row.label)}" maxlength="240" rows="3">${escapeHtml(rating?.reason ?? "")}</textarea></label></details></form>${decision}</td></tr>`;
     })
     .join("");
   return page(

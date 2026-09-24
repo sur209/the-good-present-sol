@@ -55,15 +55,29 @@ test("extracts a bounded title and distinct headings, not article paragraphs", (
   });
 });
 
-test("a compact numeric rating is visible to future idea outlines", () => {
+test("positive feedback teaches a quality without repeating the rated object", () => {
   const publicContent = readPublicContent();
   const guide = publicContent.guides.find((item) => item.id === "guide_nurse-practical")!;
   const draft = reopenGuideDraft(guide, publicContent);
-  const prompt = prepareOutlinePrompt(draft, readEditorialContent(), [
-    "Editor rated “A compact lunch warmer” 9/10.",
-  ]).prompt;
-  assert.match(prompt, /A compact lunch warmer/);
-  assert.match(prompt, /scores 8-10 as positive patterns/);
+  const hints = ideaRatingHints(
+    [
+      {
+        ideaKey: "lunch-warmer",
+        clusterId: "cluster_nurse-gifts",
+        label: "A compact lunch warmer",
+        score: 9,
+        reason: "It feels generous and useful beyond work.",
+        updatedAt: "2026-09-24T12:00:00.000Z",
+        history: [],
+      },
+    ],
+    "cluster_nurse-gifts",
+  );
+  const prompt = prepareOutlinePrompt(draft, readEditorialContent(), hints).prompt;
+  assert.doesNotMatch(prompt, /A compact lunch warmer/);
+  assert.match(prompt, /It feels generous and useful beyond work/);
+  assert.match(prompt, /different gift class/);
+  assert.match(prompt, /Positive entries intentionally omit the rated object/);
   assert.match(prompt, /Mere usefulness is not enough/);
   assert.match(prompt, /occupation as context/);
 });
@@ -92,10 +106,12 @@ test("rating hints keep positive, negative and reasoned middle examples in a sma
   ];
   const hints = ideaRatingHints(ratings, "cluster_nurse-gifts");
   assert.equal(hints.length, 8);
-  assert.equal(hints.filter((hint) => / 8\/10\./.test(hint)).length, 3);
-  assert.equal(hints.filter((hint) => / [1-4]\/10\./.test(hint)).length, 3);
-  assert.equal(hints.filter((hint) => / [5-7]\/10\./.test(hint)).length, 2);
-  assert.ok(hints.every((hint) => hint.includes("Context and reason:")));
+  assert.equal(hints.filter((hint) => hint.startsWith("Positive preference pattern")).length, 3);
+  assert.equal(hints.filter((hint) => hint.startsWith("Negative example")).length, 3);
+  assert.equal(hints.filter((hint) => hint.startsWith("Conditional preference")).length, 2);
+  assert.ok(hints.some((hint) => hint.includes("Generic frame")));
+  assert.ok(hints.every((hint) => !hint.includes("Desk plant")));
+  assert.ok(hints.every((hint) => !hint.includes("Desk organizer")));
   assert.ok(hints.every((hint) => !hint.includes("Other group")));
 });
 
@@ -163,7 +179,7 @@ test("research saves only grounded, distinct proposals and needs human approval"
     );
     assert.equal(first.length, 1);
     assert.equal(first[0]!.status, "proposed");
-    assert.equal(first[0]!.promptVersion, "research-v2");
+    assert.equal(first[0]!.promptVersion, "research-v3");
     assert.equal(first[0]!.sourceUrl, article);
     assert.deepEqual(approvedResearchHints(await store.list("cluster_nurse-gifts")), []);
     const accepted = await store.decide(first[0]!.id, "accepted");
@@ -282,13 +298,16 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     assert.match(body, /Buscar y guardar ideas/);
     assert.match(body, /Asignar puntajes/);
     assert.match(body, /Motivo y contexto \(opcional\)/);
+    assert.match(body, /describí la cualidad sin repetir el objeto/);
     assert.match(body, /pulsá «Asignar puntajes» en cualquier fila/);
     assert.match(body, /data-idea-rating/);
     assert.match(body, /<script src="\/idea-research\.js" defer><\/script>/);
     assert.match(listing.headers.get("content-security-policy") ?? "", /connect-src 'self'/);
     const script = await fetch(`${origin}/idea-research.js`);
     assert.equal(script.status, 200);
-    assert.match(await script.text(), /fetch\(form\.action/);
+    const scriptBody = await script.text();
+    assert.match(scriptBody, /fetch\(form\.action/);
+    assert.match(scriptBody, /Marcada para reemplazo/);
     assert.match(body, /Guía pública/);
     assert.match(body, /Borrador|Sin guía/);
     assert.match(body, new RegExp(`/idea-research/${record.id}/accept`));
@@ -304,9 +323,7 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     });
     assert.equal(rated.status, 303, await rated.text());
     assert.equal((await ratingStore.list())[0]!.score, 9);
-    assert.deepEqual(ideaRatingHints(await ratingStore.list(), "cluster_nurse-gifts"), [
-      "Editor rated “A compact lunch warmer” 9/10.",
-    ]);
+    assert.deepEqual(ideaRatingHints(await ratingStore.list(), "cluster_nurse-gifts"), []);
     const updated = await fetch(`${origin}/idea-research/rate`, {
       method: "POST",
       body: new URLSearchParams({
@@ -362,10 +379,18 @@ test("Studio shows pending ideas and records an explicit editor decision", async
       savedRatings.find((rating) => rating.ideaKey === `research:${record.id}`)?.history[2]?.reason,
       "Useful at home, not a redundant work tool.",
     );
-    assert.match(
-      ideaRatingHints(savedRatings, "cluster_nurse-gifts").join(" "),
-      /Context and reason: Too ordinary to feel like a gift\./,
+    const savedHints = ideaRatingHints(savedRatings, "cluster_nurse-gifts").join(" ");
+    assert.match(savedHints, /Useful at home, not a redundant work tool\./);
+    assert.doesNotMatch(savedHints, /A compact lunch warmer/);
+    assert.match(savedHints, /A different gift idea/);
+    assert.match(savedHints, /Too ordinary to feel like a gift\./);
+    const markedBody = await (await fetch(`${origin}/idea-research`)).text();
+    const markedPosition = markedBody.indexOf("A different gift idea");
+    const markedRow = markedBody.slice(
+      markedBody.lastIndexOf("<tr>", markedPosition),
+      markedBody.indexOf("</tr>", markedPosition),
     );
+    assert.match(markedRow, /Marcada para reemplazo/);
     const prompts = await fetch(
       `${origin}/idea-research/prompts?cluster=cluster_nurse-gifts&draft=guide_nurse-practical`,
     );
@@ -374,8 +399,8 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     assert.match(promptBody, /Plantilla de instrucciones actual/);
     assert.match(promptBody, /Último prompt guardado/);
     assert.match(promptBody, /Esto no es un historial completo/);
-    assert.match(promptBody, /outline-v4/);
-    assert.match(promptBody, /research-v2/);
+    assert.match(promptBody, /outline-v5/);
+    assert.match(promptBody, /research-v3/);
     assert.match(promptBody, /outline-v1/);
     assert.match(promptBody, /Previously saved prompt snapshot/);
     assert.match(promptBody, /Useful at home, not a redundant work tool\./);

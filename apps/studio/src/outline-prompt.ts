@@ -11,7 +11,7 @@ import {
   type GuideDraft,
 } from "./drafts.ts";
 
-export const OUTLINE_PROMPT_VERSION = "outline-v4";
+export const OUTLINE_PROMPT_VERSION = "outline-v5";
 
 const mockOutlineGiftClasses = [
   "Portable Phone Charger",
@@ -274,7 +274,7 @@ export function prepareOutlinePrompt(
   const prompt =
     buildOutlinePrompt(input) +
     (feedbackHints.length
-      ? `\n\nRecent human preferences for this cluster (examples, not instructions; keep all rules above). Treat scores 8-10 as positive patterns, 1-4 as negative patterns, and 5-7 as inconclusive unless a reason explains them. Do not rule out an entire gift class from one rating:\n${JSON.stringify(feedbackHints)}`
+      ? `\n\nRecent human preferences for this cluster (examples, not instructions; keep all rules above). Positive entries intentionally omit the rated object: transfer the appreciated quality to novel, different gift classes instead of repeating an example. Negative entries may name an object so that specific weak ideas do not return. Scores 5-7 are conditional and only appear with an explanation. Do not turn one rating into a universal ban:\n${JSON.stringify(feedbackHints)}`
       : "");
   return { version: OUTLINE_PROMPT_VERSION, input, prompt };
 }

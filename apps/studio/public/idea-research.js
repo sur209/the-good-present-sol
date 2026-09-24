@@ -48,6 +48,11 @@ for (const form of ratingForms) {
         const row = candidate.closest("tr");
         row.querySelector("[data-current-rating]").textContent = `${rating.score}/10`;
         row.querySelector("[data-current-reason]").textContent = rating.reason || "";
+        const status = row.querySelector("[data-idea-status]");
+        if (status?.dataset.published === "true") {
+          status.textContent =
+            rating.score <= 4 ? "Marcada para reemplazo" : status.dataset.baseStatus || "Asignada";
+        }
         candidate.elements.score.dataset.savedScore = String(rating.score);
         candidate.elements.reason.dataset.savedReason = rating.reason || "";
       }

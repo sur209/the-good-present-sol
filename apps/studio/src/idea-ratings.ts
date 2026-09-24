@@ -103,18 +103,19 @@ export function ideaRatingHints(ratings: readonly IdeaRating[], clusterId: strin
         Math.abs(b.score - 5.5) - Math.abs(a.score - 5.5) ||
         b.updatedAt.localeCompare(a.updatedAt),
     );
-  const selected = [
-    ...candidates.filter((rating) => rating.score >= 8).slice(0, 3),
+  return [
+    ...candidates.filter((rating) => rating.score >= 8 && rating.reason).slice(0, 3),
     ...candidates.filter((rating) => rating.score <= 4).slice(0, 3),
     ...candidates
       .filter((rating) => rating.score >= 5 && rating.score <= 7 && rating.reason)
       .slice(0, 2),
-  ];
-  const selectedKeys = new Set(selected.map((rating) => rating.ideaKey));
-  return [...selected, ...candidates.filter((rating) => !selectedKeys.has(rating.ideaKey))]
-    .slice(0, 8)
-    .map(
-      (rating) =>
-        `Editor rated “${rating.label.slice(0, 80)}” ${rating.score}/10.${rating.reason ? ` Context and reason: ${rating.reason}` : ""}`,
-    );
+  ].map((rating) => {
+    if (rating.score >= 8) {
+      return `Positive preference pattern (${rating.score}/10): ${rating.reason} Apply the underlying quality to a different gift class; do not repeat the rated object.`;
+    }
+    if (rating.score <= 4) {
+      return `Negative example (${rating.score}/10): “${rating.label.slice(0, 80)}”.${rating.reason ? ` Reason: ${rating.reason}` : ""} Avoid this specific idea or described failure; do not ban unrelated objects.`;
+    }
+    return `Conditional preference (${rating.score}/10): ${rating.reason} Apply only when the recipient and occasion fit; do not repeat the rated object.`;
+  });
 }
