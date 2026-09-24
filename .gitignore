@@ -3,6 +3,7 @@ node_modules/
 dist/
 drafts/
 .studio-writer.lock
+.local-backups/
 .env
 .env.*
 !.env.example

@@ -1,6 +1,9 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+
+import { recommendationIllustrations } from "../../site/src/lib/illustrations.ts";
 
 import {
   PRIMARY_AXES,
@@ -22,7 +25,7 @@ import {
   createGuideGenerationProvider,
   type GuideGenerationProvider,
 } from "./ai-provider.ts";
-import { DraftStore } from "./draft-store.ts";
+import { DraftStore, StaleDraftError } from "./draft-store.ts";
 import {
   completeGuideEditorially,
   type EditorialCompletionOutcome,
@@ -79,6 +82,28 @@ import {
   validateGuideDraft,
 } from "./guide-editor.ts";
 import { FINAL_PROMPT_VERSION, prepareFinalPrompt } from "./final-prompt.ts";
+import { localGuideForPath, localPublicAsset, localPublicPage } from "./local-site.ts";
+import {
+  IdeaResearchStore,
+  RESEARCH_EXAMPLES,
+  RESEARCH_SOURCES,
+  IDEA_RESEARCH_PROMPT_INSTRUCTIONS,
+  IDEA_RESEARCH_PROMPT_VERSION,
+  approvedResearchHints,
+  researchGiftIdeas,
+  type ResearchRecord,
+} from "./idea-research.ts";
+import { IdeaRatingStore, ideaRatingHints, type IdeaRating } from "./idea-ratings.ts";
+import {
+  ManualReviewStore,
+  applyCopyReview,
+  decideCopyReview,
+  ideaReviewRecord,
+  manualFeedbackHints,
+  proposeCopyReview,
+  replaceIdeaInDraft,
+  type ReviewField,
+} from "./manual-review.ts";
 import { OUTLINE_PROMPT_VERSION, prepareOutlinePrompt } from "./outline-prompt.ts";
 import {
   ProductCatalog,
@@ -301,7 +326,22 @@ function page(title: string, body: string): string {
     header, main { width: min(70rem, calc(100% - 2rem)); margin-inline: auto; }
     header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 1.25rem; }
     header a { color: inherit; font-weight: 750; text-decoration: none; }
-    nav { display: flex; flex-wrap: wrap; gap: 1rem; }
+    nav { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .5rem; }
+    nav > a, .nav-group > summary { display: block; padding: .45rem .6rem; border-radius: .4rem; font-weight: 650; white-space: nowrap; cursor: pointer; }
+    .nav-group > summary::after { content: " ▾"; }
+    .nav-group[open] > summary::after { content: " ▴"; }
+    nav > a:hover, .nav-group > summary:hover, nav > a:focus-visible, .nav-group > summary:focus-visible { background: #ece7dc; }
+    .nav-group { position: relative; }
+    .nav-menu { position: absolute; z-index: 10; top: calc(100% + .3rem); right: 0; display: grid; gap: .1rem; min-width: 15rem; max-width: min(22rem, calc(100vw - 2rem)); padding: .5rem; border: 1px solid #d8d0c4; border-radius: .6rem; background: white; box-shadow: 0 .5rem 1.5rem #34271d22; }
+    .nav-menu a { padding: .55rem .65rem; border-radius: .35rem; }
+    .nav-menu a:hover, .nav-menu a:focus-visible { background: #ece7dc; }
+    .nav-menu-label { padding: .65rem .65rem .2rem; color: #675f55; font-size: .8rem; font-weight: 700; }
+    @media (max-width: 44rem) { header { align-items: stretch; flex-direction: column; } .nav-group { position: static; } .nav-menu { position: static; min-width: 0; max-width: none; box-shadow: none; } }
+    .idea-preview { display: flex; align-items: flex-start; gap: .75rem; min-width: 14rem; }
+    .idea-preview img { width: 4.5rem; height: 4.5rem; flex: none; object-fit: cover; border-radius: .5rem; background: #ece7dc; }
+    .rating-note:not(:empty) { display: block; margin-top: .3rem; color: #675f55; }
+    .rating-reason { width: 100%; }
+    .rating-reason textarea { min-width: 13rem; }
     main { padding-block: 2rem 4rem; }
     h1 { font-size: clamp(2rem, 5vw, 3.5rem); margin: 0 0 .75rem; }
     h2 { margin-top: 0; }
@@ -341,7 +381,13 @@ function page(title: string, body: string): string {
 <body>
   <header>
     <a href="/">The Good Present · Studio</a>
-    <nav aria-label="Principal"><a href="/">Borradores</a><a href="/drafts/new">Crear</a><a href="/products">Productos</a><a href="/product-intelligence">Cobertura</a><a href="/product-sourcing">Sourcing</a><a href="/opportunities">Oportunidades</a><a href="/products/intake">Ingreso asistido</a><a href="/affiliate-programs">Programas afiliados</a><a href="/affiliate-operations">QA afiliados</a><a href="/editorial-feedback">Feedback editorial</a></nav>
+    <nav aria-label="Principal">
+      <a href="/">Borradores</a><a href="/local/">Sitio local</a><a href="/drafts/new">Crear</a>
+      <details class="nav-group"><summary>Motor de ideas</summary><div class="nav-menu"><a href="/idea-research">Investigación de ideas</a><a href="/idea-research/prompts">Prompts y versiones</a><a href="/editorial-feedback">Feedback editorial</a></div></details>
+      <details class="nav-group"><summary>Productos</summary><div class="nav-menu"><a href="/products">Catálogo de productos</a><a href="/products/intake">Ingreso asistido</a></div></details>
+      <details class="nav-group"><summary>Afiliación</summary><div class="nav-menu"><a href="/affiliate-programs">Programas afiliados</a><a href="/affiliate-operations">QA afiliados</a></div></details>
+      <details class="nav-group"><summary>Labs opcionales</summary><div class="nav-menu"><span class="nav-menu-label">Product Intelligence</span><a href="/product-intelligence">Cobertura</a><a href="/product-sourcing">Sourcing</a><span class="nav-menu-label">Opportunity Lab</span><a href="/opportunities">Oportunidades</a></div></details>
+    </nav>
   </header>
   <main>${body}</main>
 </body>
@@ -353,24 +399,242 @@ function draftPage(draft: EditorialDraft, title: string, body: string): string {
   return page(title, body.replace(/(<form\b[^>]*\bmethod="post"[^>]*>)/gi, `$1${revision}`));
 }
 
-function send(response: ServerResponse, status: number, body: string): void {
+interface GiftIdeaRow {
+  ideaKey: string;
+  clusterId: string;
+  label: string;
+  location: string;
+  detail: string;
+  image?: { src: string; alt: string };
+  link?: string;
+  research?: ResearchRecord;
+}
+
+function giftIdeaRows(
+  content: ReturnType<typeof readPublicContent>,
+  drafts: readonly EditorialDraft[],
+  research: readonly ResearchRecord[],
+  clusterId: string,
+): GiftIdeaRow[] {
+  const rows = new Map<string, GiftIdeaRow>();
+  for (const guide of content.guides.filter((item) => item.clusterId === clusterId)) {
+    const cluster = content.clusters.find((item) => item.id === guide.clusterId);
+    for (const item of guide.recommendations) {
+      const illustration = recommendationIllustrations[item.id];
+      rows.set(`guide:${guide.id}:${item.id}`, {
+        ideaKey: `guide:${guide.id}:${item.id}`,
+        clusterId,
+        label: (item.heading ?? "Idea sin título").slice(0, 200),
+        location: "Guía pública",
+        detail: guide.title,
+        ...(illustration
+          ? { image: { src: `/local-assets${illustration.src}`, alt: illustration.alt } }
+          : {}),
+        ...(cluster
+          ? { link: `/local${guidePath(cluster.slug, guide.slug)}#pick-${item.position}` }
+          : {}),
+      });
+    }
+  }
+  for (const draft of drafts) {
+    if (draft.draftType !== "gift-guide" || draft.clusterId !== clusterId) continue;
+    for (const item of draft.recommendations) {
+      const ideaKey = `guide:${draft.id}:${item.id}`;
+      const label = (item.heading ?? item.slotLabel).slice(0, 200);
+      const published = rows.get(ideaKey);
+      rows.set(`guide:${draft.id}:${item.id}`, {
+        ideaKey,
+        clusterId,
+        label,
+        location: "Borrador",
+        detail: draft.title ?? draft.id,
+        ...(published?.label === label && published.image ? { image: published.image } : {}),
+        link: `/drafts/${encodeURIComponent(draft.id)}#slot-${encodeURIComponent(item.id)}`,
+      });
+    }
+  }
+  for (const record of research.filter((item) => item.clusterId === clusterId)) {
+    rows.set(`research:${record.id}`, {
+      ideaKey: `research:${record.id}`,
+      clusterId,
+      label: record.giftClass,
+      location: "Sin guía",
+      detail: record.sourceName,
+      link: record.sourceUrl,
+      research: record,
+    });
+  }
+  return [...rows.values()].sort(
+    (a, b) =>
+      (a.research ? 0 : a.location === "Borrador" ? 1 : 2) -
+        (b.research ? 0 : b.location === "Borrador" ? 1 : 2) || a.label.localeCompare(b.label),
+  );
+}
+
+function ideaResearchPage(
+  clusters: readonly { id: string; title: string }[],
+  selectedCluster: string,
+  rows: readonly GiftIdeaRow[],
+  ratings: readonly IdeaRating[],
+  added: number | undefined,
+): string {
+  const sourceNames = RESEARCH_SOURCES.map((source) => source.name).join(", ");
+  const examples = RESEARCH_EXAMPLES.map(
+    (url) =>
+      `<li><a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></li>`,
+  ).join("");
+  const choices = clusters
+    .map(
+      (cluster) =>
+        `<option value="${escapeHtml(cluster.id)}"${cluster.id === selectedCluster ? " selected" : ""}>${escapeHtml(cluster.title)}</option>`,
+    )
+    .join("");
+  const ratingByKey = new Map(ratings.map((rating) => [rating.ideaKey, rating]));
+  const tableRows = rows
+    .map((row) => {
+      const rating = ratingByKey.get(row.ideaKey);
+      const options = Array.from({ length: 10 }, (_, index) => index + 1)
+        .map(
+          (value) =>
+            `<option value="${value}"${rating?.score === value ? " selected" : ""}>${value}</option>`,
+        )
+        .join("");
+      const detail = row.link
+        ? `<a href="${escapeHtml(row.link)}"${row.research ? ' target="_blank" rel="noopener noreferrer"' : ""}>${escapeHtml(row.detail)}</a>`
+        : escapeHtml(row.detail);
+      const decision =
+        row.research?.status === "proposed"
+          ? `<div class="actions"><form method="post" action="/idea-research/${row.research.id}/accept"><button>Aceptar</button></form><form method="post" action="/idea-research/${row.research.id}/reject"><button>Descartar</button></form></div>`
+          : "";
+      const status = row.research
+        ? row.research.status === "proposed"
+          ? "Pendiente"
+          : row.research.status === "accepted"
+            ? "Aceptada"
+            : "Descartada"
+        : "Asignada";
+      return `<tr><td><div class="idea-preview">${row.image ? `<img src="${escapeHtml(row.image.src)}" alt="${escapeHtml(row.image.alt)}" width="72" height="72" loading="lazy" decoding="async">` : ""}<div><strong>${escapeHtml(row.label)}</strong>${row.research ? `<br><small>${escapeHtml(row.research.fit)} · Encabezado: “${escapeHtml(row.research.evidenceHeading)}”</small>` : ""}</div></div></td>
+      <td>${escapeHtml(row.location)}<br><small>${detail}</small></td>
+      <td>${escapeHtml(status)}</td>
+      <td><span data-current-rating>${rating ? `${rating.score}/10` : "Sin puntaje"}</span><small class="rating-note" data-current-reason>${escapeHtml(rating?.reason ?? "")}</small></td>
+      <td><form class="actions" method="post" action="/idea-research/rate" data-idea-rating><input type="hidden" name="ideaKey" value="${escapeHtml(row.ideaKey)}"><input type="hidden" name="clusterId" value="${escapeHtml(row.clusterId)}"><label>Puntaje <select name="score" data-saved-score="${rating?.score ?? ""}" aria-label="Puntaje para ${escapeHtml(row.label)}"><option value=""${rating ? "" : " selected"}>—</option>${options}</select></label><button>Asignar puntajes</button><details class="rating-reason"><summary>Motivo y contexto (opcional)</summary><label>¿Para quién, en qué ocasión y por qué sería —o no— un buen regalo?<textarea name="reason" data-saved-reason="${escapeHtml(rating?.reason ?? "")}" aria-label="Motivo y contexto para ${escapeHtml(row.label)}" maxlength="240" rows="3">${escapeHtml(rating?.reason ?? "")}</textarea></label></details></form>${decision}</td></tr>`;
+    })
+    .join("");
+  return page(
+    "Investigación de ideas",
+    `<h1>Investigación de ideas</h1>
+    <p class="muted">Piloto editorial: investigá artículos públicos de competidores registrados y revisá conceptos de regalo con procedencia. Nada se publica automáticamente. Las ideas aceptadas alimentan la próxima generación de esquemas del grupo. <a href="/idea-research/prompts?cluster=${encodeURIComponent(selectedCluster)}">Ver prompts y versiones</a>.</p>
+    ${added === undefined ? "" : `<p class="notice">Se guardaron ${added} ideas nuevas para revisión. Las fuentes o respuestas que no pasan las validaciones se omiten.</p>`}
+    <section class="card"><h2>Buscar ideas para enfermeras</h2><p>Analiza dos artículos públicos preseleccionados de Good Housekeeping y guarda las ideas encontradas como pendientes. Puede usar hasta dos llamadas del proveedor de IA existente.</p>
+      <form method="post" action="/idea-research/nurse-gifts/discover"><button>Buscar y guardar ideas</button></form></section>
+    <section class="card"><h2>Analizar un artículo</h2><form method="post" action="/idea-research/analyze">
+      <label>Grupo<select name="clusterId" required>${choices}</select></label>
+      <label>URL del artículo<input name="url" type="url" pattern="https://.*" required maxlength="500" placeholder="https://..."></label>
+      <button>Investigar ideas</button></form>
+      <p class="muted">Sitios registrados: ${escapeHtml(sourceNames)}. La lectura se limita a páginas HTML accesibles y permitidas por robots.txt; algunos sitios pueden rechazarla.</p>
+      <details><summary>Dos artículos de Nurse Gifts para probar</summary><ul>${examples}</ul></details></section>
+    <section><h2>Todas las ideas de ${escapeHtml(clusters.find((item) => item.id === selectedCluster)?.title ?? selectedCluster)}</h2>
+      <form class="actions" method="get" action="/idea-research"><label>Ver otro grupo<select name="cluster">${choices}</select></label><button>Ver ideas</button></form>
+      <p class="muted">${rows.length} ideas, con y sin guía. 1 = mala idea; 10 = excelente. Elegí varios números y pulsá «Asignar puntajes» en cualquier fila para guardar todos los cambios. Puntuar no acepta ni publica una propuesta.</p><span role="status" aria-live="polite" data-rating-feedback></span>
+      ${rows.length ? `<div style="overflow-x:auto"><table><thead><tr><th>Idea</th><th>Ubicación</th><th>Estado</th><th>Puntaje actual</th><th>Acciones</th></tr></thead><tbody>${tableRows}</tbody></table></div>` : "<p>Todavía no hay ideas para este grupo.</p>"}</section><script src="/idea-research.js" defer></script>`,
+  );
+}
+
+function ideaResearchPromptsPage(
+  clusters: readonly { id: string; title: string }[],
+  clusterId: string,
+  drafts: readonly GuideDraft[],
+  draft: GuideDraft | undefined,
+  provider: GuideGenerationProvider,
+  content: ReturnType<typeof readEditorialContent>,
+  feedbackHints: readonly string[],
+): string {
+  const clusterChoices = clusters
+    .map(
+      (cluster) =>
+        `<option value="${escapeHtml(cluster.id)}"${cluster.id === clusterId ? " selected" : ""}>${escapeHtml(cluster.title)}</option>`,
+    )
+    .join("");
+  const draftChoices = drafts
+    .map(
+      (item) =>
+        `<option value="${escapeHtml(item.id)}"${item.id === draft?.id ? " selected" : ""}>${escapeHtml(draftName(item))}</option>`,
+    )
+    .join("");
+  const prepared =
+    draft?.clusterId && draft.primaryAxis && draft.primaryIntent
+      ? prepareOutlinePrompt(draft, content, feedbackHints)
+      : undefined;
+  const outline = !draft
+    ? "<p>No hay borradores de guías para este grupo.</p>"
+    : !prepared
+      ? `<p>El borrador seleccionado todavía necesita un eje principal y una intención para construir este prompt.</p>`
+      : `<p>Versión <code>${escapeHtml(prepared.version)}</code> · proveedor configurado <code>${escapeHtml(provider.providerId)}</code>${provider.modelId ? ` · modelo <code>${escapeHtml(provider.modelId)}</code>` : ""}. Incluye la retroalimentación disponible ahora para este grupo.</p><pre>${escapeHtml(prepared.prompt)}</pre>`;
+  const metadata = draft?.generationMetadata;
+  const saved = metadata
+    ? `<p>Último prompt guardado al generar contenido: <code>${escapeHtml(metadata.promptVersion)}</code> · ${escapeHtml(formatDate(metadata.generatedAt))} · proveedor <code>${escapeHtml(metadata.providerId ?? "no informado")}</code>.</p><pre>${escapeHtml(metadata.prompt)}</pre>`
+    : "<p>Este borrador aún no tiene un prompt de generación guardado.</p>";
+  return page(
+    "Prompts y versiones",
+    `<p><a href="/idea-research?cluster=${encodeURIComponent(clusterId)}">← Investigación de ideas</a></p>
+     <h1>Prompts y versiones</h1>
+     <p class="muted">Vista local de solo lectura. Aquí podés ver las instrucciones de investigación y el prompt efectivo para generar ideas de una guía. Las puntuaciones y sus motivos son ejemplos de preferencia humana; no reescriben las reglas automáticamente.</p>
+     <section class="card"><h2>Elegir guía</h2>
+       <form class="actions" method="get" action="/idea-research/prompts"><label>Grupo<select name="cluster">${clusterChoices}</select></label><button>Ver grupo</button></form>
+       ${drafts.length ? `<form class="actions" method="get" action="/idea-research/prompts"><input type="hidden" name="cluster" value="${escapeHtml(clusterId)}"><label>Borrador<select name="draft">${draftChoices}</select></label><button>Ver prompt</button></form>` : ""}
+     </section>
+     <section class="card"><h2>Investigación de artículos</h2><p>Plantilla de instrucciones actual, versión <code>${escapeHtml(IDEA_RESEARCH_PROMPT_VERSION)}</code>. Al ejecutar una búsqueda se agregan el grupo, las señales extraídas del artículo, ideas existentes y preferencias editoriales. Las propuestas nuevas conservan esta versión.</p><details><summary>Ver plantilla</summary><pre>${escapeHtml(IDEA_RESEARCH_PROMPT_INSTRUCTIONS)}</pre></details></section>
+     <section class="card"><h2>Generación de ideas para ${escapeHtml(draft ? draftName(draft) : (clusters.find((cluster) => cluster.id === clusterId)?.title ?? clusterId))}</h2>${outline}</section>
+     <section class="card"><h2>Último prompt guardado</h2><p class="muted">Sólo se conserva el último prompt usado por este borrador; puede corresponder a otra etapa de generación. Esto no es un historial completo de cambios.</p>${saved}</section>`,
+  );
+}
+
+function send(response: ServerResponse, status: number, body: string, allowScript = false): void {
   response.writeHead(status, {
     "content-type": "text/html; charset=utf-8",
-    "content-security-policy":
-      "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+    "content-security-policy": `default-src 'none'; ${allowScript ? "script-src 'self'; connect-src 'self'; " : ""}style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'`,
     "x-content-type-options": "nosniff",
   });
   response.end(body);
 }
 
-function sendOperationError(response: ServerResponse, error: unknown): void {
+function sendJson(response: ServerResponse, status: number, body: object): void {
+  response.writeHead(status, {
+    "content-type": "application/json; charset=utf-8",
+    "cache-control": "no-store",
+    "x-content-type-options": "nosniff",
+  });
+  response.end(JSON.stringify(body));
+}
+
+function sendLocalResource(
+  response: ServerResponse,
+  body: string | Buffer,
+  contentType: string,
+): void {
+  response.writeHead(200, {
+    "content-type": contentType,
+    "content-security-policy":
+      "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+    "cache-control": "no-store",
+    "x-content-type-options": "nosniff",
+  });
+  response.end(body);
+}
+
+function sendOperationError(response: ServerResponse, error: unknown, json = false): void {
   if (error instanceof ProviderError) {
     console.error(`AI provider error: ${error.debugSummary()}`);
   }
   const message = error instanceof Error ? error.message : String(error);
+  const status = error instanceof TypeError || error instanceof RangeError ? 400 : 500;
+  if (json) {
+    sendJson(response, status, { error: message });
+    return;
+  }
   send(
     response,
-    error instanceof TypeError || error instanceof RangeError ? 400 : 500,
+    status,
     page(
       "Error",
       `<h1>No se pudo completar la operación</h1><p class="error">${escapeHtml(message)}</p><p><a href="/">Volver a borradores</a></p>`,
@@ -3248,8 +3512,9 @@ function outlinePromptPage(
   draft: GuideDraft,
   provider: GuideGenerationProvider,
   content: ReturnType<typeof readEditorialContent>,
+  feedbackHints: readonly string[] = [],
 ): string {
-  const prepared = prepareOutlinePrompt(draft, content);
+  const prepared = prepareOutlinePrompt(draft, content, feedbackHints);
   const blockedReason = outlineRegenerationBlockReason(draft);
   return draftPage(
     draft,
@@ -3264,8 +3529,12 @@ function outlinePromptPage(
   );
 }
 
-function finalPromptPage(draft: GuideDraft, provider: GuideGenerationProvider): string {
-  const prepared = prepareFinalPrompt(draft, readPublicContent());
+function finalPromptPage(
+  draft: GuideDraft,
+  provider: GuideGenerationProvider,
+  feedbackHints: readonly string[] = [],
+): string {
+  const prepared = prepareFinalPrompt(draft, readPublicContent(), feedbackHints);
   return draftPage(
     draft,
     `Prompt final · ${draftName(draft)}`,
@@ -3300,8 +3569,9 @@ function ideaRecommendationPromptPage(
   draft: GuideDraft,
   recommendationId: string,
   provider: GuideGenerationProvider,
+  feedbackHints: readonly string[] = [],
 ): string {
-  const prepared = prepareIdeaRecommendationPrompt(draft, recommendationId);
+  const prepared = prepareIdeaRecommendationPrompt(draft, recommendationId, feedbackHints);
   return draftPage(
     draft,
     `Prompt idea-only · ${draftName(draft)}`,
@@ -3538,6 +3808,43 @@ export function createStudioServer(
   const fitStore = new ProductFitEvaluationStore(catalog.root);
   const benchmarkStore = new EditorialBenchmarkStore(catalog.root);
   const reviewStore = new EditorialReviewStore(catalog.root);
+  const manualReviewStore = new ManualReviewStore(store.repositoryRoot);
+  const ideaResearchStore = new IdeaResearchStore(store.repositoryRoot);
+  const ideaRatingStore = new IdeaRatingStore(store.repositoryRoot);
+  const feedbackHintsFor = async (draft: GuideDraft, kind: "idea" | "copy") => {
+    const content = readEditorialContent(store.repositoryRoot);
+    const guideIds = new Set(
+      content.guides
+        .filter((guide) => guide.clusterId === draft.clusterId)
+        .map((guide) => guide.id),
+    );
+    const manualHints = manualFeedbackHints(
+      (await manualReviewStore.list()).filter((record) => guideIds.has(record.guideId)),
+      kind,
+    );
+    if (kind !== "idea" || !draft.clusterId) return manualHints;
+    const ratings = await ideaRatingStore.list();
+    const lowRatedResearchIds = new Set(
+      ratings
+        .filter((rating) => rating.score <= 4 && rating.ideaKey.startsWith("research:"))
+        .map((rating) => rating.ideaKey.slice("research:".length)),
+    );
+    return [
+      ...manualHints,
+      ...approvedResearchHints(await ideaResearchStore.list(draft.clusterId), lowRatedResearchIds),
+      ...ideaRatingHints(ratings, draft.clusterId),
+    ];
+  };
+  const localGuideLocation = (guideId: string): string => {
+    const content = readEditorialContent(store.repositoryRoot);
+    const guide = content.guides.find((item) => item.id === guideId);
+    const cluster = content.clusters.find((item) => item.id === guide?.clusterId);
+    if (!guide || !cluster) throw new TypeError("La guía pública no existe.");
+    return `/local${guidePath(cluster.slug, guide.slug)}`;
+  };
+  const assertLocalRevision = (form: URLSearchParams, draft: GuideDraft): void => {
+    if (Number(form.get("revision")) !== draft.revision) throw new StaleDraftError();
+  };
   const currentApprovedBriefs = () => [
     ...new Map(
       [...approvedBriefs, ...editorialBriefComparisonRecords(briefStore.list())].map((brief) => [
@@ -3550,6 +3857,390 @@ export function createStudioServer(
     try {
       const method = request.method ?? "GET";
       const url = new URL(request.url ?? "/", `http://${STUDIO_HOST}`);
+      if (
+        method === "POST" &&
+        (url.pathname.startsWith("/local/review/") || url.pathname.startsWith("/idea-research/"))
+      ) {
+        const origin = request.headers.origin;
+        if (
+          (origin && origin !== `http://${request.headers.host}`) ||
+          request.headers["sec-fetch-site"] === "cross-site"
+        ) {
+          throw new TypeError("La revisión local sólo acepta formularios del propio Studio.");
+        }
+      }
+
+      if (method === "GET" && url.pathname === "/idea-research") {
+        const content = readPublicContent(store.repositoryRoot);
+        const clusterId = url.searchParams.get("cluster") ?? "cluster_nurse-gifts";
+        if (!content.clusters.some((cluster) => cluster.id === clusterId)) {
+          throw new TypeError("El grupo seleccionado no existe.");
+        }
+        const drafts = await store.list();
+        const rows = giftIdeaRows(
+          content,
+          drafts.drafts,
+          await ideaResearchStore.list(clusterId),
+          clusterId,
+        );
+        const addedParam = url.searchParams.get("added");
+        const added =
+          addedParam !== null && /^\d{1,3}$/.test(addedParam) ? Number(addedParam) : undefined;
+        send(
+          response,
+          200,
+          ideaResearchPage(content.clusters, clusterId, rows, await ideaRatingStore.list(), added),
+          true,
+        );
+        return;
+      }
+      if (method === "GET" && url.pathname === "/idea-research/prompts") {
+        const publicContent = readPublicContent(store.repositoryRoot);
+        const clusterId = url.searchParams.get("cluster") ?? "cluster_nurse-gifts";
+        if (!publicContent.clusters.some((cluster) => cluster.id === clusterId)) {
+          throw new TypeError("El grupo seleccionado no existe.");
+        }
+        const drafts = (await store.list()).drafts.filter(
+          (item): item is GuideDraft =>
+            item.draftType === "gift-guide" && item.clusterId === clusterId,
+        );
+        const requestedDraftId = url.searchParams.get("draft");
+        const draft = requestedDraftId
+          ? drafts.find((item) => item.id === requestedDraftId)
+          : drafts[0];
+        if (requestedDraftId && !draft)
+          throw new TypeError("El borrador no pertenece a este grupo.");
+        send(
+          response,
+          200,
+          ideaResearchPromptsPage(
+            publicContent.clusters,
+            clusterId,
+            drafts,
+            draft,
+            provider,
+            readEditorialContent(store.repositoryRoot),
+            draft ? await feedbackHintsFor(draft, "idea") : [],
+          ),
+        );
+        return;
+      }
+      if (method === "POST" && url.pathname === "/idea-research/rate") {
+        const form = await readForm(request);
+        const clusterId = requiredValue(form, "clusterId", "El grupo");
+        const keys = form.getAll("ideaKey");
+        const scores = form.getAll("score");
+        const reasons = form.getAll("reason");
+        if (
+          !keys.length ||
+          keys.length !== scores.length ||
+          scores.some((score) => !/^(?:[1-9]|10)$/.test(score))
+        ) {
+          throw new TypeError("Elegí un puntaje del 1 al 10.");
+        }
+        if (
+          (reasons.length && reasons.length !== keys.length) ||
+          reasons.some((reason) => reason.trim().length > 240)
+        ) {
+          throw new TypeError("El motivo debe tener hasta 240 caracteres.");
+        }
+        const content = readPublicContent(store.repositoryRoot);
+        if (!content.clusters.some((cluster) => cluster.id === clusterId)) {
+          throw new TypeError("El grupo seleccionado no existe.");
+        }
+        const rows = giftIdeaRows(
+          content,
+          (await store.list()).drafts,
+          await ideaResearchStore.list(clusterId),
+          clusterId,
+        );
+        if (keys.length > rows.length || new Set(keys).size !== keys.length) {
+          throw new TypeError("La selección de ideas no es válida.");
+        }
+        const rowByKey = new Map(rows.map((row) => [row.ideaKey, row]));
+        const entries = keys.map((key, index) => {
+          const idea = rowByKey.get(key);
+          if (!idea) {
+            throw new TypeError("Una idea ya no figura en este grupo. Recargá la pantalla.");
+          }
+          return {
+            idea,
+            score: Number(scores[index]),
+            ...(reasons.length ? { reason: reasons[index]!.trim() } : {}),
+          };
+        });
+        const ratings = await ideaRatingStore.assignMany(entries);
+        if (request.headers.accept === "application/json") {
+          sendJson(response, 200, {
+            ratings: ratings.map(({ ideaKey, score, reason }) => ({
+              ideaKey,
+              score,
+              ...(reason ? { reason } : {}),
+            })),
+          });
+        } else {
+          redirect(response, `/idea-research?cluster=${encodeURIComponent(clusterId)}`);
+        }
+        return;
+      }
+      if (method === "POST" && url.pathname === "/idea-research/nurse-gifts/discover") {
+        await readForm(request);
+        const clusterId = "cluster_nurse-gifts";
+        const content = readPublicContent(store.repositoryRoot);
+        const existingIdeas = content.guides
+          .filter((guide) => guide.clusterId === clusterId)
+          .flatMap((guide) => guide.recommendations.map((item) => item.heading ?? ""))
+          .filter(Boolean);
+        let added = 0;
+        const failures: string[] = [];
+        for (const articleUrl of RESEARCH_EXAMPLES) {
+          if (
+            (await ideaResearchStore.list(clusterId)).some(
+              (record) => record.sourceUrl === articleUrl,
+            )
+          ) {
+            continue;
+          }
+          try {
+            const records = await researchGiftIdeas(
+              articleUrl,
+              clusterId,
+              existingIdeas,
+              provider,
+              ideaResearchStore,
+              fetch,
+              ideaRatingHints(await ideaRatingStore.list(), clusterId),
+            );
+            added += records.length;
+            existingIdeas.push(...records.map((record) => record.giftClass));
+          } catch (error) {
+            failures.push(error instanceof Error ? error.message : String(error));
+          }
+        }
+        if (failures.length === RESEARCH_EXAMPLES.length) {
+          throw new TypeError(`No se pudieron analizar los artículos: ${failures.join(" ")}`);
+        }
+        redirect(response, `/idea-research?cluster=${clusterId}&added=${added}`);
+        return;
+      }
+      if (method === "POST" && url.pathname === "/idea-research/analyze") {
+        const form = await readForm(request);
+        const clusterId = requiredValue(form, "clusterId", "El grupo");
+        const rawUrl = requiredValue(form, "url", "La URL");
+        const content = readPublicContent(store.repositoryRoot);
+        if (!content.clusters.some((cluster) => cluster.id === clusterId)) {
+          throw new TypeError("El grupo seleccionado no existe.");
+        }
+        const existingIdeas = content.guides
+          .filter((guide) => guide.clusterId === clusterId)
+          .flatMap((guide) => guide.recommendations.map((item) => item.heading ?? ""))
+          .filter(Boolean);
+        await researchGiftIdeas(
+          rawUrl,
+          clusterId,
+          existingIdeas,
+          provider,
+          ideaResearchStore,
+          fetch,
+          ideaRatingHints(await ideaRatingStore.list(), clusterId),
+        );
+        redirect(response, `/idea-research?cluster=${encodeURIComponent(clusterId)}`);
+        return;
+      }
+      const ideaResearchDecision =
+        method === "POST"
+          ? /^\/idea-research\/(research_[a-f0-9-]+)\/(accept|reject)$/.exec(url.pathname)
+          : null;
+      if (ideaResearchDecision?.[1]) {
+        const record = await ideaResearchStore.decide(
+          ideaResearchDecision[1],
+          ideaResearchDecision[2] === "accept" ? "accepted" : "rejected",
+        );
+        redirect(response, `/idea-research?cluster=${encodeURIComponent(record.clusterId)}`);
+        return;
+      }
+
+      if (
+        method === "GET" &&
+        (url.pathname === "/local-review.js" ||
+          url.pathname === "/local-review.css" ||
+          url.pathname === "/idea-research.js")
+      ) {
+        const name = url.pathname.slice(1);
+        const body = await readFile(new URL(`../public/${name}`, import.meta.url));
+        sendLocalResource(
+          response,
+          body,
+          name.endsWith(".js") ? "text/javascript; charset=utf-8" : "text/css; charset=utf-8",
+        );
+        return;
+      }
+      if (method === "GET" && url.pathname.startsWith("/local-assets/")) {
+        const asset = await localPublicAsset(store.repositoryRoot, url.pathname);
+        sendLocalResource(response, asset.body, asset.contentType);
+        return;
+      }
+      if (method === "GET" && url.pathname === "/local") {
+        redirect(response, "/local/");
+        return;
+      }
+      if (method === "GET" && url.pathname.startsWith("/local/")) {
+        const content = readEditorialContent(store.repositoryRoot);
+        const guide = localGuideForPath(url.pathname, content.guides, content.clusters);
+        const existing = guide
+          ? (await store.list()).drafts.find((item) => item.id === guide.id)
+          : undefined;
+        const draft = existing?.draftType === "gift-guide" ? existing : undefined;
+        sendLocalResource(
+          response,
+          await localPublicPage(
+            store.repositoryRoot,
+            url.pathname,
+            guide,
+            draft,
+            guide ? await manualReviewStore.list(guide.id) : [],
+          ),
+          "text/html; charset=utf-8",
+        );
+        return;
+      }
+      if (method === "POST" && url.pathname === "/local/review/start") {
+        const form = await readForm(request);
+        const guideId = requiredValue(form, "guideId", "La guía");
+        const content = readEditorialContent(store.repositoryRoot);
+        const guide = content.guides.find((item) => item.id === guideId);
+        if (!guide) throw new TypeError("La guía pública no existe.");
+        const existing = (await store.list()).drafts.find((item) => item.id === guideId);
+        if (existing && existing.draftType !== "gift-guide") {
+          throw new TypeError("Ya existe un borrador de otro tipo con este ID.");
+        }
+        if (!existing) {
+          const source = guide.recommendations.some((item) => item.productId)
+            ? readPublicContent(store.repositoryRoot)
+            : content;
+          await store.save(reopenGuideDraft(guide, source));
+        }
+        redirect(response, localGuideLocation(guideId));
+        return;
+      }
+      if (method === "POST" && url.pathname === "/local/review/idea") {
+        const form = await readForm(request);
+        const guideId = requiredValue(form, "guideId", "La guía");
+        const draft = await readGuideDraft(store, guideId);
+        assertLocalRevision(form, draft);
+        const recommendationId = requiredValue(form, "recommendationId", "La idea");
+        const concept = requiredValue(form, "concept", "La nueva idea");
+        const comment = requiredValue(form, "comment", "El motivo");
+        const replaced = replaceIdeaInDraft(draft, recommendationId, concept);
+        const record = ideaReviewRecord(draft, recommendationId, replaced.newId, concept, comment);
+        await store.save(replaced.draft, new Date(), draft);
+        await manualReviewStore.save(record);
+        redirect(
+          response,
+          `${localGuideLocation(guideId)}#pick-${draft.recommendations.find((item) => item.id === recommendationId)!.position}`,
+        );
+        return;
+      }
+      if (method === "POST" && url.pathname === "/local/review/generate-idea-copy") {
+        const form = await readForm(request);
+        const guideId = requiredValue(form, "guideId", "La guía");
+        const draft = await readGuideDraft(store, guideId);
+        assertLocalRevision(form, draft);
+        const recommendationId = requiredValue(form, "recommendationId", "La idea");
+        const item = draft.recommendations.find((candidate) => candidate.id === recommendationId);
+        if (
+          !item ||
+          item.productId ||
+          !["needs-generation", "needs-review"].includes(item.editorialStatus)
+        ) {
+          throw new TypeError("Esta idea no está pendiente de texto editorial.");
+        }
+        const generated = await generateIdeaOnlyRecommendation(
+          draft,
+          recommendationId,
+          provider,
+          new Date(),
+          await feedbackHintsFor(draft, "copy"),
+        );
+        await store.save(
+          guideDraftSchema.parse({
+            ...generated,
+            recommendations: generated.recommendations.map((item) =>
+              item.id === recommendationId ? { ...item, editorialStatus: "needs-review" } : item,
+            ),
+          }),
+          new Date(),
+          draft,
+        );
+        redirect(response, localGuideLocation(guideId));
+        return;
+      }
+      if (method === "POST" && url.pathname === "/local/review/approve-idea-copy") {
+        const form = await readForm(request);
+        const guideId = requiredValue(form, "guideId", "La guía");
+        const draft = await readGuideDraft(store, guideId);
+        assertLocalRevision(form, draft);
+        const recommendationId = requiredValue(form, "recommendationId", "La idea");
+        const item = draft.recommendations.find((candidate) => candidate.id === recommendationId);
+        if (
+          !item ||
+          item.editorialStatus !== "needs-review" ||
+          !item.editorialDescription ||
+          !item.whyItFits
+        ) {
+          throw new TypeError("La idea no tiene texto completo pendiente de aprobación.");
+        }
+        await store.save(
+          guideDraftSchema.parse({
+            ...draft,
+            recommendations: draft.recommendations.map((candidate) =>
+              candidate.id === recommendationId
+                ? { ...candidate, editorialStatus: "ready" }
+                : candidate,
+            ),
+          }),
+          new Date(),
+          draft,
+        );
+        redirect(response, localGuideLocation(guideId));
+        return;
+      }
+      if (method === "POST" && url.pathname === "/local/review/copy-propose") {
+        const form = await readForm(request);
+        const guideId = requiredValue(form, "guideId", "La guía");
+        const draft = await readGuideDraft(store, guideId);
+        assertLocalRevision(form, draft);
+        const record = await proposeCopyReview(
+          draft,
+          requiredValue(form, "field", "El campo") as ReviewField,
+          optionalValue(form, "recommendationId"),
+          optionalValue(form, "selectedQuote"),
+          requiredValue(form, "comment", "El comentario"),
+          provider,
+        );
+        await manualReviewStore.save(record);
+        redirect(response, localGuideLocation(guideId));
+        return;
+      }
+      if (method === "POST" && url.pathname === "/local/review/decide") {
+        const form = await readForm(request);
+        const guideId = requiredValue(form, "guideId", "La guía");
+        const draft = await readGuideDraft(store, guideId);
+        assertLocalRevision(form, draft);
+        const record = await manualReviewStore.read(
+          requiredValue(form, "reviewId", "La propuesta"),
+        );
+        const decision = requiredValue(form, "decision", "La decisión");
+        if (record.guideId !== guideId || (decision !== "accepted" && decision !== "rejected")) {
+          throw new TypeError("La decisión no es válida para esta guía.");
+        }
+        const decided = decideCopyReview(record, decision);
+        if (decision === "accepted")
+          await store.save(applyCopyReview(draft, record), new Date(), draft);
+        await manualReviewStore.save(decided);
+        redirect(response, localGuideLocation(guideId));
+        return;
+      }
 
       if (method === "GET" && url.pathname === "/editorial-feedback") {
         send(response, 200, editorialFeedbackPage(await reviewStore.list()));
@@ -4092,13 +4783,15 @@ export function createStudioServer(
       const outlinePromptMatch =
         method === "GET" ? /^\/drafts\/([a-z0-9_-]+)\/outline-prompt$/.exec(url.pathname) : null;
       if (outlinePromptMatch?.[1]) {
+        const draft = await readGuideDraft(store, outlinePromptMatch[1]);
         send(
           response,
           200,
           outlinePromptPage(
-            await readGuideDraft(store, outlinePromptMatch[1]),
+            draft,
             provider,
             readEditorialContent(store.repositoryRoot),
+            await feedbackHintsFor(draft, "idea"),
           ),
         );
         return;
@@ -4106,10 +4799,11 @@ export function createStudioServer(
       const finalPromptMatch =
         method === "GET" ? /^\/drafts\/([a-z0-9_-]+)\/final-prompt$/.exec(url.pathname) : null;
       if (finalPromptMatch?.[1]) {
+        const draft = await readGuideDraft(store, finalPromptMatch[1]);
         send(
           response,
           200,
-          finalPromptPage(await readGuideDraft(store, finalPromptMatch[1]), provider),
+          finalPromptPage(draft, provider, await feedbackHintsFor(draft, "copy")),
         );
         return;
       }
@@ -4127,6 +4821,8 @@ export function createStudioServer(
           draft,
           readEditorialContent(store.repositoryRoot),
           provider,
+          new Date(),
+          await feedbackHintsFor(draft, "idea"),
         );
         await store.save(generated);
         redirect(response, `/drafts/${draft.id}`);
@@ -4140,7 +4836,15 @@ export function createStudioServer(
           throw new TypeError("Revisá el prompt final vigente antes de generar.");
         }
         const draft = await readGuideDraft(store, generateFinalMatch[1]);
-        await store.save(await generateFinalGuide(draft, readPublicContent(), provider));
+        await store.save(
+          await generateFinalGuide(
+            draft,
+            readPublicContent(),
+            provider,
+            new Date(),
+            await feedbackHintsFor(draft, "copy"),
+          ),
+        );
         redirect(response, `/drafts/${draft.id}`);
         return;
       }
@@ -4167,13 +4871,15 @@ export function createStudioServer(
             )
           : null;
       if (ideaRecommendationPromptMatch?.[1] && ideaRecommendationPromptMatch[2]) {
+        const draft = await readGuideDraft(store, ideaRecommendationPromptMatch[1]);
         send(
           response,
           200,
           ideaRecommendationPromptPage(
-            await readGuideDraft(store, ideaRecommendationPromptMatch[1]),
+            draft,
             ideaRecommendationPromptMatch[2],
             provider,
+            await feedbackHintsFor(draft, "copy"),
           ),
         );
         return;
@@ -4194,6 +4900,8 @@ export function createStudioServer(
           draft,
           generateIdeaRecommendationMatch[2],
           provider,
+          new Date(),
+          await feedbackHintsFor(draft, "copy"),
         );
         await store.save(updatedDraft);
         redirect(response, guideDraftSlotPath(draft.id, generateIdeaRecommendationMatch[2]));
@@ -5567,7 +6275,11 @@ export function createStudioServer(
 
       send(response, 404, page("No encontrado", "<h1>No encontramos esa pantalla</h1>"));
     } catch (error) {
-      sendOperationError(response, error);
+      sendOperationError(
+        response,
+        error,
+        request.url === "/idea-research/rate" && request.headers.accept === "application/json",
+      );
     }
   };
   const writerGuard = new StudioWriterGuard(store.repositoryRoot);
@@ -5580,7 +6292,11 @@ export function createStudioServer(
       else
         await store.withExpectedRevision(expectedRevision, () => handleRequest(request, response));
     } catch (error) {
-      sendOperationError(response, error);
+      sendOperationError(
+        response,
+        error,
+        request.url === "/idea-research/rate" && request.headers.accept === "application/json",
+      );
     }
   });
   server.on("close", () => writerGuard.release());

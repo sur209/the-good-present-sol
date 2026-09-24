@@ -6,7 +6,7 @@
   "scripts": {
     "studio": "node --env-file-if-exists=../../.env --disable-warning=ExperimentalWarning --experimental-strip-types src/server.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "node --disable-warning=ExperimentalWarning --experimental-strip-types --test src/studio.test.ts src/editorial-review.test.ts src/editorial-isolation.test.ts src/ai-provider-codex.test.ts"
+    "test": "node --disable-warning=ExperimentalWarning --experimental-strip-types --test src/studio.test.ts src/editorial-review.test.ts src/editorial-isolation.test.ts src/ai-provider-codex.test.ts src/manual-review.test.ts src/idea-research.test.ts"
   },
   "dependencies": {
     "@the-good-present/content-schema": "*",

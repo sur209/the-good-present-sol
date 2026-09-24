@@ -193,10 +193,11 @@ export async function generateGuideOutline(
   content: ValidatedEditorialContent,
   provider: GuideGenerationProvider,
   now = new Date(),
+  feedbackHints: readonly string[] = [],
 ): Promise<GuideDraft> {
   const blockedReason = outlineRegenerationBlockReason(draft);
   if (blockedReason) throw new TypeError(blockedReason);
-  const prepared = prepareOutlinePrompt(draft, content);
+  const prepared = prepareOutlinePrompt(draft, content, feedbackHints);
   const generated = await provider.generateStructured({
     operation: "outline",
     prompt: prepared.prompt,
@@ -432,8 +433,9 @@ export async function generateFinalGuide(
   content: ValidatedPublicContent,
   provider: GuideGenerationProvider,
   now = new Date(),
+  feedbackHints: readonly string[] = [],
 ): Promise<GuideDraft> {
-  const prepared = prepareFinalPrompt(draft, content);
+  const prepared = prepareFinalPrompt(draft, content, feedbackHints);
   const generated = generatedGuideSchema.parse(
     await provider.generateStructured({
       operation: "final-guide",
@@ -1829,8 +1831,9 @@ export async function generateIdeaOnlyRecommendation(
   recommendationId: string,
   provider: GuideGenerationProvider,
   now = new Date(),
+  feedbackHints: readonly string[] = [],
 ): Promise<GuideDraft> {
-  const prepared = prepareIdeaRecommendationPrompt(draft, recommendationId);
+  const prepared = prepareIdeaRecommendationPrompt(draft, recommendationId, feedbackHints);
   const generated = generatedIdeaRecommendationSchema.parse(
     await provider.generateStructured({
       operation: "idea-recommendation",

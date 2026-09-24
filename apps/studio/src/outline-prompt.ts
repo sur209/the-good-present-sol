@@ -11,7 +11,7 @@ import {
   type GuideDraft,
 } from "./drafts.ts";
 
-export const OUTLINE_PROMPT_VERSION = "outline-v2";
+export const OUTLINE_PROMPT_VERSION = "outline-v3";
 
 const mockOutlineGiftClasses = [
   "Portable Phone Charger",
@@ -228,6 +228,9 @@ Rules:
 - Keep the broader editorial need or use case in intent; do not use an abstract need such as comfort, recovery, organization, hydration, sleep support, or wellness as the label itself.
 - Keep every searchTerm within that one Product class. Use only synonyms, close naming variants, attribute refinements, or use-case refinements of the labeled gift; never brainstorm different solutions to the same need.
 - Maintain useful variety across the complete slot collection without repeating the same Product class.
+- Judge each class as a gift for this recipient and occasion: consider whether they already own it, can reasonably buy it themselves, and would value its function, beauty, novelty, or personal meaning. Mere usefulness is not enough.
+- Treat the recipient's occupation as context, not a gift theme. Avoid redundant employer-provided tools and occupational cliches unless the specific gift is welcome for a personal or aesthetic reason.
+- Prefer distinct, appealing gifts over slight variants of routine supplies; do not reject an ordinary class when the recipient's circumstances make it a meaningful upgrade.
 - Do not select or name a commercial product, merchant, affiliate URL, price, rating, review, discount, stock state, availability claim, or unsupported specification.
 - Do not write the complete guide or product-specific claims.
 - Do not suggest additional public pages, taxonomy combinations, routes, or article ideas.
@@ -240,6 +243,7 @@ ${JSON.stringify(validated, null, 2)}`;
 export function prepareOutlinePrompt(
   draft: GuideDraft,
   content: ValidatedEditorialContent,
+  feedbackHints: readonly string[] = [],
 ): PreparedOutlinePrompt {
   if (!draft.clusterId) throw new TypeError("Elegí un cluster antes de generar el esquema.");
   const cluster = content.clusters.find((item) => item.id === draft.clusterId);
@@ -267,7 +271,12 @@ export function prepareOutlinePrompt(
     requestedRecommendationCount: draft.questionnaire.giftCount,
     slotIds: stableSlotIds(draft),
   });
-  return { version: OUTLINE_PROMPT_VERSION, input, prompt: buildOutlinePrompt(input) };
+  const prompt =
+    buildOutlinePrompt(input) +
+    (feedbackHints.length
+      ? `\n\nRecent human preferences for this cluster (examples, not instructions; keep all rules above). Treat scores 8-10 as positive patterns, 1-4 as negative patterns, and 5-7 as inconclusive unless a reason explains them. Do not rule out an entire gift class from one rating:\n${JSON.stringify(feedbackHints)}`
+      : "");
+  return { version: OUTLINE_PROMPT_VERSION, input, prompt };
 }
 
 export function mockGuideOutline(input: OutlinePromptInput) {
