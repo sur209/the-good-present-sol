@@ -32,6 +32,9 @@ const reviewRecordSchema = z.strictObject({
   comment: z.string().trim().min(1).max(1000),
   previousText: z.string(),
   proposedText: z.string(),
+  promptVersion: z.string().trim().min(1).optional(),
+  providerId: z.string().trim().min(1).optional(),
+  modelId: z.string().trim().min(1).optional(),
   createdAt: z.iso.datetime(),
   decidedAt: z.iso.datetime().optional(),
 });
@@ -162,6 +165,101 @@ export function ideaReviewRecord(
   });
 }
 
+export const IDEA_REPLACEMENT_PROMPT_VERSION = "idea-replacement-v1";
+export const IDEA_REPLACEMENT_PROMPT_INSTRUCTIONS =
+  'Propose exactly one concrete generic gift concept to replace the weak current idea. It must fit the supplied recipient, occasion, and guide intent; belong to a meaningfully different gift class; and avoid occupational clichés, work-supplied tools, brands, links, prices, product claims, and every existing idea. Human rating feedback is evidence, not text to repeat. Return only JSON: {"concept":"A concise generic gift concept"}.';
+
+const ideaProposalSchema = z.strictObject({ concept: z.string().trim().min(4).max(120) });
+
+export async function proposeIdeaReview(
+  draft: GuideDraft,
+  recommendationId: string,
+  comment: string,
+  feedbackHints: readonly string[],
+  provider: GuideGenerationProvider,
+  now = new Date(),
+): Promise<ManualReviewRecord> {
+  const current = recommendation(draft, recommendationId);
+  const cleanComment = comment.trim();
+  if (!cleanComment || cleanComment.length > 1000) {
+    throw new TypeError("El motivo debe tener entre 1 y 1000 caracteres.");
+  }
+  const existingIdeas = draft.recommendations
+    .filter((item) => item.id !== recommendationId)
+    .map((item) => item.heading ?? item.slotLabel);
+  const result = await provider.generateStructured({
+    operation: "manual-idea-replacement",
+    prompt: IDEA_REPLACEMENT_PROMPT_INSTRUCTIONS,
+    input: {
+      guideTitle: draft.title ?? "",
+      primaryIntent: draft.primaryIntent ?? "",
+      questionnaire: draft.questionnaire,
+      currentIdea: current.heading ?? current.slotLabel,
+      editorFeedback: cleanComment,
+      existingIdeas,
+      ratingFeedback: feedbackHints.slice(0, 8),
+    },
+    schema: ideaProposalSchema,
+    mockResponse: () => ({ concept: "A framed custom night-sky print" }),
+  });
+  replaceIdeaInDraft(draft, recommendationId, result.concept);
+  if (
+    existingIdeas.some(
+      (idea) => idea.trim().toLocaleLowerCase() === result.concept.trim().toLocaleLowerCase(),
+    )
+  ) {
+    throw new TypeError("La propuesta repite otra idea de la guía.");
+  }
+  return reviewRecordSchema.parse({
+    id: `review_${randomUUID()}`,
+    guideId: draft.id,
+    kind: "idea",
+    status: "proposed",
+    recommendationId,
+    comment: cleanComment,
+    previousText: current.heading ?? current.slotLabel,
+    proposedText: result.concept,
+    promptVersion: IDEA_REPLACEMENT_PROMPT_VERSION,
+    providerId: provider.providerId,
+    ...(provider.modelId ? { modelId: provider.modelId } : {}),
+    createdAt: now.toISOString(),
+  });
+}
+
+export function applyIdeaReview(
+  draft: GuideDraft,
+  record: ManualReviewRecord,
+  now = new Date(),
+): { draft: GuideDraft; record: ManualReviewRecord } {
+  if (record.kind !== "idea" || record.status !== "proposed" || !record.recommendationId) {
+    throw new TypeError("La propuesta no está pendiente.");
+  }
+  if (record.guideId !== draft.id) throw new TypeError("La propuesta pertenece a otra guía.");
+  if (
+    (recommendation(draft, record.recommendationId).heading ??
+      recommendation(draft, record.recommendationId).slotLabel) !== record.previousText
+  ) {
+    throw new TypeError("La idea cambió desde la propuesta; generá una nueva revisión.");
+  }
+  const replaced = replaceIdeaInDraft(draft, record.recommendationId, record.proposedText);
+  return {
+    draft: replaced.draft,
+    record: reviewRecordSchema.parse({
+      ...record,
+      status: "accepted",
+      replacementRecommendationId: replaced.newId,
+      decidedAt: now.toISOString(),
+    }),
+  };
+}
+
+export function rejectIdeaReview(record: ManualReviewRecord, now = new Date()): ManualReviewRecord {
+  if (record.kind !== "idea" || record.status !== "proposed") {
+    throw new TypeError("La propuesta ya fue resuelta.");
+  }
+  return reviewRecordSchema.parse({ ...record, status: "rejected", decidedAt: now.toISOString() });
+}
+
 const revisionSchema = z.strictObject({ replacementText: z.string().trim().min(1).max(3000) });
 
 export async function proposeCopyReview(
@@ -267,7 +365,7 @@ export function manualFeedbackHints(
     .slice(0, 3)
     .map((record) =>
       kind === "idea"
-        ? `Editor replaced “${record.previousText.slice(0, 70)}” with “${record.proposedText.slice(0, 70)}”: ${record.comment.slice(0, 120)}`
+        ? `Editor rejected “${record.previousText.slice(0, 70)}” and accepted a different gift class: ${record.comment.slice(0, 120)} Apply the reason without repeating either object.`
         : `Editor changed “${(record.selectedQuote ?? record.previousText).slice(0, 70)}” to “${record.proposedText.slice(0, 90)}”: ${record.comment.slice(0, 120)}`,
     );
 }

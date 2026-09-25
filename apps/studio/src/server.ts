@@ -95,13 +95,18 @@ import {
 } from "./idea-research.ts";
 import { IdeaRatingStore, ideaRatingHints, type IdeaRating } from "./idea-ratings.ts";
 import {
+  IDEA_REPLACEMENT_PROMPT_INSTRUCTIONS,
   ManualReviewStore,
+  applyIdeaReview,
   applyCopyReview,
   decideCopyReview,
   ideaReviewRecord,
   manualFeedbackHints,
   proposeCopyReview,
+  proposeIdeaReview,
+  rejectIdeaReview,
   replaceIdeaInDraft,
+  type ManualReviewRecord,
   type ReviewField,
 } from "./manual-review.ts";
 import { OUTLINE_PROMPT_VERSION, prepareOutlinePrompt } from "./outline-prompt.ts";
@@ -553,6 +558,7 @@ function guideImprovementQueuePage(
   selectedCluster: string,
   rows: readonly GiftIdeaRow[],
   ratings: readonly IdeaRating[],
+  reviews: readonly ManualReviewRecord[],
 ): string {
   const choices = clusters
     .map(
@@ -561,6 +567,12 @@ function guideImprovementQueuePage(
     )
     .join("");
   const ratingByKey = new Map(ratings.map((rating) => [rating.ideaKey, rating]));
+  const latestIdeaReview = new Map<string, ManualReviewRecord>();
+  for (const review of [...reviews].sort((a, b) => b.createdAt.localeCompare(a.createdAt))) {
+    if (review.kind !== "idea" || !review.recommendationId) continue;
+    const key = `guide:${review.guideId}:${review.recommendationId}`;
+    if (!latestIdeaReview.has(key)) latestIdeaReview.set(key, review);
+  }
   const queued = rows
     .flatMap((row) => {
       const rating = ratingByKey.get(row.ideaKey);
@@ -580,10 +592,17 @@ function guideImprovementQueuePage(
     .map(
       ([guide, items]) =>
         `<article class="card"><h2>${escapeHtml(guide)}</h2><p>${items.length} idea${items.length === 1 ? "" : "s"} para reemplazar.</p><ul>${items
-          .map(
-            ({ row, rating }) =>
-              `<li><div class="idea-preview">${row.image ? `<img src="${escapeHtml(row.image.src)}" alt="${escapeHtml(row.image.alt)}" width="72" height="72" loading="lazy" decoding="async">` : ""}<div><strong>${escapeHtml(row.label)}</strong> · ${rating.score}/10${rating.reason ? `<p>${escapeHtml(rating.reason)}</p>` : '<p class="muted">Sin motivo registrado.</p>'}${row.link ? `<p><a href="${escapeHtml(row.link)}">Abrir contexto</a></p>` : ""}</div></div></li>`,
-          )
+          .map(({ row, rating }) => {
+            const review = latestIdeaReview.get(row.ideaKey);
+            const hidden = `<input type="hidden" name="clusterId" value="${escapeHtml(selectedCluster)}"><input type="hidden" name="ideaKey" value="${escapeHtml(row.ideaKey)}">`;
+            const action =
+              review?.status === "proposed"
+                ? `<div class="notice" id="proposal-${escapeHtml(review.id)}"><h3>Comparación pendiente</h3><p><strong>Antes:</strong> ${escapeHtml(review.previousText)}</p><p><strong>Propuesta:</strong> ${escapeHtml(review.proposedText)}</p><p><strong>Motivo:</strong> ${escapeHtml(review.comment)}</p><p class="muted">${escapeHtml(review.promptVersion ?? "versión no registrada")} · ${escapeHtml(review.providerId ?? "proveedor no registrado")}</p><div class="actions"><form method="post" action="/guide-improvements/decide"><input type="hidden" name="clusterId" value="${escapeHtml(selectedCluster)}"><input type="hidden" name="reviewId" value="${escapeHtml(review.id)}"><button name="decision" value="accepted">Aceptar</button><button name="decision" value="rejected">Rechazar</button></form><form method="post" action="/guide-improvements/propose">${hidden}<input type="hidden" name="previousReviewId" value="${escapeHtml(review.id)}"><button>Volver a proponer</button></form></div></div>`
+                : review?.status === "accepted"
+                  ? `<div class="notice"><strong>Aplicada al borrador local.</strong><p>${escapeHtml(review.previousText)} → ${escapeHtml(review.proposedText)}</p><p class="muted">La guía pública todavía conserva la idea anterior.</p></div>`
+                  : `<form method="post" action="/guide-improvements/propose">${hidden}<button>Proponer reemplazo</button></form>`;
+            return `<li><div class="idea-preview">${row.image ? `<img src="${escapeHtml(row.image.src)}" alt="${escapeHtml(row.image.alt)}" width="72" height="72" loading="lazy" decoding="async">` : ""}<div><strong>${escapeHtml(row.label)}</strong> · ${rating.score}/10${rating.reason ? `<p>${escapeHtml(rating.reason)}</p>` : '<p class="muted">Sin motivo registrado.</p>'}${row.link ? `<p><a href="${escapeHtml(row.link)}">Abrir contexto</a></p>` : ""}${action}</div></div></li>`;
+          })
           .join("")}</ul></article>`,
     )
     .join("");
@@ -593,8 +612,9 @@ function guideImprovementQueuePage(
     "Mejora gradual de guías",
     `<p><a href="/idea-research?cluster=${encodeURIComponent(selectedCluster)}">← Investigación de ideas</a></p>
      <h1>Mejora gradual de guías</h1>
-     <p class="muted">Cola local derivada de ideas públicas con puntaje de 1 a 4. Esta pantalla no llama a la IA, no modifica borradores y no publica contenido.</p>
+     <p class="muted">Cola local derivada de ideas públicas con puntaje de 1 a 4. Generar una propuesta llama al proveedor configurado, pero no modifica el borrador ni publica contenido hasta que la aceptes.</p>
      <section class="card"><h2>Grupo</h2><form class="actions" method="get" action="/guide-improvements"><label>Ver otro grupo<select name="cluster">${choices}</select></label><button>Ver cola</button></form></section>
+     <section class="card"><h2>Cómo propone el motor</h2><p>Cada botón genera una sola alternativa de otra clase de regalo usando el motivo, el contexto breve de la guía y la retroalimentación agregada. La propuesta queda pendiente hasta que la aceptes.</p><details><summary>Ver instrucciones vigentes</summary><pre>${escapeHtml(IDEA_REPLACEMENT_PROMPT_INSTRUCTIONS)}</pre></details></section>
      <section class="card"><h2>Revisión automática prevista</h2><p>Se ejecutará una vez después de aplicar localmente una modificación grande: reemplazar un regalo o cambiar varios campos relevantes dentro de una iteración. Una corrección menor sólo dejará historial. No habrá revisiones por horario ni publicación automática.</p></section>
      <section><h2>Cola de ${escapeHtml(clusterName)}</h2><p>${queued.length} idea${queued.length === 1 ? "" : "s"} en ${grouped.size} guía${grouped.size === 1 ? "" : "s"}, ordenadas primero por peor puntaje.</p>${guideCards || "<p>No hay ideas públicas marcadas para reemplazo en este grupo.</p>"}</section>`,
   );
@@ -3919,7 +3939,9 @@ export function createStudioServer(
       const url = new URL(request.url ?? "/", `http://${STUDIO_HOST}`);
       if (
         method === "POST" &&
-        (url.pathname.startsWith("/local/review/") || url.pathname.startsWith("/idea-research/"))
+        (url.pathname.startsWith("/local/review/") ||
+          url.pathname.startsWith("/idea-research/") ||
+          url.pathname.startsWith("/guide-improvements/"))
       ) {
         const origin = request.headers.origin;
         if (
@@ -3969,8 +3991,102 @@ export function createStudioServer(
             clusterId,
             rows,
             await ideaRatingStore.list(),
+            await manualReviewStore.list(),
           ),
         );
+        return;
+      }
+      if (method === "POST" && url.pathname === "/guide-improvements/propose") {
+        const form = await readForm(request);
+        const clusterId = requiredValue(form, "clusterId", "El grupo");
+        const ideaKey = requiredValue(form, "ideaKey", "La idea");
+        const content = readPublicContent(store.repositoryRoot);
+        if (!content.clusters.some((cluster) => cluster.id === clusterId)) {
+          throw new TypeError("El grupo seleccionado no existe.");
+        }
+        const listed = await store.list();
+        const row = giftIdeaRows(content, listed.drafts, [], clusterId).find(
+          (candidate) => candidate.ideaKey === ideaKey,
+        );
+        const rating = (await ideaRatingStore.list()).find(
+          (candidate) => candidate.ideaKey === ideaKey,
+        );
+        const key = /^guide:([^:]+):([^:]+)$/.exec(ideaKey);
+        if (!row?.published || !rating || rating.score > 4 || !key) {
+          throw new TypeError("La idea ya no está marcada para reemplazo.");
+        }
+        const guideId = key[1]!;
+        const recommendationId = key[2]!;
+        const guide = content.guides.find(
+          (candidate) => candidate.id === guideId && candidate.clusterId === clusterId,
+        );
+        if (!guide?.recommendations.some((item) => item.id === recommendationId)) {
+          throw new TypeError("La idea pública ya no existe.");
+        }
+        const existing = listed.drafts.find((candidate) => candidate.id === guideId);
+        if (existing && existing.draftType !== "gift-guide") {
+          throw new TypeError("Ya existe un borrador de otro tipo con este ID.");
+        }
+        const draft = existing
+          ? existing
+          : await store.save(
+              reopenGuideDraft(
+                guide,
+                guide.recommendations.some((item) => item.productId)
+                  ? content
+                  : readEditorialContent(store.repositoryRoot),
+              ),
+            );
+        const priorReviews = await manualReviewStore.list(guideId);
+        const pending = priorReviews.find(
+          (review) =>
+            review.kind === "idea" &&
+            review.status === "proposed" &&
+            review.recommendationId === recommendationId,
+        );
+        const previousReviewId = optionalValue(form, "previousReviewId");
+        if ((pending && pending.id !== previousReviewId) || (!pending && previousReviewId)) {
+          throw new TypeError("La propuesta pendiente cambió; recargá la cola.");
+        }
+        const proposal = await proposeIdeaReview(
+          draft,
+          recommendationId,
+          rating.reason ??
+            `Puntaje editorial ${rating.score}/10; reemplazar por una idea con mayor valor como regalo.`,
+          ideaRatingHints(await ideaRatingStore.list(), clusterId),
+          provider,
+        );
+        if (pending) await manualReviewStore.save(rejectIdeaReview(pending));
+        await manualReviewStore.save(proposal);
+        redirect(
+          response,
+          `/guide-improvements?cluster=${encodeURIComponent(clusterId)}#proposal-${encodeURIComponent(proposal.id)}`,
+        );
+        return;
+      }
+      if (method === "POST" && url.pathname === "/guide-improvements/decide") {
+        const form = await readForm(request);
+        const clusterId = requiredValue(form, "clusterId", "El grupo");
+        const record = await manualReviewStore.read(
+          requiredValue(form, "reviewId", "La propuesta"),
+        );
+        const decision = requiredValue(form, "decision", "La decisión");
+        const draft = await readGuideDraft(store, record.guideId);
+        if (
+          draft.clusterId !== clusterId ||
+          record.kind !== "idea" ||
+          (decision !== "accepted" && decision !== "rejected")
+        ) {
+          throw new TypeError("La decisión no es válida para esta guía.");
+        }
+        if (decision === "accepted") {
+          const applied = applyIdeaReview(draft, record);
+          await store.save(applied.draft, new Date(), draft);
+          await manualReviewStore.save(applied.record);
+        } else {
+          await manualReviewStore.save(rejectIdeaReview(record));
+        }
+        redirect(response, `/guide-improvements?cluster=${encodeURIComponent(clusterId)}`);
         return;
       }
       if (method === "GET" && url.pathname === "/idea-research/prompts") {

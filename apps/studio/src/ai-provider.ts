@@ -83,6 +83,7 @@ export interface StructuredGenerationRequest<T> {
     | "idea-recommendation-batch-repair"
     | "editorial-review"
     | "editorial-review-repair"
+    | "manual-idea-replacement"
     | "manual-copy-revision"
     | "idea-research"
     | "opportunity-candidates"

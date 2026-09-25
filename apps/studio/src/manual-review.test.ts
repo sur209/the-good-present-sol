@@ -18,11 +18,14 @@ import { ProductCatalog } from "./product-catalog.ts";
 import { prepareOutlinePrompt } from "./outline-prompt.ts";
 import {
   ManualReviewStore,
+  applyIdeaReview,
   applyCopyReview,
   decideCopyReview,
   ideaReviewRecord,
   manualFeedbackHints,
   proposeCopyReview,
+  proposeIdeaReview,
+  rejectIdeaReview,
   replaceIdeaInDraft,
 } from "./manual-review.ts";
 import { REPOSITORY_ROOT, readEditorialContent, readPublicContent } from "./repository.ts";
@@ -88,6 +91,41 @@ test("targeted copy proposal uses one field and needs approval", async () => {
   );
 });
 
+test("generated idea replacement stays pending until an explicit decision", async () => {
+  const draft = sampleDraft();
+  const original = draft.recommendations[0]!;
+  let observedRequest: StructuredGenerationRequest<unknown> | undefined;
+  const provider: GuideGenerationProvider = {
+    providerId: "test",
+    modelId: "test-model",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      observedRequest = request as StructuredGenerationRequest<unknown>;
+      return request.schema.parse({ concept: "A framed custom night-sky print" });
+    },
+  };
+  const proposal = await proposeIdeaReview(
+    draft,
+    original.id,
+    "The current idea feels too ordinary.",
+    ["Rating profile: raise the quality bar."],
+    provider,
+  );
+  assert.equal(observedRequest?.operation, "manual-idea-replacement");
+  assert.equal(proposal.status, "proposed");
+  assert.equal(proposal.promptVersion, "idea-replacement-v1");
+  assert.equal(proposal.proposedText, "A framed custom night-sky print");
+  assert.equal(draft.recommendations[0]!.id, original.id);
+
+  const applied = applyIdeaReview(draft, proposal);
+  const replacement = applied.draft.recommendations[0]!;
+  assert.notEqual(replacement.id, original.id);
+  assert.equal(replacement.heading, "A framed custom night-sky print");
+  assert.equal(replacement.editorialStatus, "needs-generation");
+  assert.equal(applied.record.status, "accepted");
+  assert.equal(applied.record.replacementRecommendationId, replacement.id);
+  assert.equal(rejectIdeaReview(proposal).status, "rejected");
+});
+
 test("review history persists and contributes only short accepted hints", async () => {
   const root = await mkdtemp(join(tmpdir(), "tgp-manual-review-"));
   try {
@@ -106,6 +144,7 @@ test("review history persists and contributes only short accepted hints", async 
     assert.deepEqual(await store.read(record.id), record);
     assert.equal((await store.list(draft.id)).length, 1);
     assert.match(manualFeedbackHints(await store.list(), "idea")[0]!, /too familiar/);
+    assert.doesNotMatch(manualFeedbackHints(await store.list(), "idea")[0]!, /hand-thrown/);
     assert.deepEqual(manualFeedbackHints(await store.list(), "copy"), []);
   } finally {
     await rm(root, { recursive: true, force: true });

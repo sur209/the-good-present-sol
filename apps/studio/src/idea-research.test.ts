@@ -20,6 +20,7 @@ import {
 } from "./idea-research.ts";
 import { ProductCatalog } from "./product-catalog.ts";
 import { IdeaRatingStore, ideaRatingHints, type IdeaRating } from "./idea-ratings.ts";
+import { ManualReviewStore } from "./manual-review.ts";
 import { prepareOutlinePrompt } from "./outline-prompt.ts";
 import { REPOSITORY_ROOT, readEditorialContent, readPublicContent } from "./repository.ts";
 import { STUDIO_HOST, createStudioServer } from "./server.ts";
@@ -411,6 +412,56 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     assert.match(improvementBody, /2\/10/);
     assert.match(improvementBody, /Too ordinary to feel like a gift\./);
     assert.match(improvementBody, /No habrá revisiones por horario/);
+    assert.match(improvementBody, /Proponer reemplazo/);
+    const proposed = await fetch(`${origin}/guide-improvements/propose`, {
+      method: "POST",
+      body: new URLSearchParams({
+        clusterId: "cluster_nurse-gifts",
+        ideaKey: "guide:guide_nurse-practical:practical_compression-socks",
+      }),
+      redirect: "manual",
+    });
+    assert.equal(proposed.status, 303, await proposed.text());
+    const manualReviewStore = new ManualReviewStore(root);
+    const proposal = (await manualReviewStore.list("guide_nurse-practical")).find(
+      (review) => review.kind === "idea" && review.status === "proposed",
+    );
+    assert.ok(proposal);
+    assert.equal(proposal.proposedText, "A framed custom night-sky print");
+    assert.equal(proposal.promptVersion, "idea-replacement-v1");
+    const proposedBody = await (
+      await fetch(`${origin}/guide-improvements?cluster=cluster_nurse-gifts`)
+    ).text();
+    assert.match(proposedBody, /Comparación pendiente/);
+    assert.match(proposedBody, /A framed custom night-sky print/);
+    assert.match(proposedBody, /Volver a proponer/);
+    const acceptedReplacement = await fetch(`${origin}/guide-improvements/decide`, {
+      method: "POST",
+      body: new URLSearchParams({
+        clusterId: "cluster_nurse-gifts",
+        reviewId: proposal.id,
+        decision: "accepted",
+      }),
+      redirect: "manual",
+    });
+    assert.equal(acceptedReplacement.status, 303, await acceptedReplacement.text());
+    const improvedDraft = await draftStore.read("guide_nurse-practical");
+    assert.equal(improvedDraft.draftType, "gift-guide");
+    assert.equal(
+      improvedDraft.recommendations.some((item) => item.id === "practical_compression-socks"),
+      false,
+    );
+    assert.equal(
+      improvedDraft.recommendations.find(
+        (item) => item.heading === "A framed custom night-sky print",
+      )?.editorialStatus,
+      "needs-generation",
+    );
+    const acceptedQueueBody = await (
+      await fetch(`${origin}/guide-improvements?cluster=cluster_nurse-gifts`)
+    ).text();
+    assert.match(acceptedQueueBody, /Aplicada al borrador local/);
+    assert.match(acceptedQueueBody, /La guía pública todavía conserva la idea anterior/);
     const prompts = await fetch(
       `${origin}/idea-research/prompts?cluster=cluster_nurse-gifts&draft=guide_nurse-practical`,
     );

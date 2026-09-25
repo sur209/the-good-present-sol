@@ -51,6 +51,8 @@ El motor mínimo necesita solamente:
 4. Aplicación a un borrador local y los controles existentes.
 5. Una acción de publicación separada después de revisar la guía completa.
 
+La cola, la propuesta individual de una clase de regalo distinta, la comparación, la decisión humana y la aplicación al borrador local ya están disponibles. Una propuesta usa sólo contexto breve, el motivo de la nota, las ideas vecinas y hasta ocho señales agregadas; guarda su versión de prompt y proveedor. Rechazar no modifica la guía. Aceptar reemplaza únicamente ese slot, conserva su posición y elimina identidad, texto, Product, enlace e imagen heredados. El nuevo slot queda pendiente de generación editorial. La revisión automática posterior y la publicación continúan separadas.
+
 ## Medición
 
 Conviene medir la tasa de aceptación de reemplazos, la variación del puntaje después del cambio, la repetición de clases de regalo, los motivos de rechazo y las reversiones posteriores. Estas señales deben afinar los criterios de propuestas futuras sin incentivar la repetición de objetos exactos.
