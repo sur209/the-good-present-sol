@@ -14,6 +14,8 @@ El esquema valora cada regalo según el destinatario y la ocasión: utilidad o a
 
 Una idea que ya pertenece a una guía pública y recibe entre 1 y 4 aparece como **Marcada para reemplazo**. La marca es local, reversible y se deriva del puntaje: no altera la guía ni publica un reemplazo.
 
+La vista local **Mejora de guías** (`/guide-improvements`) reúne esas ideas en una cola agrupada por guía y ordenada por peor puntaje. Es de solo lectura: todavía no propone ni aplica reemplazos.
+
 El proveedor predeterminado es el Codex CLI existente: no se agrega una API paga, servicio externo ni dependencia de búsqueda. Su uso está sujeto a la cuota de Codex de la cuenta; `AI_PROVIDER=mock` permite pruebas sin generación real (devuelve cero propuestas). La búsqueda de Nurse Gifts puede usar hasta dos llamadas al proveedor. No hay rastreo automático de sitemaps ni vigilancia continua: cada búsqueda es iniciada por el editor. Por ahora solo hay dos artículos preseleccionados; los demás competidores requieren pegar un artículo concreto. Las restricciones y condiciones de cada fuente pueden cambiar; comprobarlas en cada ejecución es parte del flujo.
 
 Validación local: `npm run typecheck -w @the-good-present/studio` y `npm run test -w @the-good-present/studio`.

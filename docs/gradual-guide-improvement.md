@@ -27,6 +27,10 @@ El recorrido de cada cambio es:
 
 `marcado → propuesto → aceptado/rechazado → aplicado localmente → verificado → publicado por separado`
 
+## Revisión automática
+
+La revisión se dispara por un cambio, no por un calendario. Se ejecuta una sola vez al aplicar localmente una iteración que reemplaza un regalo o modifica varios campos relevantes. Debe comentar la modificación y su efecto en el contexto de la guía, sin aplicar una segunda corrección por sí sola. Una corrección menor sólo deja historial. Si no hubo cambios, no hay revisión; nunca se ejecuta cada cierta cantidad de horas o días.
+
 ## Límites de seguridad
 
 - No cambiar más de un regalo por guía en cada iteración.
@@ -41,7 +45,7 @@ El recorrido de cada cambio es:
 
 El motor mínimo necesita solamente:
 
-1. Una cola filtrada a ideas públicas con puntaje de 1 a 4.
+1. Una cola filtrada a ideas públicas con puntaje de 1 a 4, agrupada por guía y ordenada por peor puntaje.
 2. Un botón para solicitar un reemplazo de una idea seleccionada.
 3. Una tarjeta de comparación con acciones de aceptar y rechazar.
 4. Aplicación a un borrador local y los controles existentes.

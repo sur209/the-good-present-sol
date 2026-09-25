@@ -383,7 +383,7 @@ function page(title: string, body: string): string {
     <a href="/">The Good Present · Studio</a>
     <nav aria-label="Principal">
       <a href="/">Borradores</a><a href="/local/">Sitio local</a><a href="/drafts/new">Crear</a>
-      <details class="nav-group"><summary>Motor de ideas</summary><div class="nav-menu"><a href="/idea-research">Investigación de ideas</a><a href="/idea-research/prompts">Prompts y versiones</a><a href="/editorial-feedback">Feedback editorial</a></div></details>
+      <details class="nav-group"><summary>Motor de ideas</summary><div class="nav-menu"><a href="/idea-research">Investigación de ideas</a><a href="/guide-improvements">Mejora de guías</a><a href="/idea-research/prompts">Prompts y versiones</a><a href="/editorial-feedback">Feedback editorial</a></div></details>
       <details class="nav-group"><summary>Productos</summary><div class="nav-menu"><a href="/products">Catálogo de productos</a><a href="/products/intake">Ingreso asistido</a></div></details>
       <details class="nav-group"><summary>Afiliación</summary><div class="nav-menu"><a href="/affiliate-programs">Programas afiliados</a><a href="/affiliate-operations">QA afiliados</a></div></details>
       <details class="nav-group"><summary>Labs opcionales</summary><div class="nav-menu"><span class="nav-menu-label">Product Intelligence</span><a href="/product-intelligence">Cobertura</a><a href="/product-sourcing">Sourcing</a><span class="nav-menu-label">Opportunity Lab</span><a href="/opportunities">Oportunidades</a></div></details>
@@ -531,7 +531,7 @@ function ideaResearchPage(
   return page(
     "Investigación de ideas",
     `<h1>Investigación de ideas</h1>
-    <p class="muted">Piloto editorial: investigá artículos públicos de competidores registrados y revisá conceptos de regalo con procedencia. Nada se publica automáticamente. Las ideas aceptadas alimentan la próxima generación de esquemas del grupo. <a href="/idea-research/prompts?cluster=${encodeURIComponent(selectedCluster)}">Ver prompts y versiones</a>.</p>
+    <p class="muted">Piloto editorial: investigá artículos públicos de competidores registrados y revisá conceptos de regalo con procedencia. Nada se publica automáticamente. Las ideas aceptadas alimentan la próxima generación de esquemas del grupo. <a href="/guide-improvements?cluster=${encodeURIComponent(selectedCluster)}">Ver cola de mejora</a> · <a href="/idea-research/prompts?cluster=${encodeURIComponent(selectedCluster)}">Ver prompts y versiones</a>.</p>
     ${added === undefined ? "" : `<p class="notice">Se guardaron ${added} ideas nuevas para revisión. Las fuentes o respuestas que no pasan las validaciones se omiten.</p>`}
     <section class="card"><h2>Buscar ideas para enfermeras</h2><p>Analiza dos artículos públicos preseleccionados de Good Housekeeping y guarda las ideas encontradas como pendientes. Puede usar hasta dos llamadas del proveedor de IA existente.</p>
       <form method="post" action="/idea-research/nurse-gifts/discover"><button>Buscar y guardar ideas</button></form></section>
@@ -545,6 +545,58 @@ function ideaResearchPage(
       <form class="actions" method="get" action="/idea-research"><label>Ver otro grupo<select name="cluster">${choices}</select></label><button>Ver ideas</button></form>
       <p class="muted">${rows.length} ideas, con y sin guía. 1 = mala idea; 10 = excelente. Elegí varios números y pulsá «Asignar puntajes» en cualquier fila para guardar todos los cambios. Puntuar no acepta ni publica una propuesta.</p><span role="status" aria-live="polite" data-rating-feedback></span>
       ${rows.length ? `<div style="overflow-x:auto"><table><thead><tr><th>Idea</th><th>Ubicación</th><th>Estado</th><th>Puntaje actual</th><th>Acciones</th></tr></thead><tbody>${tableRows}</tbody></table></div>` : "<p>Todavía no hay ideas para este grupo.</p>"}</section><script src="/idea-research.js" defer></script>`,
+  );
+}
+
+function guideImprovementQueuePage(
+  clusters: readonly { id: string; title: string }[],
+  selectedCluster: string,
+  rows: readonly GiftIdeaRow[],
+  ratings: readonly IdeaRating[],
+): string {
+  const choices = clusters
+    .map(
+      (cluster) =>
+        `<option value="${escapeHtml(cluster.id)}"${cluster.id === selectedCluster ? " selected" : ""}>${escapeHtml(cluster.title)}</option>`,
+    )
+    .join("");
+  const ratingByKey = new Map(ratings.map((rating) => [rating.ideaKey, rating]));
+  const queued = rows
+    .flatMap((row) => {
+      const rating = ratingByKey.get(row.ideaKey);
+      return row.published && rating && rating.score <= 4 ? [{ row, rating }] : [];
+    })
+    .sort(
+      (a, b) =>
+        a.rating.score - b.rating.score ||
+        a.row.detail.localeCompare(b.row.detail) ||
+        a.row.label.localeCompare(b.row.label),
+    );
+  const grouped = new Map<string, typeof queued>();
+  for (const item of queued) {
+    grouped.set(item.row.detail, [...(grouped.get(item.row.detail) ?? []), item]);
+  }
+  const guideCards = [...grouped.entries()]
+    .map(
+      ([guide, items]) =>
+        `<article class="card"><h2>${escapeHtml(guide)}</h2><p>${items.length} idea${items.length === 1 ? "" : "s"} para reemplazar.</p><ul>${items
+          .map(
+            ({ row, rating }) =>
+              `<li><div class="idea-preview">${row.image ? `<img src="${escapeHtml(row.image.src)}" alt="${escapeHtml(row.image.alt)}" width="72" height="72" loading="lazy" decoding="async">` : ""}<div><strong>${escapeHtml(row.label)}</strong> · ${rating.score}/10${rating.reason ? `<p>${escapeHtml(rating.reason)}</p>` : '<p class="muted">Sin motivo registrado.</p>'}${row.link ? `<p><a href="${escapeHtml(row.link)}">Abrir contexto</a></p>` : ""}</div></div></li>`,
+          )
+          .join("")}</ul></article>`,
+    )
+    .join("");
+  const clusterName =
+    clusters.find((cluster) => cluster.id === selectedCluster)?.title ?? selectedCluster;
+  return page(
+    "Mejora gradual de guías",
+    `<p><a href="/idea-research?cluster=${encodeURIComponent(selectedCluster)}">← Investigación de ideas</a></p>
+     <h1>Mejora gradual de guías</h1>
+     <p class="muted">Cola local derivada de ideas públicas con puntaje de 1 a 4. Esta pantalla no llama a la IA, no modifica borradores y no publica contenido.</p>
+     <section class="card"><h2>Grupo</h2><form class="actions" method="get" action="/guide-improvements"><label>Ver otro grupo<select name="cluster">${choices}</select></label><button>Ver cola</button></form></section>
+     <section class="card"><h2>Revisión automática prevista</h2><p>Se ejecutará una vez después de aplicar localmente una modificación grande: reemplazar un regalo o cambiar varios campos relevantes dentro de una iteración. Una corrección menor sólo dejará historial. No habrá revisiones por horario ni publicación automática.</p></section>
+     <section><h2>Cola de ${escapeHtml(clusterName)}</h2><p>${queued.length} idea${queued.length === 1 ? "" : "s"} en ${grouped.size} guía${grouped.size === 1 ? "" : "s"}, ordenadas primero por peor puntaje.</p>${guideCards || "<p>No hay ideas públicas marcadas para reemplazo en este grupo.</p>"}</section>`,
   );
 }
 
@@ -3899,6 +3951,25 @@ export function createStudioServer(
           200,
           ideaResearchPage(content.clusters, clusterId, rows, await ideaRatingStore.list(), added),
           true,
+        );
+        return;
+      }
+      if (method === "GET" && url.pathname === "/guide-improvements") {
+        const content = readPublicContent(store.repositoryRoot);
+        const clusterId = url.searchParams.get("cluster") ?? "cluster_nurse-gifts";
+        if (!content.clusters.some((cluster) => cluster.id === clusterId)) {
+          throw new TypeError("El grupo seleccionado no existe.");
+        }
+        const rows = giftIdeaRows(content, (await store.list()).drafts, [], clusterId);
+        send(
+          response,
+          200,
+          guideImprovementQueuePage(
+            content.clusters,
+            clusterId,
+            rows,
+            await ideaRatingStore.list(),
+          ),
         );
         return;
       }

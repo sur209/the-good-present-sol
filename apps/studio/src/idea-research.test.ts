@@ -254,6 +254,7 @@ test("Studio shows pending ideas and records an explicit editor decision", async
         "/local/",
         "/drafts/new",
         "/idea-research",
+        "/guide-improvements",
         "/idea-research/prompts",
         "/editorial-feedback",
         "/products",
@@ -304,6 +305,7 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     assert.match(body, /describí la cualidad sin repetir el objeto/);
     assert.match(body, /pulsá «Asignar puntajes» en cualquier fila/);
     assert.match(body, /data-idea-rating/);
+    assert.match(body, /href="\/guide-improvements/);
     assert.match(body, /<script src="\/idea-research\.js" defer><\/script>/);
     assert.match(listing.headers.get("content-security-policy") ?? "", /connect-src 'self'/);
     const script = await fetch(`${origin}/idea-research.js`);
@@ -398,6 +400,17 @@ test("Studio shows pending ideas and records an explicit editor decision", async
       markedBody.indexOf("</tr>", markedPosition),
     );
     assert.match(markedRow, /Marcada para reemplazo/);
+    const improvementQueue = await fetch(
+      `${origin}/guide-improvements?cluster=cluster_nurse-gifts`,
+    );
+    assert.equal(improvementQueue.status, 200);
+    const improvementBody = await improvementQueue.text();
+    assert.match(improvementBody, /Mejora gradual de guías/);
+    assert.match(improvementBody, /1 idea en 1 guía/);
+    assert.match(improvementBody, /A different gift idea/);
+    assert.match(improvementBody, /2\/10/);
+    assert.match(improvementBody, /Too ordinary to feel like a gift\./);
+    assert.match(improvementBody, /No habrá revisiones por horario/);
     const prompts = await fetch(
       `${origin}/idea-research/prompts?cluster=cluster_nurse-gifts&draft=guide_nurse-practical`,
     );
