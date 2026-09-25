@@ -29,7 +29,7 @@ El recorrido de cada cambio es:
 
 ## Revisión automática
 
-La revisión se dispara por un cambio, no por un calendario. Se ejecuta una sola vez al aplicar localmente una iteración que reemplaza un regalo o modifica varios campos relevantes. Debe comentar la modificación y su efecto en el contexto de la guía, sin aplicar una segunda corrección por sí sola. Una corrección menor sólo deja historial. Si no hubo cambios, no hay revisión; nunca se ejecuta cada cierta cantidad de horas o días.
+La revisión se dispara por un cambio, no por un calendario. Después de aceptar un reemplazo queda pendiente hasta que el texto de la nueva recomendación esté completo y aprobado; entonces se ejecuta una sola vez. Recibe el texto completo de la recomendación cambiada, el encabezado de las ideas vecinas y sólo el contexto general imprescindible. Comenta la modificación y su efecto en la guía, sin aplicar una segunda corrección por sí sola. Una corrección menor sólo deja historial. Si no hubo cambios, no hay revisión; nunca se ejecuta cada cierta cantidad de horas o días.
 
 ## Límites de seguridad
 
@@ -51,7 +51,7 @@ El motor mínimo necesita solamente:
 4. Aplicación a un borrador local y los controles existentes.
 5. Una acción de publicación separada después de revisar la guía completa.
 
-La cola, la propuesta individual de una clase de regalo distinta, la comparación, la decisión humana y la aplicación al borrador local ya están disponibles. Una propuesta usa sólo contexto breve, el motivo de la nota, las ideas vecinas y hasta ocho señales agregadas; guarda su versión de prompt y proveedor. Rechazar no modifica la guía. Aceptar reemplaza únicamente ese slot, conserva su posición y elimina identidad, texto, Product, enlace e imagen heredados. El nuevo slot queda pendiente de generación editorial. La revisión automática posterior y la publicación continúan separadas.
+La cola, la propuesta individual de una clase de regalo distinta, la comparación, la decisión humana y la aplicación al borrador local ya están disponibles. Una propuesta usa sólo contexto breve, el motivo de la nota, las ideas vecinas y hasta ocho señales agregadas; guarda su versión de prompt y proveedor. Rechazar no modifica la guía. Aceptar reemplaza únicamente ese slot, conserva su posición y elimina identidad, texto, Product, enlace e imagen heredados. El nuevo slot queda pendiente de generación editorial. Cuando su texto queda completo y aprobado, el revisor editorial existente se ejecuta una vez, enlaza el informe con el cambio y deja sus comentarios para decisión humana. La publicación continúa separada.
 
 ## Medición
 

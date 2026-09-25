@@ -559,6 +559,7 @@ function guideImprovementQueuePage(
   rows: readonly GiftIdeaRow[],
   ratings: readonly IdeaRating[],
   reviews: readonly ManualReviewRecord[],
+  editorialReviews: readonly EditorialReview[],
 ): string {
   const choices = clusters
     .map(
@@ -573,6 +574,11 @@ function guideImprovementQueuePage(
     const key = `guide:${review.guideId}:${review.recommendationId}`;
     if (!latestIdeaReview.has(key)) latestIdeaReview.set(key, review);
   }
+  const automaticReviewByChange = new Map(
+    editorialReviews.flatMap((review) =>
+      review.trigger ? [[review.trigger.manualReviewId, review] as const] : [],
+    ),
+  );
   const queued = rows
     .flatMap((row) => {
       const rating = ratingByKey.get(row.ideaKey);
@@ -594,12 +600,13 @@ function guideImprovementQueuePage(
         `<article class="card"><h2>${escapeHtml(guide)}</h2><p>${items.length} idea${items.length === 1 ? "" : "s"} para reemplazar.</p><ul>${items
           .map(({ row, rating }) => {
             const review = latestIdeaReview.get(row.ideaKey);
+            const automaticReview = review ? automaticReviewByChange.get(review.id) : undefined;
             const hidden = `<input type="hidden" name="clusterId" value="${escapeHtml(selectedCluster)}"><input type="hidden" name="ideaKey" value="${escapeHtml(row.ideaKey)}">`;
             const action =
               review?.status === "proposed"
                 ? `<div class="notice" id="proposal-${escapeHtml(review.id)}"><h3>Comparación pendiente</h3><p><strong>Antes:</strong> ${escapeHtml(review.previousText)}</p><p><strong>Propuesta:</strong> ${escapeHtml(review.proposedText)}</p><p><strong>Motivo:</strong> ${escapeHtml(review.comment)}</p><p class="muted">${escapeHtml(review.promptVersion ?? "versión no registrada")} · ${escapeHtml(review.providerId ?? "proveedor no registrado")}</p><div class="actions"><form method="post" action="/guide-improvements/decide"><input type="hidden" name="clusterId" value="${escapeHtml(selectedCluster)}"><input type="hidden" name="reviewId" value="${escapeHtml(review.id)}"><button name="decision" value="accepted">Aceptar</button><button name="decision" value="rejected">Rechazar</button></form><form method="post" action="/guide-improvements/propose">${hidden}<input type="hidden" name="previousReviewId" value="${escapeHtml(review.id)}"><button>Volver a proponer</button></form></div></div>`
                 : review?.status === "accepted"
-                  ? `<div class="notice"><strong>Aplicada al borrador local.</strong><p>${escapeHtml(review.previousText)} → ${escapeHtml(review.proposedText)}</p><p class="muted">La guía pública todavía conserva la idea anterior.</p></div>`
+                  ? `<div class="notice"><strong>Aplicada al borrador local.</strong><p>${escapeHtml(review.previousText)} → ${escapeHtml(review.proposedText)}</p><p class="muted">La guía pública todavía conserva la idea anterior.</p>${automaticReview ? `<p><a href="/drafts/${encodeURIComponent(review.guideId)}?review=${encodeURIComponent(automaticReview.id)}#editorial-review">Revisión automática ${automaticReview.status === "failed" ? "fallida" : `completada: ${automaticReview.issues.length} comentario${automaticReview.issues.length === 1 ? "" : "s"}`}</a></p>` : '<p class="muted">La revisión automática se ejecutará una vez cuando completes y apruebes el texto de la nueva recomendación.</p>'}</div>`
                   : `<form method="post" action="/guide-improvements/propose">${hidden}<button>Proponer reemplazo</button></form>`;
             return `<li><div class="idea-preview">${row.image ? `<img src="${escapeHtml(row.image.src)}" alt="${escapeHtml(row.image.alt)}" width="72" height="72" loading="lazy" decoding="async">` : ""}<div><strong>${escapeHtml(row.label)}</strong> · ${rating.score}/10${rating.reason ? `<p>${escapeHtml(rating.reason)}</p>` : '<p class="muted">Sin motivo registrado.</p>'}${row.link ? `<p><a href="${escapeHtml(row.link)}">Abrir contexto</a></p>` : ""}${action}</div></div></li>`;
           })
@@ -615,7 +622,7 @@ function guideImprovementQueuePage(
      <p class="muted">Cola local derivada de ideas públicas con puntaje de 1 a 4. Generar una propuesta llama al proveedor configurado, pero no modifica el borrador ni publica contenido hasta que la aceptes.</p>
      <section class="card"><h2>Grupo</h2><form class="actions" method="get" action="/guide-improvements"><label>Ver otro grupo<select name="cluster">${choices}</select></label><button>Ver cola</button></form></section>
      <section class="card"><h2>Cómo propone el motor</h2><p>Cada botón genera una sola alternativa de otra clase de regalo usando el motivo, el contexto breve de la guía y la retroalimentación agregada. La propuesta queda pendiente hasta que la aceptes.</p><details><summary>Ver instrucciones vigentes</summary><pre>${escapeHtml(IDEA_REPLACEMENT_PROMPT_INSTRUCTIONS)}</pre></details></section>
-     <section class="card"><h2>Revisión automática prevista</h2><p>Se ejecutará una vez después de aplicar localmente una modificación grande: reemplazar un regalo o cambiar varios campos relevantes dentro de una iteración. Una corrección menor sólo dejará historial. No habrá revisiones por horario ni publicación automática.</p></section>
+     <section class="card"><h2>Revisión automática</h2><p>Se ejecuta una sola vez cuando el texto del regalo reemplazado queda completo y aprobado. Comenta problemas reales en el contexto de la guía, pero no aplica otra corrección. Una corrección menor sólo deja historial. No habrá revisiones por horario ni publicación automática.</p></section>
      <section><h2>Cola de ${escapeHtml(clusterName)}</h2><p>${queued.length} idea${queued.length === 1 ? "" : "s"} en ${grouped.size} guía${grouped.size === 1 ? "" : "s"}, ordenadas primero por peor puntaje.</p>${guideCards || "<p>No hay ideas públicas marcadas para reemplazo en este grupo.</p>"}</section>`,
   );
 }
@@ -3419,7 +3426,7 @@ function editorialReviewSection(
     review.issues.some((issue) => editorialIssueCanApply(draft, issue));
   const report = review
     ? `
-    <p><strong>${review.status === "failed" ? "Revisión fallida" : stale ? "Informe desactualizado" : "Informe vigente"}</strong> · ${escapeHtml(formatDate(review.createdAt))} · ${escapeHtml(review.providerId)}${review.modelId ? ` · ${escapeHtml(review.modelId)}` : ""}</p>
+    <p><strong>${review.status === "failed" ? "Revisión fallida" : stale ? "Informe desactualizado" : "Informe vigente"}</strong>${review.trigger ? " · automática tras reemplazo" : ""} · ${escapeHtml(formatDate(review.createdAt))} · ${escapeHtml(review.providerId)}${review.modelId ? ` · ${escapeHtml(review.modelId)}` : ""}</p>
     ${review.providerId === "mock" ? '<p class="notice">Modo simulado: no se evaluó la calidad editorial. Configurá un proveedor real para revisar la guía.</p>' : ""}
     ${stale ? '<p class="notice">El contenido cambió desde esta revisión. Volvé a revisar la guía para aplicar más correcciones.</p>' : ""}
     ${review.status === "failed" ? '<p class="error">Revisión no disponible: no se encontraron problemas editoriales confiables.</p>' : ""}
@@ -3457,7 +3464,7 @@ function editorialReviewSection(
     <form method="post" action="${path}/editorial-review"><button type="submit"${canReviewEditorially(draft) ? "" : " disabled"}>Revisar editorialmente</button></form>
     ${!canReviewEditorially(draft) ? '<p class="muted">Completá la introducción, el extracto y las recomendaciones antes de revisar.</p>' : ""}
     ${report}
-    ${reviews.length ? `<details><summary>Historial de revisiones (${reviews.length})</summary><ul>${reviews.map((item) => `<li><a href="${path}?review=${encodeURIComponent(item.id)}#editorial-review">${escapeHtml(formatDate(item.createdAt))}</a> · ${item.status === "failed" ? "revisión no disponible" : `${item.issues.length} problemas · completada`}</li>`).join("")}</ul></details>` : ""}
+    ${reviews.length ? `<details><summary>Historial de revisiones (${reviews.length})</summary><ul>${reviews.map((item) => `<li><a href="${path}?review=${encodeURIComponent(item.id)}#editorial-review">${escapeHtml(formatDate(item.createdAt))}</a>${item.trigger ? " · automática" : ""} · ${item.status === "failed" ? "revisión no disponible" : `${item.issues.length} problemas · completada`}</li>`).join("")}</ul></details>` : ""}
     <p><a href="/editorial-feedback">Feedback editorial</a></p>
   </section>`;
 }
@@ -3915,6 +3922,35 @@ export function createStudioServer(
       ...ideaRatingHints(ratings, draft.clusterId),
     ];
   };
+  const reviewAcceptedReplacementIfReady = async (draft: GuideDraft) => {
+    if (!canReviewEditorially(draft)) return;
+    const reviewedChanges = new Set(
+      (await reviewStore.list()).flatMap((review) =>
+        review.trigger ? [review.trigger.manualReviewId] : [],
+      ),
+    );
+    const change = (await manualReviewStore.list(draft.id)).find(
+      (record) =>
+        record.kind === "idea" &&
+        record.status === "accepted" &&
+        record.replacementRecommendationId &&
+        !reviewedChanges.has(record.id) &&
+        draft.recommendations.some(
+          (item) =>
+            item.id === record.replacementRecommendationId && item.editorialStatus === "ready",
+        ),
+    );
+    if (!change?.replacementRecommendationId) return;
+    await reviewStore.save(
+      await reviewGuideEditorially(draft, provider, new Date(), {
+        manualReviewId: change.id,
+        replacementRecommendationId: change.replacementRecommendationId,
+        previousIdea: change.previousText,
+        replacementIdea: change.proposedText,
+        reason: change.comment,
+      }),
+    );
+  };
   const localGuideLocation = (guideId: string): string => {
     const content = readEditorialContent(store.repositoryRoot);
     const guide = content.guides.find((item) => item.id === guideId);
@@ -3992,6 +4028,7 @@ export function createStudioServer(
             rows,
             await ideaRatingStore.list(),
             await manualReviewStore.list(),
+            await reviewStore.list(),
           ),
         );
         return;
@@ -4385,7 +4422,7 @@ export function createStudioServer(
         ) {
           throw new TypeError("La idea no tiene texto completo pendiente de aprobación.");
         }
-        await store.save(
+        const saved = await store.save(
           guideDraftSchema.parse({
             ...draft,
             recommendations: draft.recommendations.map((candidate) =>
@@ -4397,6 +4434,7 @@ export function createStudioServer(
           new Date(),
           draft,
         );
+        await reviewAcceptedReplacementIfReady(saved);
         redirect(response, localGuideLocation(guideId));
         return;
       }
@@ -5031,7 +5069,7 @@ export function createStudioServer(
           throw new TypeError("Revisá el prompt final vigente antes de generar.");
         }
         const draft = await readGuideDraft(store, generateFinalMatch[1]);
-        await store.save(
+        const saved = await store.save(
           await generateFinalGuide(
             draft,
             readPublicContent(),
@@ -5040,6 +5078,7 @@ export function createStudioServer(
             await feedbackHintsFor(draft, "copy"),
           ),
         );
+        await reviewAcceptedReplacementIfReady(saved);
         redirect(response, `/drafts/${draft.id}`);
         return;
       }
@@ -5098,7 +5137,8 @@ export function createStudioServer(
           new Date(),
           await feedbackHintsFor(draft, "copy"),
         );
-        await store.save(updatedDraft);
+        const saved = await store.save(updatedDraft);
+        await reviewAcceptedReplacementIfReady(saved);
         redirect(response, guideDraftSlotPath(draft.id, generateIdeaRecommendationMatch[2]));
         return;
       }
@@ -5131,13 +5171,14 @@ export function createStudioServer(
           : null;
       if (saveRecommendationCopyMatch?.[1] && saveRecommendationCopyMatch[2]) {
         const draft = await readGuideDraft(store, saveRecommendationCopyMatch[1]);
-        await store.save(
+        const saved = await store.save(
           recommendationCopyFromForm(
             draft,
             saveRecommendationCopyMatch[2],
             await readForm(request),
           ),
         );
+        await reviewAcceptedReplacementIfReady(saved);
         redirect(response, guideDraftSlotPath(draft.id, saveRecommendationCopyMatch[2]));
         return;
       }

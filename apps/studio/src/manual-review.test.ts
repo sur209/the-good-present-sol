@@ -11,6 +11,7 @@ import {
   type StructuredGenerationRequest,
 } from "./ai-provider.ts";
 import { DraftStore } from "./draft-store.ts";
+import { EditorialReviewStore } from "./editorial-review.ts";
 import { reopenGuideDraft } from "./guide-editor.ts";
 import { prepareIdeaRecommendationPrompt } from "./idea-prompt.ts";
 import { localPublicAsset, localPublicPage } from "./local-site.ts";
@@ -220,6 +221,14 @@ test("local review generates one idea, then requires human approval", async () =
     const old = sampleDraft();
     const changed = replaceIdeaInDraft(old, old.recommendations[0]!.id, "A hand-thrown tea cup");
     const saved = await store.save(changed.draft);
+    const acceptedChange = ideaReviewRecord(
+      old,
+      old.recommendations[0]!.id,
+      changed.newId,
+      "A hand-thrown tea cup",
+      "The previous idea felt too ordinary.",
+    );
+    await new ManualReviewStore(root).save(acceptedChange);
     server = createStudioServer(store, new ProductCatalog(root), new MockGuideGenerationProvider());
     server.listen(0, STUDIO_HOST);
     await once(server, "listening");
@@ -253,6 +262,10 @@ test("local review generates one idea, then requires human approval", async () =
     const final = await store.read(saved.id);
     if (final.draftType !== "gift-guide") throw new Error("Expected guide draft");
     assert.equal(final.recommendations[0]!.editorialStatus, "ready");
+    const automaticReviews = await new EditorialReviewStore(root).list();
+    assert.equal(automaticReviews.length, 1);
+    assert.equal(automaticReviews[0]!.trigger?.manualReviewId, acceptedChange.id);
+    assert.equal(automaticReviews[0]!.trigger?.replacementRecommendationId, changed.newId);
     const crossOrigin = await fetch(`${origin}/local/review/approve-idea-copy`, {
       method: "POST",
       headers: { origin: "https://outside.example" },

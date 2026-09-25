@@ -462,6 +462,7 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     ).text();
     assert.match(acceptedQueueBody, /Aplicada al borrador local/);
     assert.match(acceptedQueueBody, /La guía pública todavía conserva la idea anterior/);
+    assert.match(acceptedQueueBody, /revisión automática se ejecutará una vez/i);
     const prompts = await fetch(
       `${origin}/idea-research/prompts?cluster=cluster_nurse-gifts&draft=guide_nurse-practical`,
     );

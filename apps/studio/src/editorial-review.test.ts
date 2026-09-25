@@ -208,6 +208,27 @@ test("editorial review: one whole-guide invocation, stable locations, issue type
   assert.match(snapshot, /selectionGuidance/);
 });
 
+test("editorial review: an accepted replacement triggers one focused advisory report", async () => {
+  const { provider, calls } = respondingProvider([{ issues: [] }]);
+  const review = await reviewGuideEditorially(fixture(), provider, new Date(), {
+    manualReviewId: "review_aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    replacementRecommendationId: "slot_lunch",
+    previousIdea: "An ordinary lunch bag",
+    replacementIdea: "A compartment lunch bag",
+    reason: "The replacement should feel more giftable.",
+  });
+  assert.deepEqual(review.trigger, {
+    kind: "accepted-idea-replacement",
+    manualReviewId: "review_aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    replacementRecommendationId: "slot_lunch",
+  });
+  assert.match(calls[0]!.messages[1]!.content, /accepted gift replacement/);
+  assert.match(calls[0]!.messages[1]!.content, /more giftable/);
+  assert.match(calls[0]!.messages[1]!.content, /room for the containers they already use/);
+  assert.doesNotMatch(calls[0]!.messages[1]!.content, /A spare pair fits the laundry routine/);
+  assert.deepEqual(review.issues, []);
+});
+
 test("editorial review: dogfood A/B grammar alternatives are valid structured findings", async () => {
   const { provider } = respondingProvider([
     { issues: [proposedIssues()[0], { ...proposedIssues()[1], type: "awkward-language" }] },
