@@ -106,9 +106,12 @@ test("rating hints keep positive, negative and reasoned middle examples in a sma
   ];
   const hints = ideaRatingHints(ratings, "cluster_nurse-gifts");
   assert.equal(hints.length, 8);
-  assert.equal(hints.filter((hint) => hint.startsWith("Positive preference pattern")).length, 3);
+  assert.equal(hints.filter((hint) => hint.startsWith("Rating profile")).length, 1);
+  assert.equal(hints.filter((hint) => hint.startsWith("Positive preference pattern")).length, 2);
   assert.equal(hints.filter((hint) => hint.startsWith("Negative example")).length, 3);
   assert.equal(hints.filter((hint) => hint.startsWith("Conditional preference")).length, 2);
+  assert.match(hints[0]!, /18 ratings, average 2\.9\/10/);
+  assert.match(hints[0]!, /3 high \(8-10\), 2 workable \(5-7\), 13 weak \(1-4\)/);
   assert.ok(hints.some((hint) => hint.includes("Generic frame")));
   assert.ok(hints.every((hint) => !hint.includes("Desk plant")));
   assert.ok(hints.every((hint) => !hint.includes("Desk organizer")));
@@ -179,7 +182,7 @@ test("research saves only grounded, distinct proposals and needs human approval"
     );
     assert.equal(first.length, 1);
     assert.equal(first[0]!.status, "proposed");
-    assert.equal(first[0]!.promptVersion, "research-v3");
+    assert.equal(first[0]!.promptVersion, "research-v4");
     assert.equal(first[0]!.sourceUrl, article);
     assert.deepEqual(approvedResearchHints(await store.list("cluster_nurse-gifts")), []);
     const accepted = await store.decide(first[0]!.id, "accepted");
@@ -323,7 +326,11 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     });
     assert.equal(rated.status, 303, await rated.text());
     assert.equal((await ratingStore.list())[0]!.score, 9);
-    assert.deepEqual(ideaRatingHints(await ratingStore.list(), "cluster_nurse-gifts"), []);
+    const highScoreOnly = ideaRatingHints(await ratingStore.list(), "cluster_nurse-gifts");
+    assert.equal(highScoreOnly.length, 1);
+    assert.match(highScoreOnly[0]!, /average 9\.0\/10/);
+    assert.match(highScoreOnly[0]!, /1 high \(8-10\)/);
+    assert.doesNotMatch(highScoreOnly[0]!, /A compact lunch warmer/);
     const updated = await fetch(`${origin}/idea-research/rate`, {
       method: "POST",
       body: new URLSearchParams({
@@ -399,8 +406,8 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     assert.match(promptBody, /Plantilla de instrucciones actual/);
     assert.match(promptBody, /Último prompt guardado/);
     assert.match(promptBody, /Esto no es un historial completo/);
-    assert.match(promptBody, /outline-v5/);
-    assert.match(promptBody, /research-v3/);
+    assert.match(promptBody, /outline-v6/);
+    assert.match(promptBody, /research-v4/);
     assert.match(promptBody, /outline-v1/);
     assert.match(promptBody, /Previously saved prompt snapshot/);
     assert.match(promptBody, /Useful at home, not a redundant work tool\./);

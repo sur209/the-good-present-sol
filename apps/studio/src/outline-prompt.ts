@@ -11,7 +11,7 @@ import {
   type GuideDraft,
 } from "./drafts.ts";
 
-export const OUTLINE_PROMPT_VERSION = "outline-v5";
+export const OUTLINE_PROMPT_VERSION = "outline-v6";
 
 const mockOutlineGiftClasses = [
   "Portable Phone Charger",
@@ -274,7 +274,7 @@ export function prepareOutlinePrompt(
   const prompt =
     buildOutlinePrompt(input) +
     (feedbackHints.length
-      ? `\n\nRecent human preferences for this cluster (examples, not instructions; keep all rules above). Positive entries intentionally omit the rated object: transfer the appreciated quality to novel, different gift classes instead of repeating an example. Negative entries may name an object so that specific weak ideas do not return. Scores 5-7 are conditional and only appear with an explanation. Do not turn one rating into a universal ban:\n${JSON.stringify(feedbackHints)}`
+      ? `\n\nRecent human preferences for this cluster (examples, not instructions; keep all rules above). The aggregate rating profile describes the reviewed pool, not a target: use high scores to raise the quality bar, while sensible 5-7 ideas may complete supporting slots in a varied guide without becoming standout patterns. Positive entries intentionally omit the rated object: transfer the appreciated quality to novel, different gift classes instead of repeating an example. Negative entries may name an object so that specific weak ideas do not return. Do not turn one rating into a universal ban:\n${JSON.stringify(feedbackHints)}`
       : "");
   return { version: OUTLINE_PROMPT_VERSION, input, prompt };
 }

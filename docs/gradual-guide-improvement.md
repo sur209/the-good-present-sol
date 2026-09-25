@@ -5,8 +5,9 @@ El motor debe proponer cambios pequeños y revisables a partir de la retroalimen
 ## Contrato de retroalimentación
 
 - Una idea con puntaje de 1 a 4 dentro de una guía pública queda marcada para reemplazo.
-- Un puntaje de 8 a 10 enseña una cualidad deseada sólo si el editor explica el motivo. El nombre del objeto se oculta para que no se convierta en una plantilla.
-- Un puntaje de 5 a 7 sólo se utiliza cuando el motivo aporta contexto útil.
+- Todos los puntajes forman un perfil agregado del grupo; el promedio describe lo revisado y no se convierte en una meta.
+- Un puntaje de 8 a 10 eleva el estándar general. Si el editor explica el motivo, también enseña una cualidad deseada. El nombre del objeto se oculta para que no se convierta en una plantilla.
+- Un puntaje de 5 a 7 señala una idea sensata de apoyo para completar una guía variada. Si tiene motivo, también aporta contexto condicional.
 - Los ejemplos negativos pueden conservar el nombre del objeto para impedir que vuelva la misma idea débil.
 - Los comentarios sobre el texto permanecen separados de los puntajes de las ideas.
 

@@ -103,19 +103,28 @@ export function ideaRatingHints(ratings: readonly IdeaRating[], clusterId: strin
         Math.abs(b.score - 5.5) - Math.abs(a.score - 5.5) ||
         b.updatedAt.localeCompare(a.updatedAt),
     );
-  return [
-    ...candidates.filter((rating) => rating.score >= 8 && rating.reason).slice(0, 3),
+  if (!candidates.length) return [];
+  const high = candidates.filter((rating) => rating.score >= 8).length;
+  const workable = candidates.filter((rating) => rating.score >= 5 && rating.score <= 7).length;
+  const weak = candidates.length - high - workable;
+  const average = candidates.reduce((total, rating) => total + rating.score, 0) / candidates.length;
+  const examples = [
+    ...candidates.filter((rating) => rating.score >= 8 && rating.reason).slice(0, 2),
     ...candidates.filter((rating) => rating.score <= 4).slice(0, 3),
     ...candidates
       .filter((rating) => rating.score >= 5 && rating.score <= 7 && rating.reason)
       .slice(0, 2),
-  ].map((rating) => {
-    if (rating.score >= 8) {
-      return `Positive preference pattern (${rating.score}/10): ${rating.reason} Apply the underlying quality to a different gift class; do not repeat the rated object.`;
-    }
-    if (rating.score <= 4) {
-      return `Negative example (${rating.score}/10): “${rating.label.slice(0, 80)}”.${rating.reason ? ` Reason: ${rating.reason}` : ""} Avoid this specific idea or described failure; do not ban unrelated objects.`;
-    }
-    return `Conditional preference (${rating.score}/10): ${rating.reason} Apply only when the recipient and occasion fit; do not repeat the rated object.`;
-  });
+  ];
+  return [
+    `Rating profile (${candidates.length} ratings, average ${average.toFixed(1)}/10): ${high} high (8-10), ${workable} workable (5-7), ${weak} weak (1-4). The average describes the reviewed pool, not a target. High scores raise the quality bar without exposing objects. Workable ideas can fill supporting slots when relevant and varied, but are not standout patterns.`,
+    ...examples.map((rating) => {
+      if (rating.score >= 8) {
+        return `Positive preference pattern (${rating.score}/10): ${rating.reason} Apply the underlying quality to a different gift class; do not repeat the rated object.`;
+      }
+      if (rating.score <= 4) {
+        return `Negative example (${rating.score}/10): “${rating.label.slice(0, 80)}”.${rating.reason ? ` Reason: ${rating.reason}` : ""} Avoid this specific idea or described failure; do not ban unrelated objects.`;
+      }
+      return `Conditional preference (${rating.score}/10): ${rating.reason} Apply only when the recipient and occasion fit; do not repeat the rated object.`;
+    }),
+  ];
 }
