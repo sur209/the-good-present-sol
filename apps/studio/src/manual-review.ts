@@ -165,11 +165,24 @@ export function ideaReviewRecord(
   });
 }
 
-export const IDEA_REPLACEMENT_PROMPT_VERSION = "idea-replacement-v1";
+export const IDEA_REPLACEMENT_PROMPT_VERSION = "idea-replacement-v2";
 export const IDEA_REPLACEMENT_PROMPT_INSTRUCTIONS =
-  'Propose exactly one concrete generic gift concept to replace the weak current idea. It must fit the supplied recipient, occasion, and guide intent; belong to a meaningfully different gift class; and avoid occupational clichés, work-supplied tools, brands, links, prices, product claims, and every existing idea. Human rating feedback is evidence, not text to repeat. Return only JSON: {"concept":"A concise generic gift concept"}.';
+  'Propose exactly one concrete purchasable physical product class to replace the weak current idea. It must name an object that could have a conventional product listing and be shipped to the recipient. Never propose an experience, activity, outing, workshop, class, lesson, tour, event, membership, subscription, ticket, pass, gift card, voucher, cash, donation, reservation, appointment, or service. It must fit the supplied recipient, occasion, and guide intent; belong to a meaningfully different gift class; and avoid occupational clichés, work-supplied tools, brands, links, prices, product claims, and every existing idea. Human rating feedback is evidence, not text to repeat. Return only JSON: {"concept":"A concise physical product class"}.';
 
-const ideaProposalSchema = z.strictObject({ concept: z.string().trim().min(4).max(120) });
+const ideaProposalSchema = z.strictObject({
+  concept: z
+    .string()
+    .trim()
+    .min(4)
+    .max(120)
+    .refine(
+      (concept) =>
+        !/\b(?:membership|subscription|outing|experience|workshop|lesson|tour|event tickets?|gift card|voucher|donation|reservation|appointment)\b/i.test(
+          concept,
+        ),
+      "The replacement must be a physical product, not an experience or service.",
+    ),
+});
 
 export async function proposeIdeaReview(
   draft: GuideDraft,
@@ -200,6 +213,7 @@ export async function proposeIdeaReview(
       ratingFeedback: feedbackHints.slice(0, 8),
     },
     schema: ideaProposalSchema,
+    reasoningEffort: "low",
     mockResponse: () => ({ concept: "A framed custom night-sky print" }),
   });
   replaceIdeaInDraft(draft, recommendationId, result.concept);

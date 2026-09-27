@@ -112,8 +112,11 @@ test("generated idea replacement stays pending until an explicit decision", asyn
     provider,
   );
   assert.equal(observedRequest?.operation, "manual-idea-replacement");
+  assert.equal(observedRequest?.reasoningEffort, "low");
+  assert.match(observedRequest?.prompt ?? "", /purchasable physical product class/);
+  assert.match(observedRequest?.prompt ?? "", /Never propose an experience/);
   assert.equal(proposal.status, "proposed");
-  assert.equal(proposal.promptVersion, "idea-replacement-v1");
+  assert.equal(proposal.promptVersion, "idea-replacement-v2");
   assert.equal(proposal.proposedText, "A framed custom night-sky print");
   assert.equal(draft.recommendations[0]!.id, original.id);
 
@@ -125,6 +128,20 @@ test("generated idea replacement stays pending until an explicit decision", asyn
   assert.equal(applied.record.status, "accepted");
   assert.equal(applied.record.replacementRecommendationId, replacement.id);
   assert.equal(rejectIdeaReview(proposal).status, "rejected");
+});
+
+test("idea replacement rejects experiences even when the provider ignores the prompt", async () => {
+  const draft = sampleDraft();
+  const provider: GuideGenerationProvider = {
+    providerId: "test",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      return request.schema.parse({ concept: "A flexible hands-on creative workshop" });
+    },
+  };
+  await assert.rejects(
+    proposeIdeaReview(draft, draft.recommendations[0]!.id, "Too ordinary.", [], provider),
+    /physical product/,
+  );
 });
 
 test("review history persists and contributes only short accepted hints", async () => {

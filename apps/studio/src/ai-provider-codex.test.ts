@@ -205,6 +205,24 @@ test("Codex no Windows usa el ejecutable directo, los argumentos configurados y 
   await assert.rejects(access(fake.observation.cwd!));
 });
 
+test("Codex permite bajar el razonamiento sólo para una generación breve", async () => {
+  const fake = fakeCodex({ output: '{"answer":"ready"}' });
+  const provider = createGuideGenerationProvider(
+    {
+      AI_PROVIDER: "codex-cli",
+      AI_MODEL: "configured-model",
+      AI_REASONING_EFFORT: "max",
+      AI_TIMEOUT_MS: "1000",
+    },
+    fetch,
+    fake.spawn,
+    "linux",
+  );
+  await provider.generateStructured({ ...request, reasoningEffort: "low" });
+  assert.ok(fake.observation.args?.includes('model_reasoning_effort="low"'));
+  assert.ok(!fake.observation.args?.includes('model_reasoning_effort="max"'));
+});
+
 test("Codex en Windows resuelve codex.cmd y lo ejecuta con cmd.exe sin exponer el prompt", async (t) => {
   const launcherDirectory = await mkdtemp(join(tmpdir(), "codex-launcher-"));
   t.after(() => rm(launcherDirectory, { recursive: true, force: true }));

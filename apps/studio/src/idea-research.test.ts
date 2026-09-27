@@ -428,7 +428,7 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     );
     assert.ok(proposal);
     assert.equal(proposal.proposedText, "A framed custom night-sky print");
-    assert.equal(proposal.promptVersion, "idea-replacement-v1");
+    assert.equal(proposal.promptVersion, "idea-replacement-v2");
     const proposedBody = await (
       await fetch(`${origin}/guide-improvements?cluster=cluster_nurse-gifts`)
     ).text();

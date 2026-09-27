@@ -95,6 +95,7 @@ export interface StructuredGenerationRequest<T> {
   input: unknown;
   schema: z.ZodType<T>;
   timeoutMs?: number;
+  reasoningEffort?: "low" | "medium" | "high" | "xhigh" | "max";
   mockResponse?: () => unknown;
   onCallMetadata?: (metadata: ProviderCallMetadata) => void;
 }
@@ -680,7 +681,7 @@ export class CodexCliGenerationProvider implements GuideGenerationProvider {
       "--config",
       `approval_policy=${JSON.stringify("never")}`,
       "--config",
-      `model_reasoning_effort=${JSON.stringify(this.configuration.reasoningEffort)}`,
+      `model_reasoning_effort=${JSON.stringify(request.reasoningEffort ?? this.configuration.reasoningEffort)}`,
       "-",
     ];
     const startedAt = performance.now();

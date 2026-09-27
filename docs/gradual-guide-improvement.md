@@ -16,7 +16,7 @@ La marca de reemplazo se deriva del puntaje y de la presencia en una guía públ
 ## Flujo de iteraciones pequeñas
 
 1. **Cola:** reunir ideas públicas marcadas para reemplazo y comentarios de texto aceptados.
-2. **Propuesta:** elegir una guía y proponer como máximo un reemplazo de regalo y una corrección menor de texto.
+2. **Propuesta:** elegir una guía y proponer como máximo un reemplazo que sea un producto físico comprable y una corrección menor de texto.
 3. **Comparación:** mostrar lado a lado la versión actual y la propuesta, con el motivo del cambio y la versión del prompt utilizada.
 4. **Revisión:** el editor acepta, rechaza o comenta cada propuesta por separado.
 5. **Aplicación local:** los cambios aceptados actualizan sólo un borrador local; la URL, el slug, las demás ideas y el texto ajeno al cambio permanecen intactos.
@@ -51,7 +51,7 @@ El motor mínimo necesita solamente:
 4. Aplicación a un borrador local y los controles existentes.
 5. Una acción de publicación separada después de revisar la guía completa.
 
-La cola, la propuesta individual de una clase de regalo distinta, la comparación, la decisión humana y la aplicación al borrador local ya están disponibles. Una propuesta usa sólo contexto breve, el motivo de la nota, las ideas vecinas y hasta ocho señales agregadas; guarda su versión de prompt y proveedor. Rechazar no modifica la guía. Aceptar reemplaza únicamente ese slot, conserva su posición y elimina identidad, texto, Product, enlace e imagen heredados. El nuevo slot queda pendiente de generación editorial. Cuando su texto queda completo y aprobado, el revisor editorial existente se ejecuta una vez, enlaza el informe con el cambio y deja sus comentarios para decisión humana. La publicación continúa separada.
+La cola, la propuesta individual de una clase de regalo distinta, la comparación, la decisión humana y la aplicación al borrador local ya están disponibles. Una propuesta usa sólo contexto breve, razonamiento bajo, el motivo de la nota, las ideas vecinas y hasta ocho señales agregadas. Debe ser un producto físico comprable; experiencias, talleres, membresías y servicios quedan fuera. También guarda su versión de prompt y proveedor. Rechazar no modifica la guía. Aceptar reemplaza únicamente ese slot, conserva su posición y elimina identidad, texto, Product, enlace e imagen heredados. El nuevo slot queda pendiente de generación editorial. Cuando su texto queda completo y aprobado, el revisor editorial existente se ejecuta una vez, enlaza el informe con el cambio y deja sus comentarios para decisión humana. La publicación continúa separada.
 
 ## Medición
 
