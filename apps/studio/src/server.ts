@@ -89,7 +89,11 @@ import {
   RESEARCH_SOURCES,
   IDEA_RESEARCH_PROMPT_INSTRUCTIONS,
   IDEA_RESEARCH_PROMPT_VERSION,
+  PRODUCT_GUIDE_IDEA_PROMPT_VERSION,
+  PRODUCT_QUERY_INSTRUCTIONS,
+  PRODUCT_SELECTION_INSTRUCTIONS,
   approvedResearchHints,
+  generateProductGroundedGuideIdeas,
   researchGiftIdeas,
   type ResearchRecord,
 } from "./idea-research.ts";
@@ -462,13 +466,17 @@ function giftIdeaRows(
     }
   }
   for (const record of research.filter((item) => item.clusterId === clusterId)) {
+    const guide = record.guideId
+      ? content.guides.find((item) => item.id === record.guideId)
+      : undefined;
     rows.set(`research:${record.id}`, {
       ideaKey: `research:${record.id}`,
       clusterId,
       label: record.giftClass,
-      location: "Sin guía",
-      detail: record.sourceName,
+      location: guide ? "Propuesta para guía" : "Sin guía",
+      detail: guide?.title ?? record.sourceName,
       published: false,
+      ...(record.imageUrl ? { image: { src: record.imageUrl, alt: record.evidenceHeading } } : {}),
       link: record.sourceUrl,
       research: record,
     });
@@ -483,6 +491,8 @@ function giftIdeaRows(
 function ideaResearchPage(
   clusters: readonly { id: string; title: string }[],
   selectedCluster: string,
+  guides: readonly { id: string; title: string; giftCount: number }[],
+  productAutomationAvailable: boolean,
   rows: readonly GiftIdeaRow[],
   ratings: readonly IdeaRating[],
   added: number | undefined,
@@ -496,6 +506,12 @@ function ideaResearchPage(
     .map(
       (cluster) =>
         `<option value="${escapeHtml(cluster.id)}"${cluster.id === selectedCluster ? " selected" : ""}>${escapeHtml(cluster.title)}</option>`,
+    )
+    .join("");
+  const guideChoices = guides
+    .map(
+      (guide) =>
+        `<option value="${escapeHtml(guide.id)}">${escapeHtml(guide.title)} (${guide.giftCount} ideas)</option>`,
     )
     .join("");
   const ratingByKey = new Map(ratings.map((rating) => [rating.ideaKey, rating]));
@@ -526,7 +542,10 @@ function ideaResearchPage(
         row.published && rating?.score !== undefined && rating.score <= 4
           ? "Marcada para reemplazo"
           : baseStatus;
-      return `<tr><td><div class="idea-preview">${row.image ? `<img src="${escapeHtml(row.image.src)}" alt="${escapeHtml(row.image.alt)}" width="72" height="72" loading="lazy" decoding="async">` : ""}<div><strong>${escapeHtml(row.label)}</strong>${row.research ? `<br><small>${escapeHtml(row.research.fit)} · Encabezado: “${escapeHtml(row.research.evidenceHeading)}”</small>` : ""}</div></div></td>
+      const researchEvidence = row.research
+        ? `${row.research.fit} · Producto observado: “${row.research.evidenceHeading}”${row.research.observedPrice ? ` · ${row.research.observedPrice}` : ""}${row.research.observedRating !== undefined ? ` · ${row.research.observedRating}/5` : ""}`
+        : "";
+      return `<tr><td><div class="idea-preview">${row.image ? `<img src="${escapeHtml(row.image.src)}" alt="${escapeHtml(row.image.alt)}" width="72" height="72" loading="lazy" decoding="async">` : ""}<div><strong>${escapeHtml(row.label)}</strong>${row.research ? `<br><small>${escapeHtml(researchEvidence)}</small>` : ""}</div></div></td>
       <td>${escapeHtml(row.location)}<br><small>${detail}</small></td>
       <td><span data-idea-status data-published="${row.published}" data-base-status="${escapeHtml(baseStatus)}">${escapeHtml(status)}</span></td>
       <td><span data-current-rating>${rating ? `${rating.score}/10` : "Sin puntaje"}</span><small class="rating-note" data-current-reason>${escapeHtml(rating?.reason ?? "")}</small></td>
@@ -536,8 +555,12 @@ function ideaResearchPage(
   return page(
     "Investigación de ideas",
     `<h1>Investigación de ideas</h1>
-    <p class="muted">Piloto editorial: investigá artículos públicos de competidores registrados y revisá conceptos de regalo con procedencia. Nada se publica automáticamente. Las ideas aceptadas alimentan la próxima generación de esquemas del grupo. <a href="/guide-improvements?cluster=${encodeURIComponent(selectedCluster)}">Ver cola de mejora</a> · <a href="/idea-research/prompts?cluster=${encodeURIComponent(selectedCluster)}">Ver prompts y versiones</a>.</p>
+    <p class="muted">Generá y revisá ideas con procedencia. Nada se publica automáticamente. Las decisiones y puntajes alimentan las próximas generaciones del grupo. <a href="/guide-improvements?cluster=${encodeURIComponent(selectedCluster)}">Ver cola de mejora</a> · <a href="/idea-research/prompts?cluster=${encodeURIComponent(selectedCluster)}">Ver prompts y versiones</a>.</p>
     ${added === undefined ? "" : `<p class="notice">Se guardaron ${added} ideas nuevas para revisión. Las fuentes o respuestas que no pasan las validaciones se omiten.</p>`}
+    <section class="card"><h2>Generar una guía desde productos reales</h2>
+      <p>El sistema crea cinco búsquedas distintas, reúne y deduplica productos de Amazon, y selecciona automáticamente una propuesta concreta para cada lugar de la guía. Usa cinco búsquedas de SerpAPI y dos llamadas breves al modelo. Las propuestas quedan pendientes para que las puntúes, aceptes o descartes; no cambian el sitio público.</p>
+      ${productAutomationAvailable && guides.length ? `<form method="post" action="/idea-research/product-guide"><input type="hidden" name="clusterId" value="${escapeHtml(selectedCluster)}"><label>Guía<select name="guideId" required>${guideChoices}</select></label><button>Generar guía completa desde Amazon</button></form>` : `<p class="notice">${guides.length ? "La búsqueda de Amazon no está configurada en este Studio." : "Este grupo todavía no tiene guías públicas para completar."}</p>`}
+    </section>
     <section class="card"><h2>Buscar ideas para enfermeras</h2><p>Analiza dos artículos públicos preseleccionados de Good Housekeeping y guarda las ideas encontradas como pendientes. Puede usar hasta dos llamadas del proveedor de IA existente.</p>
       <form method="post" action="/idea-research/nurse-gifts/discover"><button>Buscar y guardar ideas</button></form></section>
     <section class="card"><h2>Analizar un artículo</h2><form method="post" action="/idea-research/analyze">
@@ -670,6 +693,7 @@ function ideaResearchPromptsPage(
        <form class="actions" method="get" action="/idea-research/prompts"><label>Grupo<select name="cluster">${clusterChoices}</select></label><button>Ver grupo</button></form>
        ${drafts.length ? `<form class="actions" method="get" action="/idea-research/prompts"><input type="hidden" name="cluster" value="${escapeHtml(clusterId)}"><label>Borrador<select name="draft">${draftChoices}</select></label><button>Ver prompt</button></form>` : ""}
      </section>
+     <section class="card"><h2>Generación desde productos</h2><p>Plantillas actuales, versión <code>${escapeHtml(PRODUCT_GUIDE_IDEA_PROMPT_VERSION)}</code>. La primera crea cinco búsquedas breves; la segunda selecciona productos concretos y distintos para cubrir toda la guía.</p><details><summary>Ver instrucciones de búsqueda</summary><pre>${escapeHtml(PRODUCT_QUERY_INSTRUCTIONS)}</pre></details><details><summary>Ver instrucciones de selección</summary><pre>${escapeHtml(PRODUCT_SELECTION_INSTRUCTIONS)}</pre></details></section>
      <section class="card"><h2>Investigación de artículos</h2><p>Plantilla de instrucciones actual, versión <code>${escapeHtml(IDEA_RESEARCH_PROMPT_VERSION)}</code>. Al ejecutar una búsqueda se agregan el grupo, las señales extraídas del artículo, ideas existentes y preferencias editoriales. Las propuestas nuevas conservan esta versión.</p><details><summary>Ver plantilla</summary><pre>${escapeHtml(IDEA_RESEARCH_PROMPT_INSTRUCTIONS)}</pre></details></section>
      <section class="card"><h2>Generación de ideas para ${escapeHtml(draft ? draftName(draft) : (clusters.find((cluster) => cluster.id === clusterId)?.title ?? clusterId))}</h2>${outline}</section>
      <section class="card"><h2>Último prompt guardado</h2><p class="muted">Sólo se conserva el último prompt usado por este borrador; puede corresponder a otra etapa de generación. Esto no es un historial completo de cambios.</p>${saved}</section>`,
@@ -679,7 +703,7 @@ function ideaResearchPromptsPage(
 function send(response: ServerResponse, status: number, body: string, allowScript = false): void {
   response.writeHead(status, {
     "content-type": "text/html; charset=utf-8",
-    "content-security-policy": `default-src 'none'; ${allowScript ? "script-src 'self'; connect-src 'self'; " : ""}style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'`,
+    "content-security-policy": `default-src 'none'; ${allowScript ? "script-src 'self'; connect-src 'self'; " : ""}img-src 'self' https: data:; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'`,
     "x-content-type-options": "nosniff",
   });
   response.end(body);
@@ -4004,10 +4028,27 @@ export function createStudioServer(
         const addedParam = url.searchParams.get("added");
         const added =
           addedParam !== null && /^\d{1,3}$/.test(addedParam) ? Number(addedParam) : undefined;
+        const guides = content.guides
+          .filter((guide) => guide.clusterId === clusterId)
+          .map((guide) => ({
+            id: guide.id,
+            title: guide.title,
+            giftCount: guide.recommendations.length,
+          }));
         send(
           response,
           200,
-          ideaResearchPage(content.clusters, clusterId, rows, await ideaRatingStore.list(), added),
+          ideaResearchPage(
+            content.clusters,
+            clusterId,
+            guides,
+            Boolean(
+              discoverySource && productDiscoverySourceSupportsMode(discoverySource, "amazon"),
+            ),
+            rows,
+            await ideaRatingStore.list(),
+            added,
+          ),
           true,
         );
         return;
@@ -4228,6 +4269,31 @@ export function createStudioServer(
         } else {
           redirect(response, `/idea-research?cluster=${encodeURIComponent(clusterId)}`);
         }
+        return;
+      }
+      if (method === "POST" && url.pathname === "/idea-research/product-guide") {
+        const form = await readForm(request);
+        const clusterId = requiredValue(form, "clusterId", "El grupo");
+        const guideId = requiredValue(form, "guideId", "La guía");
+        const content = readPublicContent(store.repositoryRoot);
+        const guide = content.guides.find(
+          (candidate) => candidate.id === guideId && candidate.clusterId === clusterId,
+        );
+        if (!guide) throw new TypeError("La guía seleccionada no pertenece a este grupo.");
+        if (!discoverySource || !productDiscoverySourceSupportsMode(discoverySource, "amazon")) {
+          throw new TypeError("La búsqueda de Amazon no está configurada en este Studio.");
+        }
+        const result = await generateProductGroundedGuideIdeas(
+          guide,
+          provider,
+          discoverySource,
+          ideaResearchStore,
+          ideaRatingHints(await ideaRatingStore.list(), clusterId),
+        );
+        redirect(
+          response,
+          `/idea-research?cluster=${encodeURIComponent(clusterId)}&added=${result.records.length}`,
+        );
         return;
       }
       if (method === "POST" && url.pathname === "/idea-research/nurse-gifts/discover") {

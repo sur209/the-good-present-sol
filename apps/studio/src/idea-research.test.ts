@@ -14,10 +14,12 @@ import {
   approvedResearchHints,
   checkedResearchUrl,
   extractPageSignals,
+  generateProductGroundedGuideIdeas,
   inspectResearchPage,
   researchGiftIdeas,
   robotsAllows,
 } from "./idea-research.ts";
+import type { ProductDiscoverySource } from "./modules/product-sources/discovery.ts";
 import { ProductCatalog } from "./product-catalog.ts";
 import { IdeaRatingStore, ideaRatingHints, type IdeaRating } from "./idea-ratings.ts";
 import { ManualReviewStore } from "./manual-review.ts";
@@ -211,6 +213,109 @@ test("research saves only grounded, distinct proposals and needs human approval"
   }
 });
 
+test("product-first automation fills a complete guide from deduplicated Amazon results", async () => {
+  const root = await mkdtemp(join(tmpdir(), "tgp-product-ideas-"));
+  try {
+    const store = new IdeaResearchStore(root);
+    const searches: string[] = [];
+    const discoverySource: ProductDiscoverySource = {
+      providerId: "serpapi",
+      paidUsage: true,
+      supportedModes: ["amazon"],
+      async search(input) {
+        searches.push(input.query);
+        assert.equal(input.discoveryMode, "amazon");
+        assert.equal(input.candidateLimit, 50);
+        const queryNumber = searches.length;
+        return Array.from({ length: 3 }, (_, index) => ({
+          sourceKind: "serpapi" as const,
+          provider: "serpapi",
+          discoveryMode: "amazon" as const,
+          externalId: `ASIN-${queryNumber}-${index}`,
+          sourceUrl: `https://www.amazon.com/dp/example-${queryNumber}-${index}`,
+          productUrl: `https://www.amazon.com/dp/example-${queryNumber}-${index}`,
+          name: `Observed product ${queryNumber}-${index}`,
+          query: input.query,
+          observedAt: input.observedAt,
+          observedPrice: `$${20 + queryNumber + index}.00`,
+          observedRating: 4.5,
+          observedReviewCount: 100 + index,
+          observedImageUrl: `https://images.example.com/${queryNumber}-${index}.jpg`,
+        }));
+      },
+    };
+    let providerCalls = 0;
+    const provider: GuideGenerationProvider = {
+      providerId: "test",
+      async generateStructured(request) {
+        providerCalls += 1;
+        assert.match(request.prompt, /Structured input:/);
+        if (providerCalls === 1) {
+          assert.match(request.prompt, /Practical gifts for nurses/);
+          return request.schema.parse({
+            queries: [
+              "premium tea accessories",
+              "soft home comfort",
+              "portable photo printer",
+              "creative art kits",
+              "elegant travel organizer",
+            ],
+          }) as never;
+        }
+        assert.match(request.prompt, /Observed product 1-0/);
+        return request.schema.parse({
+          ideas: [
+            {
+              candidateId: "candidate_1",
+              giftClass: "A premium loose-leaf tea set",
+              fit: "A polished everyday pleasure that feels generous.",
+            },
+            {
+              candidateId: "candidate_2",
+              giftClass: "A soft weighted lap blanket",
+              fit: "Adds comfort at home without being a routine work tool.",
+            },
+            {
+              candidateId: "candidate_3",
+              giftClass: "A pocket photo printer",
+              fit: "Turns personal memories into a creative keepsake.",
+            },
+          ],
+        }) as never;
+      },
+    };
+    const result = await generateProductGroundedGuideIdeas(
+      {
+        id: "guide_test",
+        clusterId: "cluster_nurse-gifts",
+        title: "Practical gifts for nurses",
+        primaryIntent: "Useful gifts with enough novelty to feel special",
+        recommendations: [{}, {}, {}],
+      },
+      provider,
+      discoverySource,
+      store,
+      ["Positive preference pattern: feels generous without repeating the object."],
+      new Date("2026-09-27T12:00:00.000Z"),
+    );
+    assert.equal(providerCalls, 2);
+    assert.equal(searches.length, 5);
+    assert.equal(result.productsFound, 15);
+    assert.equal(result.records.length, 3);
+    assert.equal(new Set(result.records.map((record) => record.runId)).size, 1);
+    assert.ok(result.records.every((record) => record.guideId === "guide_test"));
+    assert.ok(result.records.every((record) => record.status === "proposed"));
+    assert.ok(result.records.every((record) => record.promptVersion === "product-guide-ideas-v1"));
+    assert.ok(result.records.every((record) => record.imageUrl));
+    assert.deepEqual(
+      new Set((await store.list("cluster_nurse-gifts")).map((record) => record.id)),
+      new Set(result.records.map((record) => record.id)),
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("Studio shows pending ideas and records an explicit editor decision", async () => {
   const root = await mkdtemp(join(tmpdir(), "tgp-research-ui-"));
   let server: ReturnType<typeof createStudioServer> | undefined;
@@ -301,6 +406,7 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     );
     assert.doesNotMatch(editedRow, /<img\b/);
     assert.match(body, /Buscar y guardar ideas/);
+    assert.match(body, /Generar una guía desde productos reales/);
     assert.match(body, /Asignar puntajes/);
     assert.match(body, /Motivo y contexto \(opcional\)/);
     assert.match(body, /describí la cualidad sin repetir el objeto/);
@@ -309,6 +415,10 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     assert.match(body, /href="\/guide-improvements/);
     assert.match(body, /<script src="\/idea-research\.js" defer><\/script>/);
     assert.match(listing.headers.get("content-security-policy") ?? "", /connect-src 'self'/);
+    assert.match(
+      listing.headers.get("content-security-policy") ?? "",
+      /img-src 'self' https: data:/,
+    );
     const script = await fetch(`${origin}/idea-research.js`);
     assert.equal(script.status, 200);
     const scriptBody = await script.text();
@@ -473,6 +583,8 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     assert.match(promptBody, /Esto no es un historial completo/);
     assert.match(promptBody, /outline-v6/);
     assert.match(promptBody, /research-v4/);
+    assert.match(promptBody, /product-guide-ideas-v1/);
+    assert.match(promptBody, /Generación desde productos/);
     assert.match(promptBody, /outline-v1/);
     assert.match(promptBody, /Previously saved prompt snapshot/);
     assert.match(promptBody, /Useful at home, not a redundant work tool\./);
