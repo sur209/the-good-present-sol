@@ -4074,7 +4074,8 @@ export function createStudioServer(
                   : readEditorialContent(store.repositoryRoot),
               ),
             );
-        const priorReviews = await manualReviewStore.list(guideId);
+        const allManualReviews = await manualReviewStore.list();
+        const priorReviews = allManualReviews.filter((review) => review.guideId === guideId);
         const pending = priorReviews.find(
           (review) =>
             review.kind === "idea" &&
@@ -4085,12 +4086,26 @@ export function createStudioServer(
         if ((pending && pending.id !== previousReviewId) || (!pending && previousReviewId)) {
           throw new TypeError("La propuesta pendiente cambió; recargá la cola.");
         }
+        const clusterGuideIds = new Set(
+          content.guides
+            .filter((candidate) => candidate.clusterId === clusterId)
+            .map((candidate) => candidate.id),
+        );
+        const roundIdeasToAvoid = allManualReviews.flatMap((review) =>
+          review.kind === "idea" &&
+          review.status === "proposed" &&
+          review.id !== pending?.id &&
+          clusterGuideIds.has(review.guideId)
+            ? [review.proposedText]
+            : [],
+        );
         const proposal = await proposeIdeaReview(
           draft,
           recommendationId,
           rating.reason ??
             `Puntaje editorial ${rating.score}/10; reemplazar por una idea con mayor valor como regalo.`,
           ideaRatingHints(await ideaRatingStore.list(), clusterId),
+          roundIdeasToAvoid,
           provider,
         );
         if (pending) await manualReviewStore.save(rejectIdeaReview(pending));

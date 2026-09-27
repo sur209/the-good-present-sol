@@ -165,9 +165,9 @@ export function ideaReviewRecord(
   });
 }
 
-export const IDEA_REPLACEMENT_PROMPT_VERSION = "idea-replacement-v2";
+export const IDEA_REPLACEMENT_PROMPT_VERSION = "idea-replacement-v4";
 export const IDEA_REPLACEMENT_PROMPT_INSTRUCTIONS =
-  'Propose exactly one concrete purchasable physical product class to replace the weak current idea. It must name an object that could have a conventional product listing and be shipped to the recipient. Never propose an experience, activity, outing, workshop, class, lesson, tour, event, membership, subscription, ticket, pass, gift card, voucher, cash, donation, reservation, appointment, or service. It must fit the supplied recipient, occasion, and guide intent; belong to a meaningfully different gift class; and avoid occupational clichés, work-supplied tools, brands, links, prices, product claims, and every existing idea. Human rating feedback is evidence, not text to repeat. Return only JSON: {"concept":"A concise physical product class"}.';
+  'Propose exactly one concrete purchasable physical product class to replace the weak current idea. It must name an object that could have a conventional product listing and be shipped to the recipient. Never propose an experience, activity, outing, workshop, class, lesson, tour, event, membership, subscription, ticket, pass, gift card, voucher, cash, donation, reservation, appointment, or service. It must fit the supplied recipient, occasion, and guide intent; belong to a meaningfully different gift class; and avoid occupational clichés, work-supplied tools, brands, links, prices, product claims, and every existing idea. Avoid the same broad product family as any current-round proposal in roundIdeasToAvoid; changing the material or shape does not make it diverse. Do not default to generic decorative vessels, photo albums, framed prints, or blankets unless the context strongly justifies them. Human rating feedback is evidence, not text to repeat. Return only JSON: {"concept":"A concise physical product class"}.';
 
 const ideaProposalSchema = z.strictObject({
   concept: z
@@ -184,11 +184,42 @@ const ideaProposalSchema = z.strictObject({
     ),
 });
 
+const genericConceptWords = new Set([
+  "a",
+  "an",
+  "the",
+  "and",
+  "for",
+  "with",
+  "personalized",
+  "custom",
+  "handcrafted",
+  "handmade",
+  "compact",
+]);
+
+function repeatsIdeaFamily(concept: string, ideas: readonly string[]): boolean {
+  const words = (value: string) =>
+    new Set(
+      value
+        .toLocaleLowerCase()
+        .split(/[^a-z0-9]+/)
+        .filter((word) => word.length > 1 && !genericConceptWords.has(word)),
+    );
+  const proposed = words(concept);
+  return ideas.some((idea) => {
+    const existing = words(idea);
+    const shared = [...proposed].filter((word) => existing.has(word)).length;
+    return shared >= 2 && shared / Math.min(proposed.size, existing.size) >= 0.6;
+  });
+}
+
 export async function proposeIdeaReview(
   draft: GuideDraft,
   recommendationId: string,
   comment: string,
   feedbackHints: readonly string[],
+  roundIdeasToAvoid: readonly string[],
   provider: GuideGenerationProvider,
   now = new Date(),
 ): Promise<ManualReviewRecord> {
@@ -200,30 +231,39 @@ export async function proposeIdeaReview(
   const existingIdeas = draft.recommendations
     .filter((item) => item.id !== recommendationId)
     .map((item) => item.heading ?? item.slotLabel);
-  const result = await provider.generateStructured({
-    operation: "manual-idea-replacement",
-    prompt: IDEA_REPLACEMENT_PROMPT_INSTRUCTIONS,
-    input: {
-      guideTitle: draft.title ?? "",
-      primaryIntent: draft.primaryIntent ?? "",
-      questionnaire: draft.questionnaire,
-      currentIdea: current.heading ?? current.slotLabel,
-      editorFeedback: cleanComment,
-      existingIdeas,
-      ratingFeedback: feedbackHints.slice(0, 8),
-    },
-    schema: ideaProposalSchema,
-    reasoningEffort: "low",
-    mockResponse: () => ({ concept: "A framed custom night-sky print" }),
-  });
-  replaceIdeaInDraft(draft, recommendationId, result.concept);
-  if (
-    existingIdeas.some(
-      (idea) => idea.trim().toLocaleLowerCase() === result.concept.trim().toLocaleLowerCase(),
-    )
-  ) {
-    throw new TypeError("La propuesta repite otra idea de la guía.");
+  const roundIdeas = roundIdeasToAvoid
+    .map((idea) => idea.trim())
+    .filter(Boolean)
+    .slice(0, 12);
+  const avoidedIdeas = [...existingIdeas, ...roundIdeas];
+  const retryIdeas: string[] = [];
+  let result: z.infer<typeof ideaProposalSchema> | undefined;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    result = await provider.generateStructured({
+      operation: "manual-idea-replacement",
+      prompt: IDEA_REPLACEMENT_PROMPT_INSTRUCTIONS,
+      input: {
+        guideTitle: draft.title ?? "",
+        primaryIntent: draft.primaryIntent ?? "",
+        questionnaire: draft.questionnaire,
+        currentIdea: current.heading ?? current.slotLabel,
+        editorFeedback: cleanComment,
+        existingIdeas,
+        roundIdeasToAvoid: [...roundIdeas, ...retryIdeas].slice(-12),
+        ratingFeedback: feedbackHints.slice(0, 8),
+      },
+      schema: ideaProposalSchema,
+      reasoningEffort: "low",
+      mockResponse: () => ({ concept: "A framed custom night-sky print" }),
+    });
+    if (!repeatsIdeaFamily(result.concept, avoidedIdeas)) break;
+    retryIdeas.push(result.concept);
+    avoidedIdeas.push(result.concept);
+    result = undefined;
   }
+  if (!result)
+    throw new TypeError("La propuesta repite una familia de regalos de la ronda actual.");
+  replaceIdeaInDraft(draft, recommendationId, result.concept);
   return reviewRecordSchema.parse({
     id: `review_${randomUUID()}`,
     guideId: draft.id,

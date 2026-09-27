@@ -109,14 +109,18 @@ test("generated idea replacement stays pending until an explicit decision", asyn
     original.id,
     "The current idea feels too ordinary.",
     ["Rating profile: raise the quality bar."],
+    ["A ceramic serving bowl"],
     provider,
   );
   assert.equal(observedRequest?.operation, "manual-idea-replacement");
   assert.equal(observedRequest?.reasoningEffort, "low");
+  assert.deepEqual((observedRequest?.input as { roundIdeasToAvoid?: unknown }).roundIdeasToAvoid, [
+    "A ceramic serving bowl",
+  ]);
   assert.match(observedRequest?.prompt ?? "", /purchasable physical product class/);
   assert.match(observedRequest?.prompt ?? "", /Never propose an experience/);
   assert.equal(proposal.status, "proposed");
-  assert.equal(proposal.promptVersion, "idea-replacement-v2");
+  assert.equal(proposal.promptVersion, "idea-replacement-v4");
   assert.equal(proposal.proposedText, "A framed custom night-sky print");
   assert.equal(draft.recommendations[0]!.id, original.id);
 
@@ -139,9 +143,55 @@ test("idea replacement rejects experiences even when the provider ignores the pr
     },
   };
   await assert.rejects(
-    proposeIdeaReview(draft, draft.recommendations[0]!.id, "Too ordinary.", [], provider),
+    proposeIdeaReview(draft, draft.recommendations[0]!.id, "Too ordinary.", [], [], provider),
     /physical product/,
   );
+});
+
+test("idea replacement rejects an exact duplicate from the current round", async () => {
+  const draft = sampleDraft();
+  const provider: GuideGenerationProvider = {
+    providerId: "test",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      return request.schema.parse({ concept: "A ceramic serving bowl" });
+    },
+  };
+  await assert.rejects(
+    proposeIdeaReview(
+      draft,
+      draft.recommendations[0]!.id,
+      "Too ordinary.",
+      [],
+      ["A ceramic serving bowl"],
+      provider,
+    ),
+    /ronda actual/,
+  );
+});
+
+test("idea replacement retries a renamed product from the same family once", async () => {
+  const draft = sampleDraft();
+  let calls = 0;
+  const provider: GuideGenerationProvider = {
+    providerId: "test",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      calls += 1;
+      return request.schema.parse({
+        concept:
+          calls === 1 ? "A personalized leather-bound recipe journal" : "A birthstone pendant",
+      });
+    },
+  };
+  const proposal = await proposeIdeaReview(
+    draft,
+    draft.recommendations[0]!.id,
+    "Too ordinary.",
+    [],
+    ["A personalized recipe journal"],
+    provider,
+  );
+  assert.equal(calls, 2);
+  assert.equal(proposal.proposedText, "A birthstone pendant");
 });
 
 test("review history persists and contributes only short accepted hints", async () => {
