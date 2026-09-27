@@ -22,7 +22,7 @@
   "seoDescription": "Celebrate a new nurse with six useful, thoughtful graduation gifts chosen for the milestone and the next chapter.",
   "status": "published",
   "publishedAt": "2026-08-02",
-  "updatedAt": "2026-08-08",
+  "updatedAt": "2026-09-27",
   "recommendations": [
     {
       "id": "graduation_shift-tote",
@@ -36,14 +36,15 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "graduation_stethoscope-case",
-      "productId": "product_stethoscope-case",
+      "id": "review_e12ceb21-7d90-4026-9990-270a002061db",
+      "productResolution": "unresolved",
       "position": 2,
-      "heading": "A protective case for a meaningful tool",
-      "editorialDescription": "A hard-shell case turns a loose piece of gear into an organized kit. It is especially thoughtful when the graduate already owns a stethoscope they want to protect between school, orientation, and work.",
-      "whyItFits": "The gift acknowledges the practical details of starting out without guessing which clinical tool they should use.",
-      "bestFor": "A graduate who already has a preferred stethoscope",
-      "considerations": "Confirm the case dimensions against the recipient's equipment before ordering.",
+      "heading": "A Compact Multi-Device Charging Station",
+      "editorialDescription": "A compact charging station gives a new graduate one orderly place for the devices that follow them through busy days. A foldable model can work on a nightstand now and travel easily when plans change.",
+      "whyItFits": "It marks the transition with a useful everyday upgrade instead of guessing which professional equipment they need.",
+      "bestFor": "A graduate with several compatible daily devices",
+      "selectionGuidance": "Confirm phone, watch, and earbud compatibility and whether the charging adapter is included.",
+      "considerations": "Device support and charging speeds vary; keep the receipt if you cannot verify the recipient's exact setup.",
       "editorialStatus": "ready"
     },
     {
@@ -80,14 +81,15 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "graduation_coffee-card",
-      "productId": "product_coffee-card",
+      "id": "review_2f3f9216-0df9-494f-b633-61019b1e8a79",
+      "productResolution": "unresolved",
       "position": 6,
-      "heading": "A flexible first-week treat",
-      "editorialDescription": "A gift card to a shop the graduate already visits gives them an easy coffee, tea, or snack when they want one. The personal part is the note: name the work you saw them put in and the future you are excited to watch unfold.",
-      "whyItFits": "It leaves the timing and choice to the graduate while still creating a small celebratory moment.",
-      "bestFor": "The graduate whose taste you know better than their gear list",
-      "considerations": "Choose a convenient local shop and confirm the recipient enjoys what it sells.",
+      "heading": "A Ceramic Keepsake Jewelry Box",
+      "editorialDescription": "A small ceramic jewelry box gives the graduate a lasting place for a ring, pin, or other tiny reminder of the milestone. Choose a restrained design that can live on a dresser long after graduation decorations come down.",
+      "whyItFits": "It turns the occasion into a useful keepsake without leaning on generic nursing slogans or disposable treats.",
+      "bestFor": "A graduate who wears jewelry or keeps small meaningful objects",
+      "selectionGuidance": "Look for a stable lid, a smooth or lined interior, and a design that fits the recipient's room rather than a profession theme.",
+      "considerations": "Ceramic can chip in transit, so favor protective packaging and include a gift receipt.",
       "editorialStatus": "ready"
     }
   ]

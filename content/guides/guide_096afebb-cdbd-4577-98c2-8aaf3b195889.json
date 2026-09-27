@@ -14,7 +14,7 @@
   "seoDescription": "Find personalized nurse gifts for birthdays, graduations, licensure, milestones, thank-yous, and everyday appreciation, from practical keepsakes to home accents.",
   "status": "published",
   "publishedAt": "2026-09-20",
-  "updatedAt": "2026-09-20",
+  "updatedAt": "2026-09-27",
   "recommendations": [
     {
       "id": "guide_096afebb-cdbd-4577-98c2-8aaf3b195889_slot-1",
@@ -24,7 +24,7 @@
       "editorialDescription": "Initials or a name turn a leather tote into a distinctly personal carryall for shifts, classes, and everyday errands. Choose a clean design with organization suited to what the recipient actually carries, so the personalization adds ownership to a useful item.",
       "whyItFits": "It balances daily usefulness with a personal touch for birthdays, milestones, thank-yous, or just-because occasions.",
       "bestFor": "Nurses moving between work, study, and home.",
-      "selectionGuidance": "Compare handle comfort, closure, interior organization, base stability, and personalization placement. Decide whether the recipient needs a work-ready tote or a lighter everyday carry, and choose a finish that suits their style without profession imagery.",
+      "selectionGuidance": "Compare handle comfort, closure, interior organization, base stability, and personalization placement. Decide whether the recipient needs a work-ready tote or a lighter everyday carry, and choose a finish that suits their style without overt nursing imagery.",
       "considerations": "Leather care and overall weight may matter; personalization can also make returns or exchanges less flexible.",
       "editorialStatus": "ready"
     },
@@ -33,7 +33,7 @@
       "productResolution": "unresolved",
       "position": 2,
       "heading": "Engraved Memento Box",
-      "editorialDescription": "An engraved wooden box gives photographs, cards, and other small mementos a dedicated home. A name, date, or short message keeps the focus on the recipient's milestone rather than on generic professional decoration.",
+      "editorialDescription": "An engraved wooden box gives photographs, cards, and other small mementos a dedicated home. A name, date, or short message keeps the focus on the recipient's milestone rather than on generic nurse-themed décor.",
       "whyItFits": "It turns graduation, licensure, or a work milestone into a keepsake they can revisit for years.",
       "bestFor": "Nurses marking graduation, licensure, or a career milestone.",
       "selectionGuidance": "Choose wording that will still feel right years from now. Compare interior capacity, opening style, finish, and display appeal, then check every name, date, and message carefully before ordering.",
@@ -106,7 +106,7 @@
       "position": 8,
       "heading": "Personalized Notecard Set",
       "editorialDescription": "Handwritten thank-yous, congratulations, and everyday correspondence feel more deliberate on personalized notecards. A name or monogram keeps the design useful at home or at a personal desk while leaving room for the recipient's own words.",
-      "whyItFits": "It acknowledges relationships and milestones through a practical paper good, with personalization that feels thoughtful rather than themed.",
+      "whyItFits": "It acknowledges relationships and milestones through useful stationery, with personalization that feels thoughtful rather than themed.",
       "bestFor": "Nurses who enjoy handwritten notes and personal correspondence.",
       "selectionGuidance": "Compare paper feel, card size, envelope coordination, writing space, and whether the design suits casual or formal notes. Use the recipient's name or initials accurately, and favor a clean layout that works for many occasions.",
       "considerations": "Stationery is most useful for someone who writes by hand; avoid designs that imply workplace or patient information.",
@@ -119,21 +119,21 @@
       "heading": "Embroidered Milestone Throw",
       "editorialDescription": "For quiet time at home, a throw blanket embroidered with initials, a name, or a meaningful date adds a personal touch to a useful textile. A restrained design can recognize a demanding season or achievement without becoming generic nurse merchandise.",
       "whyItFits": "It offers a warm, lasting keepsake for someone whose busy schedule makes home comfort especially welcome.",
-      "bestFor": "Nurses receiving recognition for a milestone or work season.",
+      "bestFor": "Nurses receiving recognition for a milestone or a demanding stretch at work.",
       "selectionGuidance": "Choose a color and pattern that fit the recipient's home, then compare fabric feel, edge finish, care instructions, and embroidery placement. Keep the wording short and check dates, spelling, and initials carefully before finalizing.",
       "considerations": "Home textiles are style-specific; confirm décor preferences and whether the intended use is a sofa, bed, or travel layer.",
       "editorialStatus": "ready"
     },
     {
-      "id": "guide_096afebb-cdbd-4577-98c2-8aaf3b195889_slot-10",
+      "id": "review_2e9b614c-7bb8-4cdb-9633-dc35bc305266",
       "productResolution": "unresolved",
       "position": 10,
-      "heading": "Personalized Achievement Plaque",
-      "editorialDescription": "Graduation, licensure, or a work anniversary deserves a displayable form with the recipient's name, date, and a concise achievement line. The strongest designs keep the wording specific and the presentation restrained for a home or personal workspace.",
-      "whyItFits": "It recognizes an earned milestone directly, making the personalization part of the meaning rather than a decorative add-on.",
-      "bestFor": "Nurses celebrating graduation, licensure, or a work anniversary.",
-      "selectionGuidance": "Prepare the exact name, achievement wording, date, and short message before choosing a layout. Compare display orientation, material finish, legibility, and suitability for home or personal workspace. Avoid generic imagery or text that may date quickly.",
-      "considerations": "Because it is display-oriented, choose this when you have a good sense of the recipient's décor and comfort with public recognition.",
+      "heading": "A Personalized Serving Board Gift Set",
+      "editorialDescription": "An engraved wooden serving board feels personal without becoming a display-only award. Choose a restrained monogram, family name, or meaningful date so it can move easily from weeknight snacks to relaxed hosting.",
+      "whyItFits": "It combines a visible personal detail with a useful object the recipient can keep in regular rotation.",
+      "bestFor": "Someone who enjoys cooking, grazing boards, or having friends over",
+      "selectionGuidance": "Favor food-safe wood, clear care instructions, and personalization that suits the recipient's home rather than their job title.",
+      "considerations": "Confirm spelling and the final engraving preview before ordering; hand-wash-only boards need a little extra care.",
       "editorialStatus": "ready"
     }
   ]

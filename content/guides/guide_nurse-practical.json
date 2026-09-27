@@ -21,17 +21,18 @@
   "seoDescription": "Shop six practical nurse gifts selected for real routines, from organized commutes and packed meals to comfort and rest.",
   "status": "published",
   "publishedAt": "2026-08-03",
-  "updatedAt": "2026-08-08",
+  "updatedAt": "2026-09-27",
   "recommendations": [
     {
-      "id": "practical_compression-socks",
-      "productId": "product_compression-socks",
+      "id": "review_c05c936a-c844-49d3-8f82-1671182be9a8",
+      "productResolution": "unresolved",
       "position": 1,
-      "heading": "A fresh pair for days spent on the move",
-      "editorialDescription": "Compression socks are a familiar workday staple, but the thoughtful choice is a pair that matches the recipient's taste rather than a loud profession-themed print. A simple pattern keeps the gift useful and easy to rotate into what they already wear.",
-      "whyItFits": "It responds to a routine built around long stretches on foot and is compact enough to be genuinely useful.",
-      "bestFor": "A nurse who has already mentioned wearing compression socks",
-      "considerations": "Compression level, fit, and size are personal; check what the recipient already prefers before buying.",
+      "heading": "A Compact Muscle Recovery Massager",
+      "editorialDescription": "A small percussion massager offers a straightforward way to unwind after an active day. Compact models fit more easily in a drawer or travel bag, which makes them more likely to be used than bulky recovery equipment.",
+      "whyItFits": "It feels substantial as a gift and can support the recipient's broader exercise, travel, and downtime routines.",
+      "bestFor": "Someone who is active and already enjoys practical recovery tools",
+      "selectionGuidance": "Choose manageable weight, intuitive controls, a useful range of attachments, and a protective case.",
+      "considerations": "This is a comfort tool rather than medical care; the recipient should avoid injured areas and follow professional advice when relevant.",
       "editorialStatus": "ready"
     },
     {

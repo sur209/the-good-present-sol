@@ -472,4 +472,60 @@ export const recommendationIllustrations: Record<string, { src: string; alt: str
     src: "/images/gift-ideas/jigsaw-puzzle.webp",
     alt: "Illustration of an adult jigsaw puzzle",
   },
+  "review_2e9b614c-7bb8-4cdb-9633-dc35bc305266": {
+    src: "/images/gift-ideas/wooden-serving-board.webp",
+    alt: "Illustration of a wooden serving board gift set",
+  },
+  "review_3483c66f-e0a1-42c7-bd4d-1c13afc26640": {
+    src: "/images/gift-ideas/bedside-charging-station.webp",
+    alt: "Illustration of a wireless charging dock",
+  },
+  "review_d3c6e189-ff3b-4106-9e60-91c6af154250": {
+    src: "/images/gift-ideas/desktop-punching-bag.webp",
+    alt: "Illustration of a desktop punching-bag stress toy",
+  },
+  "review_9143db57-0df8-4e49-bb74-f06cf5cd038b": {
+    src: "/images/gift-ideas/portable-watercolor-kit.webp",
+    alt: "Illustration of a portable watercolor painting kit",
+  },
+  "review_1002ac32-a096-45f8-b9cb-a42386fdf38e": {
+    src: "/images/gift-ideas/premium-tea-sampler.webp",
+    alt: "Illustration of a tea sampler gift box",
+  },
+  "review_9dd5601b-c490-4af2-977a-83cf25869adb": {
+    src: "/images/practical/sleep-mask.webp",
+    alt: "Illustration of a reversible sleep mask",
+  },
+  "review_633f3eb3-e43c-4505-ada7-825b1a465bbd": {
+    src: "/images/gift-ideas/ergonomic-seat-cushions.webp",
+    alt: "Illustration of an ergonomic seat and back-support cushion set",
+  },
+  "review_6144f0f9-f32f-467b-a58c-7d0f4b762c8c": {
+    src: "/images/gift-ideas/soft-cotton-robe.webp",
+    alt: "Illustration of a folded cotton robe",
+  },
+  "review_08602464-4e12-4ce6-b04b-427817a60801": {
+    src: "/images/gift-ideas/compact-muscle-massager.webp",
+    alt: "Illustration of a portable muscle massager",
+  },
+  "review_4bfc35b6-7542-4bc6-99bc-01d69e40a60d": {
+    src: "/images/practical/sleep-mask.webp",
+    alt: "Illustration of a silk sleep mask",
+  },
+  "review_e12ceb21-7d90-4026-9990-270a002061db": {
+    src: "/images/gift-ideas/bedside-charging-station.webp",
+    alt: "Illustration of a compact multi-device charging station",
+  },
+  "review_2f3f9216-0df9-494f-b633-61019b1e8a79": {
+    src: "/images/gift-ideas/ceramic-keepsake-jewelry-box.webp",
+    alt: "Illustration of a ceramic keepsake jewelry box",
+  },
+  "review_c05c936a-c844-49d3-8f82-1671182be9a8": {
+    src: "/images/gift-ideas/compact-muscle-massager.webp",
+    alt: "Illustration of a compact muscle recovery massager",
+  },
+  "review_6263b202-a1ae-4a95-a66c-6885709d1432": {
+    src: "/images/practical/sleep-mask.webp",
+    alt: "Illustration of a weighted eye pillow",
+  },
 };

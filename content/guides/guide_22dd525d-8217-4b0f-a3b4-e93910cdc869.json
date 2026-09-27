@@ -14,7 +14,7 @@
   "seoDescription": "Explore thoughtful gift ideas for nursing students and practical selection tips for school, clinical rotations, studying, commuting, and encouragement.",
   "status": "published",
   "publishedAt": "2026-09-19",
-  "updatedAt": "2026-09-19",
+  "updatedAt": "2026-09-27",
   "recommendations": [
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-1",
@@ -65,15 +65,15 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-5",
+      "id": "review_3483c66f-e0a1-42c7-bd4d-1c13afc26640",
       "productResolution": "unresolved",
       "position": 5,
-      "heading": "Fine-Point Gel Pens for Study Notes",
-      "editorialDescription": "A set of fine-point gel pens can make note-taking, color-coding, and care-planning exercises smoother. Quick-drying ink helps reduce smudges when writing quickly, and a comfortable grip matters during long study sessions. Assorted colors support diagrams, flashcards, and study guides, while a simple black pen remains useful for formal paperwork.",
-      "whyItFits": "Nursing coursework involves heavy writing, from lecture notes to study outlines. Pens that feel good and dry quickly can make that work less tedious.",
-      "bestFor": "A student who takes lots of handwritten notes or color-codes study materials.",
-      "selectionGuidance": "Compare tip style, ink flow, drying speed, grip comfort, and available colors. Check whether the recipient prefers capped or retractable pens, and whether bleed-through is a concern for their notebooks.",
-      "considerations": "For clinical paperwork, check the program or placement’s ink-color and pen-type requirements. Keep the assorted colors for personal study notes.",
+      "heading": "A Premium Wireless Charging Dock",
+      "editorialDescription": "A compact charging dock gives a crowded desk or nightstand one dependable place for daily devices. It is a polished upgrade that can simplify study nights without adding another clinical accessory.",
+      "whyItFits": "It supports the student's real routine and feels more generous than another small item they would usually buy for themselves.",
+      "bestFor": "A student balancing classes, clinical days, and a phone-heavy schedule",
+      "selectionGuidance": "Check compatibility with the recipient's phone, case, watch, and earbuds, and look for an included power adapter.",
+      "considerations": "Wireless standards and charging speeds vary, so confirm the exact devices before choosing a dock.",
       "editorialStatus": "ready"
     },
     {

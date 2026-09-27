@@ -65,11 +65,12 @@ test("targeted copy proposal uses one field and needs approval", async () => {
     },
   };
   const original = draft.recommendations[0]!;
+  const selectedQuote = original.editorialDescription!.split(" ").slice(0, 2).join(" ");
   const proposal = await proposeCopyReview(
     draft,
     "editorialDescription",
     original.id,
-    "thoughtful choice",
+    selectedQuote,
     "This sounds generic.",
     provider,
   );

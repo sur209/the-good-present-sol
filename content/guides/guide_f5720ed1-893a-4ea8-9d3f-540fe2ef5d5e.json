@@ -36,7 +36,7 @@
   "seoDescription": "Shop thoughtful gifts for male nurses with individual taste in mind, from everyday usefulness and off-shift comfort to personal meaning.",
   "status": "published",
   "publishedAt": "2026-09-20",
-  "updatedAt": "2026-09-20",
+  "updatedAt": "2026-09-27",
   "recommendations": [
     {
       "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-1",
@@ -63,15 +63,15 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-3",
+      "id": "review_08602464-4e12-4ce6-b04b-427817a60801",
       "productResolution": "unresolved",
       "position": 3,
-      "heading": "An organized meal-prep set",
-      "editorialDescription": "A reusable container set makes it simpler to portion, pack, and organize meals for workdays or home. It feels thoughtful when chosen with the recipient’s eating habits in mind rather than treated as a generic work accessory.",
-      "whyItFits": "It combines food-and-drink usefulness with home organization and supports a busy workday without leaning on nursing stereotypes.",
-      "bestFor": "A nurse who prepares meals ahead or packs food for work",
-      "selectionGuidance": "Match the shapes and mix of containers to the meals he tends to pack, available storage, and whether he prefers several smaller pieces or fewer larger ones. Favor an arrangement that is easy for him to keep organized.",
-      "considerations": "Skip it if he usually buys meals at work or already has a well-matched set.",
+      "heading": "A Portable Muscle Massager",
+      "editorialDescription": "A compact percussion massager is easy to keep near a sofa, desk, or gym bag for brief off-duty use. A small model feels substantial as a gift without taking over a shelf or requiring a complicated setup.",
+      "whyItFits": "It supports recovery and relaxation while avoiding profession-themed stereotypes or employer-supplied gear.",
+      "bestFor": "Someone who exercises, travels, or appreciates practical recovery tools",
+      "selectionGuidance": "Look for comfortable weight, simple speed controls, useful attachments, and a case that keeps the set together.",
+      "considerations": "It is a personal comfort device, not medical treatment; recipients with health concerns should follow professional guidance.",
       "editorialStatus": "ready"
     },
     {

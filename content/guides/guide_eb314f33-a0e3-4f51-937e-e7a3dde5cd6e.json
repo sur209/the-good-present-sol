@@ -14,7 +14,7 @@
   "seoDescription": "Find thoughtful gift ideas for a new nurse entering their first professional role. This guide focuses on practical support for new routines, rest, meals, and home comfort.",
   "status": "published",
   "publishedAt": "2026-09-19",
-  "updatedAt": "2026-09-19",
+  "updatedAt": "2026-09-27",
   "recommendations": [
     {
       "id": "guide_eb314f33-a0e3-4f51-937e-e7a3dde5cd6e_slot-1",
@@ -41,15 +41,15 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "guide_eb314f33-a0e3-4f51-937e-e7a3dde5cd6e_slot-3",
+      "id": "review_6144f0f9-f32f-467b-a58c-7d0f4b762c8c",
       "productResolution": "unresolved",
       "position": 3,
-      "heading": "Reusable Earplugs for Daytime Quiet",
-      "editorialDescription": "Reusable sleep earplugs offer a washable way to soften household noise when a new nurse is resting during the day. Look for a pair that feels comfortable for side sleeping and comes with a small case for storage. Reusable options vary in fit, material, and how much sound they mute, so personal comfort matters more than any one style. A gentle cleaning routine helps them last.",
-      "whyItFits": "Daytime sleep in a shared home can be interrupted by roommates, pets, traffic, or deliveries. Earplugs give the nurse more control over their rest environment.",
-      "bestFor": "A new nurse who sleeps during the day in a household with background noise.",
-      "selectionGuidance": "Compare shape, material, and size options. Look for soft edges, a storage case, and clear cleaning instructions. If the recipient is sensitive to in-ear items, a different noise-reducing option may suit them better.",
-      "considerations": "Reusable earplugs require regular cleaning and can wear out over time. They may not suit someone who needs to hear alarms or household alerts.",
+      "heading": "A Soft Cotton Robe",
+      "editorialDescription": "A breathable cotton robe makes slow mornings and post-shower evenings feel a little more settled. It is useful immediately, but still has the sense of comfort and indulgence expected from a gift.",
+      "whyItFits": "It recognizes that starting a new role also calls for good off-duty routines, not just more work accessories.",
+      "bestFor": "A new nurse setting up a first apartment or refreshing home comforts",
+      "selectionGuidance": "Choose washable cotton in a weight suited to the recipient's climate, with secure pockets and an attached belt loop.",
+      "considerations": "Sizing and fabric feel are personal, so use a gift receipt and avoid heavily scented packaging.",
       "editorialStatus": "ready"
     },
     {

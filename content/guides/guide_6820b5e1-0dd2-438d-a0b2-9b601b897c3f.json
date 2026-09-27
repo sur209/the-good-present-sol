@@ -42,7 +42,7 @@
   "seoDescription": "Thoughtful, workplace-appropriate appreciation ideas for nurse preceptors and mentors after orientation, clinical placement, graduation, or a first nursing job.",
   "status": "published",
   "publishedAt": "2026-09-20",
-  "updatedAt": "2026-09-20",
+  "updatedAt": "2026-09-27",
   "recommendations": [
     {
       "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-1",
@@ -57,15 +57,15 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-2",
+      "id": "review_1002ac32-a096-45f8-b9cb-a42386fdf38e",
       "productResolution": "unresolved",
       "position": 2,
-      "heading": "A Framed Note of Appreciation",
-      "editorialDescription": "Turn a specific thank-you into a simple keepsake for a mentor’s desk or home. Choose wording that recalls a meaningful lesson, moment, or quality you valued, then pair it with a clean, understated frame.",
-      "whyItFits": "It gives a preceptor or mentor a lasting reminder of the guidance they offered without becoming overly personal or elaborate.",
-      "bestFor": "A mentor who appreciates written thanks and simple keepsakes",
-      "selectionGuidance": "Prioritize a sincere message over generic nursing imagery. Look for legible typography, a neutral frame, and a display-friendly format. Proofread names and wording, especially when several people contribute.",
-      "considerations": "Keep the tone professional and confirm whether the workplace has gift-value or ethics rules.",
+      "heading": "A Premium Tea Sampler",
+      "editorialDescription": "A well-presented tea assortment offers several quiet breaks rather than one more object to display. Pair it with a specific thank-you note so the appreciation remains personal even after the tea is gone.",
+      "whyItFits": "It feels generous, is easy to share, and lets a mentor choose a blend that fits the moment.",
+      "bestFor": "A preceptor who enjoys tea at home or keeps a small break-room stash",
+      "selectionGuidance": "Choose individually wrapped varieties with clear ingredient and caffeine information and a balanced mix of familiar flavors.",
+      "considerations": "Confirm that the recipient drinks tea and check for allergies or ingredients they avoid.",
       "editorialStatus": "ready"
     },
     {

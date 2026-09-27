@@ -41,7 +41,7 @@
   "seoDescription": "Find thoughtful gifts for female nurses that respect personal taste and fit workday routines, off-shift interests, home life, and meaningful occasions.",
   "status": "published",
   "publishedAt": "2026-09-20",
-  "updatedAt": "2026-09-22",
+  "updatedAt": "2026-09-27",
   "recommendations": [
     {
       "id": "guide_c6486516-1afc-4104-8407-50fc3fb37550_slot-3",
@@ -152,15 +152,15 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "slot_c22109a6-5b2c-474d-a47f-c76a454c99a3",
+      "id": "review_9dd5601b-c490-4af2-977a-83cf25869adb",
       "productResolution": "unresolved",
       "position": 10,
-      "heading": "A Membership for Local Discovery",
-      "editorialDescription": "A membership connected to art, history, or science can create flexible off-shift plans without adding another obligation. It feels especially thoughtful when it reflects her curiosity, a place she already enjoys, or an interest she has mentioned exploring.",
-      "whyItFits": "It recognizes her as an individual and offers a low-pressure way to enjoy interests beyond work, either alone or with someone she chooses.",
-      "bestFor": "Nurses who enjoy culture, learning, or local outings",
-      "selectionGuidance": "Start with the kind of place she would genuinely visit, then compare location, ease of use, flexibility, and overall value. Choose an option that fits her schedule and interests, and present it in a way that makes activation or planning simple.",
-      "considerations": "This may be less useful if she lives far away, prefers home-based downtime, or already has similar access.",
+      "heading": "A Reversible Warming and Cooling Sleep Mask",
+      "editorialDescription": "A reversible sleep mask can feel cool on one side and softly cozy on the other, making it useful in more than one season. It is a simple off-shift comfort rather than another object tied to work.",
+      "whyItFits": "It offers an immediate, flexible way to make rest feel more intentional without assuming how she spends her free time.",
+      "bestFor": "Someone who values quiet downtime, travel comfort, or daytime rest",
+      "selectionGuidance": "Look for an adjustable strap, a washable cover, and clear instructions for any removable warming or cooling insert.",
+      "considerations": "Avoid scented fillings unless you know the recipient likes them, and follow all heating instructions carefully.",
       "editorialStatus": "ready"
     }
   ]

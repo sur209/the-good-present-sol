@@ -5996,6 +5996,10 @@ test("renderiza sólo destinos del catálogo y distingue enlaces afiliados", asy
     join(REPOSITORY_ROOT, "apps", "site", "dist", "nurse-gifts", "practical", "index.html"),
     "utf8",
   );
+  const under25 = await readFile(
+    join(REPOSITORY_ROOT, "apps", "site", "dist", "nurse-gifts", "under-25", "index.html"),
+    "utf8",
+  );
   const card = (html: string, productName: string): string => {
     const nameIndex = html.lastIndexOf(productName);
     assert.ok(nameIndex >= 0, `Missing ${productName}`);
@@ -6005,8 +6009,8 @@ test("renderiza sólo destinos del catálogo y distingue enlaces afiliados", asy
     return html.slice(start, end + "</article>".length);
   };
 
-  const affiliateCard = card(graduation, "Local Coffee Shop Gift Card");
-  assert.match(affiliateCard, /href="https:\/\/example\.com\/gifts\/coffee-shop-card"/);
+  const affiliateCard = card(practical, "Fragrance-Free Hand Cream Duo");
+  assert.match(affiliateCard, /href="https:\/\/example\.com\/gifts\/hand-cream-duo"/);
   assert.match(affiliateCard, /target="_blank"/);
   assert.match(affiliateCard, /rel="sponsored nofollow noopener"/);
 
@@ -6023,7 +6027,7 @@ test("renderiza sólo destinos del catálogo y distingue enlaces afiliados", asy
   );
   assert.match(amazonAffiliateCard, /rel="sponsored nofollow noopener"/);
 
-  const amazonPendingCard = card(practical, "Everyday Compression Socks");
+  const amazonPendingCard = card(under25, "Everyday Compression Socks");
   assert.doesNotMatch(amazonPendingCard, /href=/);
   assert.match(amazonPendingCard, /Why it fits/);
 
@@ -6049,7 +6053,7 @@ test("quitar un afiliado Amazon conserva la identidad del Product y la recomenda
   await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
 
   const catalog = new ProductCatalog(repository);
-  const original = catalog.get("product_compression-socks");
+  const original = catalog.get("product_lunch-container");
   const {
     affiliateUrl: _originalAffiliateUrl,
     productUrl: _originalProductUrl,

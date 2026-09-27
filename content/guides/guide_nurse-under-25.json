@@ -26,7 +26,7 @@
   "seoDescription": "Find six thoughtful nurse gifts under $25, selected by editors for usefulness, comfort, and a personal touch.",
   "status": "published",
   "publishedAt": "2026-08-04",
-  "updatedAt": "2026-08-08",
+  "updatedAt": "2026-09-27",
   "recommendations": [
     {
       "id": "under-25_pocket-notebook",
@@ -84,14 +84,15 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "under-25_coffee-card",
-      "productId": "product_coffee-card",
+      "id": "review_6263b202-a1ae-4a95-a66c-6885709d1432",
+      "productResolution": "unresolved",
       "position": 6,
-      "heading": "A choose-your-own treat from a familiar stop",
-      "editorialDescription": "A modest card to a genuinely convenient local shop is more useful than a generic card for somewhere they never visit. It can become a drink, breakfast, or afternoon snack on the recipient's schedule.",
-      "whyItFits": "The choice stays with the recipient, while the shop and note make the gesture personal.",
-      "bestFor": "A quick thank-you when you know their regular stop",
-      "considerations": "Confirm the shop is convenient and offers something the recipient enjoys.",
+      "heading": "A Weighted Hot-or-Cold Eye Pillow",
+      "editorialDescription": "A softly weighted eye pillow can be cooled or gently warmed for a quiet break at home. It feels more considered than a small cash substitute while still fitting comfortably under the guide's price ceiling.",
+      "whyItFits": "It is a tangible, reusable comfort that creates a small pause without assuming the recipient's work routine.",
+      "bestFor": "Someone who enjoys screen-free rest, meditation, or simple home comforts",
+      "selectionGuidance": "Choose an unscented option with a removable washable cover and clear hot-and-cold use instructions.",
+      "considerations": "Follow temperature and timing directions carefully and avoid scented fillings unless you know the recipient's preference.",
       "editorialStatus": "ready"
     }
   ]

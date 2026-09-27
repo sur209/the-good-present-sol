@@ -14,7 +14,7 @@
   "seoDescription": "A warm, practical guide to choosing gifts for nurses, new nurses, and nursing students. Focus on useful items that fit real routines, varied preferences, and meaningful occasions.",
   "status": "published",
   "publishedAt": "2026-09-15",
-  "updatedAt": "2026-09-15",
+  "updatedAt": "2026-09-27",
   "recommendations": [
     {
       "id": "guide_da3a6205-a952-4f6a-95c4-abce5a35b7ef_slot-1",
@@ -125,15 +125,15 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "guide_da3a6205-a952-4f6a-95c4-abce5a35b7ef_slot-10",
+      "id": "review_633f3eb3-e43c-4505-ada7-825b1a465bbd",
       "productResolution": "unresolved",
       "position": 10,
-      "heading": "A Pocket Notebook for Shift Reminders",
-      "editorialDescription": "A small notebook gives a nurse a low-tech spot for questions for a preceptor, study points, and permitted task reminders during a busy shift. Look for a size that slips into a scrub pocket or bag without bulging, a cover sturdy enough for daily carrying, and paper that suits the recipient's pens. Lay-flat or wirebound styles are easier to use one-handed. Water-resistant pages handle spills but can limit pen choices. An inside pocket adds usefulness.",
-      "whyItFits": "Nurses collect quick reminders, learning points, and questions throughout a shift, and a small notebook keeps those in one place without relying on a phone. It suits new nurses and students, as well as experienced nurses who prefer a paper backup for permitted tasks.",
-      "bestFor": "Nurses and nursing students who prefer handwritten reminders and study notes",
-      "selectionGuidance": "Compare page style (lined, grid, or blank), binding, cover durability, and whether it lies flat. Check whether the recipient prefers a tiny pad, a slightly larger book, or water-resistant paper. Think about pen compatibility, an elastic closure, page markers, and a pocket for loose notes. Choose a design that feels personal but stays versatile.",
-      "considerations": "Some nurses rely on phones or workplace systems for reminders, so a notebook may go unused. Keep the gift framed as a place for learning notes and non-sensitive reminders. Water-resistant paper can be less pleasant for everyday writing, and very small pads fill up quickly.",
+      "heading": "An Ergonomic Seat Cushion With Back Support",
+      "editorialDescription": "A coordinated seat and lumbar cushion can make a home desk, dining chair, or long drive more comfortable. Unlike a work-specific gadget, it can move between settings as the recipient's routine changes.",
+      "whyItFits": "It is a noticeable everyday upgrade with practical value beyond a single shift or workplace.",
+      "bestFor": "Someone who studies at home, commutes by car, or spends time at a desk",
+      "selectionGuidance": "Prioritize a removable washable cover, a nonslip base, and dimensions that fit the chair they actually use.",
+      "considerations": "Cushion shape and firmness are personal; keep the receipt and avoid making medical or pain-relief promises.",
       "editorialStatus": "ready"
     }
   ]

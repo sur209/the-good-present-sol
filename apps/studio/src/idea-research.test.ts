@@ -377,7 +377,7 @@ test("Studio shows pending ideas and records an explicit editor decision", async
       ],
     );
     assert.match(body, /A compact lunch warmer/);
-    assert.match(body, /<img src="\/local-assets\/images\/practical\/compression-socks\.webp"/);
+    assert.match(body, /<img src="\/local-assets\/images\//);
     const researchPosition = body.indexOf("A compact lunch warmer");
     const researchRow = body.slice(
       body.lastIndexOf("<tr>", researchPosition),
@@ -386,6 +386,7 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     assert.doesNotMatch(researchRow, /<img\b/);
     const content = readPublicContent(root);
     const practicalGuide = content.guides.find((guide) => guide.id === "guide_nurse-practical")!;
+    const ratedRecommendationId = practicalGuide.recommendations[0]!.id;
     const reopened = reopenGuideDraft(practicalGuide, content);
     await draftStore.save({
       ...reopened,
@@ -397,9 +398,7 @@ test("Studio shows pending ideas and records an explicit editor decision", async
         validation: { success: true },
       },
       recommendations: reopened.recommendations.map((item) =>
-        item.id === "practical_compression-socks"
-          ? { ...item, heading: "A different gift idea" }
-          : item,
+        item.id === ratedRecommendationId ? { ...item, heading: "A different gift idea" } : item,
       ),
     });
     const editedBody = await (await fetch(`${origin}/idea-research`)).text();
@@ -470,7 +469,7 @@ test("Studio shows pending ideas and records an explicit editor decision", async
         ["ideaKey", `research:${record.id}`],
         ["score", "8"],
         ["reason", "Useful at home, not a redundant work tool."],
-        ["ideaKey", "guide:guide_nurse-practical:practical_compression-socks"],
+        ["ideaKey", `guide:guide_nurse-practical:${ratedRecommendationId}`],
         ["score", "2"],
         ["reason", "Too ordinary to feel like a gift."],
       ]),
@@ -485,7 +484,7 @@ test("Studio shows pending ideas and records an explicit editor decision", async
           reason: "Useful at home, not a redundant work tool.",
         },
         {
-          ideaKey: "guide:guide_nurse-practical:practical_compression-socks",
+          ideaKey: `guide:guide_nurse-practical:${ratedRecommendationId}`,
           score: 2,
           reason: "Too ordinary to feel like a gift.",
         },
@@ -531,7 +530,7 @@ test("Studio shows pending ideas and records an explicit editor decision", async
       method: "POST",
       body: new URLSearchParams({
         clusterId: "cluster_nurse-gifts",
-        ideaKey: "guide:guide_nurse-practical:practical_compression-socks",
+        ideaKey: `guide:guide_nurse-practical:${ratedRecommendationId}`,
       }),
       redirect: "manual",
     });
@@ -562,7 +561,7 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     const improvedDraft = await draftStore.read("guide_nurse-practical");
     assert.equal(improvedDraft.draftType, "gift-guide");
     assert.equal(
-      improvedDraft.recommendations.some((item) => item.id === "practical_compression-socks"),
+      improvedDraft.recommendations.some((item) => item.id === ratedRecommendationId),
       false,
     );
     assert.equal(
@@ -609,7 +608,7 @@ test("Studio shows pending ideas and records an explicit editor decision", async
         ["clusterId", "cluster_nurse-gifts"],
         ["ideaKey", `research:${record.id}`],
         ["score", "7"],
-        ["ideaKey", "guide:guide_nurse-practical:practical_compression-socks"],
+        ["ideaKey", `guide:guide_nurse-practical:${ratedRecommendationId}`],
         ["score", "11"],
       ]),
     });

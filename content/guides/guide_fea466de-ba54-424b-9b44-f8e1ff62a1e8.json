@@ -14,7 +14,7 @@
   "seoDescription": "Find warm, useful Christmas gifts for nurses, with thoughtful ideas for family, partners, mentors, friends, Secret Santa exchanges, and holiday gatherings.",
   "status": "published",
   "publishedAt": "2026-09-20",
-  "updatedAt": "2026-09-20",
+  "updatedAt": "2026-09-27",
   "recommendations": [
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-1",
@@ -101,15 +101,15 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-8",
+      "id": "review_4bfc35b6-7542-4bc6-99bc-01d69e40a60d",
       "productResolution": "unresolved",
       "position": 8,
-      "heading": "Cooking Class Gift Card",
-      "editorialDescription": "A cooking class gift card gives a nurse an experience to share with a partner, family member, or friend, extending the holiday gift beyond another physical item. It also creates an occasion to look forward to together.",
-      "whyItFits": "The idea matches shared holiday experiences and offers a personal alternative when the recipient already has plenty of things.",
-      "bestFor": "Nurses who enjoy cooking, learning together, or planning a shared outing.",
-      "selectionGuidance": "Review the class format, cuisine focus, scheduling flexibility, location, and whether the credit suits one person or a pair. Broad options are easier when the recipient's calendar and tastes are uncertain.",
-      "considerations": "An experience gift needs coordination, so it is less suitable when the recipient's schedule or interests are unfamiliar.",
+      "heading": "A Luxury Silk Sleep Mask",
+      "editorialDescription": "A well-made silk sleep mask is small enough for a stocking but polished enough to feel like a real present. It can make travel, naps, or an early night more comfortable without adding a complicated routine.",
+      "whyItFits": "It is festive, easy to wrap, and gives the recipient a reusable comfort rather than another scheduled obligation.",
+      "bestFor": "Someone who travels, sleeps off schedule, or enjoys upgraded everyday basics",
+      "selectionGuidance": "Look for a soft adjustable band, smooth interior seams, and clear fabric-care instructions.",
+      "considerations": "Silk usually needs gentler washing than synthetic fabric, and fit around the nose and strap is personal.",
       "editorialStatus": "ready"
     },
     {

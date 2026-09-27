@@ -23,7 +23,7 @@
   "seoDescription": "Find thoughtful gift ideas for nurses who work overnight, shaped around daytime routines, commuting, meals, home comfort, and quiet time off.",
   "status": "published",
   "publishedAt": "2026-09-20",
-  "updatedAt": "2026-09-20",
+  "updatedAt": "2026-09-27",
   "recommendations": [
     {
       "id": "guide_63fde941-0c72-439d-869d-cd3c991132c5_slot-1",
@@ -134,15 +134,15 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "guide_63fde941-0c72-439d-869d-cd3c991132c5_slot-10",
+      "id": "review_9143db57-0df8-4e49-bb74-f06cf5cd038b",
       "productResolution": "unresolved",
       "position": 10,
-      "heading": "A creative day-off experience",
-      "editorialDescription": "A pottery class gift certificate offers a hands-on activity for a day off, giving the recipient space to do something unrelated to the overnight routine. It works especially well as a celebratory gesture when they enjoy quiet, creative outings.",
-      "whyItFits": "It provides an off-shift experience rather than more work gear, with room for the nurse to choose a suitable date.",
-      "bestFor": "Nurses who enjoy creative activities on days off",
-      "selectionGuidance": "Check the schedule, location, accessibility, format, and whether the recipient has expressed interest in pottery. Leave room for them to choose a date that suits an overnight-work routine.",
-      "considerations": "A fixed date may not suit changing shifts, so scheduling flexibility and genuine interest matter.",
+      "heading": "A Portable Watercolor Painting Kit",
+      "editorialDescription": "A compact watercolor set creates an easy invitation to make something on a quiet day off. A small palette, a couple of good brushes, and a travel pad are enough to begin without turning the gift into a major new commitment.",
+      "whyItFits": "It gives the recipient a concrete way to shift attention away from work and screens at their own pace.",
+      "bestFor": "Someone who likes creative hobbies or wants a calmer off-duty ritual",
+      "selectionGuidance": "Look for a portable set with replaceable pans, a mixing area, and a small pad made for watercolor.",
+      "considerations": "Keep the setup beginner-friendly unless the recipient already paints and has specific material preferences.",
       "editorialStatus": "ready"
     }
   ]
