@@ -305,8 +305,12 @@ test("product-first automation fills a complete guide from deduplicated Amazon r
     assert.equal(new Set(result.records.map((record) => record.runId)).size, 1);
     assert.ok(result.records.every((record) => record.guideId === "guide_test"));
     assert.ok(result.records.every((record) => record.status === "proposed"));
-    assert.ok(result.records.every((record) => record.promptVersion === "product-guide-ideas-v1"));
+    assert.ok(result.records.every((record) => record.promptVersion === "product-guide-ideas-v4"));
     assert.ok(result.records.every((record) => record.imageUrl));
+    assert.deepEqual(
+      result.records.map((record) => record.previousGiftClass),
+      ["Idea 1", "Idea 2", "Idea 3"],
+    );
     assert.deepEqual(
       new Set((await store.list("cluster_nurse-gifts")).map((record) => record.id)),
       new Set(result.records.map((record) => record.id)),
@@ -583,7 +587,7 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     assert.match(promptBody, /Esto no es un historial completo/);
     assert.match(promptBody, /outline-v6/);
     assert.match(promptBody, /research-v4/);
-    assert.match(promptBody, /product-guide-ideas-v1/);
+    assert.match(promptBody, /product-guide-ideas-v4/);
     assert.match(promptBody, /Generación desde productos/);
     assert.match(promptBody, /outline-v1/);
     assert.match(promptBody, /Previously saved prompt snapshot/);

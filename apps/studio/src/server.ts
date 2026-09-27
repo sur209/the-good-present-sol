@@ -543,7 +543,7 @@ function ideaResearchPage(
           ? "Marcada para reemplazo"
           : baseStatus;
       const researchEvidence = row.research
-        ? `${row.research.fit} · Producto observado: “${row.research.evidenceHeading}”${row.research.observedPrice ? ` · ${row.research.observedPrice}` : ""}${row.research.observedRating !== undefined ? ` · ${row.research.observedRating}/5` : ""}`
+        ? `${row.research.previousGiftClass ? `Antes: “${row.research.previousGiftClass}” → ` : ""}${row.research.fit} · Producto observado: “${row.research.evidenceHeading}”${row.research.observedPrice ? ` · ${row.research.observedPrice}` : ""}${row.research.observedRating !== undefined ? ` · ${row.research.observedRating}/5` : ""}${row.research.promptVersion ? ` · ${row.research.promptVersion}` : ""}`
         : "";
       return `<tr><td><div class="idea-preview">${row.image ? `<img src="${escapeHtml(row.image.src)}" alt="${escapeHtml(row.image.alt)}" width="72" height="72" loading="lazy" decoding="async">` : ""}<div><strong>${escapeHtml(row.label)}</strong>${row.research ? `<br><small>${escapeHtml(researchEvidence)}</small>` : ""}</div></div></td>
       <td>${escapeHtml(row.location)}<br><small>${detail}</small></td>
@@ -558,7 +558,7 @@ function ideaResearchPage(
     <p class="muted">Generá y revisá ideas con procedencia. Nada se publica automáticamente. Las decisiones y puntajes alimentan las próximas generaciones del grupo. <a href="/guide-improvements?cluster=${encodeURIComponent(selectedCluster)}">Ver cola de mejora</a> · <a href="/idea-research/prompts?cluster=${encodeURIComponent(selectedCluster)}">Ver prompts y versiones</a>.</p>
     ${added === undefined ? "" : `<p class="notice">Se guardaron ${added} ideas nuevas para revisión. Las fuentes o respuestas que no pasan las validaciones se omiten.</p>`}
     <section class="card"><h2>Generar una guía desde productos reales</h2>
-      <p>El sistema crea cinco búsquedas distintas, reúne y deduplica productos de Amazon, y selecciona automáticamente una propuesta concreta para cada lugar de la guía. Usa cinco búsquedas de SerpAPI y dos llamadas breves al modelo. Las propuestas quedan pendientes para que las puntúes, aceptes o descartes; no cambian el sitio público.</p>
+      <p>El sistema crea cinco búsquedas distintas, reúne y deduplica productos de Amazon, y selecciona automáticamente una propuesta concreta para cada lugar de la guía. Usa cinco búsquedas de SerpAPI y normalmente dos llamadas breves al modelo; puede repetir la selección hasta dos veces si no cumple la diversidad. Las propuestas quedan pendientes para que las puntúes, aceptes o descartes; no cambian el sitio público.</p>
       ${productAutomationAvailable && guides.length ? `<form method="post" action="/idea-research/product-guide"><input type="hidden" name="clusterId" value="${escapeHtml(selectedCluster)}"><label>Guía<select name="guideId" required>${guideChoices}</select></label><button>Generar guía completa desde Amazon</button></form>` : `<p class="notice">${guides.length ? "La búsqueda de Amazon no está configurada en este Studio." : "Este grupo todavía no tiene guías públicas para completar."}</p>`}
     </section>
     <section class="card"><h2>Buscar ideas para enfermeras</h2><p>Analiza dos artículos públicos preseleccionados de Good Housekeeping y guarda las ideas encontradas como pendientes. Puede usar hasta dos llamadas del proveedor de IA existente.</p>
