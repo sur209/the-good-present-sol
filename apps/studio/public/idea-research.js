@@ -9,16 +9,19 @@ for (const form of ratingForms) {
     const changed = ratingForms.filter((candidate) => {
       const select = candidate.elements.score;
       const reason = candidate.elements.reason;
+      const auditComment = candidate.elements.auditComment;
       return (
         select.value &&
         (select.value !== select.dataset.savedScore ||
-          reason.value.trim() !== reason.dataset.savedReason)
+          reason.value.trim() !== reason.dataset.savedReason ||
+          auditComment.value.trim() !== auditComment.dataset.savedAuditComment)
       );
     });
     if (!changed.length) {
       feedback.textContent =
-        form.elements.reason.value.trim() && !form.elements.score.value
-          ? "Elegí un puntaje para guardar el motivo."
+        (form.elements.reason.value.trim() || form.elements.auditComment.value.trim()) &&
+        !form.elements.score.value
+          ? "Elegí un puntaje de la idea para guardar los comentarios."
           : "No hay puntajes ni motivos nuevos para guardar.";
       return;
     }
@@ -28,6 +31,7 @@ for (const form of ratingForms) {
       body.append("ideaKey", candidate.elements.ideaKey.value);
       body.append("score", candidate.elements.score.value);
       body.append("reason", candidate.elements.reason.value.trim());
+      body.append("auditComment", candidate.elements.auditComment.value.trim());
     }
     saving = true;
     for (const candidate of ratingForms) candidate.querySelector("button").disabled = true;
@@ -47,7 +51,12 @@ for (const form of ratingForms) {
         if (!rating) continue;
         const row = candidate.closest("tr");
         row.querySelector("[data-current-rating]").textContent = `${rating.score}/10`;
-        row.querySelector("[data-current-reason]").textContent = rating.reason || "";
+        row.querySelector("[data-current-reason]").textContent = rating.reason
+          ? `Sobre la idea: ${rating.reason}`
+          : "";
+        row.querySelector("[data-current-audit-comment]").textContent = rating.auditComment
+          ? `Sobre la auditoría: ${rating.auditComment}`
+          : "";
         const status = row.querySelector("[data-idea-status]");
         if (status?.dataset.published === "true") {
           status.textContent =
@@ -55,6 +64,7 @@ for (const form of ratingForms) {
         }
         candidate.elements.score.dataset.savedScore = String(rating.score);
         candidate.elements.reason.dataset.savedReason = rating.reason || "";
+        candidate.elements.auditComment.dataset.savedAuditComment = rating.auditComment || "";
       }
       feedback.textContent = `Se guardaron ${changed.length} puntaje${changed.length === 1 ? "" : "s"}.`;
     } catch (error) {

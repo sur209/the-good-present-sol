@@ -7,17 +7,20 @@ import { REPOSITORY_ROOT, atomicWriteJson, runRepositoryMutation } from "./repos
 
 const scoreSchema = z.number().int().min(1).max(10);
 const reasonSchema = z.string().trim().min(1).max(240);
+const auditCommentSchema = z.string().trim().min(1).max(400);
 const ratingSchema = z.strictObject({
   ideaKey: z.string().min(1).max(250),
   clusterId: z.string().regex(/^cluster_[a-z0-9_-]+$/),
   label: z.string().trim().min(1).max(200),
   score: scoreSchema,
   reason: reasonSchema.optional(),
+  auditComment: auditCommentSchema.optional(),
   updatedAt: z.iso.datetime(),
   history: z.array(
     z.strictObject({
       score: scoreSchema,
       reason: reasonSchema.optional(),
+      auditComment: auditCommentSchema.optional(),
       assignedAt: z.iso.datetime(),
     }),
   ),
@@ -49,6 +52,7 @@ export class IdeaRatingStore {
       idea: { ideaKey: string; clusterId: string; label: string };
       score: number;
       reason?: string;
+      auditComment?: string;
     }[],
     now = new Date(),
   ): Promise<IdeaRating[]> {
@@ -58,28 +62,42 @@ export class IdeaRatingStore {
     if (entries.some(({ reason }) => reason?.trim() && !reasonSchema.safeParse(reason).success)) {
       throw new TypeError("El motivo debe tener hasta 240 caracteres.");
     }
+    if (
+      entries.some(
+        ({ auditComment }) =>
+          auditComment?.trim() && !auditCommentSchema.safeParse(auditComment).success,
+      )
+    ) {
+      throw new TypeError("El comentario sobre la auditoría debe tener hasta 400 caracteres.");
+    }
     const keys = new Set(entries.map(({ idea }) => idea.ideaKey));
     if (keys.size !== entries.length) throw new TypeError("Hay ideas repetidas en la selección.");
     return runRepositoryMutation(this.repositoryRoot, async () => {
       const ratings = await this.list();
       const previousByKey = new Map(ratings.map((rating) => [rating.ideaKey, rating]));
-      const updated = entries.map(({ idea, score, reason }) => {
+      const updated = entries.map(({ idea, score, reason, auditComment }) => {
         const savedReason =
           reason === undefined
             ? previousByKey.get(idea.ideaKey)?.reason
             : reason.trim() || undefined;
+        const savedAuditComment =
+          auditComment === undefined
+            ? previousByKey.get(idea.ideaKey)?.auditComment
+            : auditComment.trim() || undefined;
         return ratingSchema.parse({
           ideaKey: idea.ideaKey,
           clusterId: idea.clusterId,
           label: idea.label,
           score,
           ...(savedReason ? { reason: savedReason } : {}),
+          ...(savedAuditComment ? { auditComment: savedAuditComment } : {}),
           updatedAt: now.toISOString(),
           history: [
             ...(previousByKey.get(idea.ideaKey)?.history ?? []),
             {
               score,
               ...(savedReason ? { reason: savedReason } : {}),
+              ...(savedAuditComment ? { auditComment: savedAuditComment } : {}),
               assignedAt: now.toISOString(),
             },
           ],

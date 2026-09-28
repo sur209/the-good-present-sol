@@ -9,6 +9,7 @@ import type { GuideGenerationProvider } from "./ai-provider.ts";
 import { MockGuideGenerationProvider } from "./ai-provider.ts";
 import { DraftStore } from "./draft-store.ts";
 import { reopenGuideDraft } from "./guide-editor.ts";
+import { IdeaAuditStore } from "./idea-audits.ts";
 import {
   IdeaResearchStore,
   analyzeGiftDiversity,
@@ -393,6 +394,23 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     });
     const content = readPublicContent(root);
     const practicalGuide = content.guides.find((guide) => guide.id === "guide_nurse-practical")!;
+    await new IdeaAuditStore(root).replaceCluster("cluster_nurse-gifts", [
+      {
+        ideaKey: `guide:${practicalGuide.id}:${practicalGuide.recommendations[0]!.id}`,
+        clusterId: "cluster_nurse-gifts",
+        guideId: practicalGuide.id,
+        guideTitle: practicalGuide.title,
+        label: practicalGuide.recommendations[0]!.heading!,
+        score: 6,
+        verdict: "supporting",
+        comment: "Useful but more practical than memorable as a gift.",
+        confidence: "high",
+        promptVersion: "gift-audit-v1",
+        providerId: "test",
+        modelId: "test-model",
+        auditedAt: new Date().toISOString(),
+      },
+    ]);
     const publishedRecord = await researchStore.save({
       id: "research_bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
       clusterId: "cluster_nurse-gifts",
@@ -502,10 +520,14 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     assert.doesNotMatch(editedRow, /<img\b/);
     assert.match(body, /Buscar y guardar ideas/);
     assert.match(body, /Generar una guía desde productos reales/);
-    assert.match(body, /Asignar puntajes/);
-    assert.match(body, /Motivo y contexto \(opcional\)/);
-    assert.match(body, /describí la cualidad sin repetir el objeto/);
-    assert.match(body, /pulsá «Asignar puntajes» en cualquier fila/);
+    assert.match(body, /Auditoría automática/);
+    assert.match(body, /6\/10 · Aceptable para completar/);
+    assert.match(body, /Useful but more practical than memorable as a gift\./);
+    assert.match(body, /Tu puntuación de la idea \(opcional\)/);
+    assert.match(body, /Comentario sobre la idea/);
+    assert.match(body, /Comentario sobre la auditoría automática/);
+    assert.match(body, /Guardar evaluaciones humanas/);
+    assert.match(body, /pulsá «Guardar evaluaciones humanas» en cualquier fila/);
     assert.match(body, /data-idea-rating/);
     assert.match(body, /href="\/guide-improvements/);
     assert.match(body, /<script src="\/idea-research\.js" defer><\/script>/);
@@ -561,9 +583,11 @@ test("Studio shows pending ideas and records an explicit editor decision", async
         ["ideaKey", `research:${record.id}`],
         ["score", "8"],
         ["reason", "Useful at home, not a redundant work tool."],
+        ["auditComment", "The audit underestimates how giftable this is."],
         ["ideaKey", `guide:guide_nurse-practical:${ratedRecommendationId}`],
         ["score", "2"],
         ["reason", "Too ordinary to feel like a gift."],
+        ["auditComment", ""],
       ]),
       redirect: "manual",
     });
@@ -574,6 +598,7 @@ test("Studio shows pending ideas and records an explicit editor decision", async
           ideaKey: `research:${record.id}`,
           score: 8,
           reason: "Useful at home, not a redundant work tool.",
+          auditComment: "The audit underestimates how giftable this is.",
         },
         {
           ideaKey: `guide:guide_nurse-practical:${ratedRecommendationId}`,
@@ -593,6 +618,10 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     assert.equal(
       savedRatings.find((rating) => rating.ideaKey === `research:${record.id}`)?.history[2]?.reason,
       "Useful at home, not a redundant work tool.",
+    );
+    assert.equal(
+      savedRatings.find((rating) => rating.ideaKey === `research:${record.id}`)?.auditComment,
+      "The audit underestimates how giftable this is.",
     );
     const savedHints = ideaRatingHints(savedRatings, "cluster_nurse-gifts").join(" ");
     assert.match(savedHints, /Useful at home, not a redundant work tool\./);

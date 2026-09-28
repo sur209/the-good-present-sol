@@ -99,6 +99,7 @@ import {
   researchGiftIdeas,
   type ResearchRecord,
 } from "./idea-research.ts";
+import { IdeaAuditStore, type IdeaAudit } from "./idea-audits.ts";
 import { IdeaRatingStore, ideaRatingHints, type IdeaRating } from "./idea-ratings.ts";
 import {
   IDEA_REPLACEMENT_PROMPT_INSTRUCTIONS,
@@ -533,6 +534,7 @@ function ideaResearchPage(
   productAutomationAvailable: boolean,
   rows: readonly GiftIdeaRow[],
   diversity: ReturnType<typeof analyzeGiftDiversity>,
+  audits: readonly IdeaAudit[],
   ratings: readonly IdeaRating[],
   added: number | undefined,
 ): string {
@@ -554,9 +556,11 @@ function ideaResearchPage(
     )
     .join("");
   const ratingByKey = new Map(ratings.map((rating) => [rating.ideaKey, rating]));
+  const auditByKey = new Map(audits.map((audit) => [audit.ideaKey, audit]));
   const tableRows = rows
     .map((row) => {
       const rating = ratingByKey.get(row.ideaKey);
+      const audit = auditByKey.get(row.ideaKey);
       const options = Array.from({ length: 10 }, (_, index) => index + 1)
         .map(
           (value) =>
@@ -590,11 +594,15 @@ function ideaResearchPage(
       const researchEvidence = row.research
         ? `<small>${row.research.previousGiftClass ? `Antes: “${escapeHtml(row.research.previousGiftClass)}” → ` : ""}${escapeHtml(row.research.fit)}</small><br><small><strong>Producto observado:</strong> “${escapeHtml(row.research.evidenceHeading)}”${row.research.observedPrice ? ` · ${escapeHtml(row.research.observedPrice)}` : ""}${row.research.observedRating !== undefined ? ` · ${row.research.observedRating}/5` : ""}${row.research.promptVersion ? ` · ${escapeHtml(row.research.promptVersion)}` : ""}</small><br><small><a href="${escapeHtml(row.sourceLink!)}" target="_blank" rel="noopener noreferrer">${row.research.externalId ? "Ver producto observado" : "Ver fuente observada"}</a> · ${row.catalogProductId ? `<a href="/products/${encodeURIComponent(row.catalogProductId)}">Producto incorporado al catálogo</a>` : row.research.externalId ? `Todavía no es un producto del catálogo · <a href="/products/intake?researchId=${encodeURIComponent(row.research.id)}">Revisar para catálogo</a>` : "No es un producto del catálogo"}</small>`
         : "";
+      const automaticAudit = audit
+        ? `<strong>${audit.score}/10 · ${audit.verdict === "replace" ? "Reemplazar" : audit.verdict === "supporting" ? "Aceptable para completar" : "Conservar"}</strong><p>${escapeHtml(audit.comment)}</p><small>Confianza ${audit.confidence === "high" ? "alta" : audit.confidence === "medium" ? "media" : "baja"} · evaluación automática</small>`
+        : '<span class="muted">Sin evaluación automática.</span>';
       return `<tr><td><div class="idea-preview">${row.image ? `<img src="${escapeHtml(row.image.src)}" alt="${escapeHtml(row.image.alt)}" width="72" height="72" loading="lazy" decoding="async">` : ""}<div><strong>${escapeHtml(row.label)}</strong>${row.research ? `<br>${researchEvidence}` : ""}</div></div></td>
       <td>${escapeHtml(row.location)}<br><small>${detail}</small></td>
       <td><span data-idea-status data-published="${row.published}" data-base-status="${escapeHtml(baseStatus)}">${escapeHtml(status)}</span></td>
-      <td><span data-current-rating>${rating ? `${rating.score}/10` : "Sin puntaje"}</span><small class="rating-note" data-current-reason>${escapeHtml(rating?.reason ?? "")}</small></td>
-      <td><form class="actions" method="post" action="/idea-research/rate" data-idea-rating><input type="hidden" name="ideaKey" value="${escapeHtml(row.ideaKey)}"><input type="hidden" name="clusterId" value="${escapeHtml(row.clusterId)}"><label>Puntaje <select name="score" data-saved-score="${rating?.score ?? ""}" aria-label="Puntaje para ${escapeHtml(row.label)}"><option value=""${rating ? "" : " selected"}>—</option>${options}</select></label><button>Asignar puntajes</button><details class="rating-reason"><summary>Motivo y contexto (opcional)</summary><label>¿Para quién, en qué ocasión y qué cualidad hace que sea —o no— un buen regalo? En notas positivas, describí la cualidad sin repetir el objeto.<textarea name="reason" data-saved-reason="${escapeHtml(rating?.reason ?? "")}" aria-label="Motivo y contexto para ${escapeHtml(row.label)}" maxlength="240" rows="3">${escapeHtml(rating?.reason ?? "")}</textarea></label></details></form>${decision}</td></tr>`;
+      <td>${automaticAudit}</td>
+      <td><span data-current-rating>${rating ? `${rating.score}/10` : "Sin evaluación humana"}</span><small class="rating-note" data-current-reason>${rating?.reason ? `Sobre la idea: ${escapeHtml(rating.reason)}` : ""}</small><small class="rating-note" data-current-audit-comment>${rating?.auditComment ? `Sobre la auditoría: ${escapeHtml(rating.auditComment)}` : ""}</small></td>
+      <td><form class="actions" method="post" action="/idea-research/rate" data-idea-rating><input type="hidden" name="ideaKey" value="${escapeHtml(row.ideaKey)}"><input type="hidden" name="clusterId" value="${escapeHtml(row.clusterId)}"><label>Tu puntuación de la idea (opcional) <select name="score" data-saved-score="${rating?.score ?? ""}" aria-label="Tu puntuación de la idea ${escapeHtml(row.label)}"><option value=""${rating ? "" : " selected"}>—</option>${options}</select></label><button>Guardar evaluaciones humanas</button><details class="rating-reason"><summary>Tus comentarios (opcionales)</summary><label>Comentario sobre la idea<textarea name="reason" data-saved-reason="${escapeHtml(rating?.reason ?? "")}" aria-label="Tu comentario sobre la idea ${escapeHtml(row.label)}" maxlength="240" rows="3">${escapeHtml(rating?.reason ?? "")}</textarea></label><label>Comentario sobre la auditoría automática<textarea name="auditComment" data-saved-audit-comment="${escapeHtml(rating?.auditComment ?? "")}" aria-label="Tu comentario sobre la auditoría de ${escapeHtml(row.label)}" maxlength="400" rows="3">${escapeHtml(rating?.auditComment ?? "")}</textarea></label></details></form>${decision}</td></tr>`;
     })
     .join("");
   const diversityRows = diversity.crossGuide
@@ -629,8 +637,8 @@ function ideaResearchPage(
       <details><summary>Dos artículos de Nurse Gifts para probar</summary><ul>${examples}</ul></details></section>
     <section><h2>Todas las ideas de ${escapeHtml(clusters.find((item) => item.id === selectedCluster)?.title ?? selectedCluster)}</h2>
       <form class="actions" method="get" action="/idea-research"><label>Ver otro grupo<select name="cluster">${choices}</select></label><button>Ver ideas</button></form>
-      <p class="muted">${rows.length} ideas, con y sin guía. 1 = mala idea; 10 = excelente. Elegí varios números y pulsá «Asignar puntajes» en cualquier fila para guardar todos los cambios. Puntuar no acepta ni publica una propuesta.</p><span role="status" aria-live="polite" data-rating-feedback></span>
-      ${rows.length ? `<div style="overflow-x:auto"><table><thead><tr><th>Idea</th><th>Ubicación</th><th>Estado</th><th>Puntaje actual</th><th>Acciones</th></tr></thead><tbody>${tableRows}</tbody></table></div>` : "<p>Todavía no hay ideas para este grupo.</p>"}</section><script src="/idea-research.js" defer></script>`,
+      <p class="muted">${rows.length} ideas, con y sin guía. La auditoría automática es orientativa. Tu puntuación y tu comentario sobre la idea son opcionales, se guardan aparte y tienen prioridad. También podés responder a la auditoría automática: esa respuesta queda como retroalimentación tentativa y no cambia el motor por sí sola. Elegí varios números y pulsá «Guardar evaluaciones humanas» en cualquier fila para guardar todos los cambios.</p><span role="status" aria-live="polite" data-rating-feedback></span>
+      ${rows.length ? `<div style="overflow-x:auto"><table><thead><tr><th>Idea</th><th>Ubicación</th><th>Estado</th><th>Auditoría automática</th><th>Tu evaluación</th><th>Acciones opcionales</th></tr></thead><tbody>${tableRows}</tbody></table></div>` : "<p>Todavía no hay ideas para este grupo.</p>"}</section><script src="/idea-research.js" defer></script>`,
   );
 }
 
@@ -4017,6 +4025,7 @@ export function createStudioServer(
   const reviewStore = new EditorialReviewStore(catalog.root);
   const manualReviewStore = new ManualReviewStore(store.repositoryRoot);
   const ideaResearchStore = new IdeaResearchStore(store.repositoryRoot);
+  const ideaAuditStore = new IdeaAuditStore(store.repositoryRoot);
   const ideaRatingStore = new IdeaRatingStore(store.repositoryRoot);
   const feedbackHintsFor = async (draft: GuideDraft, kind: "idea" | "copy") => {
     const content = readEditorialContent(store.repositoryRoot);
@@ -4151,6 +4160,7 @@ export function createStudioServer(
             ),
             rows,
             analyzeGiftDiversity(content.guides.filter((guide) => guide.clusterId === clusterId)),
+            await ideaAuditStore.list(clusterId),
             await ideaRatingStore.list(),
             added,
           ),
@@ -4324,6 +4334,7 @@ export function createStudioServer(
         const keys = form.getAll("ideaKey");
         const scores = form.getAll("score");
         const reasons = form.getAll("reason");
+        const auditComments = form.getAll("auditComment");
         if (
           !keys.length ||
           keys.length !== scores.length ||
@@ -4336,6 +4347,12 @@ export function createStudioServer(
           reasons.some((reason) => reason.trim().length > 240)
         ) {
           throw new TypeError("El motivo debe tener hasta 240 caracteres.");
+        }
+        if (
+          (auditComments.length && auditComments.length !== keys.length) ||
+          auditComments.some((comment) => comment.trim().length > 400)
+        ) {
+          throw new TypeError("El comentario sobre la auditoría debe tener hasta 400 caracteres.");
         }
         const content = readPublicContent(store.repositoryRoot);
         if (!content.clusters.some((cluster) => cluster.id === clusterId)) {
@@ -4360,15 +4377,17 @@ export function createStudioServer(
             idea,
             score: Number(scores[index]),
             ...(reasons.length ? { reason: reasons[index]!.trim() } : {}),
+            ...(auditComments.length ? { auditComment: auditComments[index]!.trim() } : {}),
           };
         });
         const ratings = await ideaRatingStore.assignMany(entries);
         if (request.headers.accept === "application/json") {
           sendJson(response, 200, {
-            ratings: ratings.map(({ ideaKey, score, reason }) => ({
+            ratings: ratings.map(({ ideaKey, score, reason, auditComment }) => ({
               ideaKey,
               score,
               ...(reason ? { reason } : {}),
+              ...(auditComment ? { auditComment } : {}),
             })),
           });
         } else {
