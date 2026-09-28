@@ -14,7 +14,7 @@
   "seoDescription": "Find thoughtful gift ideas for a new nurse entering their first professional role. This guide focuses on practical support for new routines, rest, meals, and home comfort.",
   "status": "published",
   "publishedAt": "2026-09-19",
-  "updatedAt": "2026-09-27",
+  "updatedAt": "2026-09-28",
   "recommendations": [
     {
       "id": "guide_eb314f33-a0e3-4f51-937e-e7a3dde5cd6e_slot-1",
@@ -134,6 +134,30 @@
       "bestFor": "A new nurse who likes to cook ahead and wants an easy way to store individual meals.",
       "selectionGuidance": "Compare sizes, lid design, and nesting or stacking ability. Check whether the containers are easy to label and clean, and choose materials that suit the recipient's reheating habits. Look for a set that does not take over the whole freezer.",
       "considerations": "Containers can stain or hold onto strong odors over time. If freezer space is tight, a compact, stackable set may be a better fit than a large one.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_9a847aa6_98a7_4bbf_9ba3_eb63e82f8d2d",
+      "productResolution": "unresolved",
+      "position": 11,
+      "heading": "A Rotating Adjustable Laptop Stand",
+      "editorialDescription": "An adjustable laptop stand makes it easier to shift between a desk, kitchen table, or other study spot while keeping the computer at a more comfortable working height. Its rotating design can also help when sharing a screen or changing positions.",
+      "whyItFits": "It supports the flexible study and paperwork habits that often accompany a first nursing role without taking up permanent desk space.",
+      "bestFor": "A new nurse who studies, completes training, or handles planning from multiple locations.",
+      "selectionGuidance": "Check height range, rotation movement, base footprint, device compatibility, and how easily it folds or stores.",
+      "considerations": "A stand is useful only if the recipient’s laptop size and preferred work surfaces suit its design.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_8a25d962_328c_4bdb_bd10_f9fdb1d38d56",
+      "productResolution": "unresolved",
+      "position": 12,
+      "heading": "A Gooseneck Tea Kettle",
+      "editorialDescription": "A gooseneck kettle turns tea preparation into a small, unhurried ritual during time off. Its distinctive shape also brings a considered look to an otherwise functional kitchen item.",
+      "whyItFits": "It offers a pleasant counterpoint to a demanding schedule and feels personal without adding another work-themed accessory.",
+      "bestFor": "A tea drinker who enjoys deliberate kitchen routines and attractive everyday tools.",
+      "selectionGuidance": "Compare capacity, handle shape, spout control, lid design, heating method, and available storage space.",
+      "considerations": "The gooseneck format is specialized, so someone who mainly boils water for larger batches may prefer a standard kettle.",
       "editorialStatus": "ready"
     }
   ]

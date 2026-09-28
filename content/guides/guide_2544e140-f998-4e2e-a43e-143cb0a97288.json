@@ -9,7 +9,7 @@
   "excerpt": "Playful, useful gift ideas for nurses and nursing students, with tasteful humor for birthdays, appreciation, celebrations, and everyday encouragement.",
   "introduction": "Shopping for a nurse’s birthday, graduation, or appreciation moment? Choose something that fits the recipient’s real rhythm—shift days, packed meals, shared break-room laughs, personal style, or a comfortable home routine—while keeping the joke clever enough to enjoy beyond one occasion. Look for usable, distinctive, or personalized touches connected to nursing life without relying on a generic slogan or disposable gag.",
   "primaryAxis": "gift-style",
-  "primaryIntent": "Help friends, relatives, partners, coworkers, nursing students, and colleagues choose one of 10 funny gifts for a nurse where the humor is tasteful, recognizable, and connected to nursing life while the item remains genuinely usable, distinctive, personalized, shareable, or comfortable for home and break-room use.",
+  "primaryIntent": "Help friends, relatives, partners, coworkers, nursing students, and colleagues choose one of 12 funny gifts for a nurse where the humor is tasteful, recognizable, and connected to nursing life while the item remains genuinely usable, distinctive, personalized, shareable, or comfortable for home and break-room use.",
   "taxonomies": {
     "occasions": [
       "Birthdays",
@@ -180,6 +180,30 @@
       "bestFor": "Nurses or nursing students who enjoy personal humor and display-worthy keepsakes.",
       "selectionGuidance": "Base the design on a detail the recipient will recognize, such as a favorite shift ritual, workday accessory, or study milestone. Choose an expressive style that feels affectionate rather than mocking, and make sure the giver can easily provide relevant reference details for the intended desk or wall setting.",
       "considerations": "Caricature humor is personal: avoid exaggerated details that could embarrass the recipient, and confirm they would enjoy a display piece before choosing it.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_400464c7_ca48_4245_8836_40ca84d14627",
+      "productResolution": "unresolved",
+      "position": 11,
+      "heading": "An Embroidered Nursing-Themed Sweatshirt",
+      "editorialDescription": "A nursing-themed sweatshirt gives the recipient an easy casual layer for days off, errands, or relaxed gatherings. Embroidery can make the design feel more considered than a generic printed shirt.",
+      "whyItFits": "It celebrates professional identity in a wearable way while keeping the gift suited to personal time rather than a clinical setting.",
+      "bestFor": "A nurse who enjoys casual apparel with a recognizable work-related detail.",
+      "selectionGuidance": "Check the size chart, fabric feel, cut, embroidery placement, color, and care instructions before choosing.",
+      "considerations": "Sizing and personal style vary, and some workplaces or recipients may prefer to keep nursing references out of their off-duty wardrobe.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_8fb16601_caa2_43be_a2b8_36dabb5189ad",
+      "productResolution": "unresolved",
+      "position": 12,
+      "heading": "A Humorous Mug-and-Stemless-Glass Set",
+      "editorialDescription": "This paired drinkware set brings a nursing-related joke to morning coffee and a stemless glass to relaxed evenings. The two pieces can be enjoyed together or used separately at home.",
+      "whyItFits": "It offers shareable humor while remaining useful, making it suitable for a birthday, graduation, or appreciation gesture among people who know the recipient’s sense of fun.",
+      "bestFor": "A nurse who likes playful home accessories and lighthearted conversation starters.",
+      "selectionGuidance": "Compare the wording, visual style, care instructions, glass shape, and whether the humor feels specific enough for the recipient.",
+      "considerations": "Drinkware takes up cabinet space and the joke may not appeal to someone who prefers understated or non-work-themed décor.",
       "editorialStatus": "ready"
     }
   ]

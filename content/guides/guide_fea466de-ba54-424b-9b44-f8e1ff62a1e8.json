@@ -14,7 +14,7 @@
   "seoDescription": "Find warm, useful Christmas gifts for nurses, with thoughtful ideas for family, partners, mentors, friends, Secret Santa exchanges, and holiday gatherings.",
   "status": "published",
   "publishedAt": "2026-09-20",
-  "updatedAt": "2026-09-27",
+  "updatedAt": "2026-09-28",
   "recommendations": [
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-1",
@@ -134,6 +134,30 @@
       "bestFor": "Nurses who commute in cold weather and appreciate versatile off-duty accessories.",
       "selectionGuidance": "Assess softness, warmth, weave, care needs, and a color that fits the recipient's wardrobe. A wool blend may be easier to give when texture or maintenance preferences are unknown.",
       "considerations": "Pure wool can feel more distinctive but may demand more careful upkeep than a blend.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_997dd025_90af_42f5_9dae_59763f6f3af3",
+      "productResolution": "unresolved",
+      "position": 11,
+      "heading": "Rechargeable Hand Warmers",
+      "editorialDescription": "Rechargeable hand warmers are easy to tuck into a coat pocket or bag for commutes, outdoor plans, and chilly pauses between activities. They offer a small seasonal comfort that can be shared or kept as part of a winter routine.",
+      "whyItFits": "They suit a holiday gift exchange while still feeling thoughtful for someone whose schedule includes early starts or time outdoors.",
+      "bestFor": "A winter commuter or anyone who spends part of the day outside.",
+      "selectionGuidance": "Compare size, heat settings, charging method, control layout, and whether the pair can be used separately.",
+      "considerations": "They require charging and may be unnecessary for someone who is rarely outdoors in cold weather.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_e1055f79_1c92_4ae6_8d70_696f1b64d1d5",
+      "productResolution": "unresolved",
+      "position": 12,
+      "heading": "Premium Wireless Earbuds",
+      "editorialDescription": "Wireless earbuds can make commutes, walks, podcasts, and quiet downtime easier to fit into a busy week. Their compact format keeps personal entertainment close without adding much to a bag.",
+      "whyItFits": "They feel substantial enough for a personal holiday gift while supporting the recipient’s own ways of relaxing between obligations.",
+      "bestFor": "Someone who listens to music, podcasts, or audiobooks throughout the day.",
+      "selectionGuidance": "Compare fit options, control method, charging case size, device compatibility, and how easily the earbuds can be carried.",
+      "considerations": "Earbud fit is highly individual, and some recipients may prefer over-ear headphones or speakers.",
       "editorialStatus": "ready"
     }
   ]

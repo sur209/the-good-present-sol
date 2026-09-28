@@ -6,8 +6,8 @@
   "slug": "under-25",
   "language": "en-US",
   "title": "Thoughtful Nurse Gifts Under $25",
-  "excerpt": "Six small, useful gifts selected to feel personal without stretching a $25 budget.",
-  "introduction": "A modest budget can still hold a lot of attention. Rather than collecting every inexpensive item with a nurse label, we chose six ideas that can stand on their own and become more personal with the right color, size, local shop, or handwritten note. The budget is a real editorial constraint here, not an automatic price filter.",
+  "excerpt": "Twelve small, useful gifts selected to feel personal without stretching a $25 budget.",
+  "introduction": "A modest budget can still hold a lot of attention. Rather than collecting every inexpensive item with a nurse label, we chose twelve ideas that can stand on their own and become more personal with the right color, size, local shop, or handwritten note. The budget is a real editorial constraint here, not an automatic price filter.",
   "conclusion": "The easiest way to make a small gift feel generous is to be specific. Mention the moment, habit, or quality that made you think of them, then let one well-chosen item carry the gesture.",
   "primaryAxis": "budget",
   "primaryIntent": "Help someone choose a useful, personal nurse gift while keeping the total product budget at or below $25.",
@@ -22,11 +22,11 @@
     "maximum": 25
   },
   "relatedGuideIds": ["guide_nurse-graduation", "guide_nurse-practical"],
-  "seoTitle": "6 Thoughtful Nurse Gifts Under $25 | The Good Present",
-  "seoDescription": "Find six thoughtful nurse gifts under $25, selected by editors for usefulness, comfort, and a personal touch.",
+  "seoTitle": "12 Thoughtful Nurse Gifts Under $25 | The Good Present",
+  "seoDescription": "Find twelve thoughtful nurse gifts under $25, selected by editors for usefulness, comfort, and a personal touch.",
   "status": "published",
   "publishedAt": "2026-08-04",
-  "updatedAt": "2026-09-27",
+  "updatedAt": "2026-09-28",
   "recommendations": [
     {
       "id": "under-25_pocket-notebook",
@@ -93,6 +93,78 @@
       "bestFor": "Someone who enjoys screen-free rest, meditation, or simple home comforts",
       "selectionGuidance": "Choose an unscented option with a removable washable cover and clear hot-and-cold use instructions.",
       "considerations": "Follow temperature and timing directions carefully and avoid scented fillings unless you know the recipient's preference.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_23c4d7f2_9a5c_4e48_8c57_64164f5b53d1",
+      "productResolution": "unresolved",
+      "position": 7,
+      "heading": "A Magnetic Power Bank With a Folding Stand",
+      "editorialDescription": "This compact backup battery can keep a phone topped up away from an outlet, while the folding stand makes it easier to check messages or watch content hands-free. It suits commutes, break rooms, and travel days.",
+      "whyItFits": "It is a generous, practical choice for someone whose phone is part of a busy daily routine and who appreciates useful extras that travel easily.",
+      "bestFor": "A nurse who is frequently away from convenient outlets.",
+      "selectionGuidance": "Compare charging connections, battery capacity, stand stability, magnetic compatibility, and overall weight.",
+      "considerations": "Magnetic alignment may depend on the phone model or a compatible case, and some recipients may prefer a slimmer battery without a stand.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_247ebd22_5e3c_490a_a62d_cd3fbc83c6cf",
+      "productResolution": "unresolved",
+      "position": 8,
+      "heading": "A Foldable Aluminum Phone Stand",
+      "editorialDescription": "A small folding stand gives a phone a stable viewing angle for recipes, video calls, reading, or charging on a desk or counter. It packs flat when not in use.",
+      "whyItFits": "Its usefulness extends beyond work, making it a thoughtful choice for someone who values tidy, hands-free convenience without adding much clutter.",
+      "bestFor": "A recipient who keeps a phone nearby while working, studying, or relaxing.",
+      "selectionGuidance": "Look for a stable base, adjustable viewing angle, protective contact surfaces, and enough clearance for a phone with its case attached.",
+      "considerations": "A stand is most useful on a firm, level surface and may not accommodate unusually bulky cases.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_64bf10af_36d4_4332_b297_1a52bc78e4bd",
+      "productResolution": "unresolved",
+      "position": 9,
+      "heading": "A Ceramic Insulated Travel Mug",
+      "editorialDescription": "A ceramic-lined or ceramic-bodied travel mug brings a more personal feel to coffee, tea, or another favorite drink during a commute or break. Choose a design that feels at home in the recipient’s everyday routine.",
+      "whyItFits": "It combines a familiar daily ritual with an opportunity to reflect the recipient’s preferred color, finish, or style.",
+      "bestFor": "A nurse who regularly carries a favorite hot or cold drink.",
+      "selectionGuidance": "Compare the lid design, opening, handle, cleaning requirements, cup-holder fit, and whether the insulation style suits the way they drink.",
+      "considerations": "Ceramic can feel heavier and more fragile than lightweight metal or plastic alternatives.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_b8c62a3e_5572_4d80_9ef5_be33dbd22bc2",
+      "productResolution": "unresolved",
+      "position": 10,
+      "heading": "A Freezable Insulated Snack Box",
+      "editorialDescription": "A reusable insulated snack box gives sandwiches, fruit, or small meals a dedicated place to travel. Its freezable element can be chilled ahead of time for packed food during a long day.",
+      "whyItFits": "It adds a considerate touch to a practical routine and can make bringing preferred snacks or meals feel more organized.",
+      "bestFor": "A nurse who packs food for extended shifts or busy days away from home.",
+      "selectionGuidance": "Compare the interior layout, closure style, freezer requirements, cleaning instructions, and capacity for the meals or snacks they usually bring.",
+      "considerations": "The box needs freezer space and advance preparation, and its size may be more than needed for someone who carries only a small snack.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_06f263ed_dbd7_49a3_b9dd_4f30b0249987",
+      "productResolution": "unresolved",
+      "position": 11,
+      "heading": "A Compact Travel Jewelry Case",
+      "editorialDescription": "A small jewelry case keeps earrings, rings, necklaces, or other tiny valuables separated during weekends away and longer trips. It can also serve as a tidy home for pieces that are easy to misplace.",
+      "whyItFits": "It feels polished without being overly formal, especially for someone who enjoys travel or likes small personal items kept in order.",
+      "bestFor": "A nurse planning a trip or building a more organized travel routine.",
+      "selectionGuidance": "Compare the number of compartments, necklace storage, closure, lining, and whether the case fits inside the recipient’s usual bag.",
+      "considerations": "Its compact format is intended for a small collection and may not suit someone with larger accessories or extensive jewelry storage needs.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_d49c6481_da84_4a06_9690_e9f03cd0d058",
+      "productResolution": "unresolved",
+      "position": 12,
+      "heading": "A Playful Cooking Apron With Pockets",
+      "editorialDescription": "A cheerful apron adds a bit of personality to cooking, baking, or hosting at home, while pockets keep a timer, recipe card, or small utensil close at hand. Choose humor or color that matches the recipient’s taste.",
+      "whyItFits": "It recognizes an off-duty interest and gives a nurse something useful for the part of life that happens outside the workplace.",
+      "bestFor": "A home cook who enjoys making meals for themselves or others.",
+      "selectionGuidance": "Compare the fabric, coverage, tie or strap adjustability, pocket placement, care instructions, and overall print style.",
+      "considerations": "Aprons are personal in fit and style, so a busy pattern, limited coverage, or fixed ties may not suit every cook.",
       "editorialStatus": "ready"
     }
   ]

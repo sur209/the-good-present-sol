@@ -6,15 +6,15 @@
   "slug": "gifts-for-nursing-students",
   "language": "en-US",
   "title": "Gifts for Nursing Students",
-  "excerpt": "Ten useful gifts for nursing students, from study supplies and packed-lunch essentials to practical extras for clinical days.",
-  "introduction": "A nursing student's week can mean a morning lecture, an afternoon skills lab, and an early start at a clinical placement the next day. A gift that fits one of those routines can feel especially thoughtful: a lunch bag sized for their containers, a paper planner they will actually use, or a reading light for a shared room.\r\n\r\nFor a birthday, holiday, first rotation, or encouragement before graduation, start by asking what they already own and what they wish worked better. These ten ideas span smaller gifts and more substantial everyday gear. Before buying anything they will wear or use at a clinical site, check their program's requirements and placement rules. Add a personal note about the milestone you are celebrating to make a practical gift feel like theirs.",
+  "excerpt": "Twelve useful gifts for nursing students, from study supplies and packed-lunch essentials to practical extras for clinical days.",
+  "introduction": "A nursing student's week can mean a morning lecture, an afternoon skills lab, and an early start at a clinical placement the next day. A gift that fits one of those routines can feel especially thoughtful: a lunch bag sized for their containers, a paper planner they will actually use, or a reading light for a shared room.\r\n\r\nFor a birthday, holiday, first rotation, or encouragement before graduation, start by asking what they already own and what they wish worked better. These twelve ideas span smaller gifts and more substantial everyday gear. Before buying anything they will wear or use at a clinical site, check their program's requirements and placement rules. Add a personal note about the milestone you are celebrating to make a practical gift feel like theirs.",
   "primaryAxis": "career-stage",
   "primaryIntent": "Help shoppers choose useful and thoughtful gifts for nursing students during school, clinical rotations, and the transition toward professional nursing.",
   "seoTitle": "Thoughtful Gifts for Nursing Students: A Practical Guide",
   "seoDescription": "Explore thoughtful gift ideas for nursing students and practical selection tips for school, clinical rotations, studying, commuting, and encouragement.",
   "status": "published",
   "publishedAt": "2026-09-19",
-  "updatedAt": "2026-09-27",
+  "updatedAt": "2026-09-28",
   "recommendations": [
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-1",
@@ -134,6 +134,30 @@
       "bestFor": "A student who studies or reads in bed, on transit, or in shared spaces where a small, focused light is welcome.",
       "selectionGuidance": "Compare brightness settings, color temperature, clip or stand design, charging method, battery life, and whether the light can be positioned without glare. Check that it clips securely to the books, e-readers, or notebooks the recipient uses.",
       "considerations": "Check whether they still read on paper; a student who mainly uses a backlit tablet may have little use for a book light. Avoid a heavy clip for thin books, and confirm which charging cable is needed.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_afb5cec0_521e_4e4e_80df_feae2783a0d5",
+      "productResolution": "unresolved",
+      "position": 11,
+      "heading": "A Wooden Laptop Stand",
+      "editorialDescription": "A wooden laptop stand gives a study desk a more finished look while creating a dedicated place for the computer. It can help separate the screen from notebooks, reference materials, and other study supplies.",
+      "whyItFits": "It is useful during lectures, assignments, and review sessions while still feeling like a considered addition to a personal space.",
+      "bestFor": "A nursing student building a more comfortable study setup",
+      "selectionGuidance": "Compare the stand’s height, footprint, laptop fit, ventilation, portability, and whether it leaves room for an external keyboard or notebooks.",
+      "considerations": "A fixed-height stand may not suit every desk or seating arrangement, and it does not replace an adjustable workstation.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_3f575320_57e4_4393_ade1_cffee048974b",
+      "productResolution": "unresolved",
+      "position": 12,
+      "heading": "A Complete Compact Cooking Set",
+      "editorialDescription": "A compact cooking set gives a student the basic tools to prepare simple meals in a small kitchen, apartment, or shared living space. The pieces can support quick breakfasts, packed lunches, and low-fuss dinners throughout a busy term.",
+      "whyItFits": "It connects with the practical realities of student life while making everyday meals feel a little more settled and enjoyable.",
+      "bestFor": "A nursing student setting up a first kitchen or simplifying shared-space cooking",
+      "selectionGuidance": "Compare the number and type of pieces, storage arrangement, material, care instructions, and compatibility with the recipient’s available cooking space.",
+      "considerations": "A larger set can be unnecessary if the recipient already owns kitchen basics or has limited room to store them.",
       "editorialStatus": "ready"
     }
   ]

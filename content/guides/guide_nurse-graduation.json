@@ -6,7 +6,7 @@
   "slug": "graduation",
   "language": "en-US",
   "title": "Nurse Graduation Gifts for the Next Chapter",
-  "excerpt": "Six celebratory, grounded gifts that honor the work behind a nursing degree and the transition ahead.",
+  "excerpt": "Twelve celebratory, grounded gifts that honor the work behind a nursing degree and the transition ahead.",
   "introduction": "Nursing graduation closes a demanding chapter and opens a very practical one. A good gift can recognize both: the hours already invested and the new routines about to begin. We favored ideas that feel polished enough for a milestone but useful enough to stay in the graduate's life after the ceremony.",
   "conclusion": "A graduation gift does not need to summarize an entire achievement. Choose one useful object or flexible treat, add a specific note about what you admire, and let the graduate decide how it fits into the next chapter.",
   "primaryAxis": "occasion",
@@ -18,11 +18,11 @@
     "giftStyles": ["practical", "celebratory"]
   },
   "relatedGuideIds": ["guide_nurse-practical", "guide_nurse-under-25"],
-  "seoTitle": "6 Thoughtful Nurse Graduation Gifts | The Good Present",
-  "seoDescription": "Celebrate a new nurse with six useful, thoughtful graduation gifts chosen for the milestone and the next chapter.",
+  "seoTitle": "12 Thoughtful Nurse Graduation Gifts | The Good Present",
+  "seoDescription": "Celebrate a new nurse with twelve useful, thoughtful graduation gifts chosen for the milestone and the next chapter.",
   "status": "published",
   "publishedAt": "2026-08-02",
-  "updatedAt": "2026-09-27",
+  "updatedAt": "2026-09-28",
   "recommendations": [
     {
       "id": "graduation_shift-tote",
@@ -90,6 +90,78 @@
       "bestFor": "A graduate who wears jewelry or keeps small meaningful objects",
       "selectionGuidance": "Look for a stable lid, a smooth or lined interior, and a design that fits the recipient's room rather than a profession theme.",
       "considerations": "Ceramic can chip in transit, so favor protective packaging and include a gift receipt.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_f5e0a27b_7a2b_400a_b663_e2eaaee2cd0e",
+      "productResolution": "unresolved",
+      "position": 7,
+      "heading": "A Personalized Initial Pendant",
+      "editorialDescription": "An initial pendant adds a quiet personal touch to everyday outfits while marking the graduate’s transition into a new chapter. It can be worn on its own or layered with other simple jewelry.",
+      "whyItFits": "It celebrates the achievement in a way that feels personal without relying on overtly themed designs.",
+      "bestFor": "A graduate who prefers understated jewelry with sentimental meaning.",
+      "selectionGuidance": "Compare pendant size, chain length, metal finish, engraving style, and whether the initial is easy to read at a glance.",
+      "considerations": "Jewelry preferences vary, and some recipients may favor earrings, bracelets, or no monogram at all.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_10a15da7_45c4_4bd8_97b9_d7f4e1c25907",
+      "productResolution": "unresolved",
+      "position": 8,
+      "heading": "An Engraved Milestone Wristwatch",
+      "editorialDescription": "An engraved wristwatch gives a graduation gift a lasting, commemorative quality while remaining useful for everyday wear. A short inscription can mark the date, achievement, or encouragement behind the gift.",
+      "whyItFits": "The combination of a practical accessory and personal engraving suits a milestone that deserves more than a fleeting celebration.",
+      "bestFor": "A graduate who appreciates traditional accessories and meaningful details.",
+      "selectionGuidance": "Look at the watch face size, band material, fastening style, engraving area, and overall formality.",
+      "considerations": "A recipient who relies on a phone or smartwatch may not wear a traditional watch regularly.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_8a7e30d3_d60c_4d2d_b2aa_70930a34181c",
+      "productResolution": "unresolved",
+      "position": 9,
+      "heading": "Leather Clogs for Long Days",
+      "editorialDescription": "A pair of leather clogs can become a versatile part of a graduate’s work-and-commute wardrobe, with a polished look that works beyond the workplace. Their simple silhouette also pairs easily with casual off-duty clothing.",
+      "whyItFits": "They acknowledge the practical rhythm of a new professional routine while still feeling more considered than ordinary work shoes.",
+      "bestFor": "Someone who likes structured footwear and has a workplace dress code that allows clogs.",
+      "selectionGuidance": "Check sizing conventions, toe-room shape, heel height, sole profile, closure style, and workplace requirements.",
+      "considerations": "Clogs are a personal footwear preference, and the recipient may need a different shoe style for their setting.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_932aa818_b3b8_48bb_9033_0eb21e38ea11",
+      "productResolution": "unresolved",
+      "position": 10,
+      "heading": "A Studio Watercolor Painting Set",
+      "editorialDescription": "A studio watercolor set creates an inviting way to spend unstructured time away from work. It can support casual experimentation, small projects, or a more focused creative practice.",
+      "whyItFits": "It offers a celebratory gift with room for personal expression rather than adding another work-related item to the graduate’s routine.",
+      "bestFor": "A creative recipient who enjoys quiet, hands-on hobbies.",
+      "selectionGuidance": "Compare the range of colors, brush selection, palette layout, case format, and whether paper or other basics are included.",
+      "considerations": "Watercolor supplies need a suitable surface and storage space, and they may not appeal to someone who prefers screen-free relaxation of another kind.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_4ab3ffbf_5045_48ae_808b_4ba937bda6cf",
+      "productResolution": "unresolved",
+      "position": 11,
+      "heading": "A Milestone Charm Bracelet",
+      "editorialDescription": "A charm bracelet offers a wearable way to mark graduation and leave room for future additions. Choose a simple base that lets the achievement charm remain the focal point.",
+      "whyItFits": "It turns a major accomplishment into a personal keepsake while allowing family or friends to add meaning over time.",
+      "bestFor": "Someone who enjoys sentimental jewelry and collecting small reminders of important moments.",
+      "selectionGuidance": "Consider bracelet length, clasp style, metal finish, charm size, and whether additional charms can be added later.",
+      "considerations": "The bracelet may feel too decorative for someone who prefers minimal jewelry or rarely wears accessories.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_38aa7cc4_ebe9_4594_b773_bc1305e5b815",
+      "productResolution": "unresolved",
+      "position": 12,
+      "heading": "A Compact Electric Food Chopper",
+      "editorialDescription": "A compact food chopper can streamline small kitchen tasks such as preparing vegetables, herbs, sauces, or ingredients for quick meals. Its smaller footprint suits a first apartment or a crowded countertop.",
+      "whyItFits": "It supports the practical realities of a demanding new routine without making the gift feel purely utilitarian.",
+      "bestFor": "A new graduate who cooks in short bursts or is setting up a smaller kitchen.",
+      "selectionGuidance": "Compare bowl capacity, control style, blade arrangement, cord storage, cleanup requirements, and available countertop space.",
+      "considerations": "It adds another appliance to wash and store, so it may not suit someone with a very minimal kitchen setup.",
       "editorialStatus": "ready"
     }
   ]

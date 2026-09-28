@@ -9,12 +9,12 @@
   "excerpt": "Personalized nurse gift ideas for birthdays, graduations, licensure, milestones, thank-yous, and everyday appreciation.",
   "introduction": "Shopping for a nurse’s birthday, graduation, licensure, or work milestone? Choose something that feels personal to them, whether it suits a busy routine, adds warmth to home, or marks an achievement. These ideas work for friends, relatives, coworkers, partners, students, and colleagues, with a thoughtful mix of practical, sentimental, desk, home, and milestone choices. Consider the recipient’s style, daily habits, meaningful dates, and whether the personalization adds lasting value beyond the occasion.",
   "primaryAxis": "gift-style",
-  "primaryIntent": "Help friends, relatives, coworkers, partners, students, and colleagues choose one of 10 personalized gifts for a nurse. Personalization should add ownership, sentimental meaning, professional identity, milestone recognition, or useful identification to an otherwise worthwhile item. Favor fresh categories distinct from Practical Gifts for Nurses, Gifts for Nursing Students, Gifts for New Nurses, and Thank You Gifts for Nurse Preceptors and Mentors; repeat a base product only when personalization materially changes the buying intent. Keep the guide warm, practical, specific, and commercially useful. Exclude generic nurse merch, novelty mugs, joke gifts, clinical equipment, intimate gifts, alcohol, medical claims, and unsafe patient or workplace information. Include meaningful variety across practical, sentimental, desk or home, professional, and milestone uses. Do not attach Products or affiliate URLs.",
+  "primaryIntent": "Help friends, relatives, coworkers, partners, students, and colleagues choose one of 12 personalized gifts for a nurse. Personalization should add ownership, sentimental meaning, professional identity, milestone recognition, or useful identification to an otherwise worthwhile item. Favor fresh categories distinct from Practical Gifts for Nurses, Gifts for Nursing Students, Gifts for New Nurses, and Thank You Gifts for Nurse Preceptors and Mentors; repeat a base product only when personalization materially changes the buying intent. Keep the guide warm, practical, specific, and commercially useful. Exclude generic nurse merch, novelty mugs, joke gifts, clinical equipment, intimate gifts, alcohol, medical claims, and unsafe patient or workplace information. Include meaningful variety across practical, sentimental, desk or home, professional, and milestone uses. Do not attach Products or affiliate URLs.",
   "seoTitle": "Personalized Gifts for Nurses",
   "seoDescription": "Find personalized nurse gifts for birthdays, graduations, licensure, milestones, thank-yous, and everyday appreciation, from practical keepsakes to home accents.",
   "status": "published",
   "publishedAt": "2026-09-20",
-  "updatedAt": "2026-09-27",
+  "updatedAt": "2026-09-28",
   "recommendations": [
     {
       "id": "guide_096afebb-cdbd-4577-98c2-8aaf3b195889_slot-1",
@@ -134,6 +134,30 @@
       "bestFor": "Someone who enjoys cooking, grazing boards, or having friends over",
       "selectionGuidance": "Favor food-safe wood, clear care instructions, and personalization that suits the recipient's home rather than their job title.",
       "considerations": "Confirm spelling and the final engraving preview before ordering; hand-wash-only boards need a little extra care.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_57ee19ea_e36a_4f18_8aa7_8c1321e0729c",
+      "productResolution": "unresolved",
+      "position": 11,
+      "heading": "A Personalized Cookbook Display Stand",
+      "editorialDescription": "A cookbook display stand keeps a favorite recipe open and visible while adding a personalized accent to the kitchen. It can hold a treasured cookbook, a handwritten recipe, or a menu card when not in use.",
+      "whyItFits": "Personalization gives an everyday cooking accessory a sense of ownership, especially for someone who enjoys making meals and collecting meaningful recipes.",
+      "bestFor": "A home cook with a favorite cookbook or family recipe tradition.",
+      "selectionGuidance": "Compare the stand’s footprint, display angle, support lip, material, personalization placement, and ease of cleaning.",
+      "considerations": "It requires counter or shelf space and may be less useful for someone who primarily cooks from a phone or tablet.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_d608fac5_5bf8_49dd_b204_652de605ffc7",
+      "productResolution": "unresolved",
+      "position": 12,
+      "heading": "A Personalized Travel Organizer",
+      "editorialDescription": "A personalized travel organizer gives cables, documents, toiletries, or small accessories a designated place inside a suitcase or day bag. A name or initial can make it easier to identify among shared belongings.",
+      "whyItFits": "It adds a personal touch to a practical travel companion without limiting the gift to one type of trip or packing style.",
+      "bestFor": "A nurse who travels often and prefers compact, orderly packing.",
+      "selectionGuidance": "Compare the number and type of compartments, closure, handle, material, personalization options, and compatibility with the recipient’s usual luggage.",
+      "considerations": "More compartments can make an organizer bulkier, and the chosen layout may not suit someone who packs very minimally.",
       "editorialStatus": "ready"
     }
   ]
