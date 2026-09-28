@@ -13,6 +13,11 @@ interface Props {
 }
 
 const { recommendation, product, illustration } = Astro.props;
+const visual = product?.image
+  ? { src: product.image, alt: product.imageAlt!, productPhoto: true }
+  : illustration
+    ? { ...illustration, productPhoto: false }
+    : undefined;
 const destination = recommendationDestination(recommendation, product);
 const isDirectAffiliate = Boolean(recommendation.directAffiliateUrl);
 const isAffiliate =
@@ -38,12 +43,16 @@ const accent = `recommendation--accent-${((recommendation.position - 1) % 4) + 1
 
 <article class:list={["recommendation", accent]} id={`pick-${recommendation.position}`}>
   <div
-    class:list={["recommendation__visual", illustration && "recommendation__visual--illustrated"]}
-    aria-hidden={illustration ? undefined : "true"}
+    class:list={[
+      "recommendation__visual",
+      visual && "recommendation__visual--illustrated",
+      visual?.productPhoto && "recommendation__visual--product-photo",
+    ]}
+    aria-hidden={visual ? undefined : "true"}
   >
     {
-      illustration ? (
-        <img src={illustration.src} alt={illustration.alt} loading="lazy" decoding="async" />
+      visual ? (
+        <img src={visual.src} alt={visual.alt} loading="lazy" decoding="async" />
       ) : (
         <span>{initials}</span>
       )

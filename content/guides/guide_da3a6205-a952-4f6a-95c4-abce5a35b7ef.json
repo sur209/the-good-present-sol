@@ -14,7 +14,7 @@
   "seoDescription": "A warm, practical guide to choosing gifts for nurses, new nurses, and nursing students. Focus on useful items that fit real routines, varied preferences, and meaningful occasions.",
   "status": "published",
   "publishedAt": "2026-09-15",
-  "updatedAt": "2026-09-27",
+  "updatedAt": "2026-09-28",
   "recommendations": [
     {
       "id": "guide_da3a6205-a952-4f6a-95c4-abce5a35b7ef_slot-1",
@@ -77,15 +77,15 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "guide_da3a6205-a952-4f6a-95c4-abce5a35b7ef_slot-6",
+      "id": "review_e3385850-d321-4585-911d-9391779a087a",
       "productResolution": "unresolved",
       "position": 6,
-      "heading": "Badge Reel That Keeps ID Handy",
-      "editorialDescription": "A retractable badge reel keeps an ID or access card within reach instead of buried in a pocket. The most useful versions have a strong clip, a smooth retraction cord, and a secure attachment that can handle daily wear. Consider whether the recipient prefers a belt clip, a lanyard, or a reel that swivels, since those details affect comfort and access. A simple design in a color they like will likely get more use than an elaborate one.",
-      "whyItFits": "Badges and access cards are part of the workday, and a reliable reel saves time and reduces the small friction of digging around during a shift. It also pairs well with other small work essentials.",
-      "bestFor": "Nurses who wear an ID daily and want quick, tangle-free access to it.",
-      "selectionGuidance": "Check clip strength, cord length and retraction, attachment type, durability, and whether the reel works with the recipient's badge holder. Choose a style that matches how they wear their ID.",
-      "considerations": "Weak clips or cords can fail over time, and some reels are bulky on scrubs. If the recipient already has a preferred setup, a simple backup or a different attachment style may be more useful.",
+      "heading": "Open-Ear Wireless Headphones",
+      "editorialDescription": "Open-ear headphones sit outside the ear canal and can suit walks, workouts, chores, or relaxed listening at home. The format feels novel while remaining useful outside a clinical setting.",
+      "whyItFits": "It offers a meaningful everyday upgrade without repeating another employer-adjacent accessory.",
+      "bestFor": "Someone who dislikes in-ear buds or wants audio for walks and workouts",
+      "selectionGuidance": "Compare fit, weight, controls, battery information, device compatibility, and how much sound leaks at ordinary volume.",
+      "considerations": "Open-ear designs do not block surrounding noise and may not suit quiet shared spaces; workplace use depends on local rules.",
       "editorialStatus": "ready"
     },
     {
@@ -113,15 +113,15 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "guide_da3a6205-a952-4f6a-95c4-abce5a35b7ef_slot-9",
+      "id": "review_40184132-d588-44cc-bc0c-7b14dc0919c2",
       "productResolution": "unresolved",
       "position": 9,
-      "heading": "Portable Charger for Long Commutes",
-      "editorialDescription": "A portable power bank keeps a phone charged through a long shift, a delayed commute, or a day spent away from outlets. The most useful size is one the recipient will actually carry, so balance capacity against weight and pocketability. Check the connector type, charging speed, and whether the bank can charge their phone more than once. A clear battery indicator and a durable cable are small details that make a big difference.",
-      "whyItFits": "Phones are used for schedules, messages, rides, and quick breaks throughout the day. A reliable backup charge helps nurses stay connected without hunting for an outlet in a busy unit or on the way home.",
-      "bestFor": "Nurses who rely on a phone during commutes and long shifts and want backup power.",
-      "selectionGuidance": "Compare capacity, size and weight, port types, charging speed, pass-through charging, and included cables. Match the connector to the recipient's phone and consider how they carry it.",
-      "considerations": "High-capacity banks can be heavy, and very small ones may not provide a full charge. If the recipient already carries one, a compact travel version or a spare cable may be more useful.",
+      "heading": "A Glass Meal-Prep Container Set",
+      "editorialDescription": "A set of glass containers gives batch cooking and leftovers a durable, easy-to-see home. Choose a modest number of useful sizes rather than a sprawling set that creates another storage problem.",
+      "whyItFits": "It supports practical weekly routines while remaining distinct from the insulated lunch bag already in the guide.",
+      "bestFor": "A nurse who prepares several meals or portions at once",
+      "selectionGuidance": "Compare container sizes, lid seals, nesting, replacement-lid availability, and stated microwave, freezer, oven, and dishwasher use.",
+      "considerations": "Glass is heavier than plastic and lids can wear first; prioritize manageable sizes and a brand with replacement parts.",
       "editorialStatus": "ready"
     },
     {

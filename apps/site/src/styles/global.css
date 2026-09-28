@@ -999,6 +999,10 @@ code {
   object-fit: contain;
 }
 
+.recommendation__visual--product-photo img {
+  object-fit: cover;
+}
+
 .recommendation__visual > span {
   position: relative;
   z-index: 1;

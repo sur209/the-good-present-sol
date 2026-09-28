@@ -11,10 +11,12 @@ import { DraftStore } from "./draft-store.ts";
 import { reopenGuideDraft } from "./guide-editor.ts";
 import {
   IdeaResearchStore,
+  analyzeGiftDiversity,
   approvedResearchHints,
   checkedResearchUrl,
   extractPageSignals,
   generateProductGroundedGuideIdeas,
+  giftConceptFamily,
   inspectResearchPage,
   researchGiftIdeas,
   robotsAllows,
@@ -119,6 +121,43 @@ test("rating hints keep positive, negative and reasoned middle examples in a sma
   assert.ok(hints.every((hint) => !hint.includes("Desk plant")));
   assert.ok(hints.every((hint) => !hint.includes("Desk organizer")));
   assert.ok(hints.every((hint) => !hint.includes("Other group")));
+});
+
+test("concept families distinguish related products and report the third appearance", () => {
+  assert.equal(
+    giftConceptFamily("A Premium Wireless Charging Dock")?.id,
+    "stationary-device-charger",
+  );
+  assert.equal(giftConceptFamily("A portable power bank")?.id, "portable-power-bank");
+  const diversity = analyzeGiftDiversity([
+    {
+      id: "guide_one",
+      title: "Guide one",
+      recommendations: [
+        { heading: "A Premium Wireless Charging Dock" },
+        { heading: "An Insulated Bottle" },
+        { heading: "A Water Bottle" },
+      ],
+    },
+    {
+      id: "guide_two",
+      title: "Guide two",
+      recommendations: [{ heading: "A tidy bedside charging station" }],
+    },
+    {
+      id: "guide_three",
+      title: "Guide three",
+      recommendations: [{ heading: "A Compact Multi-Device Charging Station" }],
+    },
+  ]);
+  assert.deepEqual(
+    diversity.crossGuide.map(({ familyId, count }) => ({ familyId, count })),
+    [{ familyId: "stationary-device-charger", count: 3 }],
+  );
+  assert.deepEqual(
+    diversity.withinGuide.map(({ familyId, count, guides }) => ({ familyId, count, guides })),
+    [{ familyId: "drink-container", count: 2, guides: ["Guide one"] }],
+  );
 });
 
 test("blocked pages are not fetched", async () => {
@@ -263,6 +302,8 @@ test("product-first automation fills a complete guide from deduplicated Amazon r
           }) as never;
         }
         assert.match(request.prompt, /Observed product 1-0/);
+        assert.match(request.prompt, /publishedFamilyCounts/);
+        assert.match(request.prompt, /Cargadores fijos y estaciones de carga/);
         return request.schema.parse({
           ideas: [
             {
@@ -291,6 +332,18 @@ test("product-first automation fills a complete guide from deduplicated Amazon r
         title: "Practical gifts for nurses",
         primaryIntent: "Useful gifts with enough novelty to feel special",
         recommendations: [{}, {}, {}],
+        clusterRecommendations: [
+          {
+            guideId: "guide_other_one",
+            guideTitle: "Other one",
+            heading: "A Premium Wireless Charging Dock",
+          },
+          {
+            guideId: "guide_other_two",
+            guideTitle: "Other two",
+            heading: "A tidy bedside charging station",
+          },
+        ],
       },
       provider,
       discoverySource,
@@ -305,7 +358,7 @@ test("product-first automation fills a complete guide from deduplicated Amazon r
     assert.equal(new Set(result.records.map((record) => record.runId)).size, 1);
     assert.ok(result.records.every((record) => record.guideId === "guide_test"));
     assert.ok(result.records.every((record) => record.status === "proposed"));
-    assert.ok(result.records.every((record) => record.promptVersion === "product-guide-ideas-v4"));
+    assert.ok(result.records.every((record) => record.promptVersion === "product-guide-ideas-v5"));
     assert.ok(result.records.every((record) => record.imageUrl));
     assert.deepEqual(
       result.records.map((record) => record.previousGiftClass),
@@ -336,6 +389,28 @@ test("Studio shows pending ideas and records an explicit editor decision", async
       evidenceHeading: "A portable lunch warmer",
       fit: "A meal-related gift for a long shift.",
       status: "proposed",
+      createdAt: new Date().toISOString(),
+    });
+    const content = readPublicContent(root);
+    const practicalGuide = content.guides.find((guide) => guide.id === "guide_nurse-practical")!;
+    const publishedRecord = await researchStore.save({
+      id: "research_bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+      clusterId: "cluster_nurse-gifts",
+      sourceName: "Amazon via SerpAPI",
+      sourceUrl: "https://www.amazon.com/dp/B012345678",
+      pageTitle: "Amazon product result",
+      giftClass: "An editorialized version of the observed product",
+      evidenceHeading: "Observed product listing title",
+      fit: "A concrete candidate grounded in a real product.",
+      status: "proposed",
+      guideId: practicalGuide.id,
+      publishedRecommendationId: practicalGuide.recommendations[0]!.id,
+      publishedHeading: practicalGuide.recommendations[0]!.heading!,
+      externalId: "B012345678",
+      imageUrl: "https://images.example.com/observed.jpg",
+      observedPrice: "$29.99",
+      observedRating: 4.6,
+      observedReviewCount: 420,
       createdAt: new Date().toISOString(),
     });
     const draftStore = new DraftStore(join(root, "drafts"), root);
@@ -377,6 +452,25 @@ test("Studio shows pending ideas and records an explicit editor decision", async
       ],
     );
     assert.match(body, /A compact lunch warmer/);
+    const publishedPosition = body.indexOf(publishedRecord.giftClass);
+    const publishedRow = body.slice(
+      body.lastIndexOf("<tr>", publishedPosition),
+      body.indexOf("</tr>", publishedPosition),
+    );
+    assert.match(publishedRow, /Publicada/);
+    assert.match(publishedRow, /Ver producto observado/);
+    assert.match(publishedRow, /Todavía no es un producto del catálogo/);
+    assert.match(publishedRow, /Revisar para catálogo/);
+    assert.doesNotMatch(publishedRow, new RegExp(`/idea-research/${publishedRecord.id}/accept`));
+    const productSuggestion = await fetch(
+      `${origin}/products/intake?researchId=${publishedRecord.id}`,
+    );
+    assert.equal(productSuggestion.status, 200);
+    const productSuggestionBody = await productSuggestion.text();
+    assert.match(productSuggestionBody, /Sugerencia precargada/);
+    assert.match(productSuggestionBody, /Observed product listing title/);
+    assert.match(productSuggestionBody, /no obliga a incorporarla al catálogo/);
+    assert.doesNotMatch(productSuggestionBody, /name="image" value="https:\/\/images\.example/);
     assert.match(body, /<img src="\/local-assets\/images\//);
     const researchPosition = body.indexOf("A compact lunch warmer");
     const researchRow = body.slice(
@@ -384,8 +478,6 @@ test("Studio shows pending ideas and records an explicit editor decision", async
       body.indexOf("</tr>", researchPosition),
     );
     assert.doesNotMatch(researchRow, /<img\b/);
-    const content = readPublicContent(root);
-    const practicalGuide = content.guides.find((guide) => guide.id === "guide_nurse-practical")!;
     const ratedRecommendationId = practicalGuide.recommendations[0]!.id;
     const reopened = reopenGuideDraft(practicalGuide, content);
     await draftStore.save({
@@ -586,7 +678,7 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     assert.match(promptBody, /Esto no es un historial completo/);
     assert.match(promptBody, /outline-v6/);
     assert.match(promptBody, /research-v4/);
-    assert.match(promptBody, /product-guide-ideas-v4/);
+    assert.match(promptBody, /product-guide-ideas-v5/);
     assert.match(promptBody, /Generación desde productos/);
     assert.match(promptBody, /outline-v1/);
     assert.match(promptBody, /Previously saved prompt snapshot/);

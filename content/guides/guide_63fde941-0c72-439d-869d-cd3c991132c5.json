@@ -23,7 +23,7 @@
   "seoDescription": "Find thoughtful gift ideas for nurses who work overnight, shaped around daytime routines, commuting, meals, home comfort, and quiet time off.",
   "status": "published",
   "publishedAt": "2026-09-20",
-  "updatedAt": "2026-09-27",
+  "updatedAt": "2026-09-28",
   "recommendations": [
     {
       "id": "guide_63fde941-0c72-439d-869d-cd3c991132c5_slot-1",
@@ -38,27 +38,27 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "guide_63fde941-0c72-439d-869d-cd3c991132c5_slot-2",
+      "id": "review_3685ec52-5e19-4b71-a133-e9639effe4bd",
       "productResolution": "unresolved",
       "position": 2,
-      "heading": "An overnight meal carrier",
-      "editorialDescription": "An insulated food jar makes it easier to bring a warm or cold meal through an overnight shift in a compact format. It suits someone who packs food rather than relying on whatever is available at work.",
-      "whyItFits": "It connects directly with overnight meals while offering an everyday convenience that does not assume a particular diet or work setup.",
-      "bestFor": "Nurses who pack meals for overnight shifts",
-      "selectionGuidance": "Compare the opening, cleaning method, portability, and portion size. Check whether the jar fits their usual bag and whether its shape suits the way they prefer to pack meals.",
-      "considerations": "Some recipients prefer cold meals or shared workplace food, so confirm that a food jar matches their routine.",
+      "heading": "A Cooling Pillowcase Set for Daytime Sleep",
+      "editorialDescription": "A breathable pillowcase set can make a daytime sleep setup feel cooler and more intentional without adding another device. A neutral pair is easy to rotate through laundry days and works beyond shift weeks.",
+      "whyItFits": "It responds directly to sleeping after sunrise while feeling like a comfortable home upgrade rather than work equipment.",
+      "bestFor": "A night-shift nurse whose room tends to feel warm during the day",
+      "selectionGuidance": "Confirm pillow size and compare fabric feel, closure style, care instructions, and whether the material suits sensitive skin.",
+      "considerations": "Cooling claims vary by fabric and room conditions; focus on breathability and a returnable set rather than promises.",
       "editorialStatus": "ready"
     },
     {
-      "id": "guide_63fde941-0c72-439d-869d-cd3c991132c5_slot-3",
+      "id": "review_f8cad862-dcee-4a30-91e8-4c492eb23e74",
       "productResolution": "unresolved",
       "position": 3,
-      "heading": "A commute-ready drink mug",
-      "editorialDescription": "An insulated travel mug is a small way to support an overnight drink or the trip home. A simple, lidded design feels more personal when matched to how the recipient carries drinks and what they like using at work.",
-      "whyItFits": "It fits both a long shift and the commute home while leaving the drink choice entirely to them.",
-      "bestFor": "Nurses who carry drinks between work, home, and transit",
-      "selectionGuidance": "Prioritize an easy-to-clean interior, comfortable grip, secure lid, and a shape that fits their usual bag or cup holder. Confirm their preferred size and drinking opening.",
-      "considerations": "Avoid assuming they want a coffee-style mug; tea, water, or other drinks may suit them better.",
+      "heading": "A Microwavable Neck-and-Shoulder Wrap",
+      "editorialDescription": "A microwavable neck-and-shoulder wrap offers a simple warming ritual after an overnight shift. Choose an unscented version with flexible sections so the recipient can position it comfortably at home.",
+      "whyItFits": "It gives the recipient a clear transition from commute to rest without assuming anything about their workplace needs.",
+      "bestFor": "A night-shift nurse who enjoys warmth while reading or unwinding",
+      "selectionGuidance": "Compare dimensions, weight, heating instructions, cover washability, and whether the filling is scented or unscented.",
+      "considerations": "Heating times and comfort levels vary; the recipient should follow the maker's instructions and stop using it if it feels too hot.",
       "editorialStatus": "ready"
     },
     {

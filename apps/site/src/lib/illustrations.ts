@@ -516,6 +516,58 @@ export const recommendationIllustrations: Record<string, { src: string; alt: str
     src: "/images/gift-ideas/bedside-charging-station.webp",
     alt: "Illustration of a compact multi-device charging station",
   },
+  "review_6a24b7e1-5cd8-4f34-bae2-9d8c1f0e7642": {
+    src: "/images/gift-ideas/multicooker.webp",
+    alt: "Illustration of a compact multi-function cooker",
+  },
+  "review_992c9102-4c60-4616-9ebb-6726ccefea50": {
+    src: "/images/gift-ideas/humorous-plush-desk-companion.webp",
+    alt: "Illustration of a humorous plush desk companion",
+  },
+  "review_3cf4234c-6f33-4870-b15d-962379fc4ae9": {
+    src: "/images/gift-ideas/pocketed-kitchen-apron.webp",
+    alt: "Illustration of a pocketed kitchen apron",
+  },
+  "review_34dacf89-d360-4782-9a60-aa9f84f90ce9": {
+    src: "/images/gift-ideas/candle-set.webp",
+    alt: "Illustration of a scented candle",
+  },
+  "review_3685ec52-5e19-4b71-a133-e9639effe4bd": {
+    src: "/images/gift-ideas/cooling-pillowcase-set.webp",
+    alt: "Illustration of a cooling pillowcase set",
+  },
+  "review_f8cad862-dcee-4a30-91e8-4c492eb23e74": {
+    src: "/images/gift-ideas/microwavable-heat-wrap.webp",
+    alt: "Illustration of a microwavable neck-and-shoulder wrap",
+  },
+  "review_10e59e75-a15e-4483-a705-ab27e98325ea": {
+    src: "/images/gift-ideas/student-clear-second-hand-watch.webp",
+    alt: "Illustration of a classic automatic wristwatch",
+  },
+  "review_9102a651-bc8c-41c2-a073-b092d75c4a4e": {
+    src: "/images/gift-ideas/soft-cotton-robe.webp",
+    alt: "Illustration of a warm hooded lounge robe",
+  },
+  "review_6f7b505a-2e7f-401f-bcde-c7c2fc1b131e": {
+    src: "/images/gift-ideas/ceramic-bakeware-set.webp",
+    alt: "Illustration of ceramic bakeware with storage lids",
+  },
+  "review_5c79aaf5-07aa-47b1-bdfb-86b0d032b3bd": {
+    src: "/images/gift-ideas/noise-canceling-headphones.webp",
+    alt: "Illustration of noise-reducing wireless earbuds",
+  },
+  "review_e3385850-d321-4585-911d-9391779a087a": {
+    src: "/images/gift-ideas/noise-canceling-headphones.webp",
+    alt: "Illustration of open-ear wireless headphones",
+  },
+  "review_40184132-d588-44cc-bc0c-7b14dc0919c2": {
+    src: "/images/gift-ideas/glass-meal-prep-containers.webp",
+    alt: "Illustration of glass meal-prep containers",
+  },
+  "review_5da5eb0e-c039-42cc-809a-4084b3bb71f6": {
+    src: "/images/gift-ideas/ceramic-bakeware-set.webp",
+    alt: "Illustration of a covered ceramic baking dish",
+  },
   "review_2f3f9216-0df9-494f-b633-61019b1e8a79": {
     src: "/images/gift-ideas/ceramic-keepsake-jewelry-box.webp",
     alt: "Illustration of a ceramic keepsake jewelry box",

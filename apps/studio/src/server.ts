@@ -92,8 +92,10 @@ import {
   PRODUCT_GUIDE_IDEA_PROMPT_VERSION,
   PRODUCT_QUERY_INSTRUCTIONS,
   PRODUCT_SELECTION_INSTRUCTIONS,
+  analyzeGiftDiversity,
   approvedResearchHints,
   generateProductGroundedGuideIdeas,
+  normalizedGiftIdea,
   researchGiftIdeas,
   type ResearchRecord,
 } from "./idea-research.ts";
@@ -417,6 +419,9 @@ interface GiftIdeaRow {
   published: boolean;
   image?: { src: string; alt: string };
   link?: string;
+  targetLink?: string;
+  sourceLink?: string;
+  catalogProductId?: string;
   research?: ResearchRecord;
 }
 
@@ -425,8 +430,22 @@ function giftIdeaRows(
   drafts: readonly EditorialDraft[],
   research: readonly ResearchRecord[],
   clusterId: string,
+  catalogProductByExternalId: ReadonlyMap<string, string> = new Map(),
 ): GiftIdeaRow[] {
   const rows = new Map<string, GiftIdeaRow>();
+  const publicIdeaKeysByGuide = new Map(
+    content.guides
+      .filter((guide) => guide.clusterId === clusterId)
+      .map((guide) => [
+        guide.id,
+        new Set(
+          guide.recommendations.map((recommendation) =>
+            normalizedGiftIdea(recommendation.heading ?? ""),
+          ),
+        ),
+      ]),
+  );
+  const publicIdeaKeys = new Set([...publicIdeaKeysByGuide.values()].flatMap((keys) => [...keys]));
   for (const guide of content.guides.filter((item) => item.clusterId === clusterId)) {
     const cluster = content.clusters.find((item) => item.id === guide.clusterId);
     for (const item of guide.recommendations) {
@@ -469,15 +488,34 @@ function giftIdeaRows(
     const guide = record.guideId
       ? content.guides.find((item) => item.id === record.guideId)
       : undefined;
+    const cluster = guide
+      ? content.clusters.find((item) => item.id === guide.clusterId)
+      : undefined;
+    const catalogProductId = record.externalId
+      ? catalogProductByExternalId.get(record.externalId)
+      : undefined;
+    const linkedRecommendation = record.publishedRecommendationId
+      ? guide?.recommendations.find(
+          (recommendation) => recommendation.id === record.publishedRecommendationId,
+        )
+      : undefined;
+    const isPublished =
+      Boolean(linkedRecommendation) ||
+      ((record.guideId ? publicIdeaKeysByGuide.get(record.guideId) : publicIdeaKeys)?.has(
+        normalizedGiftIdea(record.giftClass),
+      ) ??
+        false);
     rows.set(`research:${record.id}`, {
       ideaKey: `research:${record.id}`,
       clusterId,
       label: record.giftClass,
       location: guide ? "Propuesta para guía" : "Sin guía",
       detail: guide?.title ?? record.sourceName,
-      published: false,
+      published: isPublished,
       ...(record.imageUrl ? { image: { src: record.imageUrl, alt: record.evidenceHeading } } : {}),
-      link: record.sourceUrl,
+      ...(guide && cluster ? { targetLink: `/local${guidePath(cluster.slug, guide.slug)}` } : {}),
+      sourceLink: record.sourceUrl,
+      ...(catalogProductId ? { catalogProductId } : {}),
       research: record,
     });
   }
@@ -494,6 +532,7 @@ function ideaResearchPage(
   guides: readonly { id: string; title: string; giftCount: number }[],
   productAutomationAvailable: boolean,
   rows: readonly GiftIdeaRow[],
+  diversity: ReturnType<typeof analyzeGiftDiversity>,
   ratings: readonly IdeaRating[],
   added: number | undefined,
 ): string {
@@ -524,39 +563,58 @@ function ideaResearchPage(
             `<option value="${value}"${rating?.score === value ? " selected" : ""}>${value}</option>`,
         )
         .join("");
-      const detail = row.link
-        ? `<a href="${escapeHtml(row.link)}"${row.research ? ' target="_blank" rel="noopener noreferrer"' : ""}>${escapeHtml(row.detail)}</a>`
-        : escapeHtml(row.detail);
+      const detail = row.research
+        ? row.targetLink
+          ? `<a href="${escapeHtml(row.targetLink)}">Ver guía destino: ${escapeHtml(row.detail)}</a>`
+          : escapeHtml(row.detail)
+        : row.link
+          ? `<a href="${escapeHtml(row.link)}">${escapeHtml(row.detail)}</a>`
+          : escapeHtml(row.detail);
       const decision =
-        row.research?.status === "proposed"
+        row.research?.status === "proposed" && !row.published
           ? `<div class="actions"><form method="post" action="/idea-research/${row.research.id}/accept"><button>Aceptar</button></form><form method="post" action="/idea-research/${row.research.id}/reject"><button>Descartar</button></form></div>`
           : "";
       const baseStatus = row.research
-        ? row.research.status === "proposed"
-          ? "Pendiente"
-          : row.research.status === "accepted"
-            ? "Aceptada"
-            : "Descartada"
+        ? row.published
+          ? "Publicada"
+          : row.research.status === "proposed"
+            ? "Pendiente"
+            : row.research.status === "accepted"
+              ? "Aceptada"
+              : "Descartada"
         : "Asignada";
       const status =
-        row.published && rating?.score !== undefined && rating.score <= 4
+        !row.research && row.published && rating?.score !== undefined && rating.score <= 4
           ? "Marcada para reemplazo"
           : baseStatus;
       const researchEvidence = row.research
-        ? `${row.research.previousGiftClass ? `Antes: “${row.research.previousGiftClass}” → ` : ""}${row.research.fit} · Producto observado: “${row.research.evidenceHeading}”${row.research.observedPrice ? ` · ${row.research.observedPrice}` : ""}${row.research.observedRating !== undefined ? ` · ${row.research.observedRating}/5` : ""}${row.research.promptVersion ? ` · ${row.research.promptVersion}` : ""}`
+        ? `<small>${row.research.previousGiftClass ? `Antes: “${escapeHtml(row.research.previousGiftClass)}” → ` : ""}${escapeHtml(row.research.fit)}</small><br><small><strong>Producto observado:</strong> “${escapeHtml(row.research.evidenceHeading)}”${row.research.observedPrice ? ` · ${escapeHtml(row.research.observedPrice)}` : ""}${row.research.observedRating !== undefined ? ` · ${row.research.observedRating}/5` : ""}${row.research.promptVersion ? ` · ${escapeHtml(row.research.promptVersion)}` : ""}</small><br><small><a href="${escapeHtml(row.sourceLink!)}" target="_blank" rel="noopener noreferrer">${row.research.externalId ? "Ver producto observado" : "Ver fuente observada"}</a> · ${row.catalogProductId ? `<a href="/products/${encodeURIComponent(row.catalogProductId)}">Producto incorporado al catálogo</a>` : row.research.externalId ? `Todavía no es un producto del catálogo · <a href="/products/intake?researchId=${encodeURIComponent(row.research.id)}">Revisar para catálogo</a>` : "No es un producto del catálogo"}</small>`
         : "";
-      return `<tr><td><div class="idea-preview">${row.image ? `<img src="${escapeHtml(row.image.src)}" alt="${escapeHtml(row.image.alt)}" width="72" height="72" loading="lazy" decoding="async">` : ""}<div><strong>${escapeHtml(row.label)}</strong>${row.research ? `<br><small>${escapeHtml(researchEvidence)}</small>` : ""}</div></div></td>
+      return `<tr><td><div class="idea-preview">${row.image ? `<img src="${escapeHtml(row.image.src)}" alt="${escapeHtml(row.image.alt)}" width="72" height="72" loading="lazy" decoding="async">` : ""}<div><strong>${escapeHtml(row.label)}</strong>${row.research ? `<br>${researchEvidence}` : ""}</div></div></td>
       <td>${escapeHtml(row.location)}<br><small>${detail}</small></td>
       <td><span data-idea-status data-published="${row.published}" data-base-status="${escapeHtml(baseStatus)}">${escapeHtml(status)}</span></td>
       <td><span data-current-rating>${rating ? `${rating.score}/10` : "Sin puntaje"}</span><small class="rating-note" data-current-reason>${escapeHtml(rating?.reason ?? "")}</small></td>
       <td><form class="actions" method="post" action="/idea-research/rate" data-idea-rating><input type="hidden" name="ideaKey" value="${escapeHtml(row.ideaKey)}"><input type="hidden" name="clusterId" value="${escapeHtml(row.clusterId)}"><label>Puntaje <select name="score" data-saved-score="${rating?.score ?? ""}" aria-label="Puntaje para ${escapeHtml(row.label)}"><option value=""${rating ? "" : " selected"}>—</option>${options}</select></label><button>Asignar puntajes</button><details class="rating-reason"><summary>Motivo y contexto (opcional)</summary><label>¿Para quién, en qué ocasión y qué cualidad hace que sea —o no— un buen regalo? En notas positivas, describí la cualidad sin repetir el objeto.<textarea name="reason" data-saved-reason="${escapeHtml(rating?.reason ?? "")}" aria-label="Motivo y contexto para ${escapeHtml(row.label)}" maxlength="240" rows="3">${escapeHtml(rating?.reason ?? "")}</textarea></label></details></form>${decision}</td></tr>`;
     })
     .join("");
+  const diversityRows = diversity.crossGuide
+    .map(
+      (issue) =>
+        `<li><strong>${escapeHtml(issue.familyLabel)}</strong>: ${issue.count} apariciones · ${escapeHtml(issue.guides.join("; "))}</li>`,
+    )
+    .join("");
+  const withinGuideRows = diversity.withinGuide
+    .map(
+      (issue) =>
+        `<li><strong>${escapeHtml(issue.familyLabel)}</strong>: ${issue.count} ideas dentro de ${escapeHtml(issue.guides.join("; "))}</li>`,
+    )
+    .join("");
   return page(
     "Investigación de ideas",
     `<h1>Investigación de ideas</h1>
-    <p class="muted">Generá y revisá ideas con procedencia. Nada se publica automáticamente. Las decisiones y puntajes alimentan las próximas generaciones del grupo. <a href="/guide-improvements?cluster=${encodeURIComponent(selectedCluster)}">Ver cola de mejora</a> · <a href="/idea-research/prompts?cluster=${encodeURIComponent(selectedCluster)}">Ver prompts y versiones</a>.</p>
+    <p class="muted">Generá y revisá ideas basadas en productos observados. Nada se publica automáticamente. Las decisiones y puntajes alimentan las próximas generaciones del grupo. <a href="/guide-improvements?cluster=${encodeURIComponent(selectedCluster)}">Ver cola de mejora</a> · <a href="/idea-research/prompts?cluster=${encodeURIComponent(selectedCluster)}">Ver prompts y versiones</a>.</p>
     ${added === undefined ? "" : `<p class="notice">Se guardaron ${added} ideas nuevas para revisión. Las fuentes o respuestas que no pasan las validaciones se omiten.</p>`}
+    <section class="card"><h2>Balance de familias publicadas</h2><p>Una misma familia conceptual puede aparecer hasta dos veces en todo el grupo. Dentro de una guía, la lista debe evitar repetirla.</p>${diversityRows ? `<div class="notice"><strong>Familias con más de dos apariciones</strong><ul>${diversityRows}</ul></div>` : "<p>No hay familias conocidas por encima del límite.</p>"}${withinGuideRows ? `<div class="notice"><strong>Repeticiones dentro de una guía</strong><ul>${withinGuideRows}</ul></div>` : '<p class="muted">No se detectaron repeticiones conocidas dentro de una misma guía.</p>'}</section>
     <section class="card"><h2>Generar una guía desde productos reales</h2>
       <p>El sistema crea cinco búsquedas distintas, reúne y deduplica productos de Amazon, y selecciona automáticamente una propuesta concreta para cada lugar de la guía. Usa cinco búsquedas de SerpAPI y normalmente dos llamadas breves al modelo; puede repetir la selección hasta dos veces si no cumple la diversidad. Las propuestas quedan pendientes para que las puntúes, aceptes o descartes; no cambian el sitio público.</p>
       ${productAutomationAvailable && guides.length ? `<form method="post" action="/idea-research/product-guide"><input type="hidden" name="clusterId" value="${escapeHtml(selectedCluster)}"><label>Guía<select name="guideId" required>${guideChoices}</select></label><button>Generar guía completa desde Amazon</button></form>` : `<p class="notice">${guides.length ? "La búsqueda de Amazon no está configurada en este Studio." : "Este grupo todavía no tiene guías públicas para completar."}</p>`}
@@ -1517,6 +1575,40 @@ function emptyManualProductIntake(): ManualProductIntakeInput {
   };
 }
 
+function manualProductIntakeFromResearch(record: ResearchRecord): ManualProductIntakeInput {
+  if (!record.externalId || !/Amazon via SerpAPI/i.test(record.sourceName)) {
+    throw new TypeError("Esta investigación no contiene un producto observado apto para revisar.");
+  }
+  return {
+    productUrl: record.sourceUrl,
+    ...(/^[A-Za-z0-9]{10}$/.test(record.externalId) ? { asin: record.externalId } : {}),
+    name: record.evidenceHeading,
+    merchant: "Amazon",
+    shortDescription: `A product observed as evidence for the gift idea “${record.giftClass}”. Review the listing before catalog publication.`,
+    sourceFacts: [
+      `Observed listing title: ${record.evidenceHeading}`,
+      ...(record.observedPrice ? [`Observed price: ${record.observedPrice}`] : []),
+      ...(record.observedRating !== undefined ? [`Observed rating: ${record.observedRating}`] : []),
+      ...(record.observedReviewCount !== undefined
+        ? [`Observed review count: ${record.observedReviewCount}`]
+        : []),
+      ...(record.imageUrl ? [`Observed image reference: ${record.imageUrl}`] : []),
+    ],
+    verifiedFacts: [],
+    verifiedFactsConfirmed: false,
+    provenanceNotes: `Suggested from ${record.id}. Observed fields are leads, not verified Product facts. The observed image is not approved for public use.`,
+    status: "active",
+    discoveryProvenance: {
+      sourceKind: "serpapi",
+      provider: "SerpAPI",
+      marketplace: "amazon.com",
+      externalId: record.externalId,
+      sourceUrl: record.sourceUrl,
+      observedAt: record.createdAt,
+    },
+  };
+}
+
 interface ManualProductCandidateReview {
   requestId: string;
   candidateId: string;
@@ -1643,11 +1735,14 @@ function manualProductIntakePage(
   returnTo?: string,
   review?: ManualProductCandidateReview,
   editorialCopy?: EditorialCopyPageState,
+  prefill?: ManualProductIntakeInput,
 ): string {
   const input =
     editorialCopy?.input ??
     preview?.input ??
-    (review ? manualProductIntakeFromCandidate(review.candidate) : emptyManualProductIntake());
+    (review
+      ? manualProductIntakeFromCandidate(review.candidate)
+      : (prefill ?? emptyManualProductIntake()));
   const errors = preview?.errors ?? [];
   const warnings = preview?.warnings ?? [];
   const errorHtml = errors.length
@@ -1700,6 +1795,7 @@ function manualProductIntakePage(
     `<p><a href="/products">← Catálogo</a></p>
      <h1>${review ? "Revision P.1 del candidato" : "Ingreso manual de producto"}</h1>
      ${review ? `<p>Esta revisión volverá al mismo requisito y no cumple ni asigna el slot automáticamente.</p><details><summary>Trazabilidad interna</summary><p>Solicitud I.2: <code>${escapeHtml(review.requestId)}</code> · candidato <code>${escapeHtml(review.candidateId)}</code>.</p></details>` : ""}
+     ${prefill ? '<p class="notice"><strong>Sugerencia precargada.</strong> Revisarla no obliga a incorporarla al catálogo. Los datos observados siguen sin verificar y la imagen de origen no se publicará automáticamente.</p>' : ""}
      <p class="notice">Este flujo acepta sólo información pegada y verificada por el editor. No visita Amazon, no raspa páginas, no descarga imágenes y no genera URLs afiliadas.</p>
      ${errorHtml}${warningHtml}${duplicateHtml}
      <form method="post" action="/products/intake" class="card">
@@ -4019,11 +4115,19 @@ export function createStudioServer(
           throw new TypeError("El grupo seleccionado no existe.");
         }
         const drafts = await store.list();
+        const catalogProductByExternalId = new Map(
+          sourceStore
+            .list(content.products)
+            .flatMap((source) =>
+              source.externalId ? [[source.externalId, source.productId] as const] : [],
+            ),
+        );
         const rows = giftIdeaRows(
           content,
           drafts.drafts,
           await ideaResearchStore.list(clusterId),
           clusterId,
+          catalogProductByExternalId,
         );
         const addedParam = url.searchParams.get("added");
         const added =
@@ -4046,6 +4150,7 @@ export function createStudioServer(
               discoverySource && productDiscoverySourceSupportsMode(discoverySource, "amazon"),
             ),
             rows,
+            analyzeGiftDiversity(content.guides.filter((guide) => guide.clusterId === clusterId)),
             await ideaRatingStore.list(),
             added,
           ),
@@ -4284,7 +4389,24 @@ export function createStudioServer(
           throw new TypeError("La búsqueda de Amazon no está configurada en este Studio.");
         }
         const result = await generateProductGroundedGuideIdeas(
-          guide,
+          {
+            ...guide,
+            clusterRecommendations: content.guides
+              .filter((candidate) => candidate.clusterId === clusterId)
+              .flatMap((candidate) =>
+                candidate.recommendations.flatMap((recommendation) =>
+                  recommendation.heading
+                    ? [
+                        {
+                          guideId: candidate.id,
+                          guideTitle: candidate.title,
+                          heading: recommendation.heading,
+                        },
+                      ]
+                    : [],
+                ),
+              ),
+          },
           provider,
           discoverySource,
           ideaResearchStore,
@@ -6302,6 +6424,10 @@ export function createStudioServer(
       if (method === "GET" && url.pathname === "/products/intake") {
         const requestId = optionalValue(url.searchParams, "requestId");
         const candidateId = optionalValue(url.searchParams, "candidateId");
+        const researchId = optionalValue(url.searchParams, "researchId");
+        if (researchId && (requestId || candidateId)) {
+          throw new TypeError("Elegí una sola procedencia para el ingreso de producto.");
+        }
         const review =
           requestId && candidateId
             ? (() => {
@@ -6314,6 +6440,9 @@ export function createStudioServer(
                 } satisfies ManualProductCandidateReview;
               })()
             : undefined;
+        const prefill = researchId
+          ? manualProductIntakeFromResearch(await ideaResearchStore.read(researchId))
+          : undefined;
         send(
           response,
           200,
@@ -6321,6 +6450,8 @@ export function createStudioServer(
             undefined,
             safeReturnTo(url.searchParams.get("returnTo")),
             review,
+            undefined,
+            prefill,
           ),
         );
         return;

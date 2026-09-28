@@ -1022,7 +1022,7 @@ test("busca productos por texto y etiquetas, filtra estado y muestra uso", () =>
   assert.ok(matches.some((product) => product.id === "product_insulated-tumbler"));
   assert.ok(
     productUsage(content.guides, "product_insulated-tumbler").some(
-      (guide) => guide.id === "guide_nurse-practical",
+      (guide) => guide.id === "guide_nurse-graduation",
     ),
   );
   assert.equal(matchProducts(content.products, "", "inactive").length, 0);
