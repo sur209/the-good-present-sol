@@ -88,6 +88,8 @@ const GIFT_FAMILY_RULES = [
     label: "Tablas para servir",
     pattern: /\bserving board\b/i,
   },
+  { id: "recipe-keepsake", label: "Objetos de recetas", pattern: /\b(recipe|cookbook)\b/i },
+  { id: "cooking-apron", label: "Delantales de cocina", pattern: /\bapron\b/i },
   {
     id: "muscle-massager",
     label: "Masajeadores musculares",
@@ -763,30 +765,65 @@ export async function generateProductGroundedGuideIdeas(
 export function approvedResearchHints(
   records: readonly ResearchRecord[],
   excludedIds: ReadonlySet<string> = new Set(),
-  context: { replacement?: boolean; guideId?: string; guideSlug?: string | undefined } = {},
+  context: {
+    replacement?: boolean;
+    guideId?: string;
+    guideSlug?: string | undefined;
+    publishedGuides?: readonly GiftDiversityGuide[];
+    currentIdeas?: readonly string[];
+  } = {},
 ): string[] {
+  const publishedFamilyCounts = new Map<string, number>();
+  for (const guide of context.publishedGuides ?? []) {
+    for (const idea of guide.recommendations) {
+      const family = giftConceptFamily(idea.heading ?? "");
+      if (family)
+        publishedFamilyCounts.set(family.id, (publishedFamilyCounts.get(family.id) ?? 0) + 1);
+    }
+  }
+  const currentFamilies = new Set(
+    (context.currentIdeas ?? []).flatMap((idea) => {
+      const family = giftConceptFamily(idea);
+      return family ? [family.id] : [];
+    }),
+  );
   return records
     .filter((record) => {
-      if (record.status !== "accepted" || excludedIds.has(record.id)) return false;
+      if (
+        record.status !== "accepted" ||
+        excludedIds.has(record.id) ||
+        record.publishedRecommendationId
+      )
+        return false;
       const review = record.reserveReview;
       if (!review) return true;
       if (review.category === "retired" || review.category === "needs_review") return false;
-      if (review.suggestedGuideSlug && review.suggestedGuideSlug !== context.guideSlug)
+      if (context.replacement) return !record.guideId || record.guideId === context.guideId;
+      if (
+        review.suggestedGuideSlug &&
+        review.suggestedGuideSlug !== context.guideSlug &&
+        context.publishedGuides?.some((guide) => guide.id === context.guideId)
+      )
+        return false;
+      const family = giftConceptFamily(record.giftClass);
+      if (review.category === "replacement_variant" && (!family || !context.publishedGuides))
         return false;
       return (
-        review.category !== "replacement_variant" ||
-        (context.replacement === true && record.guideId === context.guideId)
+        !family ||
+        ((publishedFamilyCounts.get(family.id) ?? 0) < 2 && !currentFamilies.has(family.id))
       );
     })
     .sort(
       (a, b) =>
+        Number(b.reserveReview?.suggestedGuideSlug === context.guideSlug) -
+          Number(a.reserveReview?.suggestedGuideSlug === context.guideSlug) ||
         Number(b.reserveReview?.category === "shortlist") -
-        Number(a.reserveReview?.category === "shortlist"),
+          Number(a.reserveReview?.category === "shortlist"),
     )
     .slice(0, 5)
     .map((record) =>
       record.reserveReview
-        ? `Reviewed reserve option (compare for replacement, not an extra repeated gift): ${record.giftClass}. ${record.reserveReview.reason}`
+        ? `Unpublished reserve option (use only where recipient fit and family balance improve): ${record.giftClass}. ${record.reserveReview.reason}`
         : `Editor-approved gift class to consider: ${record.giftClass}`,
     );
 }

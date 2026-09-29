@@ -47,7 +47,10 @@ test("reserve classification persists independently of approval and gates hint c
         sourceName: "Test",
         sourceUrl: article,
         pageTitle: "Test evidence",
-        giftClass: `Gift option ${category}`,
+        giftClass:
+          category === "replacement_variant"
+            ? "A compact portable power bank"
+            : `Gift option ${category}`,
         evidenceHeading: "Observed physical product",
         fit: "A context-dependent gift",
         status: "accepted",
@@ -63,7 +66,7 @@ test("reserve classification persists independently of approval and gates hint c
     const records = await store.list();
     assert.ok(records.every((r) => r.status === "accepted"));
     assert.equal(blockedResearchIdeas(records).length, 2);
-    assert.equal(approvedResearchHints(records).length, 0);
+    assert.equal(approvedResearchHints(records).length, 1);
     assert.equal(approvedResearchHints(records, new Set(), { guideSlug: "practical" }).length, 1);
     const hints = approvedResearchHints(records, new Set(), {
       replacement: true,
@@ -71,8 +74,64 @@ test("reserve classification persists independently of approval and gates hint c
       guideSlug: "practical",
     });
     assert.equal(hints.length, 2);
-    assert.match(hints[0]!, /shortlist/);
+    assert.match(hints[0]!, /Gift option shortlist/);
     assert.ok(hints.every((hint) => !/retired|needs_review/.test(hint)));
+    const expansionContext = {
+      guideSlug: "new-guide",
+      publishedGuides: [
+        {
+          id: "guide_existing",
+          title: "Existing guide",
+          recommendations: [{ heading: "Portable Power Bank for Commute Days" }],
+        },
+      ],
+      currentIdeas: ["A desk plant"],
+    };
+    assert.equal(approvedResearchHints(records, new Set(), expansionContext).length, 2);
+    assert.equal(
+      approvedResearchHints(records, new Set(), {
+        ...expansionContext,
+        currentIdeas: ["A different portable power bank"],
+      }).length,
+      1,
+    );
+    assert.equal(
+      approvedResearchHints(records, new Set(), {
+        ...expansionContext,
+        publishedGuides: [
+          ...expansionContext.publishedGuides,
+          {
+            id: "guide_another",
+            title: "Another guide",
+            recommendations: [{ heading: "A magnetic power bank with a stand" }],
+          },
+        ],
+      }).length,
+      1,
+    );
+    assert.equal(
+      approvedResearchHints(records, new Set(), {
+        ...expansionContext,
+        guideId: "guide_existing",
+        guideSlug: "another-guide",
+      }).length,
+      1,
+    );
+    const apron = records.find((record) => record.reserveReview?.category === "shortlist")!;
+    assert.equal(
+      approvedResearchHints([{ ...apron, giftClass: "A personalized cooking apron" }], new Set(), {
+        guideSlug: "practical",
+        publishedGuides: [
+          { id: "guide_one", title: "One", recommendations: [{ heading: "A kitchen apron" }] },
+          {
+            id: "guide_two",
+            title: "Two",
+            recommendations: [{ heading: "A playful cooking apron" }],
+          },
+        ],
+      }).length,
+      0,
+    );
     assert.equal(
       approvedResearchHints(records, new Set(records.map((r) => r.id)), {
         replacement: true,
@@ -186,6 +245,8 @@ test("rating hints keep positive, negative and reasoned middle examples in a sma
 });
 
 test("concept families distinguish related products and report the third appearance", () => {
+  assert.equal(giftConceptFamily("A personalized cooking apron")?.id, "cooking-apron");
+  assert.equal(giftConceptFamily("A cookbook display stand")?.id, "recipe-keepsake");
   assert.equal(
     giftConceptFamily("A Premium Wireless Charging Dock")?.id,
     "stationary-device-charger",
@@ -595,6 +656,8 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     assert.doesNotMatch(editedRow, /<img\b/);
     assert.match(body, /Buscar y guardar ideas/);
     assert.match(body, /Generar una guía desde productos reales/);
+    assert.match(body, /Familia repetida: Bolsos tote/);
+    assert.match(body, /La repetición sola no marca esta idea para reemplazo/);
     assert.match(body, /Auditoría automática/);
     assert.match(body, /6\/10 · Aceptable para completar/);
     assert.match(body, /Useful but more practical than memorable as a gift\./);
@@ -738,6 +801,13 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     assert.ok(proposal);
     assert.equal(proposal.proposedText, "A framed custom night-sky print");
     assert.equal(proposal.promptVersion, "idea-replacement-v4");
+    const withDraftBody = await (await fetch(`${origin}/idea-research`)).text();
+    const totePosition = withDraftBody.lastIndexOf("A Roomy Everyday Tote");
+    const toteRow = withDraftBody.slice(
+      withDraftBody.lastIndexOf("<tr>", totePosition),
+      withDraftBody.indexOf("</tr>", totePosition),
+    );
+    assert.match(toteRow, /Familia repetida: Bolsos tote/);
     const proposedBody = await (
       await fetch(`${origin}/guide-improvements?cluster=cluster_nurse-gifts`)
     ).text();
