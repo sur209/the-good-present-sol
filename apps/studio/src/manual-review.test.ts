@@ -195,6 +195,32 @@ test("idea replacement retries a renamed product from the same family once", asy
   assert.equal(proposal.proposedText, "A birthstone pendant");
 });
 
+test("retired reserve ideas are rejected even beyond the twelve-item round limit", async () => {
+  const draft = sampleDraft();
+  let calls = 0;
+  const provider: GuideGenerationProvider = {
+    providerId: "test",
+    async generateStructured<T>(request: StructuredGenerationRequest<T>): Promise<T> {
+      calls++;
+      return request.schema.parse({ concept: "A supportive calf recovery brace" });
+    },
+  };
+  await assert.rejects(
+    proposeIdeaReview(
+      draft,
+      draft.recommendations[0]!.id,
+      "Find a useful gift.",
+      [],
+      Array.from({ length: 12 }, (_, i) => `Other idea ${i}`),
+      provider,
+      new Date(),
+      ["A supportive calf recovery brace"],
+    ),
+    /repite/,
+  );
+  assert.equal(calls, 2);
+});
+
 test("review history persists and contributes only short accepted hints", async () => {
   const root = await mkdtemp(join(tmpdir(), "tgp-manual-review-"));
   try {

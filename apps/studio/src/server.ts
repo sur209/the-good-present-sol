@@ -94,6 +94,7 @@ import {
   PRODUCT_SELECTION_INSTRUCTIONS,
   analyzeGiftDiversity,
   approvedResearchHints,
+  blockedResearchIdeas,
   generateProductGroundedGuideIdeas,
   normalizedGiftIdea,
   researchGiftIdeas,
@@ -598,6 +599,10 @@ function ideaResearchPage(
         !row.research && row.published && rating?.score !== undefined && rating.score <= 4
           ? "Marcada para reemplazo"
           : baseStatus;
+      const reserve = row.research?.reserveReview;
+      const reserveNote = reserve
+        ? `<br><small><strong>Reserva: ${escapeHtml({ shortlist: "Prioritaria para comparar", replacement_variant: "Variante: solo sustitución", needs_review: "En revisión: excluida del motor", retired: "Retirada: excluida del motor" }[reserve.category])}</strong><br>${escapeHtml(reserve.reason)}</small>`
+        : "";
       const researchEvidence = row.research
         ? `<small>${row.research.previousGiftClass ? `Antes: “${escapeHtml(row.research.previousGiftClass)}” → ` : ""}${escapeHtml(row.research.fit)}</small><br><small><strong>Producto observado:</strong> “${escapeHtml(row.research.evidenceHeading)}”${row.research.observedPrice ? ` · ${escapeHtml(row.research.observedPrice)}` : ""}${row.research.observedRating !== undefined ? ` · ${row.research.observedRating}/5` : ""}${row.research.promptVersion ? ` · ${escapeHtml(row.research.promptVersion)}` : ""}</small><br><small><a href="${escapeHtml(row.sourceLink!)}" target="_blank" rel="noopener noreferrer">${row.research.externalId ? "Ver producto observado" : "Ver fuente observada"}</a> · ${row.catalogProductId ? `<a href="/products/${encodeURIComponent(row.catalogProductId)}">Producto incorporado al catálogo</a>` : row.research.externalId ? `Todavía no es un producto del catálogo · <a href="/products/intake?researchId=${encodeURIComponent(row.research.id)}">Revisar para catálogo</a>` : "No es un producto del catálogo"}</small>`
         : "";
@@ -606,7 +611,7 @@ function ideaResearchPage(
         : '<span class="muted">Sin evaluación automática.</span>';
       return `<tr><td><div class="idea-preview">${row.image ? `<img src="${escapeHtml(row.image.src)}" alt="${escapeHtml(row.image.alt)}" width="72" height="72" loading="lazy" decoding="async">` : ""}<div><strong>${escapeHtml(row.label)}</strong>${row.research ? `<br>${researchEvidence}` : ""}</div></div></td>
       <td>${escapeHtml(row.location)}<br><small>${detail}</small></td>
-      <td><span data-idea-status data-published="${row.published}" data-base-status="${escapeHtml(baseStatus)}">${escapeHtml(status)}</span></td>
+      <td><span data-idea-status data-published="${row.published}" data-base-status="${escapeHtml(baseStatus)}">${escapeHtml(status)}</span>${reserveNote}</td>
       <td>${automaticAudit}</td>
       <td><span data-current-rating>${rating ? `${rating.score}/10` : "Sin evaluación humana"}</span><small class="rating-note" data-current-reason>${rating?.reason ? `Sobre la idea: ${escapeHtml(rating.reason)}` : ""}</small><small class="rating-note" data-current-audit-comment>${rating?.auditComment ? `Sobre la auditoría: ${escapeHtml(rating.auditComment)}` : ""}</small></td>
       <td><form class="actions" method="post" action="/idea-research/rate" data-idea-rating><input type="hidden" name="ideaKey" value="${escapeHtml(row.ideaKey)}"><input type="hidden" name="clusterId" value="${escapeHtml(row.clusterId)}"><label>Tu puntuación de la idea (opcional) <select name="score" data-saved-score="${rating?.score ?? ""}" aria-label="Tu puntuación de la idea ${escapeHtml(row.label)}"><option value=""${rating ? "" : " selected"}>—</option>${options}</select></label><button>Guardar evaluaciones humanas</button><details class="rating-reason"><summary>Tus comentarios (opcionales)</summary><label>Comentario sobre la idea<textarea name="reason" data-saved-reason="${escapeHtml(rating?.reason ?? "")}" aria-label="Tu comentario sobre la idea ${escapeHtml(row.label)}" maxlength="240" rows="3">${escapeHtml(rating?.reason ?? "")}</textarea></label><label>Comentario sobre la auditoría automática<textarea name="auditComment" data-saved-audit-comment="${escapeHtml(rating?.auditComment ?? "")}" aria-label="Tu comentario sobre la auditoría de ${escapeHtml(row.label)}" maxlength="400" rows="3">${escapeHtml(rating?.auditComment ?? "")}</textarea></label></details></form>${decision}</td></tr>`;
@@ -4052,9 +4057,17 @@ export function createStudioServer(
         .filter((rating) => rating.score <= 4 && rating.ideaKey.startsWith("research:"))
         .map((rating) => rating.ideaKey.slice("research:".length)),
     );
+    const research = await ideaResearchStore.list(draft.clusterId);
+    const blocked = blockedResearchIdeas(research);
     return [
+      ...(blocked.length
+        ? [`Do not propose these retired or held reserve ideas: ${blocked.join("; ")}`]
+        : []),
       ...manualHints,
-      ...approvedResearchHints(await ideaResearchStore.list(draft.clusterId), lowRatedResearchIds),
+      ...approvedResearchHints(research, lowRatedResearchIds, {
+        guideId: draft.id,
+        guideSlug: draft.slug,
+      }),
       ...ideaRatingHints(ratings, draft.clusterId),
     ];
   };
@@ -4262,14 +4275,29 @@ export function createStudioServer(
             ? [review.proposedText]
             : [],
         );
+        const reserveRecords = await ideaResearchStore.list(clusterId);
+        const lowRatedReserveIds = new Set(
+          (await ideaRatingStore.list())
+            .filter((r) => r.score <= 4 && r.ideaKey.startsWith("research:"))
+            .map((r) => r.ideaKey.slice(9)),
+        );
         const proposal = await proposeIdeaReview(
           draft,
           recommendationId,
           rating.reason ??
             `Puntaje editorial ${rating.score}/10; reemplazar por una idea con mayor valor como regalo.`,
-          ideaRatingHints(await ideaRatingStore.list(), clusterId),
+          [
+            ...ideaRatingHints(await ideaRatingStore.list(), clusterId).slice(0, 5),
+            ...approvedResearchHints(reserveRecords, lowRatedReserveIds, {
+              replacement: true,
+              guideId: guide.id,
+              guideSlug: guide.slug,
+            }).slice(0, 3),
+          ],
           roundIdeasToAvoid,
           provider,
+          new Date(),
+          blockedResearchIdeas(reserveRecords),
         );
         if (pending) await manualReviewStore.save(rejectIdeaReview(pending));
         await manualReviewStore.save(proposal);

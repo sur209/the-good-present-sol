@@ -223,6 +223,14 @@ const recordSchema = z.strictObject({
   observedReviewCount: z.number().int().nonnegative().optional(),
   publishedRecommendationId: z.string().trim().min(1).optional(),
   publishedHeading: z.string().trim().min(1).max(200).optional(),
+  reserveReview: z
+    .strictObject({
+      category: z.enum(["shortlist", "replacement_variant", "needs_review", "retired"]),
+      reason: z.string().trim().min(1).max(1000),
+      reviewedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      suggestedGuideSlug: z.string().optional(),
+    })
+    .optional(),
   createdAt: z.iso.datetime(),
   decidedAt: z.iso.datetime().optional(),
 });
@@ -542,6 +550,8 @@ export async function generateProductGroundedGuideIdeas(
   now = new Date(),
 ): Promise<ProductGuideIdeaGenerationResult> {
   const giftCount = guide.recommendations.length;
+  const priorResearch = await store.list(guide.clusterId);
+  const blockedIdeas = blockedResearchIdeas(priorResearch);
   if (giftCount < 3 || giftCount > 20)
     throw new TypeError("La guía debe pedir entre 3 y 20 ideas.");
   if (!(discoverySource.supportedModes ?? ["general"]).includes("amazon")) {
@@ -567,6 +577,7 @@ export async function generateProductGroundedGuideIdeas(
     count: group.length,
   }));
   const queryInput = {
+    blockedReserveIdeas: blockedIdeas,
     guideTitle: guide.title,
     primaryIntent: guide.primaryIntent ?? "",
     primaryAxis: guide.primaryAxis ?? "",
@@ -608,9 +619,7 @@ export async function generateProductGroundedGuideIdeas(
     );
   }
   const priorProductIds = new Set(
-    (await store.list(guide.clusterId)).flatMap((record) =>
-      record.externalId ? [record.externalId] : [],
-    ),
+    priorResearch.flatMap((record) => (record.externalId ? [record.externalId] : [])),
   );
   const seen = new Set(priorProductIds);
   const candidates: ProductSourceCandidateInput[] = [];
@@ -644,6 +653,7 @@ export async function generateProductGroundedGuideIdeas(
       : {}),
   }));
   const selectionInput = {
+    blockedReserveIdeas: blockedIdeas,
     guideTitle: guide.title,
     primaryIntent: guide.primaryIntent ?? "",
     requestedIdeaCount: giftCount,
@@ -683,6 +693,11 @@ export async function generateProductGroundedGuideIdeas(
     });
     const selectedFamilyCounts = groupBy(selectedFamilies, ({ id }) => id);
     diversityIssues = [
+      ...(exactIdeas.some((idea) =>
+        blockedIdeas.some((blocked) => normalizedGiftIdea(blocked) === idea),
+      )
+        ? ["The selection reintroduces a retired or held reserve idea."]
+        : []),
       ...(new Set(exactIdeas).size === exactIdeas.length
         ? []
         : ["The selection repeats the same gift class."]),
@@ -748,9 +763,40 @@ export async function generateProductGroundedGuideIdeas(
 export function approvedResearchHints(
   records: readonly ResearchRecord[],
   excludedIds: ReadonlySet<string> = new Set(),
+  context: { replacement?: boolean; guideId?: string; guideSlug?: string | undefined } = {},
 ): string[] {
   return records
-    .filter((record) => record.status === "accepted" && !excludedIds.has(record.id))
+    .filter((record) => {
+      if (record.status !== "accepted" || excludedIds.has(record.id)) return false;
+      const review = record.reserveReview;
+      if (!review) return true;
+      if (review.category === "retired" || review.category === "needs_review") return false;
+      if (review.suggestedGuideSlug && review.suggestedGuideSlug !== context.guideSlug)
+        return false;
+      return (
+        review.category !== "replacement_variant" ||
+        (context.replacement === true && record.guideId === context.guideId)
+      );
+    })
+    .sort(
+      (a, b) =>
+        Number(b.reserveReview?.category === "shortlist") -
+        Number(a.reserveReview?.category === "shortlist"),
+    )
     .slice(0, 5)
-    .map((record) => `Editor-approved gift class to consider: ${record.giftClass}`);
+    .map((record) =>
+      record.reserveReview
+        ? `Reviewed reserve option (compare for replacement, not an extra repeated gift): ${record.giftClass}. ${record.reserveReview.reason}`
+        : `Editor-approved gift class to consider: ${record.giftClass}`,
+    );
+}
+
+export function blockedResearchIdeas(records: readonly ResearchRecord[]): string[] {
+  return records
+    .filter(
+      (record) =>
+        record.reserveReview?.category === "retired" ||
+        record.reserveReview?.category === "needs_review",
+    )
+    .map((record) => record.giftClass);
 }

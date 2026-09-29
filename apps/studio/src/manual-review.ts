@@ -222,6 +222,7 @@ export async function proposeIdeaReview(
   roundIdeasToAvoid: readonly string[],
   provider: GuideGenerationProvider,
   now = new Date(),
+  blockedIdeas: readonly string[] = [],
 ): Promise<ManualReviewRecord> {
   const current = recommendation(draft, recommendationId);
   const cleanComment = comment.trim();
@@ -235,7 +236,7 @@ export async function proposeIdeaReview(
     .map((idea) => idea.trim())
     .filter(Boolean)
     .slice(0, 12);
-  const avoidedIdeas = [...existingIdeas, ...roundIdeas];
+  const avoidedIdeas = [...existingIdeas, ...roundIdeas, ...blockedIdeas];
   const retryIdeas: string[] = [];
   let result: z.infer<typeof ideaProposalSchema> | undefined;
   for (let attempt = 0; attempt < 2; attempt += 1) {
@@ -249,6 +250,7 @@ export async function proposeIdeaReview(
         currentIdea: current.heading ?? current.slotLabel,
         editorFeedback: cleanComment,
         existingIdeas,
+        blockedReserveIdeas: blockedIdeas,
         roundIdeasToAvoid: [...roundIdeas, ...retryIdeas].slice(-12),
         ratingFeedback: feedbackHints.slice(0, 8),
       },

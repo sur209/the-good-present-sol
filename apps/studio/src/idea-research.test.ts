@@ -14,6 +14,7 @@ import {
   IdeaResearchStore,
   analyzeGiftDiversity,
   approvedResearchHints,
+  blockedResearchIdeas,
   checkedResearchUrl,
   extractPageSignals,
   generateProductGroundedGuideIdeas,
@@ -32,6 +33,66 @@ import { STUDIO_HOST, createStudioServer } from "./server.ts";
 
 const article =
   "https://www.goodhousekeeping.com/holidays/gift-ideas/g71229891/gifts-for-nurses-2026/";
+
+test("reserve classification persists independently of approval and gates hint contexts", async () => {
+  const root = await mkdtemp(join(tmpdir(), "reserve-policy-"));
+  try {
+    const store = new IdeaResearchStore(root);
+    const categories = ["retired", "needs_review", "replacement_variant", "shortlist"] as const;
+    for (const [index, category] of categories.entries()) {
+      await store.save({
+        id: `research_00000000-0000-4000-8000-00000000000${index}`,
+        clusterId: "cluster_nurse-gifts",
+        guideId: "guide_nurse-practical",
+        sourceName: "Test",
+        sourceUrl: article,
+        pageTitle: "Test evidence",
+        giftClass: `Gift option ${category}`,
+        evidenceHeading: "Observed physical product",
+        fit: "A context-dependent gift",
+        status: "accepted",
+        createdAt: "2026-09-29T00:00:00.000Z",
+        reserveReview: {
+          category,
+          reason: "Compare rather than duplicate.",
+          reviewedAt: "2026-09-29",
+          ...(category === "shortlist" ? { suggestedGuideSlug: "practical" } : {}),
+        },
+      });
+    }
+    const records = await store.list();
+    assert.ok(records.every((r) => r.status === "accepted"));
+    assert.equal(blockedResearchIdeas(records).length, 2);
+    assert.equal(approvedResearchHints(records).length, 0);
+    assert.equal(approvedResearchHints(records, new Set(), { guideSlug: "practical" }).length, 1);
+    const hints = approvedResearchHints(records, new Set(), {
+      replacement: true,
+      guideId: "guide_nurse-practical",
+      guideSlug: "practical",
+    });
+    assert.equal(hints.length, 2);
+    assert.match(hints[0]!, /shortlist/);
+    assert.ok(hints.every((hint) => !/retired|needs_review/.test(hint)));
+    assert.equal(
+      approvedResearchHints(records, new Set(records.map((r) => r.id)), {
+        replacement: true,
+        guideId: "guide_nurse-practical",
+        guideSlug: "practical",
+      }).length,
+      0,
+    );
+    assert.equal(
+      approvedResearchHints(records, new Set(), {
+        replacement: true,
+        guideId: "guide_other",
+        guideSlug: "other",
+      }).length,
+      0,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
 const html = `<html><head><title>Gifts for Nurses &amp; Friends</title></head><body>
   <h1>Gifts for Nurses</h1><h2>A personalized badge reel</h2><h2>A portable lunch warmer</h2>
   <h2>A portable lunch warmer</h2><p>Article prose should not be retained.</p></body></html>`;
