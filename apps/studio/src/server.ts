@@ -459,7 +459,14 @@ function giftIdeaRows(
         detail: guide.title,
         published: true,
         ...(illustration
-          ? { image: { src: `/local-assets${illustration.src}`, alt: illustration.alt } }
+          ? {
+              image: {
+                src: illustration.src.startsWith("/")
+                  ? `/local-assets${illustration.src}`
+                  : illustration.src,
+                alt: illustration.alt,
+              },
+            }
           : {}),
         ...(cluster
           ? { link: `/local${guidePath(cluster.slug, guide.slug)}#pick-${item.position}` }

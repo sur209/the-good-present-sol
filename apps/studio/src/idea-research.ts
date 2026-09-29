@@ -41,7 +41,7 @@ const GIFT_FAMILY_RULES = [
   {
     id: "portable-power-bank",
     label: "Baterías y cargadores portátiles",
-    pattern: /\b(portable (?:power bank|charger)|phone backup)\b/i,
+    pattern: /\b(power bank|portable charger|phone backup)\b/i,
   },
   {
     id: "meal-bag",
@@ -103,6 +103,22 @@ const GIFT_FAMILY_RULES = [
     label: "Electrodomésticos compactos de cocción",
     pattern: /\b(multicooker|multi-function cooker|air fryer|countertop convection oven)\b/i,
   },
+  { id: "tote", label: "Bolsos tote", pattern: /\btote\b/i },
+  { id: "hand-cream", label: "Cremas para manos", pattern: /\bhand cream\b/i },
+  { id: "bakeware", label: "Fuentes para horno", pattern: /\b(bakeware|baking dish)\b/i },
+  {
+    id: "heat-wrap",
+    label: "Almohadillas y wraps térmicos",
+    pattern: /\b(heat(?:ed)? wrap|heating pad|neck.and.shoulder wrap)\b/i,
+  },
+  { id: "commuter-backpack", label: "Mochilas de traslado", pattern: /\bcommuter backpack\b/i },
+  { id: "lounge-robe", label: "Batas para casa", pattern: /\brobe\b/i },
+  {
+    id: "food-chopper",
+    label: "Picadoras de alimentos",
+    pattern: /\b(food.preparation chopper|food chopper)\b/i,
+  },
+  { id: "laptop-stand", label: "Soportes de portátil", pattern: /\blaptop stand\b/i },
 ] as const;
 
 export function normalizedGiftIdea(value: string): string {

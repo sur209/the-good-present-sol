@@ -1000,7 +1000,11 @@ code {
 }
 
 .recommendation__visual--product-photo img {
-  object-fit: cover;
+  object-fit: contain;
+  max-width: 420px;
+  max-height: 420px;
+  margin: auto;
+  padding: 1rem;
 }
 
 .recommendation__visual > span {
@@ -1060,6 +1064,10 @@ code {
 
 .recommendation-list .recommendation__visual--illustrated {
   background: var(--color-paper);
+}
+
+.recommendation-list .recommendation__visual--product-photo {
+  background: white;
 }
 
 .recommendation-list > li:nth-child(even) .recommendation__visual {

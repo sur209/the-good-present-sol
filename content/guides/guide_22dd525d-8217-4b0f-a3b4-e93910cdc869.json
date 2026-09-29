@@ -14,7 +14,7 @@
   "seoDescription": "Explore thoughtful gift ideas for nursing students and practical selection tips for school, clinical rotations, studying, commuting, and encouragement.",
   "status": "published",
   "publishedAt": "2026-09-19",
-  "updatedAt": "2026-09-28",
+  "updatedAt": "2026-09-29",
   "recommendations": [
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-1",
@@ -149,15 +149,15 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "serp_3f575320_57e4_4393_ade1_cffee048974b",
+      "id": "review_47359910-2ce9-4516-b9a1-62af5a3b4de6",
       "productResolution": "unresolved",
       "position": 12,
-      "heading": "A Complete Compact Cooking Set",
-      "editorialDescription": "A compact cooking set gives a student the basic tools to prepare simple meals in a small kitchen, apartment, or shared living space. The pieces can support quick breakfasts, packed lunches, and low-fuss dinners throughout a busy term.",
-      "whyItFits": "It connects with the practical realities of student life while making everyday meals feel a little more settled and enjoyable.",
-      "bestFor": "A nursing student setting up a first kitchen or simplifying shared-space cooking",
-      "selectionGuidance": "Compare the number and type of pieces, storage arrangement, material, care instructions, and compatibility with the recipient’s available cooking space.",
-      "considerations": "A larger set can be unnecessary if the recipient already owns kitchen basics or has limited room to store them.",
+      "heading": "A Nesting Saucepan and Frying-Pan Set",
+      "editorialDescription": "A saucepan and frying pan cover simple meals in a first apartment: pasta, eggs, vegetables, and quick dinners. Pieces that nest together make a useful gift for someone furnishing a small shared kitchen.",
+      "whyItFits": "It helps a student establish an affordable cooking routine and gives them equipment they can use beyond graduation.",
+      "bestFor": "A student with access to a cooktop who is building a first kitchen",
+      "selectionGuidance": "Check stove compatibility, usable pan sizes, handle attachment, cleaning instructions, and storage space. Choose a compact set of pieces they actually need.",
+      "considerations": "Confirm that cooking appliances are allowed where they live and that they do not already have suitable pans.",
       "editorialStatus": "ready"
     }
   ]

@@ -14,7 +14,7 @@
   "seoDescription": "Find personalized nurse gifts for birthdays, graduations, licensure, milestones, thank-yous, and everyday appreciation, from practical keepsakes to home accents.",
   "status": "published",
   "publishedAt": "2026-09-20",
-  "updatedAt": "2026-09-28",
+  "updatedAt": "2026-09-29",
   "recommendations": [
     {
       "id": "guide_096afebb-cdbd-4577-98c2-8aaf3b195889_slot-1",
@@ -149,15 +149,15 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "serp_d608fac5_5bf8_49dd_b204_652de605ffc7",
+      "id": "review_935227fb-7a11-4646-ad76-4a454a7a7d01",
       "productResolution": "unresolved",
       "position": 12,
-      "heading": "A Personalized Travel Organizer",
-      "editorialDescription": "A personalized travel organizer gives cables, documents, toiletries, or small accessories a designated place inside a suitcase or day bag. A name or initial can make it easier to identify among shared belongings.",
-      "whyItFits": "It adds a personal touch to a practical travel companion without limiting the gift to one type of trip or packing style.",
-      "bestFor": "A nurse who travels often and prefers compact, orderly packing.",
-      "selectionGuidance": "Compare the number and type of compartments, closure, handle, material, personalization options, and compatibility with the recipient’s usual luggage.",
-      "considerations": "More compartments can make an organizer bulkier, and the chosen layout may not suit someone who packs very minimally.",
+      "heading": "A Birth-Flower Pendant Necklace",
+      "editorialDescription": "An engraved flower pendant makes a small piece of jewelry personal through a birth month or a flower that means something to the recipient. A simple coin shape works with everyday outfits and leaves room for a discreet detail.",
+      "whyItFits": "It adds a wearable option to the guide and connects the gift to a specific person or date.",
+      "bestFor": "Someone who wears necklaces and likes botanical details",
+      "selectionGuidance": "Check chain length, metal finish, pendant size, and the engraving preview. Confirm the chosen flower and any initials before ordering.",
+      "considerations": "Personalized jewelry may be difficult to return; use the recipient's existing jewelry as a guide.",
       "editorialStatus": "ready"
     }
   ]

@@ -161,6 +161,18 @@ test("concept families distinguish related products and report the third appeara
   );
 });
 
+test("diversity catches named household families without treating every bag as a tote", () => {
+  assert.equal(
+    giftConceptFamily("A Magnetic Power Bank With a Folding Stand")?.id,
+    "portable-power-bank",
+  );
+  assert.equal(giftConceptFamily("Initialed Leather Work Tote")?.id, "tote");
+  assert.equal(giftConceptFamily("A Ceramic Bakeware Set")?.id, "bakeware");
+  assert.equal(giftConceptFamily("An Electric Neck-and-Shoulder Heating Pad")?.id, "heat-wrap");
+  assert.equal(giftConceptFamily("A Fragrance-Free Hand Cream Duo")?.id, "hand-cream");
+  assert.notEqual(giftConceptFamily("A Compact Crossbody Sling Bag")?.id, "tote");
+});
+
 test("blocked pages are not fetched", async () => {
   const seen: string[] = [];
   const fetcher: typeof fetch = async (input) => {
@@ -490,6 +502,8 @@ test("Studio shows pending ideas and records an explicit editor decision", async
     assert.match(productSuggestionBody, /no obliga a incorporarla al catálogo/);
     assert.doesNotMatch(productSuggestionBody, /name="image" value="https:\/\/images\.example/);
     assert.match(body, /<img src="\/local-assets\/images\//);
+    assert.match(body, /<img src="https:\/\//);
+    assert.doesNotMatch(body, /\/local-assetshttps?:/);
     const researchPosition = body.indexOf("A compact lunch warmer");
     const researchRow = body.slice(
       body.lastIndexOf("<tr>", researchPosition),

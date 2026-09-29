@@ -1,5 +1,8 @@
-// Generic editorial illustrations, not merchant product photos.
-export const recommendationIllustrations: Record<string, { src: string; alt: string }> = {
+// Editorial visuals are independent from catalog membership and merchant destinations.
+export const recommendationIllustrations: Record<
+  string,
+  { src: string; alt: string; kind?: "photo" }
+> = {
   "practical_compression-socks": {
     src: "/images/practical/compression-socks.webp",
     alt: "Illustration of a pair of compression socks",
@@ -517,8 +520,9 @@ export const recommendationIllustrations: Record<string, { src: string; alt: str
     alt: "Illustration of a compact multi-device charging station",
   },
   "review_6a24b7e1-5cd8-4f34-bae2-9d8c1f0e7642": {
-    src: "/images/gift-ideas/multicooker.webp",
-    alt: "Illustration of a compact multi-function cooker",
+    src: "https://m.media-amazon.com/images/I/71uH9rgfwLL._AC_UY218_.jpg",
+    alt: "Photo of compact air fryer",
+    kind: "photo",
   },
   "review_992c9102-4c60-4616-9ebb-6726ccefea50": {
     src: "/images/gift-ideas/humorous-plush-desk-companion.webp",
@@ -537,8 +541,9 @@ export const recommendationIllustrations: Record<string, { src: string; alt: str
     alt: "Illustration of a cooling pillowcase set",
   },
   "review_f8cad862-dcee-4a30-91e8-4c492eb23e74": {
-    src: "/images/gift-ideas/microwavable-heat-wrap.webp",
-    alt: "Illustration of a microwavable neck-and-shoulder wrap",
+    src: "https://m.media-amazon.com/images/I/712vPB9eJIL._AC_UL320_.jpg",
+    alt: "Photo of electric neck-and-shoulder heating pad",
+    kind: "photo",
   },
   "review_10e59e75-a15e-4483-a705-ab27e98325ea": {
     src: "/images/gift-ideas/student-clear-second-hand-watch.webp",
@@ -553,12 +558,14 @@ export const recommendationIllustrations: Record<string, { src: string; alt: str
     alt: "Illustration of ceramic bakeware with storage lids",
   },
   "review_5c79aaf5-07aa-47b1-bdfb-86b0d032b3bd": {
-    src: "/images/gift-ideas/noise-canceling-headphones.webp",
-    alt: "Illustration of noise-reducing wireless earbuds",
+    src: "https://m.media-amazon.com/images/I/51EwBP9U2YL._AC_UY218_.jpg",
+    alt: "Photo of noise-reducing wireless earbuds",
+    kind: "photo",
   },
   "review_e3385850-d321-4585-911d-9391779a087a": {
-    src: "/images/gift-ideas/noise-canceling-headphones.webp",
-    alt: "Illustration of open-ear wireless headphones",
+    src: "https://m.media-amazon.com/images/I/71q4VNgbmLL._AC_UY218_.jpg",
+    alt: "Photo of open-ear wireless headphones",
+    kind: "photo",
   },
   "review_40184132-d588-44cc-bc0c-7b14dc0919c2": {
     src: "/images/gift-ideas/glass-meal-prep-containers.webp",
@@ -577,7 +584,253 @@ export const recommendationIllustrations: Record<string, { src: string; alt: str
     alt: "Illustration of a compact muscle recovery massager",
   },
   "review_6263b202-a1ae-4a95-a66c-6885709d1432": {
-    src: "/images/practical/sleep-mask.webp",
-    alt: "Illustration of a weighted eye pillow",
+    src: "https://m.media-amazon.com/images/I/71Wnt5D0hcL._AC_UL320_.jpg",
+    alt: "Photo of weighted hot-or-cold eye pillow",
+    kind: "photo",
+  },
+  serp_57ee19ea_e36a_4f18_8aa7_8c1321e0729c: {
+    src: "https://m.media-amazon.com/images/I/81JhG8paLsL._AC_UL320_.jpg",
+    alt: "Photo of personalized cookbook display stand",
+    kind: "photo",
+  },
+  "review_935227fb-7a11-4646-ad76-4a454a7a7d01": {
+    src: "https://m.media-amazon.com/images/I/61S6lRV0-EL._AC_UL320_.jpg",
+    alt: "Photo of birth-flower pendant necklace",
+    kind: "photo",
+  },
+  serp_afb5cec0_521e_4e4e_80df_feae2783a0d5: {
+    src: "https://m.media-amazon.com/images/I/61ce1S4qF5L._AC_UY218_.jpg",
+    alt: "Photo of wooden laptop stand",
+    kind: "photo",
+  },
+  "review_47359910-2ce9-4516-b9a1-62af5a3b4de6": {
+    src: "https://target.scene7.com/is/image/Target/GUEST_4235b02d-880c-40f6-920a-e10f2c1feac2",
+    alt: "Photo of nesting saucepan and frying-pan set",
+    kind: "photo",
+  },
+  "review_5b9f62da-9af7-41fb-af69-0b903504c813": {
+    src: "https://m.media-amazon.com/images/I/61oxJwFYzyL._AC_UL320_.jpg",
+    alt: "Photo of llama squeeze toy with a calming pun",
+    kind: "photo",
+  },
+  serp_8fb16601_caa2_43be_a2b8_36dabb5189ad: {
+    src: "https://m.media-amazon.com/images/I/81m1GbEpcgL._AC_UL320_.jpg",
+    alt: "Photo of humorous mug-and-stemless-glass set",
+    kind: "photo",
+  },
+  serp_9fca8240_da6a_4453_9aaa_7d114d35955f: {
+    src: "https://m.media-amazon.com/images/I/81jtk++hhvL._AC_UL320_.jpg",
+    alt: "Photo of air-compression leg massager",
+    kind: "photo",
+  },
+  serp_d916b5d8_a250_4f6e_903b_c4550d5e3acd: {
+    src: "https://m.media-amazon.com/images/I/51V-wibwfbL._AC_UL320_.jpg",
+    alt: "Photo of nesting food-prep bowl set",
+    kind: "photo",
+  },
+  serp_01382b2b_abf7_4d22_92fc_308091b8909f: {
+    src: "https://m.media-amazon.com/images/I/812p4gSdSEL._AC_UL320_.jpg",
+    alt: "Photo of large-capacity heated lunch container",
+    kind: "photo",
+  },
+  "review_06381bf4-d157-4ca6-afca-d2a891fe44a4": {
+    src: "https://www.ikea.com/us/en/images/products/spetsboj-table-lamp-dimmable-white__1355533_pe953162_s5.jpg",
+    alt: "Photo of dimmable bedside accent lamp",
+    kind: "photo",
+  },
+  serp_5d1b6307_c94f_44d0_bd5c_a3d5760a0b39: {
+    src: "https://m.media-amazon.com/images/I/614JetLU+tL._AC_UL320_.jpg",
+    alt: "Photo of temperature-control electric kettle",
+    kind: "photo",
+  },
+  serp_09b5da01_a585_44a9_9b65_ee65928d3fa7: {
+    src: "https://m.media-amazon.com/images/I/91AyTh1CQmL._AC_UL320_.jpg",
+    alt: "Photo of assorted tea bag collection",
+    kind: "photo",
+  },
+  serp_a44e8508_5c32_4edb_b7e7_4faa652556eb: {
+    src: "https://m.media-amazon.com/images/I/71J75LW0TxL._AC_UL320_.jpg",
+    alt: "Photo of mulberry silk neck scarf",
+    kind: "photo",
+  },
+  serp_3d632095_8824_4e9e_b046_7d6622f87837: {
+    src: "https://m.media-amazon.com/images/I/61vLsfNoU5L._AC_UL320_.jpg",
+    alt: "Photo of gourmet oil and vinegar tasting set",
+    kind: "photo",
+  },
+  serp_5343c876_4443_4d93_834f_1a46d3c82870: {
+    src: "https://m.media-amazon.com/images/I/81NTA148q9L._AC_UL320_.jpg",
+    alt: "Photo of monogrammed travel document wallet",
+    kind: "photo",
+  },
+  "review_41de4b54-fb72-467f-87cd-3d09fc8f7750": {
+    src: "https://ereader.kobo.com/cdn/shop/products/1-Spa-BW-EN-Device_Front_1080x1080_c775875b-0b4d-4867-9831-6df68d9f3347_1200x1200.png?v=1710271894",
+    alt: "Photo of compact e-reader",
+    kind: "photo",
+  },
+  serp_655c15c3_a3a2_49d0_8dfd_b0271dbba06c: {
+    src: "https://m.media-amazon.com/images/I/71Cdfx8DiGL._AC_UL320_.jpg",
+    alt: "Photo of large jewelry storage organizer",
+    kind: "photo",
+  },
+  serp_67e030c7_9b07_4369_abc8_87d74be16445: {
+    src: "https://m.media-amazon.com/images/I/61jhvJcIkbS._AC_UL320_.jpg",
+    alt: "Photo of mulberry silk scarf",
+    kind: "photo",
+  },
+  serp_6166d22e_7630_40d3_916d_465aadf2cc8a: {
+    src: "https://m.media-amazon.com/images/I/71oHyjUSfBL._AC_UL320_.jpg",
+    alt: "Photo of shiatsu foot massager with heat",
+    kind: "photo",
+  },
+  serp_7065d5b8_c098_4c92_9cfa_7846cdcc4acc: {
+    src: "https://m.media-amazon.com/images/I/71sNr4hqtiL._AC_UL320_.jpg",
+    alt: "Photo of compact crossbody sling bag",
+    kind: "photo",
+  },
+  serp_8e27e01f_4bc5_4d58_8f26_dbce5cd1930c: {
+    src: "https://m.media-amazon.com/images/I/71dY8vOrtCL._AC_UL320_.jpg",
+    alt: "Photo of personalized reading and tablet stand",
+    kind: "photo",
+  },
+  serp_105ca337_759e_4408_a5fd_d12f64604892: {
+    src: "https://m.media-amazon.com/images/I/71PbV1wjBcL._AC_UL320_.jpg",
+    alt: "Photo of cordless heated foot wrap",
+    kind: "photo",
+  },
+  serp_9a847aa6_98a7_4bbf_9ba3_eb63e82f8d2d: {
+    src: "https://m.media-amazon.com/images/I/71DQp57-ltL._AC_UY218_.jpg",
+    alt: "Photo of rotating adjustable laptop stand",
+    kind: "photo",
+  },
+  serp_8a25d962_328c_4bdb_bd10_f9fdb1d38d56: {
+    src: "https://m.media-amazon.com/images/I/61nH-elbYeL._AC_UL320_.jpg",
+    alt: "Photo of gooseneck tea kettle",
+    kind: "photo",
+  },
+  serp_09946e4f_f24c_4d93_b0a6_e22f61ee7747: {
+    src: "https://m.media-amazon.com/images/I/81R9sA3IyBL._AC_UY218_.jpg",
+    alt: "Photo of large-capacity air fryer",
+    kind: "photo",
+  },
+  serp_184ebaa5_a4a1_456a_8427_3cfe0b0aa5b8: {
+    src: "https://m.media-amazon.com/images/I/81qURDy1RsL._AC_UL320_.jpg",
+    alt: "Photo of movie-night gift box",
+    kind: "photo",
+  },
+  serp_7f8a0cc7_0654_444b_82a4_0abf9ad84894: {
+    src: "https://m.media-amazon.com/images/I/61cG-3I+aQL._AC_UL320_.jpg",
+    alt: "Photo of stainless-steel oven and storage trays",
+    kind: "photo",
+  },
+  serp_997dd025_90af_42f5_9dae_59763f6f3af3: {
+    src: "https://m.media-amazon.com/images/I/71FW3ew-iBL._AC_UL320_.jpg",
+    alt: "Photo of rechargeable hand warmers",
+    kind: "photo",
+  },
+  serp_e1055f79_1c92_4ae6_8d70_696f1b64d1d5: {
+    src: "https://m.media-amazon.com/images/I/51EZig0rEAL._AC_UY218_.jpg",
+    alt: "Photo of premium wireless earbuds",
+    kind: "photo",
+  },
+  serp_f5e0a27b_7a2b_400a_b663_e2eaaee2cd0e: {
+    src: "https://m.media-amazon.com/images/I/61W5CgUUHeL._AC_UL320_.jpg",
+    alt: "Photo of personalized initial pendant",
+    kind: "photo",
+  },
+  serp_10a15da7_45c4_4bd8_97b9_d7f4e1c25907: {
+    src: "https://m.media-amazon.com/images/I/81+fA5rY+UL._AC_UL320_.jpg",
+    alt: "Photo of engraved milestone wristwatch",
+    kind: "photo",
+  },
+  serp_8a7e30d3_d60c_4d2d_b2aa_70930a34181c: {
+    src: "https://m.media-amazon.com/images/I/71QG1lzSqSL._AC_UL320_.jpg",
+    alt: "Photo of leather clogs for long days",
+    kind: "photo",
+  },
+  serp_932aa818_b3b8_48bb_9033_0eb21e38ea11: {
+    src: "https://m.media-amazon.com/images/I/71jMSPsMwJS._AC_UL320_.jpg",
+    alt: "Photo of studio watercolor painting set",
+    kind: "photo",
+  },
+  serp_4ab3ffbf_5045_48ae_808b_4ba937bda6cf: {
+    src: "https://m.media-amazon.com/images/I/515Z0HRY0GL._AC_UL320_.jpg",
+    alt: "Photo of milestone charm bracelet",
+    kind: "photo",
+  },
+  serp_38aa7cc4_ebe9_4594_b773_bc1305e5b815: {
+    src: "https://m.media-amazon.com/images/I/51FwbHQaUUL._AC_UY218_.jpg",
+    alt: "Photo of compact electric food chopper",
+    kind: "photo",
+  },
+  serp_8d03067d_3d10_4934_94aa_dc45aab335fe: {
+    src: "https://m.media-amazon.com/images/I/51e9P-LRqYL._AC_UL320_.jpg",
+    alt: "Photo of large ceramic baking dish",
+    kind: "photo",
+  },
+  serp_4e61eee9_f0da_47c9_b05d_3773eb1b8154: {
+    src: "https://m.media-amazon.com/images/I/61bCAdRx3WL._AC_UL320_.jpg",
+    alt: "Photo of cooling bamboo pillowcase set",
+    kind: "photo",
+  },
+  serp_11bccc4b_13f7_4098_9f03_127e5a7bd114: {
+    src: "https://m.media-amazon.com/images/I/51jlg6xxfOL._AC_UL320_.jpg",
+    alt: "Photo of pressure-relieving seat cushion",
+    kind: "photo",
+  },
+  "review_decaa884-97a8-44df-94da-75cd94d6b9ab": {
+    src: "https://m.media-amazon.com/images/I/71Y3hRmkUsL._AC_UY218_.jpg",
+    alt: "Photo of wooden bedside alarm clock",
+    kind: "photo",
+  },
+  serp_7146c104_c9d4_4099_bd01_3373c0127f9a: {
+    src: "https://m.media-amazon.com/images/I/71aoc56LL2L._AC_UL320_.jpg",
+    alt: "Photo of portable electric meal warmer",
+    kind: "photo",
+  },
+  serp_b9698c37_2b55_427a_82e6_ad91f731e516: {
+    src: "https://m.media-amazon.com/images/I/6186h7rqz0L._AC_UY218_.jpg",
+    alt: "Photo of countertop food-preparation chopper",
+    kind: "photo",
+  },
+  serp_9a1d7d0d_e580_417f_87a6_0f3a6c17fbae: {
+    src: "https://m.media-amazon.com/images/I/611TIoY-akL._AC_UL320_.jpg",
+    alt: "Photo of heated neck-and-shoulder wrap",
+    kind: "photo",
+  },
+  serp_1a87cc16_8b8e_4adc_a0cc_69e2e47f3a93: {
+    src: "https://m.media-amazon.com/images/I/71qUvfq4LxL._AC_UY218_.jpg",
+    alt: "Photo of compact multi-cooker",
+    kind: "photo",
+  },
+  serp_23c4d7f2_9a5c_4e48_8c57_64164f5b53d1: {
+    src: "https://m.media-amazon.com/images/I/61a5HhPRMDL._AC_UY218_.jpg",
+    alt: "Photo of magnetic power bank with a folding stand",
+    kind: "photo",
+  },
+  "review_2bc3d622-b370-400c-8743-5b9a8b1de7be": {
+    src: "https://target.scene7.com/is/image/Target/GUEST_1306bdef-cdc1-40c6-a7c1-5fa41edf00f5",
+    alt: "Photo of glass plant propagation station",
+    kind: "photo",
+  },
+  serp_64bf10af_36d4_4332_b297_1a52bc78e4bd: {
+    src: "https://m.media-amazon.com/images/I/51CNBdzkoqL._AC_UL320_.jpg",
+    alt: "Photo of ceramic insulated travel mug",
+    kind: "photo",
+  },
+  serp_b8c62a3e_5572_4d80_9ef5_be33dbd22bc2: {
+    src: "https://m.media-amazon.com/images/I/81QifG-nsVL._AC_UL320_.jpg",
+    alt: "Photo of freezable insulated snack box",
+    kind: "photo",
+  },
+  serp_06f263ed_dbd7_49a3_b9dd_4f30b0249987: {
+    src: "https://m.media-amazon.com/images/I/81Od5mGE0uL._AC_UL320_.jpg",
+    alt: "Photo of compact travel jewelry case",
+    kind: "photo",
+  },
+  serp_d49c6481_da84_4a06_9690_e9f03cd0d058: {
+    src: "https://m.media-amazon.com/images/I/81SGXSlttSL._AC_UL320_.jpg",
+    alt: "Photo of playful cooking apron with pockets",
+    kind: "photo",
   },
 };

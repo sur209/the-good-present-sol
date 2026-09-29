@@ -9,14 +9,14 @@ import {
 interface Props {
   recommendation: GuideRecommendation;
   product?: Product;
-  illustration?: { src: string; alt: string };
+  illustration?: { src: string; alt: string; kind?: "photo" };
 }
 
 const { recommendation, product, illustration } = Astro.props;
 const visual = product?.image
   ? { src: product.image, alt: product.imageAlt!, productPhoto: true }
   : illustration
-    ? { ...illustration, productPhoto: false }
+    ? { ...illustration, productPhoto: illustration.kind === "photo" }
     : undefined;
 const destination = recommendationDestination(recommendation, product);
 const isDirectAffiliate = Boolean(recommendation.directAffiliateUrl);
