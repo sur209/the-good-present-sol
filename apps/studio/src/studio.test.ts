@@ -5974,7 +5974,7 @@ test("renderiza sólo destinos del catálogo y distingue enlaces afiliados", asy
     merchant: "Amazon",
     productUrl: "https://www.amazon.com/dp/C012345678",
   });
-  const unavailable = catalog.get("product_sleep-mask");
+  const unavailable = catalog.get("product_pocket-notebook");
   const {
     affiliateUrl: _unavailableAffiliateUrl,
     productUrl: _unavailableProductUrl,
@@ -6031,7 +6031,7 @@ test("renderiza sólo destinos del catálogo y distingue enlaces afiliados", asy
   assert.doesNotMatch(amazonPendingCard, /href=/);
   assert.match(amazonPendingCard, /Why it fits/);
 
-  const unavailableCard = card(practical, "Blackout Sleep Mask");
+  const unavailableCard = card(under25, "Pocket Notes Set");
   assert.doesNotMatch(unavailableCard, /href=/);
 
   const staticFiles = await readdir(join(REPOSITORY_ROOT, "apps", "site", "dist"), {
@@ -6053,7 +6053,7 @@ test("quitar un afiliado Amazon conserva la identidad del Product y la recomenda
   await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
 
   const catalog = new ProductCatalog(repository);
-  const original = catalog.get("product_lunch-container");
+  const original = catalog.get("product_hand-cream");
   const {
     affiliateUrl: _originalAffiliateUrl,
     productUrl: _originalProductUrl,

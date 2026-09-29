@@ -14,7 +14,7 @@
   "seoDescription": "Find thoughtful gift ideas for a new nurse entering their first professional role. This guide focuses on practical support for new routines, rest, meals, and home comfort.",
   "status": "published",
   "publishedAt": "2026-09-19",
-  "updatedAt": "2026-09-28",
+  "updatedAt": "2026-09-29",
   "recommendations": [
     {
       "id": "guide_eb314f33-a0e3-4f51-937e-e7a3dde5cd6e_slot-1",
@@ -65,15 +65,15 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "guide_eb314f33-a0e3-4f51-937e-e7a3dde5cd6e_slot-5",
+      "id": "serp_8e27e01f_4bc5_4d58_8f26_dbce5cd1930c",
       "productResolution": "unresolved",
       "position": 5,
-      "heading": "A Compact Steamer for Quick Clothing Refresh",
-      "editorialDescription": "A compact garment steamer offers a fast way to smooth wrinkles in scrubs, work layers, and everyday clothes between washes. It can help when a new nurse has limited space or no interest in a full ironing setup. Look for a handheld or small standing design that is easy to fill, empty, and store. Check the warm-up time, water capacity, and whether the steam head is suitable for the fabrics the recipient wears.",
-      "whyItFits": "A first nursing job often means being tired after a shift and still wanting work clothes to look neat. A steamer makes that touch-up less of a chore.",
-      "bestFor": "A new nurse who wants a low-effort way to freshen work clothes at home or before travel.",
-      "selectionGuidance": "Compare size, weight, and storage needs. Consider how often it will be used and whether the water tank is easy to fill. Look for a design with a safe resting spot and clear instructions for different fabrics.",
-      "considerations": "Steamers may need distilled or filtered water, and they take up counter space. They are not a replacement for washing soiled workwear.",
+      "heading": "A Personalized Reading and Tablet Stand",
+      "editorialDescription": "A wooden reading stand holds a book, tablet, or recipe at a comfortable viewing angle while adding a warm detail to a desk or kitchen. A discreet name or short inscription can mark the new chapter without covering the piece in occupational slogans.",
+      "whyItFits": "It is useful for study, recipes, video calls, and time off, so it can follow the recipient beyond the first weeks of a new job.",
+      "bestFor": "A new nurse who reads, cooks from a screen, or uses a tablet at home",
+      "selectionGuidance": "Compare the supported device and book sizes, viewing angles, base stability, folded dimensions, wood finish, and personalization placement.",
+      "considerations": "It is most useful when the recipient already reads or uses a tablet in a regular spot; verify spelling because customized pieces may not be returnable.",
       "editorialStatus": "ready"
     },
     {
@@ -101,15 +101,15 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "guide_eb314f33-a0e3-4f51-937e-e7a3dde5cd6e_slot-8",
+      "id": "serp_105ca337_759e_4408_a5fd_d12f64604892",
       "productResolution": "unresolved",
       "position": 8,
-      "heading": "A Multicooker for Batch Meals on Shift Days",
-      "editorialDescription": "A multicooker can make batch cooking and one-pot meals more manageable when a new nurse has limited time or an unpredictable schedule. It allows a larger recipe to be portioned for the days ahead, whether cooking happens on a day off or before a stretch of shifts. Look for a size that fits the household and counter space, easy-to-use controls, and a pot that is simple to clean.",
-      "whyItFits": "Meal routines can fall apart when shift times change. A multicooker supports a cook-once, eat-later approach that fits a first nursing schedule.",
-      "bestFor": "A new nurse who wants to prepare meals in larger batches without a lot of active cooking time.",
-      "selectionGuidance": "Compare capacity, counter footprint, and cleaning needs. Think about the recipes the recipient actually makes and whether they prefer simple dials or programmable settings. Look for a removable, dishwasher-safe pot if easy cleanup matters.",
-      "considerations": "A multicooker still takes counter or cabinet space and a learning curve. If the recipient already owns a similar countertop cooker, a different meal-prep helper may serve them better.",
+      "heading": "A Cordless Heated Foot Wrap",
+      "editorialDescription": "A cordless heated foot wrap offers a clearly defined home comfort ritual without taking over a room or requiring a permanent setup. A flexible pair can be used while reading, watching a show, or settling in after a demanding day.",
+      "whyItFits": "It feels more like an intentional comfort gift than a routine appliance and gives a new nurse something reserved for off-duty time.",
+      "bestFor": "A new nurse who likes warmth and quiet evenings at home",
+      "selectionGuidance": "Compare the supported size range, heat levels, controls, battery arrangement, charging time, fabric feel, and cleaning instructions.",
+      "considerations": "Heat and vibration preferences vary, so confirm interest first and choose a model with clear instructions and a practical return policy.",
       "editorialStatus": "ready"
     },
     {

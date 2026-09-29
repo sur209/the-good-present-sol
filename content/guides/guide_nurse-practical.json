@@ -21,7 +21,7 @@
   "seoDescription": "Shop twelve practical nurse gifts selected for real routines, from organized commutes and packed meals to comfort and rest.",
   "status": "published",
   "publishedAt": "2026-08-03",
-  "updatedAt": "2026-09-28",
+  "updatedAt": "2026-09-29",
   "recommendations": [
     {
       "id": "review_c05c936a-c844-49d3-8f82-1671182be9a8",
@@ -48,14 +48,15 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "practical_lunch-container",
-      "productId": "product_lunch-container",
+      "id": "serp_8d03067d_3d10_4934_94aa_dc45aab335fe",
+      "productResolution": "unresolved",
       "position": 3,
-      "heading": "A compact system for a packed meal",
-      "editorialDescription": "Nesting containers make it easier to separate a main meal, a snack, and something small without filling an entire tote. The best set is simple to wash and shaped for the bag the recipient already carries.",
-      "whyItFits": "It removes a little friction from preparing and transporting food for a long day.",
-      "bestFor": "A nurse who regularly brings meals from home",
-      "considerations": "Confirm microwave, freezer, and dishwasher needs before choosing a material.",
+      "heading": "A Large Ceramic Baking Dish",
+      "editorialDescription": "A deep ceramic baking dish is useful for casseroles, roasted vegetables, baked pasta, and food shared with family or friends. A clean, attractive finish lets it move from oven to table and gives the present more presence than another storage container.",
+      "whyItFits": "It is a durable home tool with both functional and visual value, making it practical without feeling like a minor supply purchase.",
+      "bestFor": "A nurse who enjoys cooking, hosting, or preparing a dish to share",
+      "selectionGuidance": "Compare capacity, handle clearance, weight, glaze quality, cleaning instructions, and stated oven, refrigerator, and dishwasher compatibility.",
+      "considerations": "Ceramic is heavy and breakable, and a large dish needs storage space. Confirm that the recipient cooks in an oven and does not already own the same size.",
       "editorialStatus": "ready"
     },
     {
@@ -81,14 +82,15 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "practical_sleep-mask",
-      "productId": "product_sleep-mask",
+      "id": "serp_4e61eee9_f0da_47c9_b05d_3773eb1b8154",
+      "productResolution": "unresolved",
       "position": 6,
-      "heading": "A darker room when rest happens off schedule",
-      "editorialDescription": "A soft blackout mask is useful well beyond work: for daytime sleep, travel, or any room with stubborn light. An adjustable band makes it less of a guess than a fitted style.",
-      "whyItFits": "It supports off-shift recovery without turning sleep into another productivity project.",
-      "bestFor": "Night-shift nurses or frequent travelers",
-      "considerations": "Some people dislike pressure around the eyes, so treat this as a preference-led gift.",
+      "heading": "A Cooling Bamboo Pillowcase Set",
+      "editorialDescription": "A smooth bamboo-derived pillowcase set makes an everyday bed feel more intentional and gives the recipient a spare for laundry rotation. Neutral colors and a simple closure keep the idea easy to integrate into an existing room.",
+      "whyItFits": "It is a practical home upgrade with visible material and aesthetic value, rather than a tiny accessory someone may never use.",
+      "bestFor": "A nurse who prefers breathable bedding or refreshes pillowcases frequently",
+      "selectionGuidance": "Confirm pillow size and compare fiber labeling, weave, closure style, care instructions, colorfastness, and whether the set can be returned after checking the feel.",
+      "considerations": "Cooling descriptions are subjective and depend on the room and sleeper. Focus on fabric feel and care rather than promising a temperature effect.",
       "editorialStatus": "ready"
     },
     {
