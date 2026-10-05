@@ -2,9 +2,10 @@
   "id": "amazon-us",
   "programId": "amazon-associates",
   "marketplace": "amazon.com",
-  "allowedTrackingIds": [],
+  "storeOrAssociateId": "thegoodpresen-20",
+  "allowedTrackingIds": ["thegoodpresen-20"],
   "approvedHosts": ["amazon.com", "www.amazon.com", "smile.amazon.com", "amzn.to", "a.co"],
   "disclosureText": "The Good Present may earn a commission from qualifying purchases made through merchant links.",
   "disclosureVersion": "2026-08-08",
-  "enabled": false
+  "enabled": true
 }

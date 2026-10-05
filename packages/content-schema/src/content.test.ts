@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   isAmazonProduct,
+  shoppingOptionsSchema,
   productDestination,
   recommendationDestination,
   type ClusterHub,
@@ -16,6 +17,29 @@ import {
   type SourceRecord,
   validatePublicContent,
 } from "./validation.ts";
+
+test("shopping options require unique tagged Amazon product links and exclude scraped commerce data", () => {
+  const option = {
+    name: "Tea sampler",
+    description: "Compare the included blends.",
+    affiliateUrl: "https://www.amazon.com/dp/B0GM1MN2LZ?tag=thegoodpresen-20",
+  };
+  assert.equal(shoppingOptionsSchema.safeParse([option]).success, true);
+  for (const affiliateUrl of [
+    "not a URL",
+    "https://example.com/dp/B0GM1MN2LZ?tag=thegoodpresen-20",
+    "https://www.amazon.com/dp/B0GM1MN2LZ",
+    "http://www.amazon.com/dp/B0GM1MN2LZ?tag=thegoodpresen-20",
+  ]) {
+    assert.equal(shoppingOptionsSchema.safeParse([{ ...option, affiliateUrl }]).success, false);
+  }
+  assert.equal(shoppingOptionsSchema.safeParse([option, option]).success, false);
+  assert.equal(
+    shoppingOptionsSchema.safeParse([{ ...option, observedPrice: "$20" }]).success,
+    false,
+  );
+  assert.equal(shoppingOptionsSchema.safeParse(Array(11).fill(option)).success, false);
+});
 
 const product: Product = {
   schemaVersion: 1,

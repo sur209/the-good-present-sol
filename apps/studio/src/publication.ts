@@ -116,6 +116,9 @@ export function guideDraftToPublic(
           ? { directAffiliateUrl: recommendation.directAffiliateUrl }
           : {}),
         position: recommendation.position,
+        ...(recommendation.shoppingOptions
+          ? { shoppingOptions: recommendation.shoppingOptions }
+          : {}),
         ...(recommendation.productId && recommendation.heading
           ? { heading: recommendation.heading }
           : {}),

@@ -249,6 +249,7 @@ export function outlineRegenerationBlockReason(draft: GuideDraft): string | unde
       return Boolean(
         recommendation.productId ||
         recommendation.directAffiliateUrl ||
+        recommendation.shoppingOptions?.length ||
         recommendation.editorialStatus !== "needs-generation" ||
         recommendationCopyFields.some((field) => recommendation[field]) ||
         !outlineSlot ||
@@ -2101,6 +2102,9 @@ export function reopenGuideDraft(
             ? { directAffiliateUrl: recommendation.directAffiliateUrl }
             : {}),
           ...(recommendation.heading ? { heading: recommendation.heading } : {}),
+          ...(recommendation.shoppingOptions
+            ? { shoppingOptions: recommendation.shoppingOptions }
+            : {}),
           editorialDescription: recommendation.editorialDescription,
           whyItFits: recommendation.whyItFits,
           ...(recommendation.bestFor ? { bestFor: recommendation.bestFor } : {}),

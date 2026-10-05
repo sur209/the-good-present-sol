@@ -113,8 +113,38 @@ const accent = `recommendation--accent-${((recommendation.position - 1) % 4) + 1
                 : `${isAffiliate ? "View at" : "View product at"} ${product!.merchant}`}
           </a>
         </div>
-      ) : (
+      ) : !recommendation.shoppingOptions?.length ? (
         <p class="recommendation__availability">No merchant link available.</p>
+      ) : null
+    }
+    {
+      recommendation.shoppingOptions?.length && (
+        <details class="shopping-options">
+          <summary>
+            View {recommendation.shoppingOptions.length}{" "}
+            {recommendation.shoppingOptions.length === 1 ? "option" : "options"} on Amazon
+          </summary>
+          <p class="shopping-options__notice">
+            Compare product options for this gift idea; this is not a ranked list. Check current
+            details on Amazon. As an Amazon Associate, we earn from qualifying purchases.
+          </p>
+          <ul class="shopping-options__list">
+            {recommendation.shoppingOptions.map((option) => (
+              <li>
+                <h3>{option.name}</h3>
+                <p>{option.description}</p>
+                <a
+                  href={option.affiliateUrl}
+                  target="_blank"
+                  rel="sponsored nofollow noopener"
+                  aria-label={`View ${option.name} on Amazon (opens in a new tab)`}
+                >
+                  View on Amazon <span aria-hidden="true">↗</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
       )
     }
   </div>

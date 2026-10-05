@@ -49,6 +49,7 @@ const recommendations = [...guide.recommendations]
   }));
 const relatedGuides = (guide.relatedGuideIds ?? []).map((guideId) => guidesById.get(guideId)!);
 const hasAffiliateLinks = recommendations.some(({ recommendation, product }) => {
+  if (recommendation.shoppingOptions?.length) return true;
   const destination = recommendationDestination(recommendation, product);
   return Boolean(
     destination &&

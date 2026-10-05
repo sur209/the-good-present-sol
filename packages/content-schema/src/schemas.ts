@@ -140,11 +140,45 @@ const budgetContextSchema = z
     },
   );
 
+export const shoppingOptionsSchema = z
+  .array(
+    z.strictObject({
+      name: nonEmptyString.max(120),
+      description: nonEmptyString.max(500),
+      affiliateUrl: amazonAffiliateUrlSchema.refine((value) => {
+        if (!URL.canParse(value)) return false;
+        const url = new URL(value);
+        return (
+          ["amazon.com", "www.amazon.com"].includes(url.hostname) &&
+          /^\/dp\/[A-Z0-9]{10}\/?$/.test(url.pathname) &&
+          /^[a-zA-Z0-9-]+-20$/.test(url.searchParams.get("tag") ?? "")
+        );
+      }, "Must be an Amazon.com product link with a US affiliate tracking ID."),
+    }),
+  )
+  .min(1)
+  .max(10)
+  .superRefine((options, context) => {
+    const products = new Set<string>();
+    options.forEach((option, index) => {
+      if (!URL.canParse(option.affiliateUrl)) return;
+      const asin = new URL(option.affiliateUrl).pathname.replace(/\/$/, "");
+      if (products.has(asin))
+        context.addIssue({
+          code: "custom",
+          path: [index, "affiliateUrl"],
+          message: "Duplicate Amazon product.",
+        });
+      products.add(asin);
+    });
+  });
+
 const productBackedGuideRecommendationSchema = z.strictObject({
   id: contentIdSchema,
   productId: contentIdSchema,
   productResolution: z.never().optional(),
   directAffiliateUrl: amazonAffiliateUrlSchema.optional(),
+  shoppingOptions: shoppingOptionsSchema.optional(),
   position: z.number().int().positive(),
   heading: nonEmptyString.optional(),
   editorialDescription: nonEmptyString,
@@ -159,6 +193,7 @@ const unresolvedGuideRecommendationSchema = z.strictObject({
   productId: z.never().optional(),
   productResolution: z.literal("unresolved"),
   directAffiliateUrl: amazonAffiliateUrlSchema.optional(),
+  shoppingOptions: shoppingOptionsSchema.optional(),
   position: z.number().int().positive(),
   heading: nonEmptyString,
   editorialDescription: nonEmptyString,

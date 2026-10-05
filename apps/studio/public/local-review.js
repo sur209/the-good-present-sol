@@ -100,10 +100,14 @@
     if (
       !original ||
       original.productId !== item.productId ||
-      original.directAffiliateUrl !== item.directAffiliateUrl
+      original.id !== item.id ||
+      original.directAffiliateUrl !== item.directAffiliateUrl ||
+      (item.shoppingOptions !== undefined &&
+        JSON.stringify(original.shoppingOptions) !== JSON.stringify(item.shoppingOptions))
     ) {
       body.querySelector(".recommendation__product")?.remove();
       body.querySelector(".recommendation__commerce")?.remove();
+      body.querySelector(".shopping-options")?.remove();
       const availability =
         body.querySelector(".recommendation__availability") || document.createElement("p");
       availability.className = "recommendation__availability";

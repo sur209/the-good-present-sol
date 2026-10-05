@@ -36,13 +36,20 @@
   "seoDescription": "Shop thoughtful gifts for male nurses with individual taste in mind, from everyday usefulness and off-shift comfort to personal meaning.",
   "status": "published",
   "publishedAt": "2026-09-20",
-  "updatedAt": "2026-09-29",
+  "updatedAt": "2026-10-05",
   "recommendations": [
     {
       "id": "review_10e59e75-a15e-4483-a705-ab27e98325ea",
       "productResolution": "unresolved",
       "position": 1,
-      "heading": "A Classic Automatic Wristwatch",
+      "heading": "Automatic wristwatch",
+      "shoppingOptions": [
+        {
+          "name": "FM301 square automatic watch",
+          "description": "An automatic watch with a square case for someone who enjoys mechanical accessories. Check dimensions and maintenance requirements before choosing.",
+          "affiliateUrl": "https://www.amazon.com/dp/B083BNDYLH?tag=thegoodpresen-20"
+        }
+      ],
       "editorialDescription": "An automatic wristwatch can mark a milestone with an accessory worn for years. Choose a restrained design that fits the recipient's everyday style and can move between casual and dressed-up settings.",
       "whyItFits": "It feels substantial and personal while remaining useful well beyond a particular shift or workplace.",
       "bestFor": "Someone who already wears watches or appreciates mechanical objects",

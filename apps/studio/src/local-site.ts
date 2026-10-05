@@ -83,11 +83,12 @@ export async function localPublicPage(
   const payload = JSON.stringify({
     guideId: guide?.id,
     originalRecommendations: guide?.recommendations.map(
-      ({ id, position, productId, directAffiliateUrl }) => ({
+      ({ id, position, productId, directAffiliateUrl, shoppingOptions }) => ({
         id,
         position,
         productId,
         directAffiliateUrl,
+        shoppingOptions,
       }),
     ),
     draft,

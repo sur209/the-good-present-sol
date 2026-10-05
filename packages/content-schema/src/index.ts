@@ -25,6 +25,7 @@ export {
   recommendationDestination,
   productSchema,
   safeHttpUrlSchema,
+  shoppingOptionsSchema,
 } from "./schemas.ts";
 export type {
   ClusterHub,

@@ -2633,10 +2633,14 @@ test("lee configuración de afiliados sin secretos y detecta faltantes", () => {
   const program = records[0]!.program;
   assert.ok(program);
   assert.equal(program.programId, "amazon-associates");
-  assert.deepEqual(missingAffiliateProgramConfiguration(program), [
-    "store or associate identifier",
-    "allowed tracking ID",
-  ]);
+  assert.deepEqual(
+    missingAffiliateProgramConfiguration({
+      ...program,
+      storeOrAssociateId: undefined,
+      allowedTrackingIds: [],
+    }),
+    ["store or associate identifier", "allowed tracking ID"],
+  );
   assert.equal("apiKey" in program, false);
   assert.equal("secret" in program, false);
 });
@@ -2657,7 +2661,7 @@ test("muestra el estado de afiliados sólo dentro del Studio", async (context) =
   const html = await response.text();
   assert.equal(response.status, 200);
   assert.match(html, /amazon-associates/);
-  assert.match(html, /store or associate identifier/);
+  assert.match(html, /amazon\.com/);
   assert.doesNotMatch(html, /apiKey|password|accessToken|clientSecret/i);
 
   const qaResponse = await fetch(`http://${STUDIO_HOST}:${address.port}/affiliate-operations`);
@@ -8585,6 +8589,22 @@ test("reabre una guía publicada con identidad y copia listas", () => {
     draft.recommendations.every((recommendation) => recommendation.editorialStatus === "ready"),
   );
   assert.deepEqual(validateGuideDraft(draft, content).errors, []);
+});
+
+test("conserva opciones Amazon al reabrir y publicar una guía", () => {
+  const content = new ProductCatalog().read();
+  const published = structuredClone(content.guides[0]!);
+  const options = [
+    {
+      name: "Tea sampler",
+      description: "Compare the included blends.",
+      affiliateUrl: "https://www.amazon.com/dp/B0GM1MN2LZ?tag=thegoodpresen-20",
+    },
+  ];
+  published.recommendations[0]!.shoppingOptions = options;
+  const draft = reopenGuideDraft(published, content);
+  assert.deepEqual(draft.recommendations[0]!.shoppingOptions, options);
+  assert.deepEqual(guideDraftToPublic(draft, content).recommendations[0]!.shoppingOptions, options);
 });
 
 test("regenera por HTTP el slot 4 aunque los demás no tengan producto", async (context) => {

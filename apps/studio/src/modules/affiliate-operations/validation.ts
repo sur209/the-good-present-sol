@@ -454,6 +454,17 @@ export function validateAffiliateOperations(
         route,
         recommendation.heading,
       );
+      for (const option of recommendation.shoppingOptions ?? []) {
+        const optionUrl = inspectUrl(option.affiliateUrl, context, "affiliateUrl", findings);
+        const entry: AffiliateCoverageEntry = {
+          ...context,
+          kind: "affiliate",
+          destination: option.affiliateUrl,
+        };
+        coverage.push(entry);
+        guideEntries.push(entry);
+        if (optionUrl) checkAffiliateUrl(optionUrl, context, programRecords, findings);
+      }
       if (recommendation.directAffiliateUrl) {
         const directUrl = inspectUrl(
           recommendation.directAffiliateUrl,

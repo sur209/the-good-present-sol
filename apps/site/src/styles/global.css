@@ -1532,3 +1532,38 @@ code {
     transition-duration: 0.01ms !important;
   }
 }
+
+.shopping-options {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--color-border, #ddd2c3);
+  padding-top: 1rem;
+}
+.shopping-options summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+.shopping-options__notice {
+  font-size: 0.9rem;
+}
+.shopping-options__list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: 1rem;
+}
+.shopping-options__list li {
+  padding: 1rem;
+  border: 1px solid #ddd2c3;
+  border-radius: 0.75rem;
+}
+.shopping-options__list h3 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+.shopping-options__list p {
+  font-size: 0.95rem;
+}
+.shopping-options__list a {
+  font-weight: 700;
+}

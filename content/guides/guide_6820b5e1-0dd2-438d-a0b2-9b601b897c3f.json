@@ -42,7 +42,7 @@
   "seoDescription": "Thoughtful, workplace-appropriate appreciation ideas for nurse preceptors and mentors after orientation, clinical placement, graduation, or a first nursing job.",
   "status": "published",
   "publishedAt": "2026-09-20",
-  "updatedAt": "2026-09-29",
+  "updatedAt": "2026-10-05",
   "recommendations": [
     {
       "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-1",
@@ -61,6 +61,28 @@
       "productResolution": "unresolved",
       "position": 2,
       "heading": "A Premium Tea Sampler",
+      "shoppingOptions": [
+        {
+          "name": "Tea Forte sampler",
+          "description": "A pyramid-infuser assortment for someone who enjoys trying different teas. Check the included blends and caffeine content before gifting.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0GM1MN2LZ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Tiesta Tea favorites sampler",
+          "description": "A loose-leaf assortment for someone who already has an infuser. The format makes sense when preparing tea is part of their routine.",
+          "affiliateUrl": "https://www.amazon.com/dp/B08VF85JJF?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Stash Relax and Unwind sampler",
+          "description": "A tea-bag assortment to compare for an easy-to-prepare gift. Review the blend list for ingredients the recipient likes or avoids.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CP8FZJ14?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Pukka herbal tea gift set",
+          "description": "An herbal assortment for someone who prefers that style of tea. Check individual ingredients and the current package contents on Amazon.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0D5MFLFM2?tag=thegoodpresen-20"
+        }
+      ],
       "editorialDescription": "A well-presented tea assortment offers several quiet breaks rather than one more object to display. Pair it with a specific thank-you note so the appreciation remains personal even after the tea is gone.",
       "whyItFits": "It feels generous, is easy to share, and lets a mentor choose a blend that fits the moment.",
       "bestFor": "A preceptor who enjoys tea at home or keeps a small break-room stash",
