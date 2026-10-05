@@ -145,6 +145,7 @@ export const shoppingOptionsSchema = z
     z.strictObject({
       name: nonEmptyString.max(120),
       description: nonEmptyString.max(500),
+      imageUrl: imageSchema.optional(),
       affiliateUrl: amazonAffiliateUrlSchema.refine((value) => {
         if (!URL.canParse(value)) return false;
         const url = new URL(value);

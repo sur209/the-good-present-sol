@@ -1561,6 +1561,24 @@ code {
   font-size: 1.1rem;
   margin: 0;
 }
+.shopping-options__thumbnail {
+  float: left;
+  margin: 0 0.75rem 0.5rem 0;
+  display: block;
+  width: 6rem;
+  height: 6rem;
+  background: #fff;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+.shopping-options__thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.shopping-options__list li {
+  display: flow-root;
+}
 .shopping-options__list p {
   font-size: 0.95rem;
 }

@@ -131,6 +131,25 @@ const accent = `recommendation--accent-${((recommendation.position - 1) % 4) + 1
           <ul class="shopping-options__list">
             {recommendation.shoppingOptions.map((option) => (
               <li>
+                {option.imageUrl && (
+                  <a
+                    href={option.affiliateUrl}
+                    target="_blank"
+                    rel="sponsored nofollow noopener"
+                    class="shopping-options__thumbnail"
+                    aria-label={`View ${option.name} on Amazon (opens in a new tab)`}
+                  >
+                    <img
+                      src={option.imageUrl}
+                      alt={option.name}
+                      width="96"
+                      height="96"
+                      loading="lazy"
+                      decoding="async"
+                      referrerpolicy="no-referrer"
+                    />
+                  </a>
+                )}
                 <h3>{option.name}</h3>
                 <p>{option.description}</p>
                 <a

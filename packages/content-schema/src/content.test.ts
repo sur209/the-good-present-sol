@@ -25,6 +25,16 @@ test("shopping options require unique tagged Amazon product links and exclude sc
     affiliateUrl: "https://www.amazon.com/dp/B0GM1MN2LZ?tag=thegoodpresen-20",
   };
   assert.equal(shoppingOptionsSchema.safeParse([option]).success, true);
+  assert.equal(
+    shoppingOptionsSchema.safeParse([
+      { ...option, imageUrl: "https://m.media-amazon.com/images/I/example.jpg" },
+    ]).success,
+    true,
+  );
+  assert.equal(
+    shoppingOptionsSchema.safeParse([{ ...option, imageUrl: "javascript:alert(1)" }]).success,
+    false,
+  );
   for (const affiliateUrl of [
     "not a URL",
     "https://example.com/dp/B0GM1MN2LZ?tag=thegoodpresen-20",
