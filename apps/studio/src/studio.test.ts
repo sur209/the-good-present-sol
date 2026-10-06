@@ -2669,7 +2669,7 @@ test("muestra el estado de afiliados sólo dentro del Studio", async (context) =
   assert.equal(qaResponse.status, 200);
   assert.match(qaHtml, /QA de enlaces afiliados/);
   assert.match(qaHtml, /product_shift-tote/);
-  assert.match(qaHtml, /affiliateUrl\.program/);
+  assert.match(qaHtml, /Cobertura publicada/);
 });
 
 test("reporta cobertura, tracking, programas, hosts, disclosure y protocolos con severidades distintas", async (context) => {
