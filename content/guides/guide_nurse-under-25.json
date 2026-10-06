@@ -30,6 +30,22 @@
   "recommendations": [
     {
       "id": "under-25_pocket-notebook",
+      "shoppingOptions": [
+        {
+          "name": "Field Notes National Parks Notebooks",
+          "description": "A set of three pocket notebooks with graph paper. Check the park-cover selection and ruling before choosing the set.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71ZBoNHvg7L._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07V5SQ6Q2?tag=thegoodpresen-20"
+        }
+      ],
+      "shoppingOptions": [
+        {
+          "name": "Field Notes National Parks Notebooks",
+          "description": "A set of three pocket notebooks with graph paper. Check the park-cover selection and ruling before choosing the set.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71ZBoNHvg7L._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07V5SQ6Q2?tag=thegoodpresen-20"
+        }
+      ],
       "productId": "product_pocket-notebook",
       "position": 1,
       "heading": "A Pocket Notebook Set",
@@ -41,6 +57,22 @@
     },
     {
       "id": "under-25_badge-reel",
+      "shoppingOptions": [
+        {
+          "name": "Turtle Badge Reel",
+          "description": "A retractable badge reel with a turtle design. Check the clip style and whether personal badge reels are allowed.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71qNZ5FF7mL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DJ1XNTV2?tag=thegoodpresen-20"
+        }
+      ],
+      "shoppingOptions": [
+        {
+          "name": "Turtle Badge Reel",
+          "description": "A retractable badge reel with a turtle design. Check the clip style and whether personal badge reels are allowed.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71qNZ5FF7mL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DJ1XNTV2?tag=thegoodpresen-20"
+        }
+      ],
       "productId": "product_badge-reel",
       "position": 2,
       "heading": "A Decorative Badge Reel",
@@ -52,6 +84,22 @@
     },
     {
       "id": "under-25_hand-cream",
+      "shoppingOptions": [
+        {
+          "name": "O'Keeffe's Hand Cream Duo",
+          "description": "A two-tube set with regular Working Hands cream and a nighttime treatment. Review both ingredient lists if the recipient has sensitivities.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51fk3qgrHcL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07YX5Y2DB?tag=thegoodpresen-20"
+        }
+      ],
+      "shoppingOptions": [
+        {
+          "name": "O'Keeffe's Hand Cream Duo",
+          "description": "A two-tube set with regular Working Hands cream and a nighttime treatment. Review both ingredient lists if the recipient has sensitivities.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51fk3qgrHcL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07YX5Y2DB?tag=thegoodpresen-20"
+        }
+      ],
       "productId": "product_hand-cream",
       "position": 3,
       "heading": "A Fragrance-Free Hand Cream Duo",
@@ -63,6 +111,22 @@
     },
     {
       "id": "under-25_compression-socks",
+      "shoppingOptions": [
+        {
+          "name": "Physix Gear Compression Socks",
+          "description": "Compression socks offered in different sizes and patterns. Choose the recipient's preferred fit and compression level rather than treating them as a universal choice.",
+          "imageUrl": "https://m.media-amazon.com/images/I/711vGxLodJL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B01J4MF53Q?tag=thegoodpresen-20"
+        }
+      ],
+      "shoppingOptions": [
+        {
+          "name": "Physix Gear Compression Socks",
+          "description": "Compression socks offered in different sizes and patterns. Choose the recipient's preferred fit and compression level rather than treating them as a universal choice.",
+          "imageUrl": "https://m.media-amazon.com/images/I/711vGxLodJL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B01J4MF53Q?tag=thegoodpresen-20"
+        }
+      ],
       "productId": "product_compression-socks",
       "position": 4,
       "heading": "Compression Socks in Their Preferred Pattern",
@@ -74,6 +138,22 @@
     },
     {
       "id": "under-25_sleep-mask",
+      "shoppingOptions": [
+        {
+          "name": "LitBear Sleep Mask",
+          "description": "A contoured eye mask for blocking light. Check the fit and fabric; comfort depends on how the recipient sleeps.",
+          "imageUrl": "https://m.media-amazon.com/images/I/813M0YqSLzL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B09H7FZ5JM?tag=thegoodpresen-20"
+        }
+      ],
+      "shoppingOptions": [
+        {
+          "name": "LitBear Sleep Mask",
+          "description": "A contoured eye mask for blocking light. Check the fit and fabric; comfort depends on how the recipient sleeps.",
+          "imageUrl": "https://m.media-amazon.com/images/I/813M0YqSLzL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B09H7FZ5JM?tag=thegoodpresen-20"
+        }
+      ],
       "productId": "product_sleep-mask",
       "position": 5,
       "heading": "A Soft Blackout Sleep Mask",
@@ -88,6 +168,14 @@
       "productResolution": "unresolved",
       "position": 6,
       "heading": "A Weighted Hot-or-Cold Eye Pillow",
+      "shoppingOptions": [
+        {
+          "name": "SereLune weighted eye-pillow pair",
+          "description": "A hot-or-cold eye-pillow set for a quiet break. Check the filling and heating instructions; avoid eye pressure or heat where medically unsuitable.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DRS5LWSB?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Wnt5D0hcL._AC_UL320_.jpg"
+        }
+      ],
       "editorialDescription": "A softly weighted eye pillow can be cooled or gently warmed for a quiet break at home. It feels more considered than a small cash substitute while still fitting comfortably under the guide's price ceiling.",
       "whyItFits": "It is a tangible, reusable comfort that creates a small pause without assuming the recipient's work routine.",
       "bestFor": "Someone who enjoys screen-free rest, meditation, or simple home comforts",
@@ -100,6 +188,14 @@
       "productResolution": "unresolved",
       "position": 7,
       "heading": "A Magnetic Power Bank With a Folding Stand",
+      "shoppingOptions": [
+        {
+          "name": "Magnetic power bank with folding stand",
+          "description": "A portable charger with a fold-out stand. Confirm phone and case compatibility, capacity and the charging accessories required.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0H4G5S1C8?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/61a5HhPRMDL._AC_UY218_.jpg"
+        }
+      ],
       "editorialDescription": "This compact backup battery can keep a phone topped up away from an outlet, while the folding stand makes it easier to check messages or watch content hands-free. It suits commutes, break rooms, and travel days.",
       "whyItFits": "It is a generous, practical choice for someone whose phone is part of a busy daily routine and who appreciates useful extras that travel easily.",
       "bestFor": "A nurse who is frequently away from convenient outlets.",
@@ -109,6 +205,22 @@
     },
     {
       "id": "review_2bc3d622-b370-400c-8743-5b9a8b1de7be",
+      "shoppingOptions": [
+        {
+          "name": "Mkono Plant Propagation Stand",
+          "description": "A wooden stand with three glass tubes for plant cuttings. Plants are not included; choose it for someone who already enjoys growing them.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71RM8itJ5cL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B08VHW4MLD?tag=thegoodpresen-20"
+        }
+      ],
+      "shoppingOptions": [
+        {
+          "name": "Mkono Plant Propagation Stand",
+          "description": "A wooden stand with three glass tubes for plant cuttings. Plants are not included; choose it for someone who already enjoys growing them.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71RM8itJ5cL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B08VHW4MLD?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 8,
       "heading": "A Glass Plant Propagation Station",
@@ -124,6 +236,14 @@
       "productResolution": "unresolved",
       "position": 9,
       "heading": "A Ceramic Insulated Travel Mug",
+      "shoppingOptions": [
+        {
+          "name": "YOME ceramic-lined travel mug",
+          "description": "An insulated travel mug with a ceramic interior and infuser. Check the dimensions, lid operation, cleaning instructions and current material specifications.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0GSZTBSY2?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/51CNBdzkoqL._AC_UL320_.jpg"
+        }
+      ],
       "editorialDescription": "A ceramic-lined or ceramic-bodied travel mug brings a more personal feel to coffee, tea, or another favorite drink during a commute or break. Choose a design that feels at home in the recipient’s everyday routine.",
       "whyItFits": "It combines a familiar daily ritual with an opportunity to reflect the recipient’s preferred color, finish, or style.",
       "bestFor": "A nurse who regularly carries a favorite hot or cold drink.",
@@ -136,6 +256,14 @@
       "productResolution": "unresolved",
       "position": 10,
       "heading": "A Freezable Insulated Snack Box",
+      "shoppingOptions": [
+        {
+          "name": "PackIt freezable snack box",
+          "description": "A small snack container with a freezable design. Check internal dimensions and freezer space; it is smaller than a full lunch bag.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0D4RHVRVB?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/81QifG-nsVL._AC_UL320_.jpg"
+        }
+      ],
       "editorialDescription": "A reusable insulated snack box gives sandwiches, fruit, or small meals a dedicated place to travel. Its freezable element can be chilled ahead of time for packed food during a long day.",
       "whyItFits": "It adds a considerate touch to a practical routine and can make bringing preferred snacks or meals feel more organized.",
       "bestFor": "A nurse who packs food for extended shifts or busy days away from home.",
@@ -148,6 +276,14 @@
       "productResolution": "unresolved",
       "position": 11,
       "heading": "A Compact Travel Jewelry Case",
+      "shoppingOptions": [
+        {
+          "name": "VLANDO travel jewelry case",
+          "description": "A compact organizer for earrings, rings and necklaces. Compare compartments and dimensions with the recipient's travel jewelry.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DN1812XQ?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/81Od5mGE0uL._AC_UL320_.jpg"
+        }
+      ],
       "editorialDescription": "A small jewelry case keeps earrings, rings, necklaces, or other tiny valuables separated during weekends away and longer trips. It can also serve as a tidy home for pieces that are easy to misplace.",
       "whyItFits": "It feels polished without being overly formal, especially for someone who enjoys travel or likes small personal items kept in order.",
       "bestFor": "A nurse planning a trip or building a more organized travel routine.",
@@ -160,6 +296,14 @@
       "productResolution": "unresolved",
       "position": 12,
       "heading": "A Playful Cooking Apron With Pockets",
+      "shoppingOptions": [
+        {
+          "name": "Miracu humorous cooking apron",
+          "description": "A pocketed apron with a playful printed design. Check the exact joke, fabric, sizing and washing instructions.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DPHCYRTQ?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/81SGXSlttSL._AC_UL320_.jpg"
+        }
+      ],
       "editorialDescription": "A cheerful apron adds a bit of personality to cooking, baking, or hosting at home, while pockets keep a timer, recipe card, or small utensil close at hand. Choose humor or color that matches the recipient’s taste.",
       "whyItFits": "It recognizes an off-duty interest and gives a nurse something useful for the part of life that happens outside the workplace.",
       "bestFor": "A home cook who enjoys making meals for themselves or others.",

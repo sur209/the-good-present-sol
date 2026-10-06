@@ -46,6 +46,14 @@
   "recommendations": [
     {
       "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-1",
+      "shoppingOptions": [
+        {
+          "name": "Kraft Notecards and Envelopes",
+          "description": "Blank cards for writing a personal thank-you. Write the message before giving it; the product itself does not contain a handwritten note.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71h4sHX6HmL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0GHFWQRWP?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 1,
       "heading": "A Handwritten Thank-You Card",
@@ -96,6 +104,14 @@
     },
     {
       "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-3",
+      "shoppingOptions": [
+        {
+          "name": "Atlas Coffee Club Whole-Bean Sampler",
+          "description": "A coffee sampler with beans from different origins. This is the whole-bean version, so confirm that the recipient has a grinder.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61IXvH6YM2L._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B09GW99L8W?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 3,
       "heading": "A Coffee Tasting Set",
@@ -108,6 +124,14 @@
     },
     {
       "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-4",
+      "shoppingOptions": [
+        {
+          "name": "David's Cookies Mini Cookie Basket",
+          "description": "A basket of mini cookies to share. Review the flavors, allergen information, and delivery conditions on the listing.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91J8ydcdbdL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CW57NRTD?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 4,
       "heading": "A Shareable Cookie Assortment",
@@ -123,6 +147,14 @@
       "productResolution": "unresolved",
       "position": 5,
       "heading": "A Mulberry Silk Neck Scarf",
+      "shoppingOptions": [
+        {
+          "name": "PoeticEHome silk neck scarf",
+          "description": "A small square scarf with a patterned finish. Check the chosen print, dimensions, material and care instructions.",
+          "affiliateUrl": "https://www.amazon.com/dp/B08ZNQ6GT7?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71J75LW0TxL._AC_UL320_.jpg"
+        }
+      ],
       "editorialDescription": "A small silk scarf offers a polished thank-you that can be worn at the neck, tied to a bag, or kept for occasions outside work. Choosing a restrained pattern keeps the gesture personal without turning it into profession-themed merchandise.",
       "whyItFits": "It recognizes the mentor as a person beyond the workplace and feels more considered than a minor desk accessory.",
       "bestFor": "A mentor whose colors or accessory style you know reasonably well",
@@ -132,6 +164,14 @@
     },
     {
       "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-6",
+      "shoppingOptions": [
+        {
+          "name": "Costa Farms Money Tree",
+          "description": "A live money tree in a decorative pot. Check its shipped size, delivery area, and care requirements; photographs show an example plant.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61OsqnSZaSL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0F38Q9HY2?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 6,
       "heading": "A Small Desk Plant",
@@ -147,6 +187,14 @@
       "productResolution": "unresolved",
       "position": 7,
       "heading": "A Covered Ceramic Baking Dish",
+      "shoppingOptions": [
+        {
+          "name": "Artena covered ceramic baking dish",
+          "description": "A handled baking dish with a lid for oven-to-table meals. Check dimensions, weight and the separate care instructions for the dish and lid.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0FC62YFRY?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/61RWlG95AYL._AC_UL320_.jpg"
+        }
+      ],
       "editorialDescription": "A covered ceramic baking dish feels presentable enough for a thank-you while remaining useful for casseroles, baked pasta, or dishes shared with family. A neutral finish keeps the choice flexible.",
       "whyItFits": "It conveys generosity through a lasting home object without becoming overly personal or workplace-themed.",
       "bestFor": "A mentor who enjoys cooking, baking, or bringing food to gatherings",
@@ -156,6 +204,14 @@
     },
     {
       "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-8",
+      "shoppingOptions": [
+        {
+          "name": "Walnut Desk Pen Holder",
+          "description": "A wooden organizer with two compartments for pens and small desk items. Check the dimensions to see whether it fits the recipient's workspace.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71QtRXZkXWL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0D8RZCH4W?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 8,
       "heading": "A Neat Desk Organizer",
@@ -168,6 +224,14 @@
     },
     {
       "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-9",
+      "shoppingOptions": [
+        {
+          "name": "Popotop Photo Album",
+          "description": "A linen-cover album with pockets for 4 by 6 inch photographs. Add your own photographs and captions before giving it.",
+          "imageUrl": "https://m.media-amazon.com/images/I/710a1XchpeL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CGCWY7ZJ?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 9,
       "heading": "A Shared Memory Photo Book",
@@ -180,6 +244,14 @@
     },
     {
       "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-10",
+      "shoppingOptions": [
+        {
+          "name": "ExcelMark Custom Desk Nameplate",
+          "description": "A desk nameplate with custom text and color choices. Check the spelling, title, and mounting option before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81MBfQz7PvL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B08CDP1FKB?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 10,
       "heading": "An Engraved Desk Nameplate",
@@ -195,6 +267,14 @@
       "productResolution": "unresolved",
       "position": 11,
       "heading": "A Gourmet Oil and Vinegar Tasting Set",
+      "shoppingOptions": [
+        {
+          "name": "Blazing Bella oil and vinegar sampler",
+          "description": "A tasting set of flavored oils and balsamic vinegars. Check the flavors, ingredients and bottle sizes for the recipient's cooking preferences.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0842D7DZZ?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/61vLsfNoU5L._AC_UL320_.jpg"
+        }
+      ],
       "editorialDescription": "A gourmet oil and vinegar tasting set turns everyday meals into an opportunity to sample different flavor pairings. The bottles can be enjoyed at home, brought out for guests, or shared as part of a casual meal.",
       "whyItFits": "It feels polished while remaining non-clinical and shareable, making it suitable for thanking a preceptor or mentor with a thoughtful gesture.",
       "bestFor": "A home cook or host who enjoys experimenting with flavors.",
@@ -207,6 +287,14 @@
       "productResolution": "unresolved",
       "position": 12,
       "heading": "A Monogrammed Travel Document Wallet",
+      "shoppingOptions": [
+        {
+          "name": "Monogrammed passport cover and luggage-tag set",
+          "description": "A personalized travel-document set. Check passport fit, initials, material and production time; personalization should be reviewed before ordering.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0D7RKTRD9?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/81NTA148q9L._AC_UL320_.jpg"
+        }
+      ],
       "editorialDescription": "A monogrammed travel document wallet keeps passports, boarding documents, cards, and other essentials together for trips. The personalized detail gives a practical organizer a more considered feel.",
       "whyItFits": "It recognizes the recipient as a person beyond the workplace and offers a useful keepsake without relying on a profession-themed design.",
       "bestFor": "Someone who travels regularly or likes keeping important documents organized.",

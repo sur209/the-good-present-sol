@@ -5944,10 +5944,36 @@ test("crea, cumple y asigna una solicitud al slot exacto por HTTP", async (conte
   assert.ok(validateGuideDraft(assigned, catalog.read()).errors.length > 0);
 });
 
+async function clearFixtureShoppingOptions(repository: string): Promise<void> {
+  for (const guide of new ProductCatalog(repository).read().guides) {
+    for (const recommendation of guide.recommendations) {
+      delete recommendation.shoppingOptions;
+    }
+    await writeFile(
+      join(repository, "content", "guides", `${guide.id}.json`),
+      JSON.stringify(guide),
+    );
+  }
+}
+
 test("renderiza sólo destinos del catálogo y distingue enlaces afiliados", async (context) => {
   const repository = await mkdtemp(join(tmpdir(), "good-present-affiliate-build-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
   await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  await clearFixtureShoppingOptions(repository);
+  const optionsGuidePath = join(repository, "content", "guides", "guide_nurse-under-25.json");
+  const optionsGuide = new ProductCatalog(repository)
+    .read()
+    .guides.find(({ id }) => id === "guide_nurse-under-25")!;
+  optionsGuide.recommendations.find(({ id }) => id === "under-25_sleep-mask")!.shoppingOptions = [
+    {
+      name: "Fixture Sleep Mask",
+      description: "A concrete product option for this gift idea.",
+      imageUrl: "https://m.media-amazon.com/images/I/fixture.jpg",
+      affiliateUrl: "https://www.amazon.com/dp/B012345678?tag=thegoodpresen-20",
+    },
+  ];
+  await writeFile(optionsGuidePath, JSON.stringify(optionsGuide));
   const catalog = new ProductCatalog(repository);
   const ordinary = catalog.get("product_badge-reel");
   const { affiliateUrl: _ordinaryAffiliateUrl, ...ordinaryWithoutAffiliate } = ordinary;
@@ -6038,6 +6064,18 @@ test("renderiza sólo destinos del catálogo y distingue enlaces afiliados", asy
   const unavailableCard = card(under25, "Pocket Notes Set");
   assert.doesNotMatch(unavailableCard, /href=/);
 
+  const shoppingCard = card(under25, "Fixture Sleep Mask");
+  assert.match(shoppingCard, /B012345678\?tag=thegoodpresen-20/);
+  assert.match(shoppingCard, /shopping-options__thumbnail/);
+  assert.match(shoppingCard, /sponsored nofollow noopener/);
+  assert.doesNotMatch(shoppingCard, /example\.com|View demo|No merchant link available/);
+  const optionsReport = validateAffiliateOperations(new ProductCatalog(repository).read(), []);
+  assert.ok(
+    !optionsReport.coverage.some(
+      ({ destination }) => destination === "https://example.com/gifts/blackout-sleep-mask",
+    ),
+  );
+
   const staticFiles = await readdir(join(REPOSITORY_ROOT, "apps", "site", "dist"), {
     recursive: true,
   });
@@ -6097,6 +6135,7 @@ test("renderiza disclosure en guías con afiliados y lo omite sin enlaces afilia
   const repository = await mkdtemp(join(tmpdir(), "good-present-disclosure-build-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
   await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  await clearFixtureShoppingOptions(repository);
   const catalog = new ProductCatalog(repository);
   for (const productId of [
     "product_pocket-notebook",
@@ -8999,6 +9038,7 @@ test("monetiza una recomendación directamente sin Product ni trabajo de sourcin
   const repository = await mkdtemp(join(tmpdir(), "good-present-direct-affiliate-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
   await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  await clearFixtureShoppingOptions(repository);
   const store = new DraftStore(join(repository, "drafts"));
   const catalog = new ProductCatalog(repository);
   const publisher = new Publisher(repository);
@@ -9426,6 +9466,7 @@ test("publicar una guía y enlazarla desde su hub produce ambas páginas reales"
   const repository = await mkdtemp(join(tmpdir(), "good-present-publish-build-"));
   context.after(() => rm(repository, { recursive: true, force: true }));
   await cp(join(REPOSITORY_ROOT, "content"), join(repository, "content"), { recursive: true });
+  await clearFixtureShoppingOptions(repository);
   const publisher = new Publisher(repository);
   const initial = publisher.read();
   const selected = await selectedGuideDraft("guide_editorial-integration");

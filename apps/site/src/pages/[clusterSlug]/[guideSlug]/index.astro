@@ -57,6 +57,7 @@ const hasAffiliateLinks = recommendations.some(({ recommendation, product }) => 
   );
 });
 const hasDemoLinks = recommendations.some(({ recommendation, product }) => {
+  if (recommendation.shoppingOptions?.length) return false;
   const destination = recommendationDestination(recommendation, product);
   return destination ? new URL(destination).hostname === "example.com" : false;
 });

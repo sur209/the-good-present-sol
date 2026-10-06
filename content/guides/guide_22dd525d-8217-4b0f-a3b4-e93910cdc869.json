@@ -18,6 +18,22 @@
   "recommendations": [
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-1",
+      "shoppingOptions": [
+        {
+          "name": "Owala FreeSip 24 oz Water Bottle",
+          "description": "An insulated bottle with a built-in straw and a sip opening. Choose a color the recipient likes and check the size before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61Gvw0-b0eL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BZYCJK89?tag=thegoodpresen-20"
+        }
+      ],
+      "shoppingOptions": [
+        {
+          "name": "Owala FreeSip 24 oz Water Bottle",
+          "description": "An insulated bottle with a built-in straw and a sip opening. Choose a color the recipient likes and check the size before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61Gvw0-b0eL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BZYCJK89?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 1,
       "heading": "Insulated Bottle With Straw Lid",
@@ -30,6 +46,22 @@
     },
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-2",
+      "shoppingOptions": [
+        {
+          "name": "MIYCOO Insulated Lunch Bag",
+          "description": "A lunch bag for packed meals and snacks. Check the interior dimensions against the containers the recipient uses.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81jvwgZeusL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0C2YW1TCK?tag=thegoodpresen-20"
+        }
+      ],
+      "shoppingOptions": [
+        {
+          "name": "MIYCOO Insulated Lunch Bag",
+          "description": "A lunch bag for packed meals and snacks. Check the interior dimensions against the containers the recipient uses.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81jvwgZeusL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0C2YW1TCK?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 2,
       "heading": "Insulated Lunch Bag for Packed Days",
@@ -42,6 +74,22 @@
     },
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-3",
+      "shoppingOptions": [
+        {
+          "name": "BAGSMART Tote Bag",
+          "description": "A lightweight tote for everyday belongings. Check the dimensions, pockets, and laptop fit for the recipient's usual load.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61t4jBybtfL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0D3L6XCLG?tag=thegoodpresen-20"
+        }
+      ],
+      "shoppingOptions": [
+        {
+          "name": "BAGSMART Tote Bag",
+          "description": "A lightweight tote for everyday belongings. Check the dimensions, pockets, and laptop fit for the recipient's usual load.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61t4jBybtfL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0D3L6XCLG?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 3,
       "heading": "Roomy Tote for Class and Clinical",
@@ -54,6 +102,22 @@
     },
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-4",
+      "shoppingOptions": [
+        {
+          "name": "Nursing School Academic Planner",
+          "description": "A planner dated August 2026 through August 2027. Confirm that those dates match the recipient's course schedule.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51K1PE6xcML._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0H1PQG55F?tag=thegoodpresen-20"
+        }
+      ],
+      "shoppingOptions": [
+        {
+          "name": "Nursing School Academic Planner",
+          "description": "A planner dated August 2026 through August 2027. Confirm that those dates match the recipient's course schedule.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51K1PE6xcML._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0H1PQG55F?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 4,
       "heading": "Planner for Nursing School Deadlines",
@@ -69,6 +133,14 @@
       "productResolution": "unresolved",
       "position": 5,
       "heading": "A Premium Wireless Charging Dock",
+      "shoppingOptions": [
+        {
+          "name": "Belkin Qi2 charging dock",
+          "description": "A two-device dock to compare for a compatible iPhone and earbuds. Confirm the recipient's exact models and the included power adapter.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0FQT4XL3G?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/61cZrnRyaWL._AC_UY218_.jpg"
+        }
+      ],
       "editorialDescription": "A compact charging dock gives a crowded desk or nightstand one dependable place for daily devices. It is a polished upgrade that can simplify study nights without adding another clinical accessory.",
       "whyItFits": "It supports the student's real routine and feels more generous than another small item they would usually buy for themselves.",
       "bestFor": "A student balancing classes, clinical days, and a phone-heavy schedule",
@@ -78,6 +150,22 @@
     },
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-6",
+      "shoppingOptions": [
+        {
+          "name": "MNGARISTA Retractable Badge Holder",
+          "description": "A retractable badge holder with a carabiner attachment. Confirm that this attachment style is permitted where the recipient wears a badge.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61wNrPijnoL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B09GK2TSVB?tag=thegoodpresen-20"
+        }
+      ],
+      "shoppingOptions": [
+        {
+          "name": "MNGARISTA Retractable Badge Holder",
+          "description": "A retractable badge holder with a carabiner attachment. Confirm that this attachment style is permitted where the recipient wears a badge.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61wNrPijnoL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B09GK2TSVB?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 6,
       "heading": "Badge Reel and ID Holder",
@@ -90,6 +178,22 @@
     },
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-7",
+      "shoppingOptions": [
+        {
+          "name": "GOLDEN HOUR Nurse Watch",
+          "description": "A watch with a visible second hand and silicone strap. Review the dial, strap size, and workplace requirements before choosing it.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61FweFJvPyL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0C1MX2M97?tag=thegoodpresen-20"
+        }
+      ],
+      "shoppingOptions": [
+        {
+          "name": "GOLDEN HOUR Nurse Watch",
+          "description": "A watch with a visible second hand and silicone strap. Review the dial, strap size, and workplace requirements before choosing it.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61FweFJvPyL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0C1MX2M97?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 7,
       "heading": "Watch With a Clear Second Hand",
@@ -102,6 +206,22 @@
     },
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-8",
+      "shoppingOptions": [
+        {
+          "name": "Physix Gear Compression Socks",
+          "description": "Compression socks offered in different sizes and patterns. Choose the recipient's preferred fit and compression level rather than treating them as a universal choice.",
+          "imageUrl": "https://m.media-amazon.com/images/I/711vGxLodJL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B01J4MF53Q?tag=thegoodpresen-20"
+        }
+      ],
+      "shoppingOptions": [
+        {
+          "name": "Physix Gear Compression Socks",
+          "description": "Compression socks offered in different sizes and patterns. Choose the recipient's preferred fit and compression level rather than treating them as a universal choice.",
+          "imageUrl": "https://m.media-amazon.com/images/I/711vGxLodJL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B01J4MF53Q?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 8,
       "heading": "Compression Socks in Their Preferred Fit",
@@ -114,6 +234,22 @@
     },
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-9",
+      "shoppingOptions": [
+        {
+          "name": "Anker Nano Power Bank",
+          "description": "A portable battery for charging compatible devices away from an outlet. Check the connector, capacity, and charging requirements of the recipient's phone.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51J2B-9T-HL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0D45MSMJR?tag=thegoodpresen-20"
+        }
+      ],
+      "shoppingOptions": [
+        {
+          "name": "Anker Nano Power Bank",
+          "description": "A portable battery for charging compatible devices away from an outlet. Check the connector, capacity, and charging requirements of the recipient's phone.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51J2B-9T-HL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0D45MSMJR?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 9,
       "heading": "Portable Power Bank for Commute Days",
@@ -126,6 +262,22 @@
     },
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-10",
+      "shoppingOptions": [
+        {
+          "name": "Gritin Rechargeable Book Light",
+          "description": "A clip-on light for reading. Check its controls and charging connection; the recipient can choose the brightness that feels comfortable.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81n7M-T19NL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B08GG42WXY?tag=thegoodpresen-20"
+        }
+      ],
+      "shoppingOptions": [
+        {
+          "name": "Gritin Rechargeable Book Light",
+          "description": "A clip-on light for reading. Check its controls and charging connection; the recipient can choose the brightness that feels comfortable.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81n7M-T19NL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B08GG42WXY?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 10,
       "heading": "Rechargeable Book Light for Shared Spaces",
@@ -141,6 +293,14 @@
       "productResolution": "unresolved",
       "position": 11,
       "heading": "A Wooden Laptop Stand",
+      "shoppingOptions": [
+        {
+          "name": "NAMAII wooden laptop stand",
+          "description": "A walnut-finish stand for a desk-based laptop setup. Check laptop dimensions, typing position and whether a separate keyboard would be needed.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DB27PGF1?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/61ce1S4qF5L._AC_UY218_.jpg"
+        }
+      ],
       "editorialDescription": "A wooden laptop stand gives a study desk a more finished look while creating a dedicated place for the computer. It can help separate the screen from notebooks, reference materials, and other study supplies.",
       "whyItFits": "It is useful during lectures, assignments, and review sessions while still feeling like a considered addition to a personal space.",
       "bestFor": "A nursing student building a more comfortable study setup",
@@ -150,6 +310,22 @@
     },
     {
       "id": "review_47359910-2ce9-4516-b9a1-62af5a3b4de6",
+      "shoppingOptions": [
+        {
+          "name": "CAROTE Cookware Set with Detachable Handles",
+          "description": "A nesting cookware set with detachable handles. Review the included pans, stove compatibility, and care instructions before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/715Enc++7PL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CNKJ1ZG1?tag=thegoodpresen-20"
+        }
+      ],
+      "shoppingOptions": [
+        {
+          "name": "CAROTE Cookware Set with Detachable Handles",
+          "description": "A nesting cookware set with detachable handles. Review the included pans, stove compatibility, and care instructions before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/715Enc++7PL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CNKJ1ZG1?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 12,
       "heading": "A Nesting Saucepan and Frying-Pan Set",

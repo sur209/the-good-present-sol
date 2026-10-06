@@ -501,9 +501,15 @@ export function validateAffiliateOperations(
         continue;
       }
 
+      const destination = productDestination(product);
+      if (
+        recommendation.shoppingOptions?.length &&
+        destination &&
+        new URL(destination).hostname === "example.com"
+      )
+        continue;
       inspectUrl(product.productUrl, context, "productUrl", findings);
       const affiliateUrl = inspectUrl(product.affiliateUrl, context, "affiliateUrl", findings);
-      const destination = productDestination(product);
       const affiliateIsDestination = Boolean(
         destination && affiliateUrl && product.affiliateUrl && destination === product.affiliateUrl,
       );

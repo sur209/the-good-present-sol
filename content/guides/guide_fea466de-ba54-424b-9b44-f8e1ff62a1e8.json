@@ -18,6 +18,14 @@
   "recommendations": [
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-1",
+      "shoppingOptions": [
+        {
+          "name": "EverFoams Slipper Boots",
+          "description": "Slipper boots with a soft warm lining. Review the material, size chart, and care instructions to match the recipient's preferences.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81bVmFu1lKL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BJZGD8SD?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 1,
       "heading": "Fleece-Lined Slippers",
@@ -30,6 +38,14 @@
     },
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-2",
+      "shoppingOptions": [
+        {
+          "name": "Gourmet Nut Gift Basket",
+          "description": "A packaged assortment of sweet, salted, and roasted nuts. Review the contents and allergen information before giving it.",
+          "imageUrl": "https://m.media-amazon.com/images/I/919ORz0v6IL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B08X94JGJ1?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 2,
       "heading": "Gourmet Snack Basket",
@@ -42,6 +58,14 @@
     },
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-3",
+      "shoppingOptions": [
+        {
+          "name": "Bamboo Cheese Board Set",
+          "description": "A bamboo serving board with accessories. Check the board's dimensions and cleaning instructions before choosing it for the recipient's kitchen.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81Ms6RgWvqL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B01DTFF0Y8?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 3,
       "heading": "Wooden Serving Board",
@@ -54,6 +78,14 @@
     },
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-4",
+      "shoppingOptions": [
+        {
+          "name": "Crown Awards Engraved Photo Frame",
+          "description": "A personalized frame for a 5 by 7 inch photograph. Check the engraving text and orientation, and add your own photo before giving it.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71lmovvGHsL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07PH2TYM1?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 4,
       "heading": "Personalized Photo Frame",
@@ -66,6 +98,14 @@
     },
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-5",
+      "shoppingOptions": [
+        {
+          "name": "FANCIME Birthstone Necklace",
+          "description": "A necklace with birthstone choices. Select the correct month, check the metal and chain length, and review any sensitivities.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61MMQO47mCL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0D46PMRBX?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 5,
       "heading": "Birthstone Necklace",
@@ -78,6 +118,14 @@
     },
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-6",
+      "shoppingOptions": [
+        {
+          "name": "Microwavable Neck Wrap",
+          "description": "A wrap intended to be warmed in a microwave. Follow the seller's heating and care instructions; this is not a medical treatment.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61YW8oWEcpL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B08NTPB49D?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 6,
       "heading": "Microwavable Heat Wrap",
@@ -90,6 +138,14 @@
     },
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-7",
+      "shoppingOptions": [
+        {
+          "name": "Scented Candle Gift Set",
+          "description": "A boxed set of scented candles. Choose scents the recipient likes, check the ingredients, and follow the safety instructions.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61MM5C2ZV2L._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07XDJ7Y6M?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 7,
       "heading": "Scented Candle Gift Set",
@@ -105,6 +161,14 @@
       "productResolution": "unresolved",
       "position": 8,
       "heading": "A Luxury Silk Sleep Mask",
+      "shoppingOptions": [
+        {
+          "name": "ZIMASILK adjustable silk sleep mask",
+          "description": "An adjustable eye mask to compare for a comfortable fit. Check material, fastening and care instructions; light blocking depends on facial fit.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BWQRXFGJ?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71+GI8ZDWdL._AC_UL320_.jpg"
+        }
+      ],
       "editorialDescription": "A well-made silk sleep mask is small enough for a stocking but polished enough to feel like a real present. It can make travel, naps, or an early night more comfortable without adding a complicated routine.",
       "whyItFits": "It is festive, easy to wrap, and gives the recipient a reusable comfort rather than another scheduled obligation.",
       "bestFor": "Someone who travels, sleeps off schedule, or enjoys upgraded everyday basics",
@@ -114,6 +178,14 @@
     },
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-9",
+      "shoppingOptions": [
+        {
+          "name": "ESTROSO Wooden Trout Puzzle",
+          "description": "A 300-piece wooden jigsaw puzzle with shaped pieces and a gift box. Check the finished size and difficulty for the recipient.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91mJjhU6riL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DSBFF9YC?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 9,
       "heading": "Adult Jigsaw Puzzle",
@@ -126,6 +198,14 @@
     },
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-10",
+      "shoppingOptions": [
+        {
+          "name": "Merino Wool Tartan Scarf",
+          "description": "A wool tartan scarf in a gift box. Check the fiber information, dimensions, and care instructions before choosing a color.",
+          "imageUrl": "https://m.media-amazon.com/images/I/716mXOLdv6L._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B09BCQWLGJ?tag=thegoodpresen-20"
+        }
+      ],
       "productResolution": "unresolved",
       "position": 10,
       "heading": "Wool Scarf",
@@ -141,6 +221,14 @@
       "productResolution": "unresolved",
       "position": 11,
       "heading": "Rechargeable Hand Warmers",
+      "shoppingOptions": [
+        {
+          "name": "Rechargeable hand-warmer pair",
+          "description": "A rechargeable pair for cold-weather outings. Compare size, controls and charging needs, and follow the heat-safety instructions.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CDPTWT1M?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71FW3ew-iBL._AC_UL320_.jpg"
+        }
+      ],
       "editorialDescription": "Rechargeable hand warmers are easy to tuck into a coat pocket or bag for commutes, outdoor plans, and chilly pauses between activities. They offer a small seasonal comfort that can be shared or kept as part of a winter routine.",
       "whyItFits": "They suit a holiday gift exchange while still feeling thoughtful for someone whose schedule includes early starts or time outdoors.",
       "bestFor": "A winter commuter or anyone who spends part of the day outside.",
@@ -153,6 +241,14 @@
       "productResolution": "unresolved",
       "position": 12,
       "heading": "Premium Wireless Earbuds",
+      "shoppingOptions": [
+        {
+          "name": "JBL Tune Buds",
+          "description": "A noise-cancelling earbud model to compare for everyday listening. Confirm fit, phone compatibility and the return policy.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0C1QWWZR4?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/51EZig0rEAL._AC_UY218_.jpg"
+        }
+      ],
       "editorialDescription": "Wireless earbuds can make commutes, walks, podcasts, and quiet downtime easier to fit into a busy week. Their compact format keeps personal entertainment close without adding much to a bag.",
       "whyItFits": "They feel substantial enough for a personal holiday gift while supporting the recipient’s own ways of relaxing between obligations.",
       "bestFor": "Someone who listens to music, podcasts, or audiobooks throughout the day.",

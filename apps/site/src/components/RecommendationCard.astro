@@ -93,7 +93,7 @@ const accent = `recommendation--accent-${((recommendation.position - 1) % 4) + 1
       )
     }
     {
-      destination ? (
+      destination && !(isDemo && recommendation.shoppingOptions?.length) ? (
         <div class="recommendation__commerce">
           <a
             class="button button--small"
