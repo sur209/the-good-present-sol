@@ -36,7 +36,7 @@
   "seoDescription": "Shop thoughtful gifts for male nurses with individual taste in mind, from everyday usefulness and off-shift comfort to personal meaning.",
   "status": "published",
   "publishedAt": "2026-09-20",
-  "updatedAt": "2026-10-05",
+  "updatedAt": "2026-10-08",
   "recommendations": [
     {
       "id": "review_10e59e75-a15e-4483-a705-ab27e98325ea",
@@ -91,6 +91,34 @@
           "affiliateUrl": "https://www.amazon.com/dp/B09TQC7CYZ?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/61QSuXJxLzL._AC_UL320_.jpg",
           "sources": ["serpapi"]
+        },
+        {
+          "name": "BOB AND BRAD Q2 Pro Mini Massager",
+          "description": "A handheld percussion massager for someone who already enjoys this kind of relaxation accessory. Compare size, attachments, noise, and the manufacturer's use restrictions; it is not a medical treatment.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0D16W8531?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71iVIfcJKDL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "BOB AND BRAD Q2 Mini Massager",
+          "description": "A handheld percussion massager for someone who already enjoys this kind of relaxation accessory. Compare size, attachments, noise, and the manufacturer's use restrictions; it is not a medical treatment.",
+          "affiliateUrl": "https://www.amazon.com/dp/B08M8YSFC7?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71rl7e88AJL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Arboleaf Mini Massage Gun",
+          "description": "A handheld percussion massager for someone who already enjoys this kind of relaxation accessory. Compare size, attachments, noise, and the manufacturer's use restrictions; it is not a medical treatment.",
+          "affiliateUrl": "https://www.amazon.com/dp/B09NZ72B5X?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/61WjiYZOCnL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "TOLOCO Massage Gun",
+          "description": "A handheld percussion massager for someone who already enjoys this kind of relaxation accessory. Compare size, attachments, noise, and the manufacturer's use restrictions; it is not a medical treatment.",
+          "affiliateUrl": "https://www.amazon.com/dp/B083L8RNJR?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Jot9nj6qL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A compact percussion massager is easy to keep near a sofa, desk, or gym bag for brief off-duty use. A small model feels substantial as a gift without taking over a shelf or requiring a complicated setup.",
@@ -108,6 +136,62 @@
           "description": "A coffee sampler with beans from different origins. This is the whole-bean version, so confirm that the recipient has a grinder.",
           "imageUrl": "https://m.media-amazon.com/images/I/61IXvH6YM2L._AC_UL320_.jpg",
           "affiliateUrl": "https://www.amazon.com/dp/B09GW99L8W?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Four-Bag Gourmet Whole-Bean Coffee Sampler",
+          "description": "A giftable assortment of whole-bean coffees with varied origins and roast profiles. Before buying, verify that the recipient has a grinder and a brewing method suited to whole beans.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BV2GXHDG?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71zldH22lPL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Ground Coffee Tasting Box",
+          "description": "A multi-bag sampler of ground coffees featuring Brazilian, Kenyan, and Ethiopian profiles, with espresso-oriented options. Before buying, verify the grind is suitable for the recipient’s brewer or espresso machine.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BV798MJT?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71An954WTrL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "World Origins K-Cup Coffee Sampler",
+          "description": "A large assortment inspired by coffee origins including Colombia, Ethiopia, Kenya, and Costa Rica, with medium and dark roasts. Before buying, verify that the recipient’s machine accepts compatible K-Cup pods.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0H9V7ZZZ6?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/914-9D1TGpL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Bit of Everything Single-Serve Coffee Sampler",
+          "description": "A broad assortment of single-serve coffees for trying different flavors and styles. Before buying, verify compatibility with the recipient’s K-Cup or Keurig brewer.",
+          "affiliateUrl": "https://www.amazon.com/dp/B00N0JHZ6A?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/A1Nq1PwAjiL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Nespresso Vertuo Intense Roast Variety Pack",
+          "description": "A selection of intense dark-roast coffee pods for Nespresso Vertuo machines. Before buying, verify that the recipient owns a Vertuo system rather than an Original Line machine.",
+          "affiliateUrl": "https://www.amazon.com/dp/B01N011V5A?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71vhbkrErFL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Hawaiian Paradise Three-Bag Coffee Gift Box",
+          "description": "A gift box containing three flavored coffee bags, including crème brûlée, peppermint mocha, and a medium roast. Before buying, verify whether the recipient prefers whole coffee, ground coffee, or another preparation format, since the title does not specify it.",
+          "affiliateUrl": "https://www.amazon.com/dp/B09M6D5D27?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71TObn44MLL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Forty-Count Flavored K-Cup Sampler",
+          "description": "A large assortment of flavored coffee pods for Keurig K-Cup brewers. Before buying, verify that the recipient’s machine accepts the listed K-Cup format and that flavored coffees suit their preferences.",
+          "affiliateUrl": "https://www.amazon.com/dp/B01N1A4MMW?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/911rPyFyYWL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Decaffeinated Flavored Coffee Pod Sampler",
+          "description": "An assortment of flavored decaffeinated coffee pods intended for Keurig K-Cup brewers. Before buying, verify K-Cup compatibility and whether decaffeinated coffee matches the recipient’s routine.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BDB65Z6B?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/910veI8FSTL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"]
         }
       ],
       "productResolution": "unresolved",
@@ -169,6 +253,34 @@
           "description": "A charging stand for compatible Apple devices. Check the exact phone, watch, and earbuds models supported before ordering.",
           "imageUrl": "https://m.media-amazon.com/images/I/71jeB93YWmL._AC_UL320_.jpg",
           "affiliateUrl": "https://www.amazon.com/dp/B0BFCC18FS?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Anker Prime Foldable Charging Dock",
+          "description": "A charging station to keep compatible devices together. Confirm the exact phone, watch, and earbud models supported, and whether the required power adapter is included.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0FHWK3W1S?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/610vBZrBPQL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Charging Station with Clock and Night Light",
+          "description": "A charging station to keep compatible devices together. Confirm the exact phone, watch, and earbud models supported, and whether the required power adapter is included.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0GVNGLVCB?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/81A+-WnjKoL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Foldable Three-Device Charging Station",
+          "description": "A charging station to keep compatible devices together. Confirm the exact phone, watch, and earbud models supported, and whether the required power adapter is included.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BQBNLCHY?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/617hyCMPr+L._AC_UY218_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Anlmz Three-Device Charging Station",
+          "description": "A charging station to keep compatible devices together. Confirm the exact phone, watch, and earbud models supported, and whether the required power adapter is included.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BF9TYJWR?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71BqMZSnhjL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "productResolution": "unresolved",

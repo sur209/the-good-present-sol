@@ -14,7 +14,7 @@
   "seoDescription": "Explore thoughtful gift ideas for nursing students and practical selection tips for school, clinical rotations, studying, commuting, and encouragement.",
   "status": "published",
   "publishedAt": "2026-09-19",
-  "updatedAt": "2026-09-29",
+  "updatedAt": "2026-10-08",
   "recommendations": [
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-1",
@@ -107,6 +107,34 @@
           "description": "A two-device dock to compare for a compatible iPhone and earbuds. Confirm the recipient's exact models and the included power adapter.",
           "affiliateUrl": "https://www.amazon.com/dp/B0FQT4XL3G?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/61cZrnRyaWL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Anker Prime Foldable Charging Dock",
+          "description": "A charging station to keep compatible devices together. Confirm the exact phone, watch, and earbud models supported, and whether the required power adapter is included.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0FHWK3W1S?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/610vBZrBPQL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Charging Station with Clock and Night Light",
+          "description": "A charging station to keep compatible devices together. Confirm the exact phone, watch, and earbud models supported, and whether the required power adapter is included.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0GVNGLVCB?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/81A+-WnjKoL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Foldable Three-Device Charging Station",
+          "description": "A charging station to keep compatible devices together. Confirm the exact phone, watch, and earbud models supported, and whether the required power adapter is included.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BQBNLCHY?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/617hyCMPr+L._AC_UY218_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Anlmz Three-Device Charging Station",
+          "description": "A charging station to keep compatible devices together. Confirm the exact phone, watch, and earbud models supported, and whether the required power adapter is included.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BF9TYJWR?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71BqMZSnhjL._AC_UY218_.jpg",
           "sources": ["serpapi"]
         }
       ],
@@ -234,6 +262,41 @@
           "description": "A seven-LED clip light with adjustable color and brightness settings. Compare the controls, clip size and charging requirements with the recipient’s reading setup.",
           "imageUrl": "https://m.media-amazon.com/images/I/51tsHAqMiuL._AC_UL480_FMwebp_QL65_.jpg",
           "affiliateUrl": "https://www.amazon.com/dp/B0BCVLYTHN?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Vekkia 14-LED Book Light",
+          "description": "A rechargeable light for reading without lighting the whole room. Compare its shape, attachment, charging connection, and brightness controls for the way they read.",
+          "affiliateUrl": "https://www.amazon.com/dp/B083W1SDK1?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/61AsoJ+vDmL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Glocusent Rechargeable Neck Light",
+          "description": "A rechargeable light for reading without lighting the whole room. Compare its shape, attachment, charging connection, and brightness controls for the way they read.",
+          "affiliateUrl": "https://www.amazon.com/dp/B07WNRN9WQ?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/614xoTCz--L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Hooga Amber Clip-On Book Light",
+          "description": "A rechargeable light for reading without lighting the whole room. Compare its shape, attachment, charging connection, and brightness controls for the way they read.",
+          "affiliateUrl": "https://www.amazon.com/dp/B07Q87WJ7M?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/61+ivGFcB7L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Energizer Flex-R Book Light",
+          "description": "A rechargeable light for reading without lighting the whole room. Compare its shape, attachment, charging connection, and brightness controls for the way they read.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DD7X659T?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/610CGBAiSUL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Mighty Bright WonderFlex Book Light",
+          "description": "A flexible rechargeable book light with adjustable brightness. Check its clip, charging connection, and reach against the books they use.",
+          "affiliateUrl": "https://www.amazon.com/dp/1681800373?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/41B-gOtY5YL._AC_UL480_FMwebp_QL65_.jpg",
           "sources": ["amazon-agent"]
         }
       ],

@@ -23,8 +23,14 @@ for (const guide of guides) {
   assert.ok(html.includes('href="https://thegoodpresent.com' + path + '"'), path + ": canonical");
   assert.ok(html.includes("application/ld+json"), path + ": structured data");
   assert.ok(!/noindex|LOCAL DESIGN PREVIEW/.test(html), path + ": indexable");
+  assert.ok(!html.includes("See this gift in "), path + ": contextual internal links");
   for (const idea of guide.recommendations) {
     assert.ok(html.includes('id="pick-' + idea.position + '"'), path + ": anchor");
+    const productIds = (idea.shoppingOptions ?? []).map(
+      ({ affiliateUrl }) => affiliateUrl.match(/\/dp\/([A-Z0-9]{10})/i)?.[1],
+    );
+    assert.ok(productIds.length <= 10, path + ": at most ten products per idea");
+    assert.equal(new Set(productIds).size, productIds.length, path + ": unique products per idea");
     for (const option of idea.shoppingOptions ?? []) {
       for (const source of option.sources ?? []) {
         assert.ok(

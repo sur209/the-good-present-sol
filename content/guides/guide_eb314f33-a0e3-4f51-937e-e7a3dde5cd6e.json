@@ -14,7 +14,7 @@
   "seoDescription": "Find thoughtful gift ideas for a new nurse entering their first professional role. This guide focuses on practical support for new routines, rest, meals, and home comfort.",
   "status": "published",
   "publishedAt": "2026-09-19",
-  "updatedAt": "2026-09-29",
+  "updatedAt": "2026-10-08",
   "recommendations": [
     {
       "id": "guide_eb314f33-a0e3-4f51-937e-e7a3dde5cd6e_slot-1",
@@ -67,6 +67,20 @@
           "description": "A lightweight long knit robe for home. Check the size chart, fabric composition and length instead of relying on the usual clothing size.",
           "affiliateUrl": "https://www.amazon.com/dp/B0DC99ZTY7?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/5115gW+uTjL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Cotton Gauze Kimono Robe",
+          "description": "A robe for unhurried mornings and evenings at home. Check the size chart, fabric, length, and care instructions.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0FPBG3BBQ?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71dDfNlX9SL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Full-Length Lounge Bathrobe",
+          "description": "A robe for unhurried mornings and evenings at home. Check the size chart, fabric, length, and care instructions.",
+          "affiliateUrl": "https://www.amazon.com/dp/B07F8HXKHC?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71E8I-95NjL._AC_UL320_.jpg",
           "sources": ["serpapi"]
         }
       ],

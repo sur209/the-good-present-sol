@@ -260,9 +260,7 @@ const hasAffiliateLinks =
                         <div class="useful-links">
                           {relatedIdeas(guide, idea, guides).map((match) => (
                             <p>
-                              <a href={`${href(match.guide)}#pick-${match.position}`}>
-                                See this gift in {match.guide.title} →
-                              </a>
+                              <a href={href(match.guide)}>{match.label} →</a>
                             </p>
                           ))}
                           {informationalLinks(label(idea)).map((resource) => (

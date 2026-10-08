@@ -42,7 +42,7 @@
   "seoDescription": "Thoughtful, workplace-appropriate appreciation ideas for nurse preceptors and mentors after orientation, clinical placement, graduation, or a first nursing job.",
   "status": "published",
   "publishedAt": "2026-09-20",
-  "updatedAt": "2026-10-05",
+  "updatedAt": "2026-10-08",
   "recommendations": [
     {
       "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-1",
@@ -97,6 +97,34 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0D5MFLFM2?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71PzTq29oSL._AC_UL320_.jpg",
           "sources": ["serpapi"]
+        },
+        {
+          "name": "Tea Forte 20-Infuser Tea Sampler",
+          "description": "A selection of teas to explore at home. Check the blend list, caffeine content, and brewing format against their preferences.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0GM1CNL5R?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71aeDlPeNqL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Tea Forte 40-Infuser Tea Sampler",
+          "description": "A selection of teas to explore at home. Check the blend list, caffeine content, and brewing format against their preferences.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0GKJ1P4RT?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71p+3gxdmhL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Stash Assorted Tea Bags",
+          "description": "A selection of teas to explore at home. Check the blend list, caffeine content, and brewing format against their preferences.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0F4F3TL1X?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/91AyTh1CQmL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Loose-Leaf Tea and Infuser Cup Set",
+          "description": "A selection of teas to explore at home. Check the blend list, caffeine content, and brewing format against their preferences.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0F3PLV59Y?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/91xM1hj2mKL._AC_UL320_.jpg",
+          "sources": ["serpapi", "amazon-agent"]
         }
       ],
       "editorialDescription": "A well-presented tea assortment offers several quiet breaks rather than one more object to display. Pair it with a specific thank-you note so the appreciation remains personal even after the tea is gone.",
@@ -142,6 +170,34 @@
           "imageUrl": "https://m.media-amazon.com/images/I/910veI8FSTL._AC_UL480_FMwebp_QL65_.jpg",
           "affiliateUrl": "https://www.amazon.com/dp/B0BDB65Z6B?tag=thegoodpresen-20",
           "sources": ["amazon-agent"]
+        },
+        {
+          "name": "World Origins K-Cup Coffee Sampler",
+          "description": "A large assortment inspired by coffee origins including Colombia, Ethiopia, Kenya, and Costa Rica, with medium and dark roasts. Before buying, verify that the recipient’s machine accepts compatible K-Cup pods.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0H9V7ZZZ6?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/914-9D1TGpL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Bit of Everything Single-Serve Coffee Sampler",
+          "description": "A broad assortment of single-serve coffees for trying different flavors and styles. Before buying, verify compatibility with the recipient’s K-Cup or Keurig brewer.",
+          "affiliateUrl": "https://www.amazon.com/dp/B00N0JHZ6A?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/A1Nq1PwAjiL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Hawaiian Paradise Three-Bag Coffee Gift Box",
+          "description": "A gift box containing three flavored coffee bags, including crème brûlée, peppermint mocha, and a medium roast. Before buying, verify whether the recipient prefers whole coffee, ground coffee, or another preparation format, since the title does not specify it.",
+          "affiliateUrl": "https://www.amazon.com/dp/B09M6D5D27?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71TObn44MLL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Forty-Count Flavored K-Cup Sampler",
+          "description": "A large assortment of flavored coffee pods for Keurig K-Cup brewers. Before buying, verify that the recipient’s machine accepts the listed K-Cup format and that flavored coffees suit their preferences.",
+          "affiliateUrl": "https://www.amazon.com/dp/B01N1A4MMW?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/911rPyFyYWL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"]
         }
       ],
       "productResolution": "unresolved",
@@ -185,6 +241,13 @@
           "description": "A small square scarf with a patterned finish. Check the chosen print, dimensions, material and care instructions.",
           "affiliateUrl": "https://www.amazon.com/dp/B08ZNQ6GT7?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71J75LW0TxL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Square Mulberry Silk Scarf",
+          "description": "A silk scarf that can add color to an everyday outfit. Check the dimensions, pattern, fabric details, and care instructions.",
+          "affiliateUrl": "https://www.amazon.com/dp/B07V3KXMGP?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/61jhvJcIkbS._AC_UL320_.jpg",
           "sources": ["serpapi"]
         }
       ],

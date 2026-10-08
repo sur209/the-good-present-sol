@@ -21,7 +21,7 @@
   "seoDescription": "Useful gifts for a nurse's everyday life outside work, from kitchen upgrades to comfortable spaces at home.",
   "status": "published",
   "publishedAt": "2026-08-03",
-  "updatedAt": "2026-10-05",
+  "updatedAt": "2026-10-08",
   "recommendations": [
     {
       "id": "review_c05c936a-c844-49d3-8f82-1671182be9a8",
@@ -34,6 +34,34 @@
           "description": "A compact percussion model for someone who already enjoys recovery tools. Compare weight, controls and attachments; follow the manufacturer's safety guidance.",
           "affiliateUrl": "https://www.amazon.com/dp/B0D16W8531?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71iVIfcJKDL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "BOB AND BRAD Q2 Mini Massager",
+          "description": "A handheld percussion massager for someone who already enjoys this kind of relaxation accessory. Compare size, attachments, noise, and the manufacturer's use restrictions; it is not a medical treatment.",
+          "affiliateUrl": "https://www.amazon.com/dp/B08M8YSFC7?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71rl7e88AJL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "AERLANG Mini Massage Gun",
+          "description": "A handheld percussion massager for someone who already enjoys this kind of relaxation accessory. Compare size, attachments, noise, and the manufacturer's use restrictions; it is not a medical treatment.",
+          "affiliateUrl": "https://www.amazon.com/dp/B09TQC7CYZ?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/61QSuXJxLzL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Arboleaf Mini Massage Gun",
+          "description": "A handheld percussion massager for someone who already enjoys this kind of relaxation accessory. Compare size, attachments, noise, and the manufacturer's use restrictions; it is not a medical treatment.",
+          "affiliateUrl": "https://www.amazon.com/dp/B09NZ72B5X?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/61WjiYZOCnL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "TOLOCO Massage Gun",
+          "description": "A handheld percussion massager for someone who already enjoys this kind of relaxation accessory. Compare size, attachments, noise, and the manufacturer's use restrictions; it is not a medical treatment.",
+          "affiliateUrl": "https://www.amazon.com/dp/B083L8RNJR?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Jot9nj6qL._AC_UL320_.jpg",
           "sources": ["serpapi"]
         }
       ],
@@ -76,6 +104,13 @@
           "description": "A different Soundcore model to consider alongside the A40. Compare case design and controls rather than assuming the two are interchangeable.",
           "affiliateUrl": "https://www.amazon.com/dp/B0CRTYZG5C?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/51HbL1WS+KL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "JBL Tune Buds",
+          "description": "Wireless earbuds for music and everyday listening. Compare fit, device compatibility, charging case, and listening controls before choosing.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0C1QWWZR4?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/51EZig0rEAL._AC_UY218_.jpg",
           "sources": ["serpapi"]
         }
       ],

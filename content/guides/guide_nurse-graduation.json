@@ -22,7 +22,7 @@
   "seoDescription": "Celebrate a new nurse with twelve useful, thoughtful graduation gifts chosen for the milestone and the next chapter.",
   "status": "published",
   "publishedAt": "2026-08-02",
-  "updatedAt": "2026-09-29",
+  "updatedAt": "2026-10-08",
   "recommendations": [
     {
       "id": "graduation_shift-tote",
@@ -216,6 +216,13 @@
           "description": "A 45-half-pan set for painting at a table or studio. Compare the palette with the recipient's paints and check whether brushes and paper are needed.",
           "affiliateUrl": "https://www.amazon.com/dp/B000XYHYI4?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71jMSPsMwJS._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "ARTISTRO Bamboo-Box Watercolor Set",
+          "description": "A watercolor set for a home painting space. Compare the palette, included tools, and whether the recipient already has suitable paper and brushes.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CFLXPZS5?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/81PnmR50t+L._AC_UL320_.jpg",
           "sources": ["serpapi"]
         }
       ],

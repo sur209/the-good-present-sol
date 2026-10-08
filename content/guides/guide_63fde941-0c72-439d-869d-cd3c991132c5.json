@@ -23,7 +23,7 @@
   "seoDescription": "Find thoughtful gift ideas for nurses who work overnight, shaped around daytime routines, commuting, meals, home comfort, and quiet time off.",
   "status": "published",
   "publishedAt": "2026-09-20",
-  "updatedAt": "2026-09-29",
+  "updatedAt": "2026-10-08",
   "recommendations": [
     {
       "id": "serp_9fca8240_da6a_4453_9aaa_7d114d35955f",
@@ -222,6 +222,20 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0CFLXPZS5?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/81PnmR50t+L._AC_UL320_.jpg",
           "sources": ["serpapi"]
+        },
+        {
+          "name": "Fuumuui Travel Watercolor Kit",
+          "description": "A compact watercolor set for painting away from a full studio. Check which brushes, paper, and mixing surfaces are included.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0G5191G5F?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/719+9a9v2nL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Winsor & Newton Cotman Field Set",
+          "description": "A compact watercolor set for painting away from a full studio. Check which brushes, paper, and mixing surfaces are included.",
+          "affiliateUrl": "https://www.amazon.com/dp/B000N9B3WM?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71-1LAWLicL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A compact watercolor set creates an easy invitation to make something on a quiet day off. A small palette, a couple of good brushes, and a travel pad are enough to begin without turning the gift into a major new commitment.",
@@ -264,6 +278,20 @@
           "imageUrl": "https://m.media-amazon.com/images/I/61ZGpdDamjL._AC_UL480_FMwebp_QL65_.jpg",
           "affiliateUrl": "https://www.amazon.com/dp/B0B1MLVMY5?tag=thegoodpresen-20",
           "sources": ["amazon-agent"]
+        },
+        {
+          "name": "1.7 L Temperature-Control Kettle",
+          "description": "A 1.7 L electric kettle with temperature control and 1500 W power. Verify the available temperature settings, voltage, and machine compatibility before buying.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0H3P2Q4SL?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Mm9BgufmL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "1 L Seven-Setting Kettle",
+          "description": "A 1 L electric kettle with 1200 W power, seven temperature settings, and a four-hour keep-warm function. Verify voltage, control layout, and machine compatibility before buying.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0H93JQXWF?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/61HdrCr5OUL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"]
         }
       ],
       "editorialDescription": "A temperature-control electric kettle makes it easy to prepare tea, cocoa, or another favorite hot drink at home. It can become part of a quiet daytime wind-down or a convenient break before heading to work.",
@@ -284,6 +312,27 @@
           "description": "A tea assortment to explore different flavors. Check the included blends, caffeine content and ingredients for the recipient's preferences.",
           "affiliateUrl": "https://www.amazon.com/dp/B0F4F3TL1X?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/91AyTh1CQmL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Tea Forte Tea Sampler",
+          "description": "An assortment for trying different teas without loose-leaf equipment. Check the ingredient list and caffeine content before choosing.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0GM1CNL5R?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71aeDlPeNqL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Pukka Herbal Tea Bags",
+          "description": "An assortment for trying different teas without loose-leaf equipment. Check the ingredient list and caffeine content before choosing.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0D5MFLFM2?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71PzTq29oSL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Stash Herbal Tea Assortment",
+          "description": "An assortment for trying different teas without loose-leaf equipment. Check the ingredient list and caffeine content before choosing.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CP8FZJ14?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Nl3T7CYlL._AC_UL320_.jpg",
           "sources": ["serpapi"]
         }
       ],

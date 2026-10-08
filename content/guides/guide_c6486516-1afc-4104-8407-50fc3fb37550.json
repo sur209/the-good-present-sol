@@ -41,7 +41,7 @@
   "seoDescription": "Find thoughtful gifts for female nurses that respect personal taste and fit workday routines, off-shift interests, home life, and meaningful occasions.",
   "status": "published",
   "publishedAt": "2026-09-20",
-  "updatedAt": "2026-09-29",
+  "updatedAt": "2026-10-08",
   "recommendations": [
     {
       "id": "review_6f7b505a-2e7f-401f-bcde-c7c2fc1b131e",
@@ -278,6 +278,41 @@
           "imageUrl": "https://m.media-amazon.com/images/I/81qN40t17WL._AC_UL480_FMwebp_QL65_.jpg",
           "affiliateUrl": "https://www.amazon.com/dp/B0CYZ9PKYM?tag=thegoodpresen-20",
           "sources": ["amazon-agent"]
+        },
+        {
+          "name": "VLANDO Six-Layer Jewelry Organizer",
+          "description": "A large six-layer jewelry box with removable dividers for organizing necklaces, earrings, bracelets, and rings. Verify the dimensions, divider arrangement, and available space before buying.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0D4C4SG8W?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71vLG9hleVL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "AKOZLIN Six-Level Jewelry Organizer",
+          "description": "A six-level jewelry organizer with five drawers for keeping different accessories separated. Verify the dimensions, drawer capacity, and compatibility with the intended dresser or vanity before buying.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BRCFFSNK?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/81hHlKxD4HL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "BOOVO Six-Layer Jewelry Box",
+          "description": "A large six-layer jewelry box designed for necklaces, bracelets, earrings, and rings. Verify the compartment arrangement, dimensions, and available space before buying.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CPBF3V94?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/51jP7sbc48L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Dajasan Six-Level Jewelry Box",
+          "description": "A six-level jewelry storage box with five drawers, double doors, and a mirror. Verify the organizer’s dimensions, door clearance, and compatibility with the intended placement area before buying.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0F6651HCG?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/811BPZpqwUL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "AKOZLIN Four-Level Jewelry Box",
+          "description": "A four-level jewelry organizer with three drawers, a lock, a ring holder, and a mirror. Verify the storage capacity, dimensions, locking mechanism, and compatibility with the intended space before buying.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DB8RF3YP?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/81otJvHZoUL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"]
         }
       ],
       "editorialDescription": "A large jewelry storage organizer gives necklaces, earrings, bracelets, and rings a dedicated place while keeping favorites visible. It can make choosing accessories easier and add a finished look to a bedroom or dressing area.",
@@ -298,6 +333,13 @@
           "description": "A patterned square scarf for wearing or styling. Confirm the exact print, dimensions, material and care instructions before choosing.",
           "affiliateUrl": "https://www.amazon.com/dp/B07V3KXMGP?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/61jhvJcIkbS._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Mulberry Silk Neck Scarf",
+          "description": "A silk scarf that can add color to an everyday outfit. Check the dimensions, pattern, fabric details, and care instructions.",
+          "affiliateUrl": "https://www.amazon.com/dp/B08ZNQ6GT7?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71J75LW0TxL._AC_UL320_.jpg",
           "sources": ["serpapi"]
         }
       ],

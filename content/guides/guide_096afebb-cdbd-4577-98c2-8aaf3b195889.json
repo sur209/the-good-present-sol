@@ -14,7 +14,7 @@
   "seoDescription": "Find personalized nurse gifts for birthdays, graduations, licensure, milestones, thank-yous, and everyday appreciation, from practical keepsakes to home accents.",
   "status": "published",
   "publishedAt": "2026-09-20",
-  "updatedAt": "2026-09-29",
+  "updatedAt": "2026-10-08",
   "recommendations": [
     {
       "id": "guide_096afebb-cdbd-4577-98c2-8aaf3b195889_slot-1",
@@ -184,6 +184,13 @@
           "description": "A throw with seller-provided embroidered personalization. Check the size, embroidery choices, and delivery time.",
           "imageUrl": "https://m.media-amazon.com/images/I/71czm4w2T3L._AC_UL320_.jpg",
           "affiliateUrl": "https://www.amazon.com/dp/B0DL5R2C9N?tag=thegoodpresen-20"
+        },
+        {
+          "name": "GiftsForYouNow Personalized Sherpa Throw",
+          "description": "An embroidered throw that adds a personal detail to a sofa or bed. Check the name preview, blanket size, fabric, and washing instructions.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0147CCAWC?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/41ZDyhm-ZjL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "productResolution": "unresolved",
@@ -207,6 +214,13 @@
           "description": "A personalized wooden board set for serving or display. Check board dimensions, included accessories and engraving preview before ordering.",
           "affiliateUrl": "https://www.amazon.com/dp/B0D54WGYK9?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/81DK1WMDFgL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Personalized Marble Cheese Board Set",
+          "description": "A personalized board set for serving and display. Review the engraving preview, dimensions, included utensils, and cleaning instructions.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DXDKHQF4?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/7120nBvV3xL._AC_UL320_.jpg",
           "sources": ["serpapi"]
         }
       ],

@@ -14,7 +14,7 @@
   "seoDescription": "Find warm, useful Christmas gifts for nurses, with thoughtful ideas for family, partners, mentors, friends, Secret Santa exchanges, and holiday gatherings.",
   "status": "published",
   "publishedAt": "2026-09-20",
-  "updatedAt": "2026-09-28",
+  "updatedAt": "2026-10-08",
   "recommendations": [
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-1",
@@ -168,6 +168,13 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0BWQRXFGJ?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71+GI8ZDWdL._AC_UL320_.jpg",
           "sources": ["serpapi"]
+        },
+        {
+          "name": "Alaska Bear Silk Sleep Mask",
+          "description": "A silk sleep mask for a darker resting space. Compare the strap, shape, and washing instructions.",
+          "affiliateUrl": "https://www.amazon.com/dp/B07L91H64N?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/71uW+WDY7gL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A well-made silk sleep mask is small enough for a stocking but polished enough to feel like a real present. It can make travel, naps, or an early night more comfortable without adding a complicated routine.",
@@ -249,6 +256,34 @@
           "description": "A noise-cancelling earbud model to compare for everyday listening. Confirm fit, phone compatibility and the return policy.",
           "affiliateUrl": "https://www.amazon.com/dp/B0C1QWWZR4?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/51EZig0rEAL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "TOZO NC9 Wireless Earbuds",
+          "description": "Wireless earbuds for music and everyday listening. Compare fit, device compatibility, charging case, and listening controls before choosing.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DD41G2NZ?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/818Tszb+hNL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "JBL Vibe Beam 2 Earbuds",
+          "description": "Wireless earbuds for music and everyday listening. Compare fit, device compatibility, charging case, and listening controls before choosing.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DN45YMP6?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/618f5yBk26L._AC_UY218_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Soundcore Space A40 Earbuds",
+          "description": "Wireless earbuds for music and everyday listening. Compare fit, device compatibility, charging case, and listening controls before choosing.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0B1LVC5VZ?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/51EwBP9U2YL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Soundcore P30i Earbuds",
+          "description": "Wireless earbuds for music and everyday listening. Compare fit, device compatibility, charging case, and listening controls before choosing.",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CRTYZG5C?tag=thegoodpresen-20",
+          "imageUrl": "https://m.media-amazon.com/images/I/51HbL1WS+KL._AC_UY218_.jpg",
           "sources": ["serpapi"]
         }
       ],
