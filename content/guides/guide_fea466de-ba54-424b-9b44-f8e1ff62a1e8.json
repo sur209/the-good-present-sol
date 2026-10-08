@@ -17,62 +17,6 @@
   "updatedAt": "2026-10-08",
   "recommendations": [
     {
-      "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-1",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "EverFoams Slipper Boots",
-          "description": "Slipper boots with a soft warm lining. Review the material, size chart, and care instructions to match the recipient's preferences.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81bVmFu1lKL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BJZGD8SD?tag=thegoodpresen-20",
-          "sources": ["amazon-agent"]
-        },
-        {
-          "name": "ULTRAIDEAS Mens Warm Fuzzy Slip On Slippers",
-          "description": "Compare this fleece lined slippers with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61CDaaKCXIL._AC_UL320_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B09KXVDPXV?tag=thegoodpresen-20"
-        },
-        {
-          "name": "shoeslocker Men's Slippers Indoor Outdoor Warm Soft Plush Memory Foam House…",
-          "description": "Compare this fleece lined slippers with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81yAhtvYSYL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07WVY1N9H?tag=thegoodpresen-20"
-        },
-        {
-          "name": "SDBING Fuzzy Slipper Socks for Women with Grips",
-          "description": "Compare this fleece lined slippers with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81WuEqdD+-L._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B01MXFH0PG?tag=thegoodpresen-20"
-        },
-        {
-          "name": "WateLves Women's Slippers Comfort Memory Foam House Slippers Plush Lining…",
-          "description": "Compare this fleece lined slippers with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81BakdUMVOL._AC_UL320_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07H318KRP?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Crocs Unisex-Adult Classic Fleece Lined Clogs",
-          "description": "Compare this fleece lined slippers with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61j-WBNh04L._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0F5GT34CG?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 1,
-      "heading": "Fleece-Lined Slippers",
-      "editorialDescription": "Fleece-lined slippers make the move from a long shift to a winter evening at home feel more comfortable. They offer a warm, useful gesture without relying on nurse-themed decoration.",
-      "whyItFits": "This gift connects directly with winter downtime and gives a nurse something to enjoy away from work.",
-      "bestFor": "Nurses who value cozy evenings and practical home comforts.",
-      "selectionGuidance": "Prioritize a comfortable fit, a sole suited to indoor use, soft lining, and a neutral style. Confirm the recipient's size and consider whether they prefer a structured or flexible slipper.",
-      "considerations": "Sizing is personal, so a flexible exchange option can make this easier to give.",
-      "editorialStatus": "ready"
-    },
-    {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-2",
       "productResolution": "unresolved",
       "shoppingOptions": [
@@ -112,7 +56,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0G2WPBZ1L?tag=thegoodpresen-20"
         }
       ],
-      "position": 2,
+      "position": 1,
       "heading": "Gourmet Snack Basket",
       "editorialDescription": "A thoughtfully assembled snack basket gives a nurse something festive to open and share during holiday visits. A balanced mix of sweet and savory treats keeps it useful for casual family grazing.",
       "whyItFits": "Shared food suits holiday gatherings and works across family gifts, partner gifts, and generous coworker exchanges.",
@@ -120,6 +64,102 @@
       "selectionGuidance": "Favor a varied assortment, clear ingredient information, and presentation that feels polished without novelty slogans. Consider whether the recipient prefers sweet, savory, or broadly shareable flavors.",
       "considerations": "Dietary restrictions and household preferences can make food a more personal choice than it first appears.",
       "editorialStatus": "ready"
+    },
+    {
+      "id": "research_aa4efde8-9a9c-490a-b41b-54befb311eb0",
+      "productResolution": "unresolved",
+      "position": 2,
+      "heading": "Hot Chocolate Gift Set",
+      "editorialDescription": "Sharing a warm drink during a winter gathering is the appeal of this gift. Choose a present that fits the holiday relationship, whether it is a small exchange or a gift for someone close.",
+      "whyItFits": "Sharing a warm drink during a winter gathering.",
+      "bestFor": "Someone who would enjoy sharing a warm drink during a winter gathering.",
+      "selectionGuidance": "Check ingredients, allergens, portions, and expiry dates; pods require a compatible brewer.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "Swiss Miss Milk Chocolate Flavor Hot Cocoa Mix",
+          "description": "An option to compare for this hot chocolate gift set. Check ingredients, allergens, portions, and expiry dates; pods require a compatible brewer.",
+          "imageUrl": "https://m.media-amazon.com/images/I/816g7xBBsvL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0FBZG7J1P?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Nestle Hot Chocolate Packets",
+          "description": "An option to compare for this hot chocolate gift set. Check ingredients, allergens, portions, and expiry dates; pods require a compatible brewer.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71bcgQypQsL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07HFVYCXM?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Two Rivers Coffee Hot Chocolate Pods Single Serve Cocoa Variety Sampler Pack…",
+          "description": "An option to compare for this hot chocolate gift set. Check ingredients, allergens, portions, and expiry dates; pods require a compatible brewer.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91NH-zLmnRL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BYLJVDLK?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "SwissMiss Hot Milk Chocolate Packets",
+          "description": "An option to compare for this hot chocolate gift set. Check ingredients, allergens, portions, and expiry dates; pods require a compatible brewer.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81AqE8spt9L._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0F22BGG9T?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Thoughtfully Gourmet",
+          "description": "An option to compare for this hot chocolate gift set. Check ingredients, allergens, portions, and expiry dates; pods require a compatible brewer.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81h8o7Kh6kL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0FWQLLZ7L?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "research_eca501b4-35ee-443d-a087-04bdee5c61ad",
+      "productResolution": "unresolved",
+      "position": 3,
+      "heading": "Advent Calendar",
+      "editorialDescription": "Opening a small seasonal surprise each day is the appeal of this gift. Choose a present that fits the holiday relationship, whether it is a small exchange or a gift for someone close.",
+      "whyItFits": "Opening a small seasonal surprise each day.",
+      "bestFor": "Someone who would enjoy opening a small seasonal surprise each day.",
+      "selectionGuidance": "Check contents, intended age, allergens where applicable, and delivery before December.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "Fishing Advent Calendar 2026 Lure 24 Days Xmas Gift Adult Men Teen Boys",
+          "description": "An option to compare for this advent calendar. Check contents, intended age, allergens where applicable, and delivery before December.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81Wpw-zr-JL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CDGLZ2F3?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Walker’s 2026 Advent Calendar with Shortbread Cookies from Scotland ()…",
+          "description": "An option to compare for this advent calendar. Check contents, intended age, allergens where applicable, and delivery before December.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81JQ9HLHaIL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BBNB5LY2?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "A Brighter Year The Original Adult Mini Coloring Book Advent Calendar…",
+          "description": "An option to compare for this advent calendar. Check contents, intended age, allergens where applicable, and delivery before December.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71BS9rfpp7L._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DJLDJMKX?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "EXIT: The Game Advent Calendar Missing Hollywood Star",
+          "description": "An option to compare for this advent calendar. Check contents, intended age, allergens where applicable, and delivery before December.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81ru2x+E1LL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CRHWGGQ9?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "ChapStick 2026 Countdown Advent Calendar Flavored Lip Balm Set",
+          "description": "This option offers a set or kit format. Check contents, intended age, allergens where applicable, and delivery before December.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91Ga3zdj1oL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0FHXWQV5R?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
     },
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-3",
@@ -161,7 +201,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B077RMTN78?tag=thegoodpresen-20"
         }
       ],
-      "position": 3,
+      "position": 4,
       "heading": "Wooden Serving Board",
       "editorialDescription": "A wooden serving board brings a warm, useful touch to holiday hosting, from arranging appetizers to setting out snacks for family. Its everyday purpose gives the gift staying power beyond one gathering.",
       "whyItFits": "It pairs naturally with shared treats and adds a welcoming home piece that remains useful beyond one gathering.",
@@ -171,101 +211,156 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-4",
+      "id": "research_bd5867bc-e1cd-4d8b-9154-96a703849a78",
+      "productResolution": "unresolved",
+      "position": 5,
+      "heading": "Bread Maker",
+      "editorialDescription": "Baking bread at home for someone who enjoys it is the appeal of this gift. Choose a present that fits the holiday relationship, whether it is a small exchange or a gift for someone close.",
+      "whyItFits": "Baking bread at home for someone who enjoys it.",
+      "bestFor": "Someone who would enjoy baking bread at home for someone who enjoys it.",
+      "selectionGuidance": "Check loaf sizes, programs, counter space, and cleaning requirements.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "Zojirushi Bb PDC20BA Virtuoso Plus 2 Lb Breadmaker",
+          "description": "An option to compare for this bread maker. Check loaf sizes, programs, counter space, and cleaning requirements.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51SjPtJjJeL._AC_UY218_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07BQ28TQ6?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Elite Gourmet 2 Lb Programmable Bread Maker",
+          "description": "An option to compare for this bread maker. Check loaf sizes, programs, counter space, and cleaning requirements.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61cUao2AixL._AC_UY218_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B09RYYGJXR?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "OSIPOTO Bread Maker",
+          "description": "An option to compare for this bread maker. Check loaf sizes, programs, counter space, and cleaning requirements.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81dGOIKxwRL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0GHQ6B446?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "2LB Bread Maker",
+          "description": "An option to compare for this bread maker. Check loaf sizes, programs, counter space, and cleaning requirements.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71DmieYJJbL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DNJMDTGV?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "2026 Upgraded 2.5LB Bread Maker with Built-in Electronic Scale",
+          "description": "An option to compare for this bread maker. Check loaf sizes, programs, counter space, and cleaning requirements.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71bJHngpA8L._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0H69TMY9S?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-7",
       "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Crown Awards Engraved Photo Frame",
-          "description": "A personalized frame for a 5 by 7 inch photograph. Check the engraving text and orientation, and add your own photo before giving it.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71lmovvGHsL._AC_UL320_.jpg",
+          "name": "Scented Candles Gift Set for Women",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81VRIxNX7fL._AC_UL320_.jpg",
           "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07PH2TYM1?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B0GF7K3V5J?tag=thegoodpresen-20"
         },
         {
-          "name": "Personalized Picture Frame Gift for Dad Sentimental Dad Picture Frame with…",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/814ryKOEXrL._AC_UL480_FMwebp_QL65_.jpg",
+          "name": "Scented Candles Gift Set for Women",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81uG9hIQuvL._AC_UL480_FMwebp_QL65_.jpg",
           "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07TXM4BQ1?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B07TYM4LMX?tag=thegoodpresen-20"
         },
         {
-          "name": "Personalized Picture Frame with Custom Letter Board Two Photo Display for Mom",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81puALmk9hL._AC_UL320_.jpg",
+          "name": "Fall Scented Candles Gift Set",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71mFxdY0MlL._AC_UL480_FMwebp_QL65_.jpg",
           "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07N8DRRSG?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B0H8N7JJNM?tag=thegoodpresen-20"
         },
         {
-          "name": "KATE POSH 5 Years of Marriage Photo Frame Happy 5th Anniversary Wood…",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61ypLRjDlZL._AC_UL480_FMwebp_QL65_.jpg",
+          "name": "Scented Candles for Men",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/711chwdQVZL._AC_UL480_FMwebp_QL65_.jpg",
           "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B06WWFLQQD?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B0H6W5MRXT?tag=thegoodpresen-20"
         },
         {
-          "name": "HELORAY Engagement Gifts for Couples Gifts for Newly Engaged Couples…",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81CdevHpWKL._AC_UL480_FMwebp_QL65_.jpg",
+          "name": "Scented Candles for Home",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81EMGMLiJ3L._AC_UL320_.jpg",
           "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0DQGBWPS3?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B0CR7L79Q2?tag=thegoodpresen-20"
         }
       ],
-      "position": 4,
-      "heading": "Personalized Photo Frame",
-      "editorialDescription": "A personalized photo frame turns a family picture, team memory, or milestone image into a keepsake for the home. It feels intentional without depending on generic holiday or profession-themed wording.",
-      "whyItFits": "The personal element suits gifts for family, partners, mentors, or close friends while remaining useful as home decor.",
-      "bestFor": "Nurses marking a family moment, team memory, or personal milestone.",
-      "selectionGuidance": "Consider the photo orientation, display style, personalization wording, and whether the design fits the recipient's decor. A restrained finish usually works across more tastes than a heavily themed message.",
-      "considerations": "Customization makes the gift meaningful but requires careful attention to every personalized detail.",
+      "position": 6,
+      "heading": "Scented Candle Gift Set",
+      "editorialDescription": "A scented candle set creates a festive home accent for quiet holiday downtime. A thoughtfully chosen selection can add seasonal atmosphere without turning the gift into nurse-themed merchandise.",
+      "whyItFits": "It brings a usable home detail to personal gifts and smaller exchanges while keeping the holiday connection subtle.",
+      "bestFor": "Nurses who enjoy cozy home details and seasonal scents.",
+      "selectionGuidance": "Seek a balanced fragrance mix, polished presentation, and scents that are not overly tied to one holiday. Gentler or less-specific options are easier when the recipient's preferences are unknown.",
+      "considerations": "Scent is highly individual, so a heavily seasonal set may have a shorter useful window.",
       "editorialStatus": "ready"
     },
     {
-      "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-5",
+      "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-1",
       "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Birthstone Charms for Charms Bracelet: 925 Sterling Silver Heart Dangle…",
-          "description": "Compare this birthstone necklace with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61N8n-A+2xL._AC_UL320_.jpg",
+          "name": "EverFoams Slipper Boots",
+          "description": "Slipper boots with a soft warm lining. Review the material, size chart, and care instructions to match the recipient's preferences.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81bVmFu1lKL._AC_UL320_.jpg",
           "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0C1WSZ6WC?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B0BJZGD8SD?tag=thegoodpresen-20"
         },
         {
-          "name": "Birthstone Gold Necklaces for Women Dainty 14K Gold Plated Necklace",
-          "description": "Compare this birthstone necklace with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61185MFm+WL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0G6JZVJ8D?tag=thegoodpresen-20"
+          "name": "ULTRAIDEAS Mens Warm Fuzzy Slip On Slippers",
+          "description": "Compare this fleece lined slippers with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61CDaaKCXIL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09KXVDPXV?tag=thegoodpresen-20"
         },
         {
-          "name": "Gold Necklace for Women Birth Flower Necklace with Birthstone 14K Gold…",
-          "description": "This version offers a customization option. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71Qz0+h3ZZL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0CWXSRX28?tag=thegoodpresen-20"
+          "name": "shoeslocker Men's Slippers Indoor Outdoor Warm Soft Plush Memory Foam House…",
+          "description": "Compare this fleece lined slippers with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81yAhtvYSYL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07WVY1N9H?tag=thegoodpresen-20"
         },
         {
-          "name": "Birth Flower Necklaces for Women",
-          "description": "Compare this birthstone necklace with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51fSk-a8NYL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0DSJ13H32?tag=thegoodpresen-20"
+          "name": "SDBING Fuzzy Slipper Socks for Women with Grips",
+          "description": "Compare this fleece lined slippers with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81WuEqdD+-L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01MXFH0PG?tag=thegoodpresen-20"
         },
         {
-          "name": "Personalized Birthstone Necklace with Birth Flower",
-          "description": "This version offers a customization option. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71BdH8Cr4XL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0BWF2T8Z3?tag=thegoodpresen-20"
+          "name": "WateLves Women's Slippers Comfort Memory Foam House Slippers Plush Lining…",
+          "description": "Compare this fleece lined slippers with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81BakdUMVOL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07H318KRP?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Crocs Unisex-Adult Classic Fleece Lined Clogs",
+          "description": "Compare this fleece lined slippers with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61j-WBNh04L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F5GT34CG?tag=thegoodpresen-20"
         }
       ],
-      "position": 5,
-      "heading": "Birthstone Necklace",
-      "editorialDescription": "A birthstone necklace offers a compact keepsake tied to a meaningful month, family connection, or personal milestone. Its understated nature makes it feel more personal than a seasonal novelty.",
-      "whyItFits": "It suits a partner, relative, mentor, or close friend seeking a lasting gift with a clear personal connection.",
-      "bestFor": "Nurses who appreciate jewelry with a meaningful detail.",
-      "selectionGuidance": "Confirm the birth month, preferred metal tone, chain length, and whether the style is subtle enough for regular wear. A simple pendant is easier to pair with existing jewelry than an ornate design.",
-      "considerations": "Personal details are easy to get wrong, so verify the month and any requested wording before ordering.",
+      "position": 7,
+      "heading": "Fleece-Lined Slippers",
+      "editorialDescription": "Fleece-lined slippers make the move from a long shift to a winter evening at home feel more comfortable. They offer a warm, useful gesture without relying on nurse-themed decoration.",
+      "whyItFits": "This gift connects directly with winter downtime and gives a nurse something to enjoy away from work.",
+      "bestFor": "Nurses who value cozy evenings and practical home comforts.",
+      "selectionGuidance": "Prioritize a comfortable fit, a sole suited to indoor use, soft lining, and a neutral style. Confirm the recipient's size and consider whether they prefer a structured or flexible slipper.",
+      "considerations": "Sizing is personal, so a flexible exchange option can make this easier to give.",
       "editorialStatus": "ready"
     },
     {
@@ -308,62 +403,13 @@
           "affiliateUrl": "https://www.amazon.com/dp/B08T8JYW94?tag=thegoodpresen-20"
         }
       ],
-      "position": 6,
+      "position": 8,
       "heading": "Microwavable Heat Wrap",
       "editorialDescription": "A microwavable heat wrap brings simple warmth to quiet winter time at home, especially after a demanding shift. It feels like a thoughtful comfort gift while staying practical and easy to use.",
       "whyItFits": "This idea fits seasonal downtime and offers a more useful alternative to generic nurse Christmas merchandise.",
       "bestFor": "Nurses who enjoy quiet evenings and straightforward home comforts.",
       "selectionGuidance": "Compare the intended area, shape, fabric feel, scent or unscented option, and care instructions. A flexible, easy-to-store design is broadly giftable when preferences are uncertain.",
       "considerations": "Scented filling and a more specialized shape can narrow appeal, so choose with the recipient's habits in mind.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-7",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "Scented Candles Gift Set for Women",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81VRIxNX7fL._AC_UL320_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0GF7K3V5J?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Scented Candles Gift Set for Women",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81uG9hIQuvL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07TYM4LMX?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Fall Scented Candles Gift Set",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71mFxdY0MlL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0H8N7JJNM?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Scented Candles for Men",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/711chwdQVZL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0H6W5MRXT?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Scented Candles for Home",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81EMGMLiJ3L._AC_UL320_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0CR7L79Q2?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 7,
-      "heading": "Scented Candle Gift Set",
-      "editorialDescription": "A scented candle set creates a festive home accent for quiet holiday downtime. A thoughtfully chosen selection can add seasonal atmosphere without turning the gift into nurse-themed merchandise.",
-      "whyItFits": "It brings a usable home detail to personal gifts and smaller exchanges while keeping the holiday connection subtle.",
-      "bestFor": "Nurses who enjoy cozy home details and seasonal scents.",
-      "selectionGuidance": "Seek a balanced fragrance mix, polished presentation, and scents that are not overly tied to one holiday. Gentler or less-specific options are easier when the recipient's preferences are unknown.",
-      "considerations": "Scent is highly individual, so a heavily seasonal set may have a shorter useful window.",
       "editorialStatus": "ready"
     },
     {
@@ -406,62 +452,13 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0C1YYKVDQ?tag=thegoodpresen-20"
         }
       ],
-      "position": 8,
+      "position": 9,
       "heading": "A Luxury Silk Sleep Mask",
       "editorialDescription": "A well-made silk sleep mask is small enough for a stocking but polished enough to feel like a real present. It can make travel, naps, or an early night more comfortable without adding a complicated routine.",
       "whyItFits": "It is festive, easy to wrap, and gives the recipient a reusable comfort rather than another scheduled obligation.",
       "bestFor": "Someone who travels, sleeps off schedule, or enjoys upgraded everyday basics",
       "selectionGuidance": "Look for a soft adjustable band, smooth interior seams, and clear fabric-care instructions.",
       "considerations": "Silk usually needs gentler washing than synthetic fabric, and fit around the nose and strap is personal.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-9",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "Jigsaw Puzzles for Adults 1000 Pieces",
-          "description": "Compare this adult jigsaw puzzle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81J2jKw+UwL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0DT3QTLZD?tag=thegoodpresen-20"
-        },
-        {
-          "name": "PICKFORU Stained Glass Puzzle Tree of Life Puzzles for Adults 1000 Pieces",
-          "description": "Compare this adult jigsaw puzzle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81hWonALyqL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0D13Z9HGV?tag=thegoodpresen-20"
-        },
-        {
-          "name": "National Parks Puzzle for Adults 1000 Pieces",
-          "description": "Compare this adult jigsaw puzzle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81CSP+mmj2L._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0BFDDYZCW?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Vintage Paint Hummingbird Flower 500 Piece Puzzles for Adults",
-          "description": "Compare this adult jigsaw puzzle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/91X-vQcoNqL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0F29FKM7H?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Jigsaw Puzzles for Adults 1000 Pieces",
-          "description": "Compare this adult jigsaw puzzle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81Pw2rkUZML._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0F29KTKTD?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 9,
-      "heading": "Adult Jigsaw Puzzle",
-      "editorialDescription": "An adult jigsaw puzzle is an easygoing Secret Santa choice that invites screen-free downtime without relying on nurse-themed merchandise. It can become a relaxed solo activity or something to share at home.",
-      "whyItFits": "This choice suits coworker exchanges because it is approachable, useful at home, and less dependent on knowing someone's personal style.",
-      "bestFor": "Nurses who enjoy relaxed solo or family activities away from screens.",
-      "selectionGuidance": "Select an appealing image, a difficulty suited to a broad audience, and packaging that is easy to store. Winter scenes feel seasonal, while art, landscapes, or family imagery may stay enjoyable longer.",
-      "considerations": "A puzzle is less suitable if the recipient has limited table space or dislikes extended hands-on activities.",
       "editorialStatus": "ready"
     },
     {
@@ -514,6 +511,54 @@
       "editorialStatus": "ready"
     },
     {
+      "id": "research_fe354a00-39c5-480f-a043-95e38752b3cc",
+      "productResolution": "unresolved",
+      "position": 11,
+      "heading": "Knit Beanie",
+      "editorialDescription": "Adding a small warm accessory for winter outings is the appeal of this gift. Choose a present that fits the holiday relationship, whether it is a small exchange or a gift for someone close.",
+      "whyItFits": "Adding a small warm accessory for winter outings.",
+      "bestFor": "Someone who would enjoy adding a small warm accessory for winter outings.",
+      "selectionGuidance": "Check fit, fibers, and washing instructions.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "C.C Trendy Warm Chunky Soft Stretch Cable Knit Beanie",
+          "description": "An option to compare for this knit beanie. Check fit, fibers, and washing instructions.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71mTp-AzItL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0B4KXKNB9?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Vgogfly Slouchy Beanie for Men Winter Hats for Guys Cool Beanies Mens Lined…",
+          "description": "An option to compare for this knit beanie. Check fit, fibers, and washing instructions.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81i4reEY5GL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07LFWWNDV?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "FURTALK Womens Winter Knitted Beanie Hat with Faux Fur Pom Warm Knit Skull…",
+          "description": "An option to compare for this knit beanie. Check fit, fibers, and washing instructions.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71e0v1pRTdL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B074TFDM7K?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "PAGE ONE Womens Winter Ribbed Beanie Crossed Cap Chunky Cable Knit Pompom…",
+          "description": "An option to compare for this knit beanie. Check fit, fibers, and washing instructions.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Oo04ACRiL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07VKMGPCK?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "REDESS Beanie Hat for Men and Women Winter Warm Hats Knit Slouchy Thick…",
+          "description": "An option to compare for this knit beanie. Check fit, fibers, and washing instructions.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81AOdNJ2cTL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07L3N3QVZ?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
       "id": "serp_997dd025_90af_42f5_9dae_59763f6f3af3",
       "productResolution": "unresolved",
       "shoppingOptions": [
@@ -553,13 +598,111 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0FNQLTK83?tag=thegoodpresen-20"
         }
       ],
-      "position": 11,
+      "position": 12,
       "heading": "Rechargeable Hand Warmers",
       "editorialDescription": "Rechargeable hand warmers are easy to tuck into a coat pocket or bag for commutes, outdoor plans, and chilly pauses between activities. They offer a small seasonal comfort that can be shared or kept as part of a winter routine.",
       "whyItFits": "They suit a holiday gift exchange while still feeling thoughtful for someone whose schedule includes early starts or time outdoors.",
       "bestFor": "A winter commuter or anyone who spends part of the day outside.",
       "selectionGuidance": "Compare size, heat settings, charging method, control layout, and whether the pair can be used separately.",
       "considerations": "They require charging and may be unnecessary for someone who is rarely outdoors in cold weather.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-5",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "Birthstone Charms for Charms Bracelet: 925 Sterling Silver Heart Dangle…",
+          "description": "Compare this birthstone necklace with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61N8n-A+2xL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0C1WSZ6WC?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Birthstone Gold Necklaces for Women Dainty 14K Gold Plated Necklace",
+          "description": "Compare this birthstone necklace with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61185MFm+WL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0G6JZVJ8D?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Gold Necklace for Women Birth Flower Necklace with Birthstone 14K Gold…",
+          "description": "This version offers a customization option. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Qz0+h3ZZL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CWXSRX28?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Birth Flower Necklaces for Women",
+          "description": "Compare this birthstone necklace with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51fSk-a8NYL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DSJ13H32?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Birthstone Necklace with Birth Flower",
+          "description": "This version offers a customization option. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71BdH8Cr4XL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BWF2T8Z3?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 13,
+      "heading": "Birthstone Necklace",
+      "editorialDescription": "A birthstone necklace offers a compact keepsake tied to a meaningful month, family connection, or personal milestone. Its understated nature makes it feel more personal than a seasonal novelty.",
+      "whyItFits": "It suits a partner, relative, mentor, or close friend seeking a lasting gift with a clear personal connection.",
+      "bestFor": "Nurses who appreciate jewelry with a meaningful detail.",
+      "selectionGuidance": "Confirm the birth month, preferred metal tone, chain length, and whether the style is subtle enough for regular wear. A simple pendant is easier to pair with existing jewelry than an ornate design.",
+      "considerations": "Personal details are easy to get wrong, so verify the month and any requested wording before ordering.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-4",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "Crown Awards Engraved Photo Frame",
+          "description": "A personalized frame for a 5 by 7 inch photograph. Check the engraving text and orientation, and add your own photo before giving it.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71lmovvGHsL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07PH2TYM1?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Picture Frame Gift for Dad Sentimental Dad Picture Frame with…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/814ryKOEXrL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07TXM4BQ1?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Picture Frame with Custom Letter Board Two Photo Display for Mom",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81puALmk9hL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07N8DRRSG?tag=thegoodpresen-20"
+        },
+        {
+          "name": "KATE POSH 5 Years of Marriage Photo Frame Happy 5th Anniversary Wood…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61ypLRjDlZL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B06WWFLQQD?tag=thegoodpresen-20"
+        },
+        {
+          "name": "HELORAY Engagement Gifts for Couples Gifts for Newly Engaged Couples…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81CdevHpWKL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DQGBWPS3?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 14,
+      "heading": "Personalized Photo Frame",
+      "editorialDescription": "A personalized photo frame turns a family picture, team memory, or milestone image into a keepsake for the home. It feels intentional without depending on generic holiday or profession-themed wording.",
+      "whyItFits": "The personal element suits gifts for family, partners, mentors, or close friends while remaining useful as home decor.",
+      "bestFor": "Nurses marking a family moment, team memory, or personal milestone.",
+      "selectionGuidance": "Consider the photo orientation, display style, personalization wording, and whether the design fits the recipient's decor. A restrained finish usually works across more tastes than a heavily themed message.",
+      "considerations": "Customization makes the gift meaningful but requires careful attention to every personalized detail.",
       "editorialStatus": "ready"
     },
     {
@@ -602,7 +745,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0HGKPYWST?tag=thegoodpresen-20"
         }
       ],
-      "position": 12,
+      "position": 15,
       "heading": "Premium Wireless Earbuds",
       "editorialDescription": "Wireless earbuds can make commutes, walks, podcasts, and quiet downtime easier to fit into a busy week. Their compact format keeps personal entertainment close without adding much to a bag.",
       "whyItFits": "They feel substantial enough for a personal holiday gift while supporting the recipient’s own ways of relaxing between obligations.",
@@ -610,6 +753,151 @@
       "selectionGuidance": "Compare fit options, control method, charging case size, device compatibility, and how easily the earbuds can be carried.",
       "considerations": "Earbud fit is highly individual, and some recipients may prefer over-ear headphones or speakers.",
       "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-9",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "Jigsaw Puzzles for Adults 1000 Pieces",
+          "description": "Compare this adult jigsaw puzzle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81J2jKw+UwL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DT3QTLZD?tag=thegoodpresen-20"
+        },
+        {
+          "name": "PICKFORU Stained Glass Puzzle Tree of Life Puzzles for Adults 1000 Pieces",
+          "description": "Compare this adult jigsaw puzzle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81hWonALyqL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D13Z9HGV?tag=thegoodpresen-20"
+        },
+        {
+          "name": "National Parks Puzzle for Adults 1000 Pieces",
+          "description": "Compare this adult jigsaw puzzle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81CSP+mmj2L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BFDDYZCW?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Vintage Paint Hummingbird Flower 500 Piece Puzzles for Adults",
+          "description": "Compare this adult jigsaw puzzle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91X-vQcoNqL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F29FKM7H?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Jigsaw Puzzles for Adults 1000 Pieces",
+          "description": "Compare this adult jigsaw puzzle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81Pw2rkUZML._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F29KTKTD?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 16,
+      "heading": "Adult Jigsaw Puzzle",
+      "editorialDescription": "An adult jigsaw puzzle is an easygoing Secret Santa choice that invites screen-free downtime without relying on nurse-themed merchandise. It can become a relaxed solo activity or something to share at home.",
+      "whyItFits": "This choice suits coworker exchanges because it is approachable, useful at home, and less dependent on knowing someone's personal style.",
+      "bestFor": "Nurses who enjoy relaxed solo or family activities away from screens.",
+      "selectionGuidance": "Select an appealing image, a difficulty suited to a broad audience, and packaging that is easy to store. Winter scenes feel seasonal, while art, landscapes, or family imagery may stay enjoyable longer.",
+      "considerations": "A puzzle is less suitable if the recipient has limited table space or dislikes extended hands-on activities.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "research_f5ceddae-9bfa-4dbb-a780-5a6d73f999e3",
+      "productResolution": "unresolved",
+      "position": 17,
+      "heading": "Family Board Game",
+      "editorialDescription": "Giving a holiday gathering an activity to share is the appeal of this gift. Choose a present that fits the holiday relationship, whether it is a small exchange or a gift for someone close.",
+      "whyItFits": "Giving a holiday gathering an activity to share.",
+      "bestFor": "Someone who would enjoy giving a holiday gathering an activity to share.",
+      "selectionGuidance": "Match player count, play time, and rules to the household.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "SEQUENCE- Original SEQUENCE Game with Folding Board",
+          "description": "This option offers a folding format. Match player count, play time, and rules to the household.",
+          "imageUrl": "https://m.media-amazon.com/images/I/816K0RyrhzL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B00000IVAK?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Hasbro Gaming Trouble Board Game for Kids Ages 5 and Up 2-4 Players",
+          "description": "An option to compare for this family board game. Match player count, play time, and rules to the household.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81-oNwrbbnL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B00D7OAOYI?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Sorry! Board Game for Kids Ages 6 and Up; Classic Hasbro Board Game; Each…",
+          "description": "An option to compare for this family board game. Match player count, play time, and rules to the household.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81CA3GV9sXL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B076HK9H7Z?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Azul Mosaic Tile-Placement Strategy Board Game",
+          "description": "An option to compare for this family board game. Match player count, play time, and rules to the household.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91A0nIsV57S._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B077MZ2MPW?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Chess Armory Wooden Chess Set 15 Inch Classic Handcrafted Game Board for…",
+          "description": "This option offers a set or kit format. Match player count, play time, and rules to the household.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81+V1Kk1wfL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B01256V578?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "research_7a3bb592-9c57-4104-8e12-2c023e02b003",
+      "productResolution": "unresolved",
+      "position": 18,
+      "heading": "LEGO Building Set",
+      "editorialDescription": "Spending an off-duty afternoon on a building project is the appeal of this gift. Choose a present that fits the holiday relationship, whether it is a small exchange or a gift for someone close.",
+      "whyItFits": "Spending an off-duty afternoon on a building project.",
+      "bestFor": "Someone who would enjoy spending an off-duty afternoon on a building project.",
+      "selectionGuidance": "Choose a subject they like and check age guidance, dimensions, and piece count.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "LEGO Architecture London Skyline Collection 21034 Building Set Model Kit and…",
+          "description": "This option offers a set or kit format. Choose a subject they like and check age guidance, dimensions, and piece count.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81PZxoUxM6L._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B01KJENN0U?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "LEGO Ideas International Space Station 21321 Building Kit",
+          "description": "This option offers a set or kit format. Choose a subject they like and check age guidance, dimensions, and piece count.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71CCfgqrjEL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B083JWZNW7?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "LEGO Architecture Skylines: Dubai 21052 Building Kit",
+          "description": "This option offers a set or kit format. Choose a subject they like and check age guidance, dimensions, and piece count.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71kA-N+1gQL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07WJJKNMC?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "LEGO Speed Champions Pagani Utopia 76915 Race Car Toy Model Building Kit",
+          "description": "This option offers a set or kit format. Choose a subject they like and check age guidance, dimensions, and piece count.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Q6vqdTszL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BLJ4MV8V?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "LEGO Ideas Typewriter 21327 Building Set for Adults",
+          "description": "This option offers a set or kit format. Choose a subject they like and check age guidance, dimensions, and piece count.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81eX6gZqOrL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B094RBYH2S?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
     }
   ]
 }

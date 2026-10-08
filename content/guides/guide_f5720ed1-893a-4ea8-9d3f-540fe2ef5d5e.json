@@ -137,6 +137,256 @@
       "editorialStatus": "ready"
     },
     {
+      "id": "research_e0e1bea5-04bb-46a5-ae14-79e32137aa1e",
+      "productResolution": "unresolved",
+      "position": 3,
+      "heading": "Travel Duffel Bag",
+      "editorialDescription": "Packing for a weekend away is the appeal of this gift. Choose for his interests outside work, rather than assuming every man who nurses enjoys the same activities.",
+      "whyItFits": "Packing for a weekend away.",
+      "bestFor": "Someone who would enjoy packing for a weekend away.",
+      "selectionGuidance": "Check dimensions, straps, and airline rules where relevant.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "Travel Duffel Bag",
+          "description": "An option to compare for this travel duffel bag. Check dimensions, straps, and airline rules where relevant.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71+g-qsSOsS._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07YS438FV?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "PUMA Contender Duffel Bag with Removable Strap & Shoe Pocket",
+          "description": "An option to compare for this travel duffel bag. Check dimensions, straps, and airline rules where relevant.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81dYoyK54EL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B06WD4W8NS?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Rockland Duffel Bag",
+          "description": "An option to compare for this travel duffel bag. Check dimensions, straps, and airline rules where relevant.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71kUmHCPKxL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B002B4K5Z8?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Amazon Essentials Extra Large Foldable Nylon Duffel Bag for Travel/Storage…",
+          "description": "This option offers a folding format. Check dimensions, straps, and airline rules where relevant.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61dDHoKeTlL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B01GGNW2WI?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Gonex 60L Foldable Travel Duffle Bag with Shoe Compartment",
+          "description": "This option offers a folding format. Check dimensions, straps, and airline rules where relevant.",
+          "imageUrl": "https://m.media-amazon.com/images/I/812K2EWYajL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B01KZN2CG6?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-7",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "Anker Prime Foldable Charging Dock",
+          "description": "A charging station to keep compatible devices together. Confirm the exact phone, watch, and earbud models supported, and whether the required power adapter is included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/610vBZrBPQL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FHWK3W1S?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Anker Prime 3-in-1 Qi2.2 MagSafe Compatible 25W Wireless Charging Station",
+          "description": "Compare this wireless charging station with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61nZaKC+I6L._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F9L1PPPJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "3 in 1 Foldable Wireless Charger Stand for iPhone Apple Watch AirPods",
+          "description": "This version offers a folding design. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71gnEu6NZ3L._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HCTMJYCY?tag=thegoodpresen-20"
+        },
+        {
+          "name": "300W Charging Station for Multiple Devices",
+          "description": "Compare this wireless charging station with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71WCFrK809L._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H82H71Y3?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Belkin Qi2 15W Wireless Charging Dock",
+          "description": "Compare this wireless charging station with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61rVDRlc-YL._AC_UY218_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FQS1T3SK?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Aeinidi 25W 3 in 1 Wireless Fast Charging Station for Apple MagSafe Charger",
+          "description": "Compare this wireless charging station with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61Fh2SPIzSL._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H4NP15X8?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 4,
+      "heading": "A tidy bedside charging station",
+      "editorialDescription": "A bedside charging station gives everyday devices a consistent home, helping keep a nightstand or desk more orderly between workdays and time off. It is most thoughtful when it matches the devices and setup he already uses.",
+      "whyItFits": "It brings organization to home life and can feel personal when it solves a real everyday annoyance rather than adding another work-themed item.",
+      "bestFor": "A nurse whose nightstand or desk needs better device organization",
+      "selectionGuidance": "First consider which devices he charges, where the station would live, and whether he prefers a minimal or more organized look. Check compatibility with his existing devices and cable setup; do not assume a multi-device arrangement is useful.",
+      "considerations": "Device and cable compatibility can make this a poor surprise gift when his setup is unknown.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "research_68c75434-eff3-4441-8ccf-39acead37494",
+      "productResolution": "unresolved",
+      "position": 5,
+      "heading": "Beard Trimmer",
+      "editorialDescription": "Maintaining a beard with a grooming tool they would use is the appeal of this gift. Choose for his interests outside work, rather than assuming every man who nurses enjoys the same activities.",
+      "whyItFits": "Maintaining a beard with a grooming tool they would use.",
+      "bestFor": "Someone who would enjoy maintaining a beard with a grooming tool they would use.",
+      "selectionGuidance": "Check guards, charging, cleaning, and the desired trimming lengths.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "Andis 04780 Professional T-Outliner Beard & Hair Trimmer for Men",
+          "description": "An option to compare for this beard trimmer. Check guards, charging, cleaning, and the desired trimming lengths.",
+          "imageUrl": "https://m.media-amazon.com/images/I/512XdPpkYrL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BJ15Z14D?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Philips Norelco Multigroom 5000 Series",
+          "description": "This option offers a set or kit format. Check guards, charging, cleaning, and the desired trimming lengths.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81FIedn+trL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BQN79PH9?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "GSKY Professional Hair Clippers",
+          "description": "This option offers a set or kit format. Check guards, charging, cleaning, and the desired trimming lengths.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81gWtMVO+JL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CGRCG4ZP?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Panasonic Beard Trimmer for Men",
+          "description": "An option to compare for this beard trimmer. Check guards, charging, cleaning, and the desired trimming lengths.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Yb6OwhG2L._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B075LNDSB7?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Vacuum Beard Trimmer for Men",
+          "description": "This option offers an adjustable design. Check guards, charging, cleaning, and the desired trimming lengths.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71pmSLyAjkL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0HHM7YJ3X?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "review_9102a651-bc8c-41c2-a073-b092d75c4a4e",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "Alexander Del Rossa hooded fleece robe",
+          "description": "A hooded fleece robe for home lounging. Check the size chart, garment length and warmth level before choosing.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71LPQ2kn3XL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D6ZR7DBT?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Men's Plush Fleece Hooded Robe with Pockets",
+          "description": "Compare this hooded bathrobe with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81DvGn+yNOL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B086691KFP?tag=thegoodpresen-20"
+        },
+        {
+          "name": "U2SKIIN Mens Hooded Robe",
+          "description": "Compare this hooded bathrobe with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61VcRaPOgyL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07GSVDSF5?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ross Michaels Mens Robe Hooded Big and Tall Long Plush Fleece Bath…",
+          "description": "Compare this hooded bathrobe with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81x-QHPy1lL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07ND7DK73?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ross Michaels Mens Robe Hooded Wrap Style Mid Length Plush Fleece Bathrobe",
+          "description": "Compare this hooded bathrobe with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81xoNLgsz6L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01LG53Q5I?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 6,
+      "heading": "A Warm Hooded Lounge Robe",
+      "editorialDescription": "A soft hooded robe creates an easy layer for slow mornings, post-shower routines, or relaxed evenings at home. A simple solid color keeps it useful without relying on profession-themed decoration.",
+      "whyItFits": "It offers a noticeable comfort upgrade and feels more substantial to receive than another pair of everyday slippers.",
+      "bestFor": "Someone who values comfortable, low-key time at home",
+      "selectionGuidance": "Check the size chart, length, fabric weight, pocket placement, and washing instructions before choosing.",
+      "considerations": "Sizing and warmth preferences vary; choose an exchangeable option when you are unsure.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-6",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "BodyRestore Shower Steamers Aromatherapy",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61Uwj2eMlML._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08FDCLXNP?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Shower Steamers for Women Gift Set 24pc Shower Bombs Aromatherapy Gift Set",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91Wlqboli1L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BCDXXRM7?tag=thegoodpresen-20"
+        },
+        {
+          "name": "BodyRestore Shower Steamers Aromatherapy",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71dJ+npggkL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BJYCRS51?tag=thegoodpresen-20"
+        },
+        {
+          "name": "BodyRestore Shower Steamers Aromatherapy",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/714wxDgW4oL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BJXRWWHX?tag=thegoodpresen-20"
+        },
+        {
+          "name": "TranquilBliss Shower Steamers",
+          "description": "Compare this shower steamer gift set with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/711y17r6qzL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CJ2K61WK?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 7,
+      "heading": "A Shower Steamer Gift Set",
+      "editorialDescription": "A shower steamer set adds a small home ritual after work or on a day off. It feels more considered when the scent profile and presentation match his preferences, making it easy to give for several occasions.",
+      "whyItFits": "It offers an easygoing off-shift gift that does not require a hobby or a clinical connection.",
+      "bestFor": "A nurse who enjoys scented, at-home ways to unwind",
+      "selectionGuidance": "Use any known scent preference as the starting point; otherwise choose a varied set with clear descriptions. Favor straightforward presentation and a format that fits his usual shower routine.",
+      "considerations": "Avoid it if he dislikes fragrances or rarely uses shower products.",
+      "editorialStatus": "ready"
+    },
+    {
       "id": "review_08602464-4e12-4ce6-b04b-427817a60801",
       "productResolution": "unresolved",
       "shoppingOptions": [
@@ -190,13 +440,111 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0FKN2FSZS?tag=thegoodpresen-20"
         }
       ],
-      "position": 3,
+      "position": 8,
       "heading": "A Portable Muscle Massager",
       "editorialDescription": "A compact percussion massager is easy to keep near a sofa, desk, or gym bag for brief off-duty use. A small model feels substantial as a gift without taking over a shelf or requiring a complicated setup.",
       "whyItFits": "It supports recovery and relaxation while avoiding profession-themed stereotypes or employer-supplied gear.",
       "bestFor": "Someone who exercises, travels, or appreciates practical recovery tools",
       "selectionGuidance": "Look for comfortable weight, simple speed controls, useful attachments, and a case that keeps the set together.",
       "considerations": "It is a personal comfort device, not medical treatment; recipients with health concerns should follow professional guidance.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_09946e4f_f24c_4d93_b0a6_e22f61ee7747",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "Cosori TurboBlaze 6-quart air fryer",
+          "description": "A countertop model for a household that would use the larger basket. Check counter clearance, power requirements and cleaning instructions.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81R9sA3IyBL._AC_UY218_.jpg",
+          "sources": ["serpapi", "amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0C33CHG99?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Dash Tasti-Crisp Small Air Fryer",
+          "description": "Compare this large air fryer with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/514YCMftobL._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0815KPZVB?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Dash Tasti-Crisp Digital Air Fryer",
+          "description": "Compare this large air fryer with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61yMLt6vK4L._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08QQRH2Z9?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Chefman Air Fryer 6 QT Compact Airfryer for Quick & Easy Meals in Minutes",
+          "description": "Compare this large air fryer with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71WCBoDBHsL._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CNY1YVDD?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Gourmia Air Fryer 7 Qt Basket Capacity",
+          "description": "Compare this large air fryer with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71jdTtL0oNL._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08R6GZ2KP?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 9,
+      "heading": "A Large-Capacity Air Fryer",
+      "editorialDescription": "A roomy air fryer is a substantial home gift for preparing crisp vegetables, reheating leftovers, or cooking straightforward meals with one countertop appliance. The larger basket is especially useful for someone who cooks for a partner, family, or visiting friends.",
+      "whyItFits": "It offers an obvious everyday upgrade and enough presence to feel like a real gift rather than another small organizer.",
+      "bestFor": "A nurse who enjoys practical cooking and has room for a countertop appliance",
+      "selectionGuidance": "Compare usable basket capacity, counter footprint, control clarity, temperature range, removable parts, cleaning instructions, and the electrical space available in the kitchen.",
+      "considerations": "It takes up meaningful counter or cabinet space and is unnecessary for someone who already owns a similar convection appliance.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_7f8a0cc7_0654_444b_82a4_0abf9ad84894",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "Wildone Baking Sheet with Rack Set (3 Pans + 3 Racks)",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81WIQIARcAL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07NNQ4G96?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Wildone Baking Sheet & Rack Set [2 Sheets + 2 Racks]",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/718AmgWLnoL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07NN8TFQN?tag=thegoodpresen-20"
+        },
+        {
+          "name": "TeamFar Stainless Steel Compact Toaster Oven Pan Tray Ovenware",
+          "description": "Compare this stainless steel oven baking trays with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51GCmofsljL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01L3L81IC?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Baking Sheet with Cooling Wire Rack Set",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61IW0gZUgEL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08SVYWVMX?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Half Baking Sheet Pan Cooling Rack Set",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71bDR+XEx2L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0992HQPL8?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 10,
+      "heading": "Stainless-Steel Oven and Storage Trays",
+      "editorialDescription": "A set of stainless-steel trays provides space for preparing ingredients, cooking, and storing food when the individual pieces are designed for those uses. A nesting set is useful for someone who likes to organize several parts of a meal at once.",
+      "whyItFits": "It supports a home-cooking routine with reusable pieces that stack away between meals.",
+      "bestFor": "A home cook building a practical kitchen setup or refreshing everyday tools.",
+      "selectionGuidance": "Check the dimensions, nesting arrangement, lid materials, oven suitability, and cleaning instructions for each piece.",
+      "considerations": "Do not put lids in the oven unless the manufacturer explicitly allows it. Check available kitchen storage and whether similar trays are already in use.",
       "editorialStatus": "ready"
     },
     {
@@ -253,7 +601,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B09H18PMQH?tag=thegoodpresen-20"
         }
       ],
-      "position": 4,
+      "position": 11,
       "heading": "A coffee tasting set",
       "editorialDescription": "A coffee sampler turns a familiar drink into a small ritual, making it suitable for a birthday, thank-you, promotion, or everyday encouragement. Variety lets him explore preferences without committing the gift to one style.",
       "whyItFits": "It adds a personal food-and-drink touch while leaving room for individual taste, which matters more than a profession-themed design.",
@@ -263,263 +611,196 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "review_9102a651-bc8c-41c2-a073-b092d75c4a4e",
+      "id": "research_8e09f5fc-7f4e-4efc-a9ca-521d1de0e396",
       "productResolution": "unresolved",
+      "position": 12,
+      "heading": "Household Tool Set",
+      "editorialDescription": "Handling small household jobs on a day off is the appeal of this gift. Choose for his interests outside work, rather than assuming every man who nurses enjoys the same activities.",
+      "whyItFits": "Handling small household jobs on a day off.",
+      "bestFor": "Someone who would enjoy handling small household jobs on a day off.",
+      "selectionGuidance": "Choose tools for jobs they actually do, and check the included pieces.",
+      "editorialStatus": "ready",
       "shoppingOptions": [
         {
-          "name": "Alexander Del Rossa hooded fleece robe",
-          "description": "A hooded fleece robe for home lounging. Check the size chart, garment length and warmth level before choosing.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71LPQ2kn3XL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0D6ZR7DBT?tag=thegoodpresen-20"
+          "name": "CARTMAN 39-Piece Household Tool Set",
+          "description": "This option offers a set or kit format. Choose tools for jobs they actually do, and check the included pieces.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81aQ8A8IRzL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B00RF9J8DY?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         },
         {
-          "name": "Men's Plush Fleece Hooded Robe with Pockets",
-          "description": "Compare this hooded bathrobe with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81DvGn+yNOL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B086691KFP?tag=thegoodpresen-20"
+          "name": "BLACK+DECKER 20V MAX 68-Piece Cordless Drill and Home Tool Project Kit with…",
+          "description": "This option offers a set or kit format. Choose tools for jobs they actually do, and check the included pieces.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61JHslT0qXL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B00C625KVE?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         },
         {
-          "name": "U2SKIIN Mens Hooded Robe",
-          "description": "Compare this hooded bathrobe with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61VcRaPOgyL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07GSVDSF5?tag=thegoodpresen-20"
+          "name": "Apollo Tools 39 Piece General Household Tool Set",
+          "description": "This option offers a set or kit format. Choose tools for jobs they actually do, and check the included pieces.",
+          "imageUrl": "https://m.media-amazon.com/images/I/815HG6H1nxL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B001GXPZEQ?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         },
         {
-          "name": "Ross Michaels Mens Robe Hooded Big and Tall Long Plush Fleece Bath…",
-          "description": "Compare this hooded bathrobe with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81x-QHPy1lL._AC_UL320_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07ND7DK73?tag=thegoodpresen-20"
+          "name": "Amazon Basics 131-Piece General Household Hand Tool Set with Storage Case…",
+          "description": "This option offers a set or kit format. Choose tools for jobs they actually do, and check the included pieces.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71MX2frU8VL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07V4TFJC9?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         },
         {
-          "name": "Ross Michaels Mens Robe Hooded Wrap Style Mid Length Plush Fleece Bathrobe",
-          "description": "Compare this hooded bathrobe with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81xoNLgsz6L._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B01LG53Q5I?tag=thegoodpresen-20"
+          "name": "Stalwart 75-HT1007 Household Hand Tools",
+          "description": "This option offers a set or kit format. Choose tools for jobs they actually do, and check the included pieces.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81TdWS5zW3L._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0160PMMT0?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         }
-      ],
-      "position": 5,
-      "heading": "A Warm Hooded Lounge Robe",
-      "editorialDescription": "A soft hooded robe creates an easy layer for slow mornings, post-shower routines, or relaxed evenings at home. A simple solid color keeps it useful without relying on profession-themed decoration.",
-      "whyItFits": "It offers a noticeable comfort upgrade and feels more substantial to receive than another pair of everyday slippers.",
-      "bestFor": "Someone who values comfortable, low-key time at home",
-      "selectionGuidance": "Check the size chart, length, fabric weight, pocket placement, and washing instructions before choosing.",
-      "considerations": "Sizing and warmth preferences vary; choose an exchangeable option when you are unsure.",
-      "editorialStatus": "ready"
+      ]
     },
     {
-      "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-6",
+      "id": "research_4f6c2111-2b7d-4c1f-b33f-97cee6ae7333",
       "productResolution": "unresolved",
+      "position": 13,
+      "heading": "Binoculars",
+      "editorialDescription": "Taking a closer look on walks and birdwatching trips is the appeal of this gift. Choose for his interests outside work, rather than assuming every man who nurses enjoys the same activities.",
+      "whyItFits": "Taking a closer look on walks and birdwatching trips.",
+      "bestFor": "Someone who would enjoy taking a closer look on walks and birdwatching trips.",
+      "selectionGuidance": "Compare weight, magnification, eye relief, and included accessories.",
+      "editorialStatus": "ready",
       "shoppingOptions": [
         {
-          "name": "BodyRestore Shower Steamers Aromatherapy",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61Uwj2eMlML._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B08FDCLXNP?tag=thegoodpresen-20"
+          "name": "Adorrgon 12x42 High Powered Binoculars for Adults",
+          "description": "An option to compare for this binoculars. Compare weight, magnification, eye relief, and included accessories.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71IkmI51xdL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07GF4JCDY?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         },
         {
-          "name": "Shower Steamers for Women Gift Set 24pc Shower Bombs Aromatherapy Gift Set",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/91Wlqboli1L._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0BCDXXRM7?tag=thegoodpresen-20"
+          "name": "12x42 Binoculars for Adults High Powered with Phone Adapter & Tripod",
+          "description": "An option to compare for this binoculars. Compare weight, magnification, eye relief, and included accessories.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71SIduCv1sL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07VLXKZ33?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         },
         {
-          "name": "BodyRestore Shower Steamers Aromatherapy",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71dJ+npggkL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0BJYCRS51?tag=thegoodpresen-20"
+          "name": "Gosky 8x42 Binoculars for Adults High Powered with Phone Adapter and Tripod",
+          "description": "An option to compare for this binoculars. Compare weight, magnification, eye relief, and included accessories.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71KBTw6gUEL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DD49XTDF?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         },
         {
-          "name": "BodyRestore Shower Steamers Aromatherapy",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/714wxDgW4oL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0BJXRWWHX?tag=thegoodpresen-20"
+          "name": "Celestron Nature DX 8x42 Waterproof Binoculars for Bird Watching & Outdoors",
+          "description": "An option to compare for this binoculars. Compare weight, magnification, eye relief, and included accessories.",
+          "imageUrl": "https://m.media-amazon.com/images/I/511jakrmbTL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B00B73JONS?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         },
         {
-          "name": "TranquilBliss Shower Steamers",
-          "description": "Compare this shower steamer gift set with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/711y17r6qzL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0CJ2K61WK?tag=thegoodpresen-20"
+          "name": "Vortex Crossfire HD 10x42 Binoculars",
+          "description": "An option to compare for this binoculars. Compare weight, magnification, eye relief, and included accessories.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91qe50c4eJL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07V3LB5DN?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         }
-      ],
-      "position": 6,
-      "heading": "A Shower Steamer Gift Set",
-      "editorialDescription": "A shower steamer set adds a small home ritual after work or on a day off. It feels more considered when the scent profile and presentation match his preferences, making it easy to give for several occasions.",
-      "whyItFits": "It offers an easygoing off-shift gift that does not require a hobby or a clinical connection.",
-      "bestFor": "A nurse who enjoys scented, at-home ways to unwind",
-      "selectionGuidance": "Use any known scent preference as the starting point; otherwise choose a varied set with clear descriptions. Favor straightforward presentation and a format that fits his usual shower routine.",
-      "considerations": "Avoid it if he dislikes fragrances or rarely uses shower products.",
-      "editorialStatus": "ready"
+      ]
     },
     {
-      "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-7",
+      "id": "research_691bb8de-b54d-492e-b6cc-053f258dbc10",
       "productResolution": "unresolved",
+      "position": 14,
+      "heading": "Record Player",
+      "editorialDescription": "Enjoying a record collection outside work is the appeal of this gift. Choose for his interests outside work, rather than assuming every man who nurses enjoys the same activities.",
+      "whyItFits": "Enjoying a record collection outside work.",
+      "bestFor": "Someone who would enjoy enjoying a record collection outside work.",
+      "selectionGuidance": "Check speaker setup, connections, supported speeds, and the recipient’s records.",
+      "editorialStatus": "ready",
       "shoppingOptions": [
         {
-          "name": "Anker Prime Foldable Charging Dock",
-          "description": "A charging station to keep compatible devices together. Confirm the exact phone, watch, and earbud models supported, and whether the required power adapter is included.",
-          "imageUrl": "https://m.media-amazon.com/images/I/610vBZrBPQL._AC_UY218_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0FHWK3W1S?tag=thegoodpresen-20"
+          "name": "Victrola Quincy 6-in-1 Bluetooth Record Player Walnut",
+          "description": "An option to compare for this record player. Check speaker setup, connections, supported speeds, and the recipient’s records.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71AZiV1vlOL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0GL98DMW4?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         },
         {
-          "name": "Anker Prime 3-in-1 Qi2.2 MagSafe Compatible 25W Wireless Charging Station",
-          "description": "Compare this wireless charging station with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61nZaKC+I6L._AC_UY218_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0F9L1PPPJ?tag=thegoodpresen-20"
+          "name": "Audio-Technica AT-LP60X-BK Fully Automatic Belt-Drive Stereo Turntable",
+          "description": "An option to compare for this record player. Check speaker setup, connections, supported speeds, and the recipient’s records.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71DflzPLBCL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07N3XJ66N?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         },
         {
-          "name": "3 in 1 Foldable Wireless Charger Stand for iPhone Apple Watch AirPods",
-          "description": "This version offers a folding design. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71gnEu6NZ3L._AC_UY218_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0HCTMJYCY?tag=thegoodpresen-20"
+          "name": "ONE-Q All-in-one Vinyl Record Player with Bluetooth 5.4",
+          "description": "An option to compare for this record player. Check speaker setup, connections, supported speeds, and the recipient’s records.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71FhcahWnHL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DDY5RGBR?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         },
         {
-          "name": "300W Charging Station for Multiple Devices",
-          "description": "Compare this wireless charging station with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71WCFrK809L._AC_UY218_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0H82H71Y3?tag=thegoodpresen-20"
+          "name": "QLEARSOUL SoulBox S1 Vinyl Record Player with Stereo Speakers",
+          "description": "An option to compare for this record player. Check speaker setup, connections, supported speeds, and the recipient’s records.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71UcYmTWxjL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DP69HT3X?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         },
         {
-          "name": "Belkin Qi2 15W Wireless Charging Dock",
-          "description": "Compare this wireless charging station with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61rVDRlc-YL._AC_UY218_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0FQS1T3SK?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Aeinidi 25W 3 in 1 Wireless Fast Charging Station for Apple MagSafe Charger",
-          "description": "Compare this wireless charging station with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61Fh2SPIzSL._AC_UY327_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0H4NP15X8?tag=thegoodpresen-20"
+          "name": "Vinyl Record Player Bluetooth Vintage 3-Speed Portable Suitcase Turntables…",
+          "description": "An option to compare for this record player. Check speaker setup, connections, supported speeds, and the recipient’s records.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71ty1GDN0iL._AC_UY218_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BQW6GPW7?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         }
-      ],
-      "position": 7,
-      "heading": "A tidy bedside charging station",
-      "editorialDescription": "A bedside charging station gives everyday devices a consistent home, helping keep a nightstand or desk more orderly between workdays and time off. It is most thoughtful when it matches the devices and setup he already uses.",
-      "whyItFits": "It brings organization to home life and can feel personal when it solves a real everyday annoyance rather than adding another work-themed item.",
-      "bestFor": "A nurse whose nightstand or desk needs better device organization",
-      "selectionGuidance": "First consider which devices he charges, where the station would live, and whether he prefers a minimal or more organized look. Check compatibility with his existing devices and cable setup; do not assume a multi-device arrangement is useful.",
-      "considerations": "Device and cable compatibility can make this a poor surprise gift when his setup is unknown.",
-      "editorialStatus": "ready"
+      ]
     },
     {
-      "id": "serp_09946e4f_f24c_4d93_b0a6_e22f61ee7747",
+      "id": "research_2d549a72-0dcc-41e5-98f3-cab0fd7fb53a",
       "productResolution": "unresolved",
+      "position": 15,
+      "heading": "Chess Set",
+      "editorialDescription": "Playing a familiar game with friends or family is the appeal of this gift. Choose for his interests outside work, rather than assuming every man who nurses enjoys the same activities.",
+      "whyItFits": "Playing a familiar game with friends or family.",
+      "bestFor": "Someone who would enjoy playing a familiar game with friends or family.",
+      "selectionGuidance": "Check board size, piece storage, and whether they already have a favorite set.",
+      "editorialStatus": "ready",
       "shoppingOptions": [
         {
-          "name": "Cosori TurboBlaze 6-quart air fryer",
-          "description": "A countertop model for a household that would use the larger basket. Check counter clearance, power requirements and cleaning instructions.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81R9sA3IyBL._AC_UY218_.jpg",
-          "sources": ["serpapi", "amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0C33CHG99?tag=thegoodpresen-20"
+          "name": "The Noble Collection Harry Potter Wizard Chess Set",
+          "description": "This option offers a set or kit format. Check board size, piece storage, and whether they already have a favorite set.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71R4zNHfvnL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B00WADKDES?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         },
         {
-          "name": "Dash Tasti-Crisp Small Air Fryer",
-          "description": "Compare this large air fryer with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/514YCMftobL._AC_UY327_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0815KPZVB?tag=thegoodpresen-20"
+          "name": "Chess Armory Wooden Chess Set 15 Inch Classic Handcrafted Game Board for…",
+          "description": "This option offers a set or kit format. Check board size, piece storage, and whether they already have a favorite set.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81+V1Kk1wfL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B01256V578?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         },
         {
-          "name": "Dash Tasti-Crisp Digital Air Fryer",
-          "description": "Compare this large air fryer with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61yMLt6vK4L._AC_UY327_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B08QQRH2Z9?tag=thegoodpresen-20"
+          "name": "AMEROUS Magnetic Wooden Chess Set 2 Extra Queens Folding Board Pieces…",
+          "description": "This option offers a folding format and a set or kit format. Check board size, piece storage, and whether they already have a favorite set.",
+          "imageUrl": "https://m.media-amazon.com/images/I/715WDtUWeCS._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07N5ZS5QP?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         },
         {
-          "name": "Chefman Air Fryer 6 QT Compact Airfryer for Quick & Easy Meals in Minutes",
-          "description": "Compare this large air fryer with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71WCBoDBHsL._AC_UY327_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0CNY1YVDD?tag=thegoodpresen-20"
+          "name": "Wegiel Handmade European Ambassador Chess Set Wooden 21 Inch Beech & Birch…",
+          "description": "This option offers a set or kit format. Check board size, piece storage, and whether they already have a favorite set.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71HKQDX4icL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0009WSPRO?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         },
         {
-          "name": "Gourmia Air Fryer 7 Qt Basket Capacity",
-          "description": "Compare this large air fryer with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71jdTtL0oNL._AC_UY327_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B08R6GZ2KP?tag=thegoodpresen-20"
+          "name": "A&A 15\" Magnetic Wooden Chess Set",
+          "description": "This option offers a set or kit format. Check board size, piece storage, and whether they already have a favorite set.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81a94jadOqL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B08B8DHG3R?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         }
-      ],
-      "position": 8,
-      "heading": "A Large-Capacity Air Fryer",
-      "editorialDescription": "A roomy air fryer is a substantial home gift for preparing crisp vegetables, reheating leftovers, or cooking straightforward meals with one countertop appliance. The larger basket is especially useful for someone who cooks for a partner, family, or visiting friends.",
-      "whyItFits": "It offers an obvious everyday upgrade and enough presence to feel like a real gift rather than another small organizer.",
-      "bestFor": "A nurse who enjoys practical cooking and has room for a countertop appliance",
-      "selectionGuidance": "Compare usable basket capacity, counter footprint, control clarity, temperature range, removable parts, cleaning instructions, and the electrical space available in the kitchen.",
-      "considerations": "It takes up meaningful counter or cabinet space and is unnecessary for someone who already owns a similar convection appliance.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-9",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "Popotop Photo Album",
-          "description": "A linen-cover album with pockets for 4 by 6 inch photographs. Add your own photographs and captions before giving it.",
-          "imageUrl": "https://m.media-amazon.com/images/I/710a1XchpeL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0CGCWY7ZJ?tag=thegoodpresen-20",
-          "sources": ["serpapi"]
-        },
-        {
-          "name": "Personalized Photo Album",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51FrLA5ebfL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0CSQGQPGZ?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Promot Personalized Photo Album Custom Photo Book",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71G2EtlMqeL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0DH536NC8?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Personalized Photo Album Custom Picture Album Customized Printed Cloth Photo…",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/812YcQCOTyL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0F1N2S6TG?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Custom Photo Book Personalized Photo Album Hard Cover 12P/20P/40P (10*10in)",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71XpMkRC0NL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0HFJZRYPJ?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Blank Calendar",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61cEgziG9FL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0CGB2HWVQ?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 9,
-      "heading": "A photo book of shared memories",
-      "editorialDescription": "A custom photo book turns shared moments into a keepsake for a birthday, thank-you, promotion, holiday, or meaningful encouragement. It acknowledges the person behind the profession through photos, captions, and moments that belong to your relationship.",
-      "whyItFits": "It carries personal meaning across relationships, especially when the gift should celebrate the individual rather than nursing as an identity.",
-      "bestFor": "A nurse with shared memories worth preserving",
-      "selectionGuidance": "Build it around a clear story—shared trips, family moments, friendships, or milestones—and edit for a cohesive sequence. Use only photos and details the recipient would be comfortable keeping, then choose a format that fits how he displays or stores keepsakes.",
-      "considerations": "It takes advance preparation and is less suitable when you lack enough shared photos or he prefers practical gifts.",
-      "editorialStatus": "ready"
+      ]
     },
     {
       "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-10",
@@ -561,7 +842,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B01L3ZTXS0?tag=thegoodpresen-20"
         }
       ],
-      "position": 10,
+      "position": 16,
       "heading": "A Cooperative Card Game",
       "editorialDescription": "A cooperative card game creates a low-pressure way to unwind and spend time with a partner, friends, or family. Its value comes from being genuinely playable by the people around him, not from a profession-themed joke.",
       "whyItFits": "It adds easygoing fun to off-shift time while creating a shared activity with no assumption about his job-related interests.",
@@ -617,7 +898,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0BNGT2W9M?tag=thegoodpresen-20"
         }
       ],
-      "position": 11,
+      "position": 17,
       "heading": "A Movie-Night Gift Box",
       "editorialDescription": "A movie-night gift box brings together snacks and simple comforts for an easy evening at home. It can be enjoyed solo or shared with friends, family, or a partner whenever the recipient has time off.",
       "whyItFits": "It supports an uncomplicated way to relax after a demanding schedule while leaving the recipient free to choose the film and company.",
@@ -627,52 +908,59 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "serp_7f8a0cc7_0654_444b_82a4_0abf9ad84894",
+      "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-9",
       "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Wildone Baking Sheet with Rack Set (3 Pans + 3 Racks)",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81WIQIARcAL._AC_UL320_.jpg",
+          "name": "Popotop Photo Album",
+          "description": "A linen-cover album with pockets for 4 by 6 inch photographs. Add your own photographs and captions before giving it.",
+          "imageUrl": "https://m.media-amazon.com/images/I/710a1XchpeL._AC_UL320_.jpg",
           "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07NNQ4G96?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B0CGCWY7ZJ?tag=thegoodpresen-20"
         },
         {
-          "name": "Wildone Baking Sheet & Rack Set [2 Sheets + 2 Racks]",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/718AmgWLnoL._AC_UL320_.jpg",
+          "name": "Personalized Photo Album",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51FrLA5ebfL._AC_UL320_.jpg",
           "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07NN8TFQN?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B0CSQGQPGZ?tag=thegoodpresen-20"
         },
         {
-          "name": "TeamFar Stainless Steel Compact Toaster Oven Pan Tray Ovenware",
-          "description": "Compare this stainless steel oven baking trays with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51GCmofsljL._AC_UL320_.jpg",
+          "name": "Promot Personalized Photo Album Custom Photo Book",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71G2EtlMqeL._AC_UL320_.jpg",
           "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B01L3L81IC?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B0DH536NC8?tag=thegoodpresen-20"
         },
         {
-          "name": "Baking Sheet with Cooling Wire Rack Set",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61IW0gZUgEL._AC_UL320_.jpg",
+          "name": "Personalized Photo Album Custom Picture Album Customized Printed Cloth Photo…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/812YcQCOTyL._AC_UL320_.jpg",
           "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B08SVYWVMX?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B0F1N2S6TG?tag=thegoodpresen-20"
         },
         {
-          "name": "Half Baking Sheet Pan Cooling Rack Set",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71bDR+XEx2L._AC_UL320_.jpg",
+          "name": "Custom Photo Book Personalized Photo Album Hard Cover 12P/20P/40P (10*10in)",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71XpMkRC0NL._AC_UL320_.jpg",
           "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0992HQPL8?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B0HFJZRYPJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Blank Calendar",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61cEgziG9FL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CGB2HWVQ?tag=thegoodpresen-20"
         }
       ],
-      "position": 12,
-      "heading": "Stainless-Steel Oven and Storage Trays",
-      "editorialDescription": "A set of stainless-steel trays provides space for preparing ingredients, cooking, and storing food when the individual pieces are designed for those uses. A nesting set is useful for someone who likes to organize several parts of a meal at once.",
-      "whyItFits": "It supports a home-cooking routine with reusable pieces that stack away between meals.",
-      "bestFor": "A home cook building a practical kitchen setup or refreshing everyday tools.",
-      "selectionGuidance": "Check the dimensions, nesting arrangement, lid materials, oven suitability, and cleaning instructions for each piece.",
-      "considerations": "Do not put lids in the oven unless the manufacturer explicitly allows it. Check available kitchen storage and whether similar trays are already in use.",
+      "position": 18,
+      "heading": "A photo book of shared memories",
+      "editorialDescription": "A custom photo book turns shared moments into a keepsake for a birthday, thank-you, promotion, holiday, or meaningful encouragement. It acknowledges the person behind the profession through photos, captions, and moments that belong to your relationship.",
+      "whyItFits": "It carries personal meaning across relationships, especially when the gift should celebrate the individual rather than nursing as an identity.",
+      "bestFor": "A nurse with shared memories worth preserving",
+      "selectionGuidance": "Build it around a clear story—shared trips, family moments, friendships, or milestones—and edit for a cohesive sequence. Use only photos and details the recipient would be comfortable keeping, then choose a format that fits how he displays or stores keepsakes.",
+      "considerations": "It takes advance preparation and is less suitable when you lack enough shared photos or he prefers practical gifts.",
       "editorialStatus": "ready"
     }
   ]

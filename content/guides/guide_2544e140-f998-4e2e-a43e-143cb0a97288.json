@@ -9,7 +9,7 @@
   "excerpt": "Playful, useful gift ideas for nurses and nursing students, with tasteful humor for birthdays, appreciation, celebrations, and everyday encouragement.",
   "introduction": "Shopping for a nurse’s birthday, graduation, or appreciation moment? Choose something that fits the recipient’s real rhythm—shift days, packed meals, shared break-room laughs, personal style, or a comfortable home routine—while keeping the joke clever enough to enjoy beyond one occasion. Look for usable, distinctive, or personalized touches connected to nursing life without relying on a generic slogan or disposable gag.",
   "primaryAxis": "gift-style",
-  "primaryIntent": "Help friends, relatives, partners, coworkers, nursing students, and colleagues choose one of 12 funny gifts for a nurse where the humor is tasteful, recognizable, and connected to nursing life while the item remains genuinely usable, distinctive, personalized, shareable, or comfortable for home and break-room use.",
+  "primaryIntent": "Help friends, relatives, partners, coworkers, nursing students, and colleagues choose one of 18 funny gifts for a nurse where the humor is tasteful, recognizable, and connected to nursing life while the item remains genuinely usable, distinctive, personalized, shareable, or comfortable for home and break-room use.",
   "taxonomies": {
     "occasions": [
       "Birthdays",
@@ -112,104 +112,6 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "review_3cf4234c-6f33-4870-b15d-962379fc4ae9",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "Rokasreke humorous kitchen apron",
-          "description": "A pocketed cooking apron with a playful printed message. Check the exact joke and size against the recipient's taste.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61NdbLZqgWL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0D2MCH5HW?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Funny Apron for Men",
-          "description": "Compare this funny kitchen apron pockets with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81BWERs+FuL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07TXS4S7Q?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Miracu Funny Cooking Aprons for Women",
-          "description": "Compare this funny kitchen apron pockets with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71RXK9CmA2L._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07W8L2Q9L?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Xornis 100% Cotton Funny Apron with 2 Pockets for Men Women BBQ Grilling…",
-          "description": "This version offers an adjustable design. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61ciAdCLsML._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B08ZSNYQP4?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Funny Cooking Chef Apron with Pockets BBQ Kitchen Work Aprons Birthday Dad…",
-          "description": "Compare this funny kitchen apron pockets with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71ElCje2y+L._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B093BMNVL7?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 2,
-      "heading": "A Pocketed Kitchen Apron With Playful Humor",
-      "editorialDescription": "A practical kitchen apron can carry a playful line without turning into disposable novelty merchandise. Favor an adjustable design with useful pockets and humor connected to cooking or personality rather than the job.",
-      "whyItFits": "It keeps the joke in an off-duty setting and still gives the recipient something functional for cooking or hosting.",
-      "bestFor": "A nurse who enjoys cooking, baking, or backyard meals",
-      "selectionGuidance": "Compare fabric weight, strap adjustment, pocket placement, washability, and whether the joke matches their style.",
-      "considerations": "Skip profession-specific slogans if the recipient prefers to leave work humor at work.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "review_34dacf89-d360-4782-9a60-aa9f84f90ce9",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "Sophisticated AF lavender candle",
-          "description": "A lavender-scented candle with an irreverent label. Choose only if the recipient enjoys the joke and fragrance; follow candle-safety instructions.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71VHVW-51GL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0F1H9ZFDF?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Homsolver Gifts for Women Men",
-          "description": "Compare this funny scented candle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61X1oktFmFL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B09Z2HH4HF?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Christmas Birthday Sister Gifts for Women Her Funny Scented Candle",
-          "description": "Compare this funny scented candle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61pU1ZOXPcL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0CB3ND3Z8?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Fairy's Gift Candle",
-          "description": "Compare this funny scented candle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/719-IM0nSgL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B08RCTZHCV?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Younift Funny Scented Candle",
-          "description": "Compare this funny scented candle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61Aes+jOvUL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0D3TSH4LS?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 3,
-      "heading": "A Lighthearted Scented Candle",
-      "editorialDescription": "A candle with restrained, well-timed humor can make an ordinary evening feel lighter. Choose a scent the recipient already tends to enjoy and packaging that lets the joke land without dominating the room.",
-      "whyItFits": "It pairs a short joke with a scented candle the recipient can enjoy at home.",
-      "bestFor": "Someone who enjoys candles and dry, low-key humor",
-      "selectionGuidance": "Prioritize a familiar scent family, clear burn instructions, a stable container, and wording that fits the relationship.",
-      "considerations": "Fragrance is subjective and candles are unsuitable for some homes, so choose another idea if sensitivities are likely.",
-      "editorialStatus": "ready"
-    },
-    {
       "id": "review_d3c6e189-ff3b-4106-9e60-91c6af154250",
       "productResolution": "unresolved",
       "shoppingOptions": [
@@ -249,7 +151,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0GT22TV3N?tag=thegoodpresen-20"
         }
       ],
-      "position": 4,
+      "position": 2,
       "heading": "A Desktop Punching-Bag Stress Toy",
       "editorialDescription": "A miniature punching bag turns a desk break into a quick, ridiculous bit of movement. The joke does not depend on a slogan, so it can stay funny after the first unwrapping.",
       "whyItFits": "It is interactive, easy to share, and playful without reducing the recipient to a profession-themed punchline.",
@@ -257,6 +159,380 @@
       "selectionGuidance": "Choose a compact model with a stable suction base and enough clearance to spring back safely.",
       "considerations": "It works best on a smooth, sturdy surface and may not suit a quiet shared workspace.",
       "editorialStatus": "ready"
+    },
+    {
+      "id": "review_5b9f62da-9af7-41fb-af69-0b903504c813",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "Minecraft Mega SquishMe Series 2 Llama 6″ Scented Slow‑Rise Squishy Toy",
+          "description": "Compare this llama stress squeeze toy with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51VHAQ6e+ZL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09QD63KNG?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Squishmallows 8\" Jim The Alpaca",
+          "description": "Compare this llama stress squeeze toy with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51inFBJN0SL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CPWZX6SZ?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 3,
+      "heading": "A Llama Squeeze Toy With a Calming Pun",
+      "editorialDescription": "A squeezable llama turns the phrase \"calm a llama\" into a small desk joke. Its appeal is the recognizable animal and wordplay: a lighthearted extra for someone who enjoys absurd little objects.",
+      "whyItFits": "It is a small, playful surprise for someone whose sense of humor runs to animal puns and silly desk companions.",
+      "bestFor": "A friend or coworker who enjoys animal puns and tactile desk toys",
+      "selectionGuidance": "Look for a comfortable size, a durable finish, and a design the recipient would enjoy keeping on a desk.",
+      "considerations": "This is a playful small gift, best for someone who likes novelty toys; it makes no promise of treating stress or anxiety.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "research_44e9b046-d1c3-4ae4-a906-03c1fe27e38e",
+      "productResolution": "unresolved",
+      "position": 4,
+      "heading": "Funny Desk Sign",
+      "editorialDescription": "Displaying a joke in a personal workspace is the appeal of this gift. The joke should suit the person and the setting, rather than relying on their job title alone.",
+      "whyItFits": "Displaying a joke in a personal workspace.",
+      "bestFor": "Someone who would enjoy displaying a joke in a personal workspace.",
+      "selectionGuidance": "Read the exact wording; avoid messages that would be uncomfortable at work.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "BigMouth Inc. The Complaint Department Sign",
+          "description": "An option to compare for this funny desk sign. Read the exact wording; avoid messages that would be uncomfortable at work.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61hIrWBEf0L._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B00L2DKS5Q?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Funny Retro Gifts for Friends Coworkers",
+          "description": "An option to compare for this funny desk sign. Read the exact wording; avoid messages that would be uncomfortable at work.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61f1EvTeWoL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DT4FPZFN?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Funny Office Gifts for Coworkers",
+          "description": "An option to compare for this funny desk sign. Read the exact wording; avoid messages that would be uncomfortable at work.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61pXIB41lBL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DTFZDB87?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Motivational Office Desk Decor for Women",
+          "description": "An option to compare for this funny desk sign. Read the exact wording; avoid messages that would be uncomfortable at work.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51DoBjKavoL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CS2KZ24G?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Funny Desk Decor Signs Office Humor Gift for Coworkers Employee",
+          "description": "An option to compare for this funny desk sign. Read the exact wording; avoid messages that would be uncomfortable at work.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61FMiCOJfVL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DR4HQ6L5?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "research_25533d0a-d35e-4ef5-ab04-5567bce13a8d",
+      "productResolution": "unresolved",
+      "position": 5,
+      "heading": "Funny Notepads",
+      "editorialDescription": "Making everyday reminders a little less serious is the appeal of this gift. The joke should suit the person and the setting, rather than relying on their job title alone.",
+      "whyItFits": "Making everyday reminders a little less serious.",
+      "bestFor": "Someone who would enjoy making everyday reminders a little less serious.",
+      "selectionGuidance": "Check the actual printed messages, sheet count, and note size.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "Stonehouse Collection Funny Office Coworker Gift Set",
+          "description": "This option offers a set or kit format. Check the actual printed messages, sheet count, and note size.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61NYUQgG1LL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B00JU74URI?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Guajolote Prints Funny Notepads (4-Pack) Office & Work From Home Gag Gift…",
+          "description": "An option to compare for this funny notepads. Check the actual printed messages, sheet count, and note size.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61INNPZXl0L._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B01MEEUB2A?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Fancy Land Funny Notepads Women Sarcastic Notepads Adults Memo Pad 4Pcs",
+          "description": "An option to compare for this funny notepads. Check the actual printed messages, sheet count, and note size.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61V0-DkgjlL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B088TCRB54?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Slap N Sip A Hilarious Drinking Game with Sticky Hands",
+          "description": "An option to compare for this funny notepads. Check the actual printed messages, sheet count, and note size.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61Vtp0uEACL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0D6T1VGHQ?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Mr. Pen- Sarcastic Sticky Notes and Funny Stylus Pens",
+          "description": "An option to compare for this funny notepads. Check the actual printed messages, sheet count, and note size.",
+          "imageUrl": "https://m.media-amazon.com/images/I/7188AkwPjbL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DRYK7Q4L?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "guide_2544e140-f998-4e2e-a43e-143cb0a97288_slot-8",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "EzPosterPrints Custom Poster",
+          "description": "A printing service for artwork you upload. Supply your own nursing illustration or joke; this listing does not include a ready-made nursing design or frame.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61zLvaTN6GL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07DG1642Z?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Funny Tarot Card Wall Art Decor Rustic Nurse Appreciation Gifts Witchy Vibes…",
+          "description": "Compare this funny nurse wall art with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71CbgycKBiL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D4CFQKZ9?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Gifts for Nurses Female Funny Office Gifts Canvas Wall Art Framed Art",
+          "description": "Compare this funny nurse wall art with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51CjxTv8bdL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CRV5PB69?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Nurse Nutritional Facts Wall Art Funny Nurse Poster 8x10 Unframed Print",
+          "description": "Compare this funny nurse wall art with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61kenf01+RL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B082SP3KGX?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Rogue River Tactical Funny RN Nurse CNA Nursing Metal Tin Sign Wall Decor…",
+          "description": "Compare this funny nurse wall art with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91L088GuF9L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07DNJGT38?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Rogue River Tactical Funny RN Nurse CNA Nursing Metal Tin Sign Wall Decor…",
+          "description": "Compare this funny nurse wall art with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91HZsnlWpnL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07DNJP257?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 6,
+      "heading": "Illustrated Nursing Humor for the Wall",
+      "editorialDescription": "On a home-office or break-room wall, a playful art print can bring nursing-life humor without resorting to a tired slogan. Look for an illustration or scene with enough visual character to feel like decor first and a profession reference second.",
+      "whyItFits": "It creates a distinctive accent that can be enjoyed long after a one-line joke has worn thin.",
+      "bestFor": "Nurses or students who personalize their walls and workspace",
+      "selectionGuidance": "Consider the recipient’s decor, preferred color palette, and likely display setting. Favor artwork with a clear concept, thoughtful typography, and a format that is easy to frame; avoid anything crude, overly clinical, or dependent on a generic slogan.",
+      "considerations": "Wall art is taste-sensitive, so a design connected to a known interest or shared joke is a more reliable choice than a broad profession reference.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "slot_c91eecb6-65ab-488c-8677-b928374ad0dc",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "Custom Nurse Cartoon Portrait",
+          "description": "A personalized nurse cartoon print based on a photograph. Review the seller's customization instructions, proof process, and print size.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51MRfwL7s7L._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B00AP27ALU?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Giantbighands Personalized Couple Canvas",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71snqyjJ92L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GF7NY42J?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Caricature Wall Art For Funny Couples Custom Cartoon Drawing From Photo…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61J2zQQVNmL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FJ88Y54F?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ipplee Personalized Funny Caricature Portrait Canvas Prints for Couples",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81h0QRoewiL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H99KQYML?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Passport Holder for Travel Lovers",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/717mQjSCraL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H4V6WCBZ?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 7,
+      "heading": "A Caricature Built Around Their Shift Personality",
+      "editorialDescription": "Commission a warm, playful portrait that captures a recognizable habit, favorite shift detail, or nursing-student milestone. The humor comes from the personal reference and expressive style, making it suitable for a home wall, desk, or shared celebration rather than another generic profession slogan.",
+      "whyItFits": "It turns nursing life into an inside joke that feels personal, while the artwork can remain a keepsake after the occasion. A thoughtful detail gives the humor staying power without relying on crude workplace jokes or a generic nurse label.",
+      "bestFor": "Nurses or nursing students who enjoy personal humor and display-worthy keepsakes.",
+      "selectionGuidance": "Base the design on a detail the recipient will recognize, such as a favorite shift ritual, workday accessory, or study milestone. Choose an expressive style that feels affectionate rather than mocking, and make sure the giver can easily provide relevant reference details for the intended desk or wall setting.",
+      "considerations": "Caricature humor is personal: avoid exaggerated details that could embarrass the recipient, and confirm they would enjoy a display piece before choosing it.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "research_88184384-9004-4cf0-8753-d8cb2ece1a83",
+      "productResolution": "unresolved",
+      "position": 8,
+      "heading": "Animal Doorstop",
+      "editorialDescription": "Adding a playful animal to an everyday corner at home is the appeal of this gift. The joke should suit the person and the setting, rather than relying on their job title alone.",
+      "whyItFits": "Adding a playful animal to an everyday corner at home.",
+      "bestFor": "Someone who would enjoy adding a playful animal to an everyday corner at home.",
+      "selectionGuidance": "Check weight, dimensions, and floor compatibility.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "Marwood Cute Door Stopper Decorative Door Stops for Home and Office",
+          "description": "An option to compare for this animal doorstop. Check weight, dimensions, and floor compatibility.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61pRZadJIYL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07X8K86XH?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Home Locomotion SLC-10015651-V1 Cat Scratching Door Stopper",
+          "description": "An option to compare for this animal doorstop. Check weight, dimensions, and floor compatibility.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51I96pKdmqL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B00H2WVAO4?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Decorative Door Stoppers for Home and Office Cute Checkered Dog Door Stop",
+          "description": "An option to compare for this animal doorstop. Check weight, dimensions, and floor compatibility.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71zbUNf0ouL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B08JG8W9SJ?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Elements 9 in Polyester Grey Owl Door Stopper Weighted Animal Doorstop for…",
+          "description": "An option to compare for this animal doorstop. Check weight, dimensions, and floor compatibility.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81pPEGyoUQL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B086XKZW8N?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Highland Cow Door Stopper Cute Weighted Animal Doorstop with Soft Faux Fur…",
+          "description": "An option to compare for this animal doorstop. Check weight, dimensions, and floor compatibility.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71OxOHBlZOL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0FMQDRRH4?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "guide_2544e140-f998-4e2e-a43e-143cb0a97288_slot-7",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "You are Safe with Me Pin",
+          "description": "Compare this funny nurse enamel pin with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71PElpbhb4L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B2MDNNCS?tag=thegoodpresen-20"
+        },
+        {
+          "name": "RN Pins Coffee and Stethoscope Enamel Pin Medical Backpack Lapel Brooch…",
+          "description": "Compare this funny nurse enamel pin with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61BUnwWReIL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DKT391Y4?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Black Cat Medicine Bottle Enamel Lapel Pin Antidepressants Medical…",
+          "description": "Compare this funny nurse enamel pin with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51be2-gCXTL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CPCKZPM8?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Cute Enamel Pins Funny Cat Dog Brooch Pins for Women Men Animal Decorative…",
+          "description": "Compare this funny nurse enamel pin with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61ZEByEQJpL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F1D44S54?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Cna Gifts for Nurses -24/48/72 Pcs Nurse Appreciation Enamel Pins",
+          "description": "Compare this funny nurse enamel pin with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91nAkBsEBhL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FPCRHDYZ?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 9,
+      "heading": "A Small Pin With an Inside Joke",
+      "editorialDescription": "A funny enamel pin offers a low-commitment way to wear nursing humor on a jacket, lanyard, tote, or pouch. The best concepts feel like an inside joke about the workday without making anyone else the punchline.",
+      "whyItFits": "It is compact, easy to include in a group gift, and lets the recipient decide how visible the humor should be.",
+      "bestFor": "Nurses and students who enjoy collectible, subtle accessories",
+      "selectionGuidance": "Choose a crisp illustration or original visual gag, a secure clasp, and a size that suits the places the recipient might wear it. A small set can work for a group, but each pin should have its own idea rather than repeating the same label.",
+      "considerations": "The recipient may prefer to keep it on a personal bag or jacket rather than a uniform.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "research_0ab0b323-1a90-40a7-a6ec-ddaf42d58abb",
+      "productResolution": "unresolved",
+      "position": 10,
+      "heading": "Funny Socks",
+      "editorialDescription": "Adding a small joke to an off-duty outfit is the appeal of this gift. The joke should suit the person and the setting, rather than relying on their job title alone.",
+      "whyItFits": "Adding a small joke to an off-duty outfit.",
+      "bestFor": "Someone who would enjoy adding a small joke to an off-duty outfit.",
+      "selectionGuidance": "Read the printed message, check sizing, and keep the joke suited to the recipient.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "Hot Sox Women's Fun Occupation & Mom Crew Socks- 1 Pair Pack Cute & Funny…",
+          "description": "An option to compare for this funny socks. Read the printed message, check sizing, and keep the joke suited to the recipient.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91LX1eM5M3L._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B079J76LXK?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "WeciBor Women's Funny Colorful Novelty Pattern Cotton Crew Socks",
+          "description": "An option to compare for this funny socks. Read the printed message, check sizing, and keep the joke suited to the recipient.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81QGWKMITEL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0D14NWMZZ?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "FUNATIC Funny and Crazy Socks with Sayings Fun Gifts for Women Men Adult",
+          "description": "An option to compare for this funny socks. Read the printed message, check sizing, and keep the joke suited to the recipient.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61Wz3HOxZmL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07B45MTXR?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Belloxis 5Pcs Funny Animal Socks for Women & Girls",
+          "description": "An option to compare for this funny socks. Read the printed message, check sizing, and keep the joke suited to the recipient.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91HWxqdDN3L._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0B24VMYNW?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Foot Traffic Women's Education-Themed Socks",
+          "description": "An option to compare for this funny socks. Read the printed message, check sizing, and keep the joke suited to the recipient.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61HGZyEcVYL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07QBF38G7?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
     },
     {
       "id": "guide_2544e140-f998-4e2e-a43e-143cb0a97288_slot-5",
@@ -284,7 +560,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0FTVXH4RD?tag=thegoodpresen-20"
         }
       ],
-      "position": 5,
+      "position": 11,
       "heading": "A Phone Case With a Nursing-Life Wink",
       "editorialDescription": "Turn an everyday phone case into a small piece of nursing-life humor that works on and off duty. Favor a smart illustration, visual pun, or subtle custom touch over a large profession label.",
       "whyItFits": "It feels distinctive without being confined to the workplace, making the joke part of everyday style.",
@@ -333,7 +609,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0GF85LLJ7?tag=thegoodpresen-20"
         }
       ],
-      "position": 6,
+      "position": 12,
       "heading": "A Tote With a Clever Nursing-Life Detail",
       "editorialDescription": "For work-to-home routines, a reusable tote offers a practical canvas for humor, whether the personality comes from an illustration, a custom name, or a sharp but tasteful nursing reference. It can carry class materials, a change of clothes, or everyday essentials.",
       "whyItFits": "It is useful across work, school, and off-duty life while leaving room for humor that feels personal rather than generic.",
@@ -343,234 +619,52 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "guide_2544e140-f998-4e2e-a43e-143cb0a97288_slot-7",
+      "id": "review_3cf4234c-6f33-4870-b15d-962379fc4ae9",
       "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "You are Safe with Me Pin",
-          "description": "Compare this funny nurse enamel pin with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71PElpbhb4L._AC_UL320_.jpg",
+          "name": "Rokasreke humorous kitchen apron",
+          "description": "A pocketed cooking apron with a playful printed message. Check the exact joke and size against the recipient's taste.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61NdbLZqgWL._AC_UL320_.jpg",
           "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0B2MDNNCS?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B0D2MCH5HW?tag=thegoodpresen-20"
         },
         {
-          "name": "RN Pins Coffee and Stethoscope Enamel Pin Medical Backpack Lapel Brooch…",
-          "description": "Compare this funny nurse enamel pin with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61BUnwWReIL._AC_UL320_.jpg",
+          "name": "Funny Apron for Men",
+          "description": "Compare this funny kitchen apron pockets with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81BWERs+FuL._AC_UL320_.jpg",
           "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0DKT391Y4?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B07TXS4S7Q?tag=thegoodpresen-20"
         },
         {
-          "name": "Black Cat Medicine Bottle Enamel Lapel Pin Antidepressants Medical…",
-          "description": "Compare this funny nurse enamel pin with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51be2-gCXTL._AC_UL320_.jpg",
+          "name": "Miracu Funny Cooking Aprons for Women",
+          "description": "Compare this funny kitchen apron pockets with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71RXK9CmA2L._AC_UL320_.jpg",
           "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0CPCKZPM8?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B07W8L2Q9L?tag=thegoodpresen-20"
         },
         {
-          "name": "Cute Enamel Pins Funny Cat Dog Brooch Pins for Women Men Animal Decorative…",
-          "description": "Compare this funny nurse enamel pin with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61ZEByEQJpL._AC_UL320_.jpg",
+          "name": "Xornis 100% Cotton Funny Apron with 2 Pockets for Men Women BBQ Grilling…",
+          "description": "This version offers an adjustable design. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61ciAdCLsML._AC_UL320_.jpg",
           "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0F1D44S54?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B08ZSNYQP4?tag=thegoodpresen-20"
         },
         {
-          "name": "Cna Gifts for Nurses -24/48/72 Pcs Nurse Appreciation Enamel Pins",
-          "description": "Compare this funny nurse enamel pin with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/91nAkBsEBhL._AC_UL320_.jpg",
+          "name": "Funny Cooking Chef Apron with Pockets BBQ Kitchen Work Aprons Birthday Dad…",
+          "description": "Compare this funny kitchen apron pockets with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71ElCje2y+L._AC_UL320_.jpg",
           "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0FPCRHDYZ?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B093BMNVL7?tag=thegoodpresen-20"
         }
       ],
-      "position": 7,
-      "heading": "A Small Pin With an Inside Joke",
-      "editorialDescription": "A funny enamel pin offers a low-commitment way to wear nursing humor on a jacket, lanyard, tote, or pouch. The best concepts feel like an inside joke about the workday without making anyone else the punchline.",
-      "whyItFits": "It is compact, easy to include in a group gift, and lets the recipient decide how visible the humor should be.",
-      "bestFor": "Nurses and students who enjoy collectible, subtle accessories",
-      "selectionGuidance": "Choose a crisp illustration or original visual gag, a secure clasp, and a size that suits the places the recipient might wear it. A small set can work for a group, but each pin should have its own idea rather than repeating the same label.",
-      "considerations": "The recipient may prefer to keep it on a personal bag or jacket rather than a uniform.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "guide_2544e140-f998-4e2e-a43e-143cb0a97288_slot-8",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "EzPosterPrints Custom Poster",
-          "description": "A printing service for artwork you upload. Supply your own nursing illustration or joke; this listing does not include a ready-made nursing design or frame.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61zLvaTN6GL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B07DG1642Z?tag=thegoodpresen-20",
-          "sources": ["amazon-agent"]
-        },
-        {
-          "name": "Funny Tarot Card Wall Art Decor Rustic Nurse Appreciation Gifts Witchy Vibes…",
-          "description": "Compare this funny nurse wall art with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71CbgycKBiL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0D4CFQKZ9?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Gifts for Nurses Female Funny Office Gifts Canvas Wall Art Framed Art",
-          "description": "Compare this funny nurse wall art with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51CjxTv8bdL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0CRV5PB69?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Nurse Nutritional Facts Wall Art Funny Nurse Poster 8x10 Unframed Print",
-          "description": "Compare this funny nurse wall art with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61kenf01+RL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B082SP3KGX?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Rogue River Tactical Funny RN Nurse CNA Nursing Metal Tin Sign Wall Decor…",
-          "description": "Compare this funny nurse wall art with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/91L088GuF9L._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07DNJGT38?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Rogue River Tactical Funny RN Nurse CNA Nursing Metal Tin Sign Wall Decor…",
-          "description": "Compare this funny nurse wall art with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/91HZsnlWpnL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07DNJP257?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 8,
-      "heading": "Illustrated Nursing Humor for the Wall",
-      "editorialDescription": "On a home-office or break-room wall, a playful art print can bring nursing-life humor without resorting to a tired slogan. Look for an illustration or scene with enough visual character to feel like decor first and a profession reference second.",
-      "whyItFits": "It creates a distinctive accent that can be enjoyed long after a one-line joke has worn thin.",
-      "bestFor": "Nurses or students who personalize their walls and workspace",
-      "selectionGuidance": "Consider the recipient’s decor, preferred color palette, and likely display setting. Favor artwork with a clear concept, thoughtful typography, and a format that is easy to frame; avoid anything crude, overly clinical, or dependent on a generic slogan.",
-      "considerations": "Wall art is taste-sensitive, so a design connected to a known interest or shared joke is a more reliable choice than a broad profession reference.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "guide_2544e140-f998-4e2e-a43e-143cb0a97288_slot-9",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "COLLEGEBOX Snack Box () Halloween Variety Pack Care Package Gift Basket…",
-          "description": "A shareable snack assortment; add your own nursing-themed note to personalize the gift. Review the included foods, ingredients, allergens, and expiry information before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/9160+3325kL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B00SBT6E8E?tag=thegoodpresen-20"
-        },
-        {
-          "name": "COLLEGEBOX Healthy Snack Box () Halloween Variety Pack Care Package Gift…",
-          "description": "A shareable snack assortment; add your own nursing-themed note to personalize the gift. Review the included foods, ingredients, allergens, and expiry information before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/91XiDkRcr4L._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B01JASF4DU?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Healthy snack Care Package () A Gift crave Snack Box with a Variety of…",
-          "description": "A shareable snack assortment; add your own nursing-themed note to personalize the gift. Review the included foods, ingredients, allergens, and expiry information before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/91nwwo04l4L._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0H8W8GL7H?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Variety Sampler Care Package (50 ct) Gift Package",
-          "description": "A shareable snack assortment; add your own nursing-themed note to personalize the gift. Review the included foods, ingredients, allergens, and expiry information before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/91Ku2U6stKL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0FD84PVPS?tag=thegoodpresen-20"
-        },
-        {
-          "name": "CRAVEBOX Snack Box () Halloween Variety Pack Care Package Gift Basket Adult…",
-          "description": "A shareable snack assortment; add your own nursing-themed note to personalize the gift. Review the included foods, ingredients, allergens, and expiry information before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/A1u-kxFl7hL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0B12YK41T?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 9,
-      "heading": "A Nursing-Themed Snack Box to Open and Share",
-      "editorialDescription": "Open a snack gift box whose humor comes through the packaging, naming, or nursing-life theme rather than novelty alone. Choose a mix that works for solo treats or casual sharing in a break-room setting.",
-      "whyItFits": "It suits celebrations, appreciation moments, and just-because surprises while keeping the experience social and easy to enjoy.",
-      "bestFor": "Nurses, students, or teams who like shareable treats",
-      "selectionGuidance": "Look for a varied assortment, clear ingredient information, packaging that travels well, and a presentation that feels playful without relying on shock value. For a group, choose broadly approachable flavors rather than assuming one person’s preferences.",
-      "considerations": "Food preferences and allergies vary, so confirm relevant dietary needs before making the box the centerpiece of a group gift.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "slot_c91eecb6-65ab-488c-8677-b928374ad0dc",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "Custom Nurse Cartoon Portrait",
-          "description": "A personalized nurse cartoon print based on a photograph. Review the seller's customization instructions, proof process, and print size.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51MRfwL7s7L._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B00AP27ALU?tag=thegoodpresen-20",
-          "sources": ["amazon-agent"]
-        },
-        {
-          "name": "Giantbighands Personalized Couple Canvas",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71snqyjJ92L._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0GF7NY42J?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Caricature Wall Art For Funny Couples Custom Cartoon Drawing From Photo…",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61J2zQQVNmL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0FJ88Y54F?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Ipplee Personalized Funny Caricature Portrait Canvas Prints for Couples",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81h0QRoewiL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0H99KQYML?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Personalized Passport Holder for Travel Lovers",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/717mQjSCraL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0H4V6WCBZ?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 10,
-      "heading": "A Caricature Built Around Their Shift Personality",
-      "editorialDescription": "Commission a warm, playful portrait that captures a recognizable habit, favorite shift detail, or nursing-student milestone. The humor comes from the personal reference and expressive style, making it suitable for a home wall, desk, or shared celebration rather than another generic profession slogan.",
-      "whyItFits": "It turns nursing life into an inside joke that feels personal, while the artwork can remain a keepsake after the occasion. A thoughtful detail gives the humor staying power without relying on crude workplace jokes or a generic nurse label.",
-      "bestFor": "Nurses or nursing students who enjoy personal humor and display-worthy keepsakes.",
-      "selectionGuidance": "Base the design on a detail the recipient will recognize, such as a favorite shift ritual, workday accessory, or study milestone. Choose an expressive style that feels affectionate rather than mocking, and make sure the giver can easily provide relevant reference details for the intended desk or wall setting.",
-      "considerations": "Caricature humor is personal: avoid exaggerated details that could embarrass the recipient, and confirm they would enjoy a display piece before choosing it.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "review_5b9f62da-9af7-41fb-af69-0b903504c813",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "Minecraft Mega SquishMe Series 2 Llama 6″ Scented Slow‑Rise Squishy Toy",
-          "description": "Compare this llama stress squeeze toy with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51VHAQ6e+ZL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B09QD63KNG?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Squishmallows 8\" Jim The Alpaca",
-          "description": "Compare this llama stress squeeze toy with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51inFBJN0SL._AC_UL320_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0CPWZX6SZ?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 11,
-      "heading": "A Llama Squeeze Toy With a Calming Pun",
-      "editorialDescription": "A squeezable llama turns the phrase \"calm a llama\" into a small desk joke. Its appeal is the recognizable animal and wordplay: a lighthearted extra for someone who enjoys absurd little objects.",
-      "whyItFits": "It is a small, playful surprise for someone whose sense of humor runs to animal puns and silly desk companions.",
-      "bestFor": "A friend or coworker who enjoys animal puns and tactile desk toys",
-      "selectionGuidance": "Look for a comfortable size, a durable finish, and a design the recipient would enjoy keeping on a desk.",
-      "considerations": "This is a playful small gift, best for someone who likes novelty toys; it makes no promise of treating stress or anxiety.",
+      "position": 13,
+      "heading": "A Pocketed Kitchen Apron With Playful Humor",
+      "editorialDescription": "A practical kitchen apron can carry a playful line without turning into disposable novelty merchandise. Favor an adjustable design with useful pockets and humor connected to cooking or personality rather than the job.",
+      "whyItFits": "It keeps the joke in an off-duty setting and still gives the recipient something functional for cooking or hosting.",
+      "bestFor": "A nurse who enjoys cooking, baking, or backyard meals",
+      "selectionGuidance": "Compare fabric weight, strap adjustment, pocket placement, washability, and whether the joke matches their style.",
+      "considerations": "Skip profession-specific slogans if the recipient prefers to leave work humor at work.",
       "editorialStatus": "ready"
     },
     {
@@ -613,7 +707,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0CTT5JYBP?tag=thegoodpresen-20"
         }
       ],
-      "position": 12,
+      "position": 14,
       "heading": "A Humorous Mug-and-Stemless-Glass Set",
       "editorialDescription": "This paired drinkware set brings a nursing-related joke to morning coffee and a stemless glass to relaxed evenings. The two pieces can be enjoyed together or used separately at home.",
       "whyItFits": "It offers shareable humor while remaining useful, making it suitable for a birthday, graduation, or appreciation gesture among people who know the recipient’s sense of fun.",
@@ -621,6 +715,200 @@
       "selectionGuidance": "Compare the wording, visual style, care instructions, glass shape, and whether the humor feels specific enough for the recipient.",
       "considerations": "Drinkware takes up cabinet space and the joke may not appeal to someone who prefers understated or non-work-themed décor.",
       "editorialStatus": "ready"
+    },
+    {
+      "id": "research_271b4447-2c96-472b-ab67-b54437cd0139",
+      "productResolution": "unresolved",
+      "position": 15,
+      "heading": "Funny Coaster Set",
+      "editorialDescription": "Sharing a joke around a coffee table is the appeal of this gift. The joke should suit the person and the setting, rather than relying on their job title alone.",
+      "whyItFits": "Sharing a joke around a coffee table.",
+      "bestFor": "Someone who would enjoy sharing a joke around a coffee table.",
+      "selectionGuidance": "Read the designs and check the material and surface protection.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "White Elephant Gifts for Adults",
+          "description": "This option offers a set or kit format. Read the designs and check the material and surface protection.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81YJ9aH4V0L._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07YB9SDR6?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "LIFVER White Elephant for Adults",
+          "description": "This option offers a set or kit format. Read the designs and check the material and surface protection.",
+          "imageUrl": "https://m.media-amazon.com/images/I/818LNKyXfbL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B08XZ16MNJ?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Funny Coasters",
+          "description": "An option to compare for this funny coaster set. Read the designs and check the material and surface protection.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71koMyAjKLL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07SQZ6NCJ?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Coasters for Drinks with Gift Box Set of 6 Colorful Retro Vinyl Record Disk…",
+          "description": "This option offers a set or kit format. Read the designs and check the material and surface protection.",
+          "imageUrl": "https://m.media-amazon.com/images/I/716o893hxyL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07CQZ9MNK?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Funny Retro Record Coasters for Drinks with Vinyl Player Holder Set of 6…",
+          "description": "This option offers a set or kit format. Read the designs and check the material and surface protection.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71b5yCHnTbL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B08R8YVH9G?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "review_34dacf89-d360-4782-9a60-aa9f84f90ce9",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "Sophisticated AF lavender candle",
+          "description": "A lavender-scented candle with an irreverent label. Choose only if the recipient enjoys the joke and fragrance; follow candle-safety instructions.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71VHVW-51GL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F1H9ZFDF?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Homsolver Gifts for Women Men",
+          "description": "Compare this funny scented candle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61X1oktFmFL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09Z2HH4HF?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Christmas Birthday Sister Gifts for Women Her Funny Scented Candle",
+          "description": "Compare this funny scented candle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61pU1ZOXPcL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CB3ND3Z8?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Fairy's Gift Candle",
+          "description": "Compare this funny scented candle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/719-IM0nSgL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08RCTZHCV?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Younift Funny Scented Candle",
+          "description": "Compare this funny scented candle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61Aes+jOvUL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D3TSH4LS?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 16,
+      "heading": "A Lighthearted Scented Candle",
+      "editorialDescription": "A candle with restrained, well-timed humor can make an ordinary evening feel lighter. Choose a scent the recipient already tends to enjoy and packaging that lets the joke land without dominating the room.",
+      "whyItFits": "It pairs a short joke with a scented candle the recipient can enjoy at home.",
+      "bestFor": "Someone who enjoys candles and dry, low-key humor",
+      "selectionGuidance": "Prioritize a familiar scent family, clear burn instructions, a stable container, and wording that fits the relationship.",
+      "considerations": "Fragrance is subjective and candles are unsuitable for some homes, so choose another idea if sensitivities are likely.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_2544e140-f998-4e2e-a43e-143cb0a97288_slot-9",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "COLLEGEBOX Snack Box () Halloween Variety Pack Care Package Gift Basket…",
+          "description": "A shareable snack assortment; add your own nursing-themed note to personalize the gift. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/9160+3325kL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B00SBT6E8E?tag=thegoodpresen-20"
+        },
+        {
+          "name": "COLLEGEBOX Healthy Snack Box () Halloween Variety Pack Care Package Gift…",
+          "description": "A shareable snack assortment; add your own nursing-themed note to personalize the gift. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91XiDkRcr4L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01JASF4DU?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Healthy snack Care Package () A Gift crave Snack Box with a Variety of…",
+          "description": "A shareable snack assortment; add your own nursing-themed note to personalize the gift. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91nwwo04l4L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H8W8GL7H?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Variety Sampler Care Package (50 ct) Gift Package",
+          "description": "A shareable snack assortment; add your own nursing-themed note to personalize the gift. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91Ku2U6stKL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FD84PVPS?tag=thegoodpresen-20"
+        },
+        {
+          "name": "CRAVEBOX Snack Box () Halloween Variety Pack Care Package Gift Basket Adult…",
+          "description": "A shareable snack assortment; add your own nursing-themed note to personalize the gift. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/A1u-kxFl7hL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B12YK41T?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 17,
+      "heading": "A Nursing-Themed Snack Box to Open and Share",
+      "editorialDescription": "Open a snack gift box whose humor comes through the packaging, naming, or nursing-life theme rather than novelty alone. Choose a mix that works for solo treats or casual sharing in a break-room setting.",
+      "whyItFits": "It suits celebrations, appreciation moments, and just-because surprises while keeping the experience social and easy to enjoy.",
+      "bestFor": "Nurses, students, or teams who like shareable treats",
+      "selectionGuidance": "Look for a varied assortment, clear ingredient information, packaging that travels well, and a presentation that feels playful without relying on shock value. For a group, choose broadly approachable flavors rather than assuming one person’s preferences.",
+      "considerations": "Food preferences and allergies vary, so confirm relevant dietary needs before making the box the centerpiece of a group gift.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "research_09d3f7f0-1d60-453b-9b99-7b5ae99cee3d",
+      "productResolution": "unresolved",
+      "position": 18,
+      "heading": "Party Card Game",
+      "editorialDescription": "Bringing humor to a gathering away from work is the appeal of this gift. The joke should suit the person and the setting, rather than relying on their job title alone.",
+      "whyItFits": "Bringing humor to a gathering away from work.",
+      "bestFor": "Someone who would enjoy bringing humor to a gathering away from work.",
+      "selectionGuidance": "Check age guidance, player count, and whether the humor suits the group.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "Taco Cat Goat Cheese Pizza Card Game by Taco Cat Games",
+          "description": "An option to compare for this party card game. Check age guidance, player count, and whether the humor suits the group.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61L3JcwfsDL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B077Z1R28P?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Cards Against Humanity Family Edition • Card Game for Your Horrible Family",
+          "description": "An option to compare for this party card game. Check age guidance, player count, and whether the humor suits the group.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71wydNXdw9L._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0875DFSJ3?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Relative Insanity",
+          "description": "An option to compare for this party card game. Check age guidance, player count, and whether the humor suits the group.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81DR-0SndnL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B079997BXY?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "WHAT DO YOU MEME? for The Girls Card Game by Party Game Relatable",
+          "description": "An option to compare for this party card game. Check age guidance, player count, and whether the humor suits the group.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71C6USbSd7L._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07CVLLC8F?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "WE'RE NOT REALLY STRANGERS Card Game",
+          "description": "An option to compare for this party card game. Check age guidance, player count, and whether the humor suits the group.",
+          "imageUrl": "https://m.media-amazon.com/images/I/616XeR9df9L._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B092GM9NWH?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
     }
   ]
 }

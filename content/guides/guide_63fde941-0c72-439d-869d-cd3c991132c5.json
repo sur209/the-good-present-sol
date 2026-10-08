@@ -26,55 +26,6 @@
   "updatedAt": "2026-10-08",
   "recommendations": [
     {
-      "id": "serp_9fca8240_da6a_4453_9aaa_7d114d35955f",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "MEKZU air-compression leg massager",
-          "description": "A heated compression model for home relaxation. Review sizing, controls and safety restrictions; it is not a substitute for medical care.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81jtk++hhvL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0GWJ3PDMS?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Leg Massager with Heat and Compression for Circulation",
-          "description": "Compare this air compression leg massager with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81xBl9ztmYL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0GY8BMX4Y?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Air Compression Leg Massager with Heat for Circulation",
-          "description": "Compare this air compression leg massager with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/91qvNHn8UnL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0GYCKTVX3?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Sequential Leg Compression Massager for Circulation : Full Leg Air…",
-          "description": "Compare this air compression leg massager with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81ZoKR1JrGL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0GWZVSSTZ?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Leg Compression Massager",
-          "description": "Compare this air compression leg massager with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71SFehsFomL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0CTYXH2Q9?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 1,
-      "heading": "An Air-Compression Leg Massager",
-      "editorialDescription": "An air-compression leg massager creates a substantial at-home wind-down ritual after an overnight schedule. Wraparound sections for the feet and calves make it more distinctive than another small comfort item, while adjustable controls let the recipient choose how they use it.",
-      "whyItFits": "It gives the recipient a concrete off-shift comfort setup without becoming workplace equipment or a nurse-themed novelty.",
-      "bestFor": "A night-shift nurse who already enjoys compression-style massage at home",
-      "selectionGuidance": "Compare the supported size range, number of zones, control layout, available intensity settings, cleaning instructions, storage needs, and return policy.",
-      "considerations": "Pressure and heat preferences are personal, so this is best for someone who has expressed interest in this kind of device. Treat it as a comfort product, not a medical treatment.",
-      "editorialStatus": "ready"
-    },
-    {
       "id": "review_3685ec52-5e19-4b71-a133-e9639effe4bd",
       "productResolution": "unresolved",
       "shoppingOptions": [
@@ -114,13 +65,359 @@
           "affiliateUrl": "https://www.amazon.com/dp/B09ZHS2YHZ?tag=thegoodpresen-20"
         }
       ],
-      "position": 2,
+      "position": 1,
       "heading": "A Cooling Pillowcase Set for Daytime Sleep",
       "editorialDescription": "A breathable pillowcase set can make a daytime sleep setup feel cooler and more intentional without adding another device. A neutral pair is easy to rotate through laundry days and works beyond shift weeks.",
       "whyItFits": "It responds directly to sleeping after sunrise while feeling like a comfortable home upgrade rather than work equipment.",
       "bestFor": "A night-shift nurse whose room tends to feel warm during the day",
       "selectionGuidance": "Confirm pillow size and compare fabric feel, closure style, care instructions, and whether the material suits sensitive skin.",
       "considerations": "Cooling claims vary by fabric and room conditions; focus on breathability and a returnable set rather than promises.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_63fde941-0c72-439d-869d-cd3c991132c5_slot-9",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "AZEN 55 Pairs Silicone Ear Plugs",
+          "description": "Compare this reusable noise reducing earplugs with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/815FFSmXLOL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DJ8PYSXM?tag=thegoodpresen-20"
+        },
+        {
+          "name": "45dB Ear Plugs for Sleeping Noise Cancelling Ear Plugs for Noise Reduction &…",
+          "description": "Compare this reusable noise reducing earplugs with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/519CH-PAehL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H6HMJG59?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ear Plugs for Sleeping 50dB Earplugs Noise Cancelling Ear Plugs for Noise…",
+          "description": "Compare this reusable noise reducing earplugs with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61tBi3z0zAL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H6S4QCGT?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ear Plugs for Sleeping",
+          "description": "Compare this reusable noise reducing earplugs with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71JwCL+GmXL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GDZLZVNJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ear Plugs for Sleeping Noise Cancelling",
+          "description": "Compare this reusable noise reducing earplugs with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71RTXEaQ4CL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HJGS9VVN?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 2,
+      "heading": "Reusable Noise-Reducing Earplugs",
+      "editorialDescription": "Noise-reducing earplugs offer a small, portable way to make quiet time at home or on a commute feel more intentional. They can suit someone who prefers a low-profile option and does not want another bulky item.",
+      "whyItFits": "They connect with the quiet off-shift preference and are easy to carry between home and travel.",
+      "bestFor": "Nurses who prefer compact options for quiet time",
+      "selectionGuidance": "Compare comfort, fit options, reusability, cleaning instructions, and the storage case. Confirm where they would be used and whether workplace rules make them unsuitable for that setting.",
+      "considerations": "Personal fit is highly individual, so this is best when you have a sense of the recipient’s preferences.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "research_86c5d5a1-cc44-481c-b6b6-82ab0674a381",
+      "productResolution": "unresolved",
+      "position": 3,
+      "heading": "White Noise Machine",
+      "editorialDescription": "Masking household sounds during a daytime rest routine is the appeal of this gift. Choose around their actual before-and-after-shift routine, without treating the gift as a remedy for fatigue or sleep problems.",
+      "whyItFits": "Masking household sounds during a daytime rest routine.",
+      "bestFor": "Someone who would enjoy masking household sounds during a daytime rest routine.",
+      "selectionGuidance": "Compare sound choices, volume, timer, and power requirements; keep playback comfortable.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "Magicteam Sound White Noise Machine with 20 Non Looping Natural Soothing…",
+          "description": "An option to compare for this white noise machine. Compare sound choices, volume, timer, and power requirements; keep playback comfortable.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71CBN1gUirL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07RWRJ4XW?tag=thegoodpresen-20",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Homedics SoundSleep White Noise Sound Machine",
+          "description": "An option to compare for this white noise machine. Compare sound choices, volume, timer, and power requirements; keep playback comfortable.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61ig+5sBQIL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B00A2JBMRE?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Yogasleep Dohm Classic (Black) The Original White Noise Machine",
+          "description": "An option to compare for this white noise machine. Compare sound choices, volume, timer, and power requirements; keep playback comfortable.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71FnBktDqAL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B00HD0ELFA?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Sound Machine Easysleep White Noise Machine with 25 Soothing Sounds and…",
+          "description": "An option to compare for this white noise machine. Compare sound choices, volume, timer, and power requirements; keep playback comfortable.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51Q7bYGEsZL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B087CPCVK9?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "White Noise Sound Machine for Sleep Portable Sound Machine with 30 Soothing…",
+          "description": "An option to compare for this white noise machine. Compare sound choices, volume, timer, and power requirements; keep playback comfortable.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51Yh0lPSFNL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DQ7P7ZT8?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "research_a0777811-6ea7-4b19-bf03-42a4563568fb",
+      "productResolution": "unresolved",
+      "position": 4,
+      "heading": "Sunrise Alarm Clock",
+      "editorialDescription": "Setting up a gentler wake-up routine is the appeal of this gift. Choose around their actual before-and-after-shift routine, without treating the gift as a remedy for fatigue or sleep problems.",
+      "whyItFits": "Setting up a gentler wake-up routine.",
+      "bestFor": "Someone who would enjoy setting up a gentler wake-up routine.",
+      "selectionGuidance": "Check scheduling controls and brightness; it is not a treatment for sleep problems.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "Odokee Sunrise Alarm Clock White Noise Machine: Natural Wake Up Light",
+          "description": "An option to compare for this sunrise alarm clock. Check scheduling controls and brightness; it is not a treatment for sleep problems.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81mP2pftHML._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DGXD6WVW?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "JALL Sunrise Alarm Clock White Noise Machine with 25 Nature Sleep Sounds",
+          "description": "An option to compare for this sunrise alarm clock. Check scheduling controls and brightness; it is not a treatment for sleep problems.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71GOqgG9TSL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DB8DQJMC?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Sunrise Alarm Clock for Bedrooms Auto-Rotating Moon Lamp with Wake-Up Light…",
+          "description": "An option to compare for this sunrise alarm clock. Check scheduling controls and brightness; it is not a treatment for sleep problems.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71MTWGbzhfL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0F53H1CF1?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "KEPLUG Sunrise Alarm Clock Sound Machine with Dual Alarm for Heavy Sleepers",
+          "description": "An option to compare for this sunrise alarm clock. Check scheduling controls and brightness; it is not a treatment for sleep problems.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81PhguW7FjL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0H25CKG48?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "AFEXOA Sunrise Alarm Clock Wake Up Light with 30 Soothing Sounds",
+          "description": "An option to compare for this sunrise alarm clock. Check scheduling controls and brightness; it is not a treatment for sleep problems.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71lVD-95vrL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0HKV8DKD3?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "review_06381bf4-d157-4ca6-afca-d2a891fe44a4",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "PoKat Touch Bedside Lamps",
+          "description": "A pair of touch-controlled bedside lamps. Review the dimming settings, plug compatibility, and included bulbs before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81ssOvcVW8L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F6WD58BJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Yarra-Decor Bedside Table Lamp with USB Ports",
+          "description": "Compare this dimmable bedside lamp with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51x--gHbxuL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B087CDBKCH?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Fenmzee Bedside Table Lamp for Bedroom Dimmable Touch",
+          "description": "Compare this dimmable bedside lamp with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71zreHoOzVL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BZXNSW5K?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Fenmzee Brown Bedside Lamp for Bedroom",
+          "description": "Compare this dimmable bedside lamp with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/618JNC5zC7L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DJ6XPMY9?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Touch Bedside Table LED Lamp",
+          "description": "Compare this dimmable bedside lamp with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51F1eWcmohL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BR5JHB3Z?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Dicoool Bedside Table Lamp for Bedroom 3-Way Dimmable Touch Lamp",
+          "description": "Compare this dimmable bedside lamp with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71RL9RdCSzL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DD7JFK68?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 5,
+      "heading": "A Dimmable Bedside Accent Lamp",
+      "editorialDescription": "A small accent lamp gives a bedside table or living-room corner a gentle pool of light. An adjustable shade lets the recipient choose the atmosphere for arriving home, having a drink, or settling into quiet time.",
+      "whyItFits": "It improves a space they use between shifts and brings a visible design detail to their home.",
+      "bestFor": "A night-shift nurse who enjoys soft lighting at home",
+      "selectionGuidance": "Compare the footprint, switch position, brightness adjustment, cord reach, and required bulb. Match the finish to the room and include a compatible bulb if it is sold separately.",
+      "considerations": "An accent lamp may be too dim for reading and is not a treatment for sleep or shift-work difficulties.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "research_16f4e141-665e-4ecc-acc8-b663ac80334e",
+      "productResolution": "unresolved",
+      "position": 6,
+      "heading": "Bedside Cable Organizer",
+      "editorialDescription": "Keeping charging leads easy to reach next to the bed is the appeal of this gift. Choose around their actual before-and-after-shift routine, without treating the gift as a remedy for fatigue or sleep problems.",
+      "whyItFits": "Keeping charging leads easy to reach next to the bed.",
+      "bestFor": "Someone who would enjoy keeping charging leads easy to reach next to the bed.",
+      "selectionGuidance": "Check cable sizes, mounting method, and the bedside surface.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "SOULWIT 3 Pcs Silicone USB Cable Holder Clips",
+          "description": "An option to compare for this bedside cable organizer. Check cable sizes, mounting method, and the bedside surface.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71I5ZMiH++L._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07T72KRVX?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "INCHOR Cord Organizer for Desk",
+          "description": "An option to compare for this bedside cable organizer. Check cable sizes, mounting method, and the bedside surface.",
+          "imageUrl": "https://m.media-amazon.com/images/I/811yqmITNUL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B08BZJY7R6?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Cord Organizer Magnetic Cable Clips Adhesive Wire Management 1s Lock",
+          "description": "An option to compare for this bedside cable organizer. Check cable sizes, mounting method, and the bedside surface.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71+HuWR8BZL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CBRK59J7?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "JOYROOM Magnetic Cable Clips",
+          "description": "An option to compare for this bedside cable organizer. Check cable sizes, mounting method, and the bedside surface.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81yvBDKR49L._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CH159ZNT?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Lamicall Cable Clips",
+          "description": "An option to compare for this bedside cable organizer. Check cable sizes, mounting method, and the bedside surface.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81qKnadmfKL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DP4HJBCH?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "research_61137a51-f409-4ce5-9cfd-6810e254c349",
+      "productResolution": "unresolved",
+      "position": 7,
+      "heading": "Weighted Lap Blanket",
+      "editorialDescription": "Adding a compact layer for quiet time on the sofa is the appeal of this gift. Choose around their actual before-and-after-shift routine, without treating the gift as a remedy for fatigue or sleep problems.",
+      "whyItFits": "Adding a compact layer for quiet time on the sofa.",
+      "bestFor": "Someone who would enjoy adding a compact layer for quiet time on the sofa.",
+      "selectionGuidance": "Check weight, dimensions, washing instructions, and whether the recipient actually likes weighted blankets.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "YnM Portable Weighted Lap Blanket for Adults",
+          "description": "An option to compare for this weighted lap blanket. Check weight, dimensions, washing instructions, and whether the recipient actually likes weighted blankets.",
+          "imageUrl": "https://m.media-amazon.com/images/I/615KhA9YhjL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CXQ2Q97T?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "L'AGRATY Weighted Lap Blanket 5lb: Small Weighted Blanket for Adults…",
+          "description": "An option to compare for this weighted lap blanket. Check weight, dimensions, washing instructions, and whether the recipient actually likes weighted blankets.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81lc+GIZS7L._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0D966NHLK?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "yescool Weighted Blanket 5 Pounds Cooling Weighted Lap Blanket",
+          "description": "An option to compare for this weighted lap blanket. Check weight, dimensions, washing instructions, and whether the recipient actually likes weighted blankets.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71FzhqQiOKL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0C3CRP7ZX?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Topblan Weighted Lap Blanket 2 lbs",
+          "description": "An option to compare for this weighted lap blanket. Check weight, dimensions, washing instructions, and whether the recipient actually likes weighted blankets.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61VAW6u5UGL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DNMZ2GF7?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Kaisa Weighted Lap Blanket for Adults",
+          "description": "An option to compare for this weighted lap blanket. Check weight, dimensions, washing instructions, and whether the recipient actually likes weighted blankets.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81a7DwEAdML._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CJ51JPVV?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "serp_9fca8240_da6a_4453_9aaa_7d114d35955f",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "MEKZU air-compression leg massager",
+          "description": "A heated compression model for home relaxation. Review sizing, controls and safety restrictions; it is not a substitute for medical care.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81jtk++hhvL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GWJ3PDMS?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Leg Massager with Heat and Compression for Circulation",
+          "description": "Compare this air compression leg massager with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81xBl9ztmYL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GY8BMX4Y?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Air Compression Leg Massager with Heat for Circulation",
+          "description": "Compare this air compression leg massager with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91qvNHn8UnL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GYCKTVX3?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Sequential Leg Compression Massager for Circulation : Full Leg Air…",
+          "description": "Compare this air compression leg massager with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81ZoKR1JrGL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GWZVSSTZ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Leg Compression Massager",
+          "description": "Compare this air compression leg massager with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71SFehsFomL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CTYXH2Q9?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 8,
+      "heading": "An Air-Compression Leg Massager",
+      "editorialDescription": "An air-compression leg massager creates a substantial at-home wind-down ritual after an overnight schedule. Wraparound sections for the feet and calves make it more distinctive than another small comfort item, while adjustable controls let the recipient choose how they use it.",
+      "whyItFits": "It gives the recipient a concrete off-shift comfort setup without becoming workplace equipment or a nurse-themed novelty.",
+      "bestFor": "A night-shift nurse who already enjoys compression-style massage at home",
+      "selectionGuidance": "Compare the supported size range, number of zones, control layout, available intensity settings, cleaning instructions, storage needs, and return policy.",
+      "considerations": "Pressure and heat preferences are personal, so this is best for someone who has expressed interest in this kind of device. Treat it as a comfort product, not a medical treatment.",
       "editorialStatus": "ready"
     },
     {
@@ -163,7 +460,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0GX129R8L?tag=thegoodpresen-20"
         }
       ],
-      "position": 3,
+      "position": 9,
       "heading": "An Electric Neck-and-Shoulder Heating Pad",
       "editorialDescription": "A shaped electric heating pad adds adjustable warmth to a seated wind-down routine at home. A neck-and-shoulder design stays focused on that area without requiring a full heated blanket.",
       "whyItFits": "It is a reusable home-comfort gift for someone who already enjoys gentle warmth after a long day.",
@@ -212,7 +509,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0CN9SD8JF?tag=thegoodpresen-20"
         }
       ],
-      "position": 4,
+      "position": 10,
       "heading": "An Organized Commuter Backpack",
       "editorialDescription": "A commuter backpack gathers the items that travel with them between home, transit, and work. Look for a layout that makes personal essentials easy to find without adding novelty branding or assuming what clinical equipment they carry.",
       "whyItFits": "It addresses the repeated movement built into overnight work and can remain useful well beyond a single occasion.",
@@ -261,7 +558,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0DR84888W?tag=thegoodpresen-20"
         }
       ],
-      "position": 5,
+      "position": 11,
       "heading": "A Compact Portable Power Bank",
       "editorialDescription": "A portable power bank can be handy when a phone needs topping up during a long shift or the journey home. It is a practical small gift that stays relevant without assuming the recipient’s work setup.",
       "whyItFits": "It connects directly to overnight hours and commuting while remaining useful for personal, non-clinical needs.",
@@ -310,7 +607,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0888TF9PK?tag=thegoodpresen-20"
         }
       ],
-      "position": 6,
+      "position": 12,
       "heading": "A Nesting Food-Prep Bowl Set",
       "editorialDescription": "A coordinated set of prep bowls with fitted lids helps portion ingredients, store leftovers, and prepare several meals without filling a cabinet with mismatched containers. A colorful or polished set can feel like a genuine kitchen upgrade rather than basic meal-storage gear.",
       "whyItFits": "It supports flexible meal preparation around overnight hours and remains useful for cooking, serving, and storage on days off.",
@@ -359,174 +656,13 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0CS9L17ZR?tag=thegoodpresen-20"
         }
       ],
-      "position": 7,
+      "position": 13,
       "heading": "A Large-Capacity Heated Lunch Container",
       "editorialDescription": "A heated lunch container gives the recipient a self-contained way to warm a substantial packed meal when their break falls outside ordinary dining hours. A larger, divided design can keep different parts of the meal organized without relying on a shared kitchen setup.",
       "whyItFits": "It responds directly to an overnight schedule with a concrete product that can travel between home, work, and other long days.",
       "bestFor": "A night-shift nurse who regularly brings a full meal from home",
       "selectionGuidance": "Compare capacity, heating connection, warm-up instructions, leak resistance, removable containers, handle design, cleaning steps, and the storage space available at work.",
       "considerations": "It is bulkier than an ordinary lunch box and may not suit workplaces that restrict personal appliances; confirm the intended setting before choosing.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "review_06381bf4-d157-4ca6-afca-d2a891fe44a4",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "PoKat Touch Bedside Lamps",
-          "description": "A pair of touch-controlled bedside lamps. Review the dimming settings, plug compatibility, and included bulbs before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81ssOvcVW8L._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0F6WD58BJ?tag=thegoodpresen-20",
-          "sources": ["serpapi"]
-        },
-        {
-          "name": "Yarra-Decor Bedside Table Lamp with USB Ports",
-          "description": "Compare this dimmable bedside lamp with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51x--gHbxuL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B087CDBKCH?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Fenmzee Bedside Table Lamp for Bedroom Dimmable Touch",
-          "description": "Compare this dimmable bedside lamp with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71zreHoOzVL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0BZXNSW5K?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Fenmzee Brown Bedside Lamp for Bedroom",
-          "description": "Compare this dimmable bedside lamp with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/618JNC5zC7L._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0DJ6XPMY9?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Touch Bedside Table LED Lamp",
-          "description": "Compare this dimmable bedside lamp with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51F1eWcmohL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0BR5JHB3Z?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Dicoool Bedside Table Lamp for Bedroom 3-Way Dimmable Touch Lamp",
-          "description": "Compare this dimmable bedside lamp with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71RL9RdCSzL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0DD7JFK68?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 8,
-      "heading": "A Dimmable Bedside Accent Lamp",
-      "editorialDescription": "A small accent lamp gives a bedside table or living-room corner a gentle pool of light. An adjustable shade lets the recipient choose the atmosphere for arriving home, having a drink, or settling into quiet time.",
-      "whyItFits": "It improves a space they use between shifts and brings a visible design detail to their home.",
-      "bestFor": "A night-shift nurse who enjoys soft lighting at home",
-      "selectionGuidance": "Compare the footprint, switch position, brightness adjustment, cord reach, and required bulb. Match the finish to the room and include a compatible bulb if it is sold separately.",
-      "considerations": "An accent lamp may be too dim for reading and is not a treatment for sleep or shift-work difficulties.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "guide_63fde941-0c72-439d-869d-cd3c991132c5_slot-9",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "AZEN 55 Pairs Silicone Ear Plugs",
-          "description": "Compare this reusable noise reducing earplugs with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/815FFSmXLOL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0DJ8PYSXM?tag=thegoodpresen-20"
-        },
-        {
-          "name": "45dB Ear Plugs for Sleeping Noise Cancelling Ear Plugs for Noise Reduction &…",
-          "description": "Compare this reusable noise reducing earplugs with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/519CH-PAehL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0H6HMJG59?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Ear Plugs for Sleeping 50dB Earplugs Noise Cancelling Ear Plugs for Noise…",
-          "description": "Compare this reusable noise reducing earplugs with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61tBi3z0zAL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0H6S4QCGT?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Ear Plugs for Sleeping",
-          "description": "Compare this reusable noise reducing earplugs with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71JwCL+GmXL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0GDZLZVNJ?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Ear Plugs for Sleeping Noise Cancelling",
-          "description": "Compare this reusable noise reducing earplugs with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71RTXEaQ4CL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0HJGS9VVN?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 9,
-      "heading": "Reusable Noise-Reducing Earplugs",
-      "editorialDescription": "Noise-reducing earplugs offer a small, portable way to make quiet time at home or on a commute feel more intentional. They can suit someone who prefers a low-profile option and does not want another bulky item.",
-      "whyItFits": "They connect with the quiet off-shift preference and are easy to carry between home and travel.",
-      "bestFor": "Nurses who prefer compact options for quiet time",
-      "selectionGuidance": "Compare comfort, fit options, reusability, cleaning instructions, and the storage case. Confirm where they would be used and whether workplace rules make them unsuitable for that setting.",
-      "considerations": "Personal fit is highly individual, so this is best when you have a sense of the recipient’s preferences.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "review_9143db57-0df8-4e49-bb74-f06cf5cd038b",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "ARTISTRO x Hannah M.P watercolor kit",
-          "description": "A portable painting set in a bamboo box with brushes and paper. Check the included colors and supplies against the recipient's existing kit.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81PnmR50t+L._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0CFLXPZS5?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Winsor & Newton Cotman Field Set",
-          "description": "A compact watercolor set for painting away from a full studio. Check which brushes, paper, and mixing surfaces are included.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71-1LAWLicL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B000N9B3WM?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Artecho 100 Colors Watercolor Paint Set with Metallics",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/7181p9JwTaL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0CLTLKQWF?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Artecho 50-Color Watercolor Paint Set",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81JWkKM-q+L._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0BVZBRPDD?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Watercolor Paint Set 50 Travel Watercolors Kit for Adults",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81L1trzypbL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0BZHQ1VCW?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Funto Mini Watercolor Paint Set",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81WNuLAh44L._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0DJ791K18?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 10,
-      "heading": "A Portable Watercolor Painting Kit",
-      "editorialDescription": "A compact watercolor set creates an easy invitation to make something on a quiet day off. A small palette, a couple of good brushes, and a travel pad are enough to begin without turning the gift into a major new commitment.",
-      "whyItFits": "It gives the recipient a concrete way to shift attention away from work and screens at their own pace.",
-      "bestFor": "Someone who likes creative hobbies or wants a calmer off-duty ritual",
-      "selectionGuidance": "Look for a portable set with replaceable pans, a mixing area, and a small pad made for watercolor.",
-      "considerations": "Keep the setup beginner-friendly unless the recipient already paints and has specific material preferences.",
       "editorialStatus": "ready"
     },
     {
@@ -590,7 +726,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0FV857DSP?tag=thegoodpresen-20"
         }
       ],
-      "position": 11,
+      "position": 14,
       "heading": "A Temperature-Control Electric Kettle",
       "editorialDescription": "A temperature-control electric kettle makes it easy to prepare tea, cocoa, or another favorite hot drink at home. It can become part of a quiet daytime wind-down or a convenient break before heading to work.",
       "whyItFits": "It acknowledges the recipient’s need for comforting routines around an overnight schedule without assuming what they drink or how they relax.",
@@ -646,13 +782,165 @@
           "affiliateUrl": "https://www.amazon.com/dp/B004CIUU6K?tag=thegoodpresen-20"
         }
       ],
-      "position": 12,
+      "position": 15,
       "heading": "An Assorted Tea Bag Collection",
       "editorialDescription": "An assorted tea bag collection offers a range of flavors to sample at home, bring along, or share with others. The variety lets the recipient choose something suited to the moment rather than committing to one blend.",
       "whyItFits": "It is an approachable thank-you for someone whose schedule may make small, flexible comforts especially welcome.",
       "bestFor": "A tea drinker who likes variety or enjoys sharing a warm drink with coworkers or guests.",
       "selectionGuidance": "Look for a balanced mix of flavor profiles, individually wrapped servings, clear ingredient information, and packaging that stores neatly.",
       "considerations": "Tea preferences vary widely, and some blends may not suit the recipient’s taste or usual routines.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "research_269666c3-c3ab-49a0-b82d-72f1c55244e0",
+      "productResolution": "unresolved",
+      "position": 16,
+      "heading": "Milk Frother",
+      "editorialDescription": "Making a favorite warm drink at home is the appeal of this gift. Choose around their actual before-and-after-shift routine, without treating the gift as a remedy for fatigue or sleep problems.",
+      "whyItFits": "Making a favorite warm drink at home.",
+      "bestFor": "Someone who would enjoy making a favorite warm drink at home.",
+      "selectionGuidance": "Check supported milk types, capacity, cleaning, and power supply.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "FrothBlast Milk Frother Handheld for Coffee (Foam Maker) Whisk Drink Mixer…",
+          "description": "An option to compare for this milk frother. Check supported milk types, capacity, cleaning, and power supply.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61k6zhejWNL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B09468KYFH?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Milk Frother Wand & Electric Stirrer with Stand Turbo Coffee & Milk Frother…",
+          "description": "An option to compare for this milk frother. Check supported milk types, capacity, cleaning, and power supply.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71fW2ldiCGL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B01IYDNTAW?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Elementi Electric Milk Frother Handheld Create Creamy Coffee",
+          "description": "An option to compare for this milk frother. Check supported milk types, capacity, cleaning, and power supply.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71YZs6D4BbL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0C1ZWDM2B?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "FoodVille MF05 Rechargeable Milk Frother USB Charging Handheld Foam Maker…",
+          "description": "This option offers rechargeable operation. Check supported milk types, capacity, cleaning, and power supply.",
+          "imageUrl": "https://m.media-amazon.com/images/I/619eFRpGquL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BVBFH497?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Large Electric Milk Frother and Steamer",
+          "description": "An option to compare for this milk frother. Check supported milk types, capacity, cleaning, and power supply.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61hFP6D6MfL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0GSYTKY84?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "research_8e53f01b-c5ea-4f7e-a362-d9d15121e162",
+      "productResolution": "unresolved",
+      "position": 17,
+      "heading": "Pour-Over Coffee Dripper",
+      "editorialDescription": "Enjoying a small coffee-making ritual before an overnight shift is the appeal of this gift. Choose around their actual before-and-after-shift routine, without treating the gift as a remedy for fatigue or sleep problems.",
+      "whyItFits": "Enjoying a small coffee-making ritual before an overnight shift.",
+      "bestFor": "Someone who would enjoy enjoying a small coffee-making ritual before an overnight shift.",
+      "selectionGuidance": "Check filter type, serving size, and whether filters are included.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "HARIO V60 Ceramic Coffee Dripper",
+          "description": "An option to compare for this pour-over coffee dripper. Check filter type, serving size, and whether filters are included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51cCw+yG9BL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B000P4D5HG?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Bodum Pour Over Coffee Maker",
+          "description": "An option to compare for this pour-over coffee dripper. Check filter type, serving size, and whether filters are included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61ShLwhRkML._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07KQVW6RR?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "OXO Brew Single Serve Pour-Over Coffee Maker with Water Tank",
+          "description": "An option to compare for this pour-over coffee dripper. Check filter type, serving size, and whether filters are included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51Pi-0c8ovL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B01ENK41Q6?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Chemex Pour-Over Glass Coffeemaker Classic Series 8-Cup Exclusive Packaging",
+          "description": "An option to compare for this pour-over coffee dripper. Check filter type, serving size, and whether filters are included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61pqaQQGipL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B000I1WP7W?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Cosori Pour Over Coffee Maker",
+          "description": "An option to compare for this pour-over coffee dripper. Check filter type, serving size, and whether filters are included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71ZDozIDtcL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0821DTMGT?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "review_9143db57-0df8-4e49-bb74-f06cf5cd038b",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "ARTISTRO x Hannah M.P watercolor kit",
+          "description": "A portable painting set in a bamboo box with brushes and paper. Check the included colors and supplies against the recipient's existing kit.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81PnmR50t+L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CFLXPZS5?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Winsor & Newton Cotman Field Set",
+          "description": "A compact watercolor set for painting away from a full studio. Check which brushes, paper, and mixing surfaces are included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71-1LAWLicL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B000N9B3WM?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Artecho 100 Colors Watercolor Paint Set with Metallics",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/7181p9JwTaL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CLTLKQWF?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Artecho 50-Color Watercolor Paint Set",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81JWkKM-q+L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BVZBRPDD?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Watercolor Paint Set 50 Travel Watercolors Kit for Adults",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81L1trzypbL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BZHQ1VCW?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Funto Mini Watercolor Paint Set",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81WNuLAh44L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DJ791K18?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 18,
+      "heading": "A Portable Watercolor Painting Kit",
+      "editorialDescription": "A compact watercolor set creates an easy invitation to make something on a quiet day off. A small palette, a couple of good brushes, and a travel pad are enough to begin without turning the gift into a major new commitment.",
+      "whyItFits": "It gives the recipient a concrete way to shift attention away from work and screens at their own pace.",
+      "bestFor": "Someone who likes creative hobbies or wants a calmer off-duty ritual",
+      "selectionGuidance": "Look for a portable set with replaceable pans, a mixing area, and a small pad made for watercolor.",
+      "considerations": "Keep the setup beginner-friendly unless the recipient already paints and has specific material preferences.",
       "editorialStatus": "ready"
     }
   ]

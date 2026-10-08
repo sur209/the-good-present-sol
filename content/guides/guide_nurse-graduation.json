@@ -6,7 +6,7 @@
   "slug": "graduation",
   "language": "en-US",
   "title": "Nurse Graduation Gifts for the Next Chapter",
-  "excerpt": "Twelve celebratory, grounded gifts that honor the work behind a nursing degree and the transition ahead.",
+  "excerpt": "Eighteen celebratory, grounded gifts that honor the work behind a nursing degree and the transition ahead.",
   "introduction": "Nursing graduation closes a demanding chapter and opens a very practical one. A good gift can recognize both: the hours already invested and the new routines about to begin. We favored ideas that feel polished enough for a milestone but useful enough to stay in the graduate's life after the ceremony.",
   "conclusion": "A graduation gift does not need to summarize an entire achievement. Choose one useful object or flexible treat, add a specific note about what you admire, and let the graduate decide how it fits into the next chapter.",
   "primaryAxis": "occasion",
@@ -18,12 +18,150 @@
     "giftStyles": ["practical", "celebratory"]
   },
   "relatedGuideIds": ["guide_nurse-practical", "guide_nurse-under-25"],
-  "seoTitle": "12 Thoughtful Nurse Graduation Gifts | The Good Present",
-  "seoDescription": "Celebrate a new nurse with twelve useful, thoughtful graduation gifts chosen for the milestone and the next chapter.",
+  "seoTitle": "18 Thoughtful Nurse Graduation Gifts | The Good Present",
+  "seoDescription": "Celebrate a new nurse with eighteen useful, thoughtful graduation gifts chosen for the milestone and the next chapter.",
   "status": "published",
   "publishedAt": "2026-08-02",
   "updatedAt": "2026-10-08",
   "recommendations": [
+    {
+      "id": "graduation_badge-reel",
+      "productId": "product_badge-reel",
+      "shoppingOptions": [
+        {
+          "name": "Turtle Badge Reel",
+          "description": "A retractable badge reel with a turtle design. Check the clip style and whether personal badge reels are allowed.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71qNZ5FF7mL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DJ1XNTV2?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Retractable Badge Reel with Claw Clasp and Clip for Id Card Holders ()",
+          "description": "Compare this nurse badge reel id holder with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61xuUNI+6YL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07BPXKWMW?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Retractable Badge Holder with Alligator Clip",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51ww3jDg1fL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01LLXNDOE?tag=thegoodpresen-20"
+        },
+        {
+          "name": "QREEL Badge Reel",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61PY3ndUO3L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07WPRJY9K?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Retractable Badge Holder",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81ZGCCmXyFL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B088LS243F?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 1,
+      "heading": "A Decorative Badge Reel",
+      "editorialDescription": "A low-profile badge reel adds personality without becoming the whole gift. It works particularly well as part of a small graduation bundle with a card and one favorite snack.",
+      "whyItFits": "The new badge is a tangible sign of the transition, and this celebrates it in an understated way.",
+      "bestFor": "A graduate who enjoys small, useful accessories",
+      "considerations": "Look for a design that suits the recipient and confirm their workplace allows personal badge reels.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "graduation_penlight",
+      "productId": "product_rechargeable-penlight",
+      "shoppingOptions": [
+        {
+          "name": "OLIGHT ArkPro Ultra Flashlight",
+          "description": "A rechargeable pocket flashlight. Check the dimensions and charging equipment; it is not a clinical penlight.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61MzEKy0vCL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GHR5DXFC?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Blukar EDC Rechargeable Keychain Flashlight",
+          "description": "This version offers rechargeable operation. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61uRjirMRuL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FNCB3369?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Blukar EDC Rechargeable Keychain Flashlight",
+          "description": "This version offers rechargeable operation and a multi-piece format. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61EfYKXd9VL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0G8DVXDBR?tag=thegoodpresen-20"
+        },
+        {
+          "name": "WARSUN T7PRO Pocket Flashlight",
+          "description": "This version offers rechargeable operation. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/511fxkjKqFL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D2HMBGZG?tag=thegoodpresen-20"
+        },
+        {
+          "name": "OLIGHT ArkPro EDC Flat Flashlight Rechargeable",
+          "description": "This version offers rechargeable operation. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61NmwqW2N5L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FGND9HR1?tag=thegoodpresen-20"
+        },
+        {
+          "name": "NEBO SLIM Mini Rechargeable Pocket Light",
+          "description": "This version offers rechargeable operation. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71tqmc+c9rL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08Z3Y3LJT?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 2,
+      "heading": "A Rechargeable Pocket Light",
+      "editorialDescription": "A rechargeable pocket light is a compact addition to a graduate's general-purpose kit. The clip keeps it easy to find, and recharging avoids creating a drawer of half-used batteries.",
+      "whyItFits": "It is a practical gesture that recognizes the graduate is building new routines and organizing what they carry.",
+      "bestFor": "A graduate assembling a first work bag",
+      "considerations": "Confirm school or employer requirements; a gift should never replace required or employer-issued equipment.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_8a7e30d3_d60c_4d2d_b2aa_70930a34181c",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "Project Cloud 100% Genuine Leather Clogs for Women Slip On Shoes for Women",
+          "description": "Compare this leather nurse clogs with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91TbiKauuNL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H4RYW4R3?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Womens 100% Genuine Leather Clogs Big Buckle Mule",
+          "description": "Compare this leather nurse clogs with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71pcQYuQDML._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0G6XDQKHR?tag=thegoodpresen-20"
+        },
+        {
+          "name": "100% Genuine Leather Clogs for Women",
+          "description": "Compare this leather nurse clogs with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81STy1oKyiL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HHN4N4DD?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 3,
+      "heading": "Leather Clogs for Long Days",
+      "editorialDescription": "A pair of leather clogs can become a versatile part of a graduate’s work-and-commute wardrobe, with a polished look that works beyond the workplace. Their simple silhouette also pairs easily with casual off-duty clothing.",
+      "whyItFits": "They acknowledge the practical rhythm of a new professional routine while still feeling more considered than ordinary work shoes.",
+      "bestFor": "Someone who likes structured footwear and has a workplace dress code that allows clogs.",
+      "selectionGuidance": "Check sizing conventions, toe-room shape, heel height, sole profile, closure style, and workplace requirements.",
+      "considerations": "Clogs are a personal footwear preference, and the recipient may need a different shoe style for their setting.",
+      "editorialStatus": "ready"
+    },
     {
       "id": "graduation_shift-tote",
       "productId": "product_shift-tote",
@@ -64,7 +202,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0DK9DCC9J?tag=thegoodpresen-20"
         }
       ],
-      "position": 1,
+      "position": 4,
       "heading": "A Roomy Graduation Tote",
       "editorialDescription": "A structured tote makes the move from school to a new role feel a little more settled. This one keeps everyday items in one place without looking like specialized equipment, so it can work for orientation, commuting, or an off-duty weekend.",
       "whyItFits": "It marks the career transition while giving the graduate something they can organize around their own routine.",
@@ -73,53 +211,52 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "review_6a24b7e1-5cd8-4f34-bae2-9d8c1f0e7642",
+      "id": "research_1d327474-8a32-4b1f-9d3f-2f97dd5bfa14",
       "productResolution": "unresolved",
+      "position": 5,
+      "heading": "Carry-On Suitcase",
+      "editorialDescription": "Packing for a graduation trip or a move into working life is the appeal of this gift. The milestone is also a chance to celebrate interests and plans beyond the new job.",
+      "whyItFits": "Packing for a graduation trip or a move into working life.",
+      "bestFor": "Someone who would enjoy packing for a graduation trip or a move into working life.",
+      "selectionGuidance": "Check airline dimensions, weight, wheels, and warranty details.",
+      "editorialStatus": "ready",
       "shoppingOptions": [
         {
-          "name": "Instant Pot Vortex 4-quart mini air fryer",
-          "description": "A compact countertop cooker for smaller portions. Check its actual dimensions and power requirements before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71uH9rgfwLL._AC_UY218_.jpg",
-          "sources": ["serpapi", "amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0F9B4YCZF?tag=thegoodpresen-20"
+          "name": "LEVEL8 Carry on Luggage Airline Approved",
+          "description": "An option to compare for this carry-on suitcase. Check airline dimensions, weight, wheels, and warranty details.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91Pbb8OW8TL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B083PX1TDL?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         },
         {
-          "name": "Ninja AF101 Air Fryer",
-          "description": "Compare this compact air fryer with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71+8uTMDRFL._AC_UY218_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07FDJMC9Q?tag=thegoodpresen-20"
+          "name": "Rockland Safari Hardside Spinner Wheel Luggage",
+          "description": "An option to compare for this carry-on suitcase. Check airline dimensions, weight, wheels, and warranty details.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61KhXtsQxKL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B00DQRQYZY?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         },
         {
-          "name": "Dash Tasti-Crisp Small Air Fryer",
-          "description": "Compare this compact air fryer with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/514YCMftobL._AC_UY327_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0815KPZVB?tag=thegoodpresen-20"
+          "name": "Travelers Club 22\" Richmond Spinner Carry-On Luggage",
+          "description": "An option to compare for this carry-on suitcase. Check airline dimensions, weight, wheels, and warranty details.",
+          "imageUrl": "https://m.media-amazon.com/images/I/711mJOEAqiL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0B2Z567H7?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         },
         {
-          "name": "CHEFMAN 2 Qt Mini Air Fryer Digital Space-Saving Compact Air Fryer with…",
-          "description": "Compare this compact air fryer with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71rj5PBTfZL._AC_UY327_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0DC11YH4J?tag=thegoodpresen-20"
+          "name": "UKEIN Luggage Sets 3Piece",
+          "description": "This option offers a set or kit format. Check airline dimensions, weight, wheels, and warranty details.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71xgRritUAL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CW9JCR3M?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         },
         {
-          "name": "Instant Pot Vortex Plus Mini 4 Qt 6-in-1 Air Fryer",
-          "description": "Compare this compact air fryer with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71XyGxT1ITL._AC_UY327_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B08R6KMBQT?tag=thegoodpresen-20"
+          "name": "BAGSMART Carry-On Luggage 20\" Expandable Spinner 22x14x9",
+          "description": "An option to compare for this carry-on suitcase. Check airline dimensions, weight, wheels, and warranty details.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71OJIU2DT9L._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DJXS9GKX?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         }
-      ],
-      "position": 2,
-      "heading": "A Compact Air Fryer",
-      "editorialDescription": "A compact air fryer can make small portions of vegetables, snacks, and simple dinners in a first kitchen. It is a substantial graduation gift when the recipient has counter space and likes this style of cooking.",
-      "whyItFits": "It helps a graduate settle into their own meal routine with a practical appliance they can use regularly.",
-      "bestFor": "A graduate setting up a first apartment or simplifying weeknight cooking",
-      "selectionGuidance": "Compare basket capacity, countertop footprint, controls, cleaning instructions, and ventilation requirements.",
-      "considerations": "Check whether the recipient already owns one and whether their accommodation permits it. It is an air fryer, not a pressure cooker.",
-      "editorialStatus": "ready"
+      ]
     },
     {
       "id": "graduation_tumbler",
@@ -161,7 +298,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0HF5C2PNY?tag=thegoodpresen-20"
         }
       ],
-      "position": 3,
+      "position": 6,
       "heading": "An Insulated Tumbler",
       "editorialDescription": "A good tumbler is simple, personal, and easy to fold into a new routine. Choose a color the graduate actually likes and pair it with a handwritten note instead of turning it into a profession-themed novelty.",
       "whyItFits": "It feels celebratory on day one and remains useful long after the graduation photos are put away.",
@@ -170,155 +307,52 @@
       "editorialStatus": "ready"
     },
     {
-      "id": "graduation_penlight",
-      "productId": "product_rechargeable-penlight",
-      "shoppingOptions": [
-        {
-          "name": "OLIGHT ArkPro Ultra Flashlight",
-          "description": "A rechargeable pocket flashlight. Check the dimensions and charging equipment; it is not a clinical penlight.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61MzEKy0vCL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0GHR5DXFC?tag=thegoodpresen-20",
-          "sources": ["serpapi"]
-        },
-        {
-          "name": "Blukar EDC Rechargeable Keychain Flashlight",
-          "description": "This version offers rechargeable operation. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61uRjirMRuL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0FNCB3369?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Blukar EDC Rechargeable Keychain Flashlight",
-          "description": "This version offers rechargeable operation and a multi-piece format. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61EfYKXd9VL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0G8DVXDBR?tag=thegoodpresen-20"
-        },
-        {
-          "name": "WARSUN T7PRO Pocket Flashlight",
-          "description": "This version offers rechargeable operation. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/511fxkjKqFL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0D2HMBGZG?tag=thegoodpresen-20"
-        },
-        {
-          "name": "OLIGHT ArkPro EDC Flat Flashlight Rechargeable",
-          "description": "This version offers rechargeable operation. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61NmwqW2N5L._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0FGND9HR1?tag=thegoodpresen-20"
-        },
-        {
-          "name": "NEBO SLIM Mini Rechargeable Pocket Light",
-          "description": "This version offers rechargeable operation. Check device compatibility, charging requirements, and the included accessories before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71tqmc+c9rL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B08Z3Y3LJT?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 4,
-      "heading": "A Rechargeable Pocket Light",
-      "editorialDescription": "A rechargeable pocket light is a compact addition to a graduate's general-purpose kit. The clip keeps it easy to find, and recharging avoids creating a drawer of half-used batteries.",
-      "whyItFits": "It is a practical gesture that recognizes the graduate is building new routines and organizing what they carry.",
-      "bestFor": "A graduate assembling a first work bag",
-      "considerations": "Confirm school or employer requirements; a gift should never replace required or employer-issued equipment.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "graduation_badge-reel",
-      "productId": "product_badge-reel",
-      "shoppingOptions": [
-        {
-          "name": "Turtle Badge Reel",
-          "description": "A retractable badge reel with a turtle design. Check the clip style and whether personal badge reels are allowed.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71qNZ5FF7mL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0DJ1XNTV2?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Retractable Badge Reel with Claw Clasp and Clip for Id Card Holders ()",
-          "description": "Compare this nurse badge reel id holder with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61xuUNI+6YL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07BPXKWMW?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Retractable Badge Holder with Alligator Clip",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51ww3jDg1fL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B01LLXNDOE?tag=thegoodpresen-20"
-        },
-        {
-          "name": "QREEL Badge Reel",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61PY3ndUO3L._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07WPRJY9K?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Retractable Badge Holder",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81ZGCCmXyFL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B088LS243F?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 5,
-      "heading": "A Decorative Badge Reel",
-      "editorialDescription": "A low-profile badge reel adds personality without becoming the whole gift. It works particularly well as part of a small graduation bundle with a card and one favorite snack.",
-      "whyItFits": "The new badge is a tangible sign of the transition, and this celebrates it in an understated way.",
-      "bestFor": "A graduate who enjoys small, useful accessories",
-      "considerations": "Look for a design that suits the recipient and confirm their workplace allows personal badge reels.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "review_2f3f9216-0df9-494f-b633-61019b1e8a79",
+      "id": "serp_10a15da7_45c4_4bd8_97b9_d7f4e1c25907",
       "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "White Porcelain Cross Rosary Jewelry Box",
-          "description": "Compare this ceramic keepsake jewelry box with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61tHEgetbQL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07NBKJXZ3?tag=thegoodpresen-20"
+          "name": "Engraved Wood Watch for Men Boyfriend Husband Him As Personalized…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71KMQ3QB+5L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07VN51RTB?tag=thegoodpresen-20"
         },
         {
-          "name": "Ceramic Jewelry Box with Bow",
-          "description": "Compare this ceramic keepsake jewelry box with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61FdkjBfChL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0FVDX3RZY?tag=thegoodpresen-20"
+          "name": "Personalized Photo Watches for Men Leather Strap Wrist Custom Name Wrist…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51eQRh4SjmL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08R3KHJPH?tag=thegoodpresen-20"
         },
         {
-          "name": "Ceramic Angel Cherub Figurine Trinket Box for Jewelry",
-          "description": "Compare this ceramic keepsake jewelry box with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51IcCPXhJZL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B08281NRGW?tag=thegoodpresen-20"
+          "name": "Personalized Men’s Engraved Wood Watches Customized Natural Handmade Wooden…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/817EDz8S0KL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07CST68WL?tag=thegoodpresen-20"
         },
         {
-          "name": "Ceramic Jewelry Box",
-          "description": "This version offers an initial or monogram design. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61thnMmyPrL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0D17S2QFX?tag=thegoodpresen-20"
+          "name": "Personalized Engraved Men Natural Wood Watches for Son Wooden Strap Band…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81PtrKazHkL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B088DG7373?tag=thegoodpresen-20"
         },
         {
-          "name": "Monogram Jewelry Box",
-          "description": "This version offers an initial or monogram design. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61nIaHg55zL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0CQYRGRX4?tag=thegoodpresen-20"
+          "name": "Engraved Man Wooden Watches Black Leather Strap Casual Watch Will You…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81zJuVXec8L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07FNBK43T?tag=thegoodpresen-20"
         }
       ],
-      "position": 6,
-      "heading": "A Ceramic Keepsake Jewelry Box",
-      "editorialDescription": "A small ceramic jewelry box gives the graduate a lasting place for a ring, pin, or other tiny reminder of the milestone. Choose a restrained design that can live on a dresser long after graduation decorations come down.",
-      "whyItFits": "It turns the occasion into a useful keepsake without leaning on generic nursing slogans or disposable treats.",
-      "bestFor": "A graduate who wears jewelry or keeps small meaningful objects",
-      "selectionGuidance": "Look for a stable lid, a smooth or lined interior, and a design that fits the recipient's room rather than a profession theme.",
-      "considerations": "Ceramic can chip in transit, so favor protective packaging and include a gift receipt.",
+      "position": 7,
+      "heading": "An Engraved Milestone Wristwatch",
+      "editorialDescription": "An engraved wristwatch gives a graduation gift a lasting, commemorative quality while remaining useful for everyday wear. A short inscription can mark the date, achievement, or encouragement behind the gift.",
+      "whyItFits": "The combination of a practical accessory and personal engraving suits a milestone that deserves more than a fleeting celebration.",
+      "bestFor": "A graduate who appreciates traditional accessories and meaningful details.",
+      "selectionGuidance": "Look at the watch face size, band material, fastening style, engraving area, and overall formality.",
+      "considerations": "A recipient who relies on a phone or smartwatch may not wear a traditional watch regularly.",
       "editorialStatus": "ready"
     },
     {
@@ -368,146 +402,13 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0GC54XJD2?tag=thegoodpresen-20"
         }
       ],
-      "position": 7,
+      "position": 8,
       "heading": "A Personalized Initial Pendant",
       "editorialDescription": "An initial pendant adds a quiet personal touch to everyday outfits while marking the graduate’s transition into a new chapter. It can be worn on its own or layered with other simple jewelry.",
       "whyItFits": "It celebrates the achievement in a way that feels personal without relying on overtly themed designs.",
       "bestFor": "A graduate who prefers understated jewelry with sentimental meaning.",
       "selectionGuidance": "Compare pendant size, chain length, metal finish, engraving style, and whether the initial is easy to read at a glance.",
       "considerations": "Jewelry preferences vary, and some recipients may favor earrings, bracelets, or no monogram at all.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "serp_10a15da7_45c4_4bd8_97b9_d7f4e1c25907",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "Engraved Wood Watch for Men Boyfriend Husband Him As Personalized…",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71KMQ3QB+5L._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07VN51RTB?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Personalized Photo Watches for Men Leather Strap Wrist Custom Name Wrist…",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51eQRh4SjmL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B08R3KHJPH?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Personalized Men’s Engraved Wood Watches Customized Natural Handmade Wooden…",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/817EDz8S0KL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07CST68WL?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Personalized Engraved Men Natural Wood Watches for Son Wooden Strap Band…",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81PtrKazHkL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B088DG7373?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Engraved Man Wooden Watches Black Leather Strap Casual Watch Will You…",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81zJuVXec8L._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07FNBK43T?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 8,
-      "heading": "An Engraved Milestone Wristwatch",
-      "editorialDescription": "An engraved wristwatch gives a graduation gift a lasting, commemorative quality while remaining useful for everyday wear. A short inscription can mark the date, achievement, or encouragement behind the gift.",
-      "whyItFits": "The combination of a practical accessory and personal engraving suits a milestone that deserves more than a fleeting celebration.",
-      "bestFor": "A graduate who appreciates traditional accessories and meaningful details.",
-      "selectionGuidance": "Look at the watch face size, band material, fastening style, engraving area, and overall formality.",
-      "considerations": "A recipient who relies on a phone or smartwatch may not wear a traditional watch regularly.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "serp_8a7e30d3_d60c_4d2d_b2aa_70930a34181c",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "Project Cloud 100% Genuine Leather Clogs for Women Slip On Shoes for Women",
-          "description": "Compare this leather nurse clogs with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/91TbiKauuNL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0H4RYW4R3?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Womens 100% Genuine Leather Clogs Big Buckle Mule",
-          "description": "Compare this leather nurse clogs with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71pcQYuQDML._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0G6XDQKHR?tag=thegoodpresen-20"
-        },
-        {
-          "name": "100% Genuine Leather Clogs for Women",
-          "description": "Compare this leather nurse clogs with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81STy1oKyiL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0HHN4N4DD?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 9,
-      "heading": "Leather Clogs for Long Days",
-      "editorialDescription": "A pair of leather clogs can become a versatile part of a graduate’s work-and-commute wardrobe, with a polished look that works beyond the workplace. Their simple silhouette also pairs easily with casual off-duty clothing.",
-      "whyItFits": "They acknowledge the practical rhythm of a new professional routine while still feeling more considered than ordinary work shoes.",
-      "bestFor": "Someone who likes structured footwear and has a workplace dress code that allows clogs.",
-      "selectionGuidance": "Check sizing conventions, toe-room shape, heel height, sole profile, closure style, and workplace requirements.",
-      "considerations": "Clogs are a personal footwear preference, and the recipient may need a different shoe style for their setting.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "serp_932aa818_b3b8_48bb_9033_0eb21e38ea11",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "Winsor & Newton Cotman studio watercolor set",
-          "description": "A 45-half-pan set for painting at a table or studio. Compare the palette with the recipient's paints and check whether brushes and paper are needed.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71jMSPsMwJS._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B000XYHYI4?tag=thegoodpresen-20"
-        },
-        {
-          "name": "ARTISTRO Bamboo-Box Watercolor Set",
-          "description": "A watercolor set for a home painting space. Compare the palette, included tools, and whether the recipient already has suitable paper and brushes.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81PnmR50t+L._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0CFLXPZS5?tag=thegoodpresen-20"
-        },
-        {
-          "name": "ARTISTRO Watercolor Paint Set with Palette & Brush Pens 50 Colors",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/819rZXtjDeL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0GZY7XXZ9?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Artecho 100 Colors Watercolor Paint Set with Metallics",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/7181p9JwTaL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0CLTLKQWF?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Artecho 50-Color Watercolor Paint Set",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81JWkKM-q+L._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0BVZBRPDD?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 10,
-      "heading": "A Studio Watercolor Painting Set",
-      "editorialDescription": "A studio watercolor set creates an inviting way to spend unstructured time away from work. It can support casual experimentation, small projects, or a more focused creative practice.",
-      "whyItFits": "It offers a celebratory gift with room for personal expression rather than adding another work-related item to the graduate’s routine.",
-      "bestFor": "A creative recipient who enjoys quiet, hands-on hobbies.",
-      "selectionGuidance": "Compare the range of colors, brush selection, palette layout, case format, and whether paper or other basics are included.",
-      "considerations": "Watercolor supplies need a suitable surface and storage space, and they may not appeal to someone who prefers screen-free relaxation of another kind.",
       "editorialStatus": "ready"
     },
     {
@@ -550,13 +451,207 @@
           "affiliateUrl": "https://www.amazon.com/dp/B07VNDSZL4?tag=thegoodpresen-20"
         }
       ],
-      "position": 11,
+      "position": 9,
       "heading": "A Milestone Charm Bracelet",
       "editorialDescription": "A charm bracelet offers a wearable way to mark graduation and leave room for future additions. Choose a simple base that lets the achievement charm remain the focal point.",
       "whyItFits": "It turns a major accomplishment into a personal keepsake while allowing family or friends to add meaning over time.",
       "bestFor": "Someone who enjoys sentimental jewelry and collecting small reminders of important moments.",
       "selectionGuidance": "Consider bracelet length, clasp style, metal finish, charm size, and whether additional charms can be added later.",
       "considerations": "The bracelet may feel too decorative for someone who prefers minimal jewelry or rarely wears accessories.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "review_2f3f9216-0df9-494f-b633-61019b1e8a79",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "White Porcelain Cross Rosary Jewelry Box",
+          "description": "Compare this ceramic keepsake jewelry box with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61tHEgetbQL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07NBKJXZ3?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ceramic Jewelry Box with Bow",
+          "description": "Compare this ceramic keepsake jewelry box with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61FdkjBfChL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FVDX3RZY?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ceramic Angel Cherub Figurine Trinket Box for Jewelry",
+          "description": "Compare this ceramic keepsake jewelry box with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51IcCPXhJZL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08281NRGW?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ceramic Jewelry Box",
+          "description": "This version offers an initial or monogram design. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61thnMmyPrL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D17S2QFX?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Monogram Jewelry Box",
+          "description": "This version offers an initial or monogram design. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61nIaHg55zL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CQYRGRX4?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 10,
+      "heading": "A Ceramic Keepsake Jewelry Box",
+      "editorialDescription": "A small ceramic jewelry box gives the graduate a lasting place for a ring, pin, or other tiny reminder of the milestone. Choose a restrained design that can live on a dresser long after graduation decorations come down.",
+      "whyItFits": "It turns the occasion into a useful keepsake without leaning on generic nursing slogans or disposable treats.",
+      "bestFor": "A graduate who wears jewelry or keeps small meaningful objects",
+      "selectionGuidance": "Look for a stable lid, a smooth or lined interior, and a design that fits the recipient's room rather than a profession theme.",
+      "considerations": "Ceramic can chip in transit, so favor protective packaging and include a gift receipt.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "research_cf7fcda1-eca9-424f-ba42-0b0439722fa0",
+      "productResolution": "unresolved",
+      "position": 11,
+      "heading": "Instant Camera",
+      "editorialDescription": "Taking physical snapshots of a milestone and the days after it is the appeal of this gift. The milestone is also a chance to celebrate interests and plans beyond the new job.",
+      "whyItFits": "Taking physical snapshots of a milestone and the days after it.",
+      "bestFor": "Someone who would enjoy taking physical snapshots of a milestone and the days after it.",
+      "selectionGuidance": "Check film type, ongoing film cost, and whether film is included.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "Instax Square SQ1 Instant Camera",
+          "description": "An option to compare for this instant camera. Check film type, ongoing film cost, and whether film is included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51eEzK9t01L._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B08H89FP2P?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Fujifilm Instax Mini EVO Instant Camera",
+          "description": "An option to compare for this instant camera. Check film type, ongoing film cost, and whether film is included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71lnCG5o9vL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B09M4DKBQ9?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Fujifilm Instax Mini 12 Instant Camera Lilac Purple",
+          "description": "An option to compare for this instant camera. Check film type, ongoing film cost, and whether film is included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51BCl6AKK-L._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BWNYPCT1?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Fujifilm Instax Mini 41 Instant Film Camera Black + 20 Instax Instant Film…",
+          "description": "An option to compare for this instant camera. Check film type, ongoing film cost, and whether film is included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71uRflfymwL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0FMBVLP9T?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "instax mini 13 Instant Film Camera Dreamy Purple",
+          "description": "An option to compare for this instant camera. Check film type, ongoing film cost, and whether film is included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61avG5q-XuL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0GRH779CT?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "research_0a7d4a42-92b6-4ce5-bcfe-20a826e87748",
+      "productResolution": "unresolved",
+      "position": 12,
+      "heading": "Digital Photo Frame",
+      "editorialDescription": "Keeping shared memories visible in a new home is the appeal of this gift. The milestone is also a chance to celebrate interests and plans beyond the new job.",
+      "whyItFits": "Keeping shared memories visible in a new home.",
+      "bestFor": "Someone who would enjoy keeping shared memories visible in a new home.",
+      "selectionGuidance": "Check setup, privacy settings, photo transfer, and any subscription requirements.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "Nixplay Digital Picture Frame",
+          "description": "An option to compare for this digital photo frame. Check setup, privacy settings, photo transfer, and any subscription requirements.",
+          "imageUrl": "https://m.media-amazon.com/images/I/817pxOgxpdL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B09X4L9TDP?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Frameo Digital Picture Frame",
+          "description": "An option to compare for this digital photo frame. Check setup, privacy settings, photo transfer, and any subscription requirements.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81jItDM8zgL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0H9WT5YPN?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "32GB FRAMEO 10.1 Inch Smart WiFi Digital Photo Frame 1280x800 IPS LCD Touch…",
+          "description": "An option to compare for this digital photo frame. Check setup, privacy settings, photo transfer, and any subscription requirements.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71v8cZ36vwL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B083SH697H?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Dragon Touch 10.1'' WiFi Digital Picture Frame",
+          "description": "An option to compare for this digital photo frame. Check setup, privacy settings, photo transfer, and any subscription requirements.",
+          "imageUrl": "https://m.media-amazon.com/images/I/712uVn8vstL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CYZLWG1S?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "AEEZO Digital Picture Frame",
+          "description": "An option to compare for this digital photo frame. Check setup, privacy settings, photo transfer, and any subscription requirements.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71mEui6zWUL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0GJ5D2XP6?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "review_6a24b7e1-5cd8-4f34-bae2-9d8c1f0e7642",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "Instant Pot Vortex 4-quart mini air fryer",
+          "description": "A compact countertop cooker for smaller portions. Check its actual dimensions and power requirements before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71uH9rgfwLL._AC_UY218_.jpg",
+          "sources": ["serpapi", "amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F9B4YCZF?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ninja AF101 Air Fryer",
+          "description": "Compare this compact air fryer with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71+8uTMDRFL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07FDJMC9Q?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Dash Tasti-Crisp Small Air Fryer",
+          "description": "Compare this compact air fryer with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/514YCMftobL._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0815KPZVB?tag=thegoodpresen-20"
+        },
+        {
+          "name": "CHEFMAN 2 Qt Mini Air Fryer Digital Space-Saving Compact Air Fryer with…",
+          "description": "Compare this compact air fryer with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71rj5PBTfZL._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DC11YH4J?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Instant Pot Vortex Plus Mini 4 Qt 6-in-1 Air Fryer",
+          "description": "Compare this compact air fryer with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71XyGxT1ITL._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08R6KMBQT?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 13,
+      "heading": "A Compact Air Fryer",
+      "editorialDescription": "A compact air fryer can make small portions of vegetables, snacks, and simple dinners in a first kitchen. It is a substantial graduation gift when the recipient has counter space and likes this style of cooking.",
+      "whyItFits": "It helps a graduate settle into their own meal routine with a practical appliance they can use regularly.",
+      "bestFor": "A graduate setting up a first apartment or simplifying weeknight cooking",
+      "selectionGuidance": "Compare basket capacity, countertop footprint, controls, cleaning instructions, and ventilation requirements.",
+      "considerations": "Check whether the recipient already owns one and whether their accommodation permits it. It is an air fryer, not a pressure cooker.",
       "editorialStatus": "ready"
     },
     {
@@ -606,7 +701,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0HJCVFZ2J?tag=thegoodpresen-20"
         }
       ],
-      "position": 12,
+      "position": 14,
       "heading": "A Compact Electric Food Chopper",
       "editorialDescription": "A compact food chopper can streamline small kitchen tasks such as preparing vegetables, herbs, sauces, or ingredients for quick meals. Its smaller footprint suits a first apartment or a crowded countertop.",
       "whyItFits": "It supports the practical realities of a demanding new routine without making the gift feel purely utilitarian.",
@@ -614,6 +709,199 @@
       "selectionGuidance": "Compare bowl capacity, control style, blade arrangement, cord storage, cleanup requirements, and available countertop space.",
       "considerations": "It adds another appliance to wash and store, so it may not suit someone with a very minimal kitchen setup.",
       "editorialStatus": "ready"
+    },
+    {
+      "id": "research_7f370d58-a18d-4069-acd6-8cdcc21b418f",
+      "productResolution": "unresolved",
+      "position": 15,
+      "heading": "Cheese Knife Set",
+      "editorialDescription": "Putting together a small celebration board at home is the appeal of this gift. The milestone is also a chance to celebrate interests and plans beyond the new job.",
+      "whyItFits": "Putting together a small celebration board at home.",
+      "bestFor": "Someone who would enjoy putting together a small celebration board at home.",
+      "selectionGuidance": "Check blade materials, storage, and cleaning; food is not necessarily included.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "Lunar 6-Piece Stainless Steel Cheese Knife Set",
+          "description": "This option offers a set or kit format. Check blade materials, storage, and cleaning; food is not necessarily included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/719Ve+ZvnyL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B01HS7MW0I?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "hecef Cheese Knife Set of 3",
+          "description": "This option offers a set or kit format. Check blade materials, storage, and cleaning; food is not necessarily included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61pdCkQLMwL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07W6KG3ZV?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Harvest 6-Piece Cheese Knife Set",
+          "description": "This option offers a set or kit format. Check blade materials, storage, and cleaning; food is not necessarily included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71y2Nean8+L._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B075KHM34P?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Exquisite 6-Piece Cheese Knives Set",
+          "description": "This option offers a set or kit format. Check blade materials, storage, and cleaning; food is not necessarily included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/718PWczC13L._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0893C6RCK?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "WoneNice Cheese Knife Set",
+          "description": "This option offers a set or kit format. Check blade materials, storage, and cleaning; food is not necessarily included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71v7iwWTp0L._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07GR5YS4P?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "research_02965570-d764-4416-9b32-da76d0670606",
+      "productResolution": "unresolved",
+      "position": 16,
+      "heading": "Mechanical Keyboard",
+      "editorialDescription": "Personalizing a home desk for someone who enjoys typing or gaming is the appeal of this gift. The milestone is also a chance to celebrate interests and plans beyond the new job.",
+      "whyItFits": "Personalizing a home desk for someone who enjoys typing or gaming.",
+      "bestFor": "Someone who would enjoy personalizing a home desk for someone who enjoys typing or gaming.",
+      "selectionGuidance": "Check layout, switch noise, operating-system support, and connections.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "SteelSeries USB Apex 5 Hybrid Mechanical Gaming Keyboard Per-Key RGB…",
+          "description": "An option to compare for this mechanical keyboard. Check layout, switch noise, operating-system support, and connections.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81yd9W+0doL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07ZGDD6B1?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "RisoPhy Mechanical Gaming Keyboard",
+          "description": "An option to compare for this mechanical keyboard. Check layout, switch noise, operating-system support, and connections.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71T1WQSxp9L._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B09TR4Y91J?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "AULA F99 Wireless Mechanical Keyboard",
+          "description": "An option to compare for this mechanical keyboard. Check layout, switch noise, operating-system support, and connections.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61mB8mL33pL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CLLHSWRL?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "GravaStar Mercury K1 75% Wireless Mechanical Gaming Keyboard RGB Backlit",
+          "description": "An option to compare for this mechanical keyboard. Check layout, switch noise, operating-system support, and connections.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61DNMaFX-fL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0GTY7H2S3?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Logitech G413 SE Full-Size Mechanical Gaming Keyboard Black",
+          "description": "An option to compare for this mechanical keyboard. Check layout, switch noise, operating-system support, and connections.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61thTSgqWOL._AC_UY327_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B08Z6X4NK3?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "serp_932aa818_b3b8_48bb_9033_0eb21e38ea11",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "Winsor & Newton Cotman studio watercolor set",
+          "description": "A 45-half-pan set for painting at a table or studio. Compare the palette with the recipient's paints and check whether brushes and paper are needed.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71jMSPsMwJS._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B000XYHYI4?tag=thegoodpresen-20"
+        },
+        {
+          "name": "ARTISTRO Bamboo-Box Watercolor Set",
+          "description": "A watercolor set for a home painting space. Compare the palette, included tools, and whether the recipient already has suitable paper and brushes.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81PnmR50t+L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CFLXPZS5?tag=thegoodpresen-20"
+        },
+        {
+          "name": "ARTISTRO Watercolor Paint Set with Palette & Brush Pens 50 Colors",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/819rZXtjDeL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GZY7XXZ9?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Artecho 100 Colors Watercolor Paint Set with Metallics",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/7181p9JwTaL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CLTLKQWF?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Artecho 50-Color Watercolor Paint Set",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81JWkKM-q+L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BVZBRPDD?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 17,
+      "heading": "A Studio Watercolor Painting Set",
+      "editorialDescription": "A studio watercolor set creates an inviting way to spend unstructured time away from work. It can support casual experimentation, small projects, or a more focused creative practice.",
+      "whyItFits": "It offers a celebratory gift with room for personal expression rather than adding another work-related item to the graduate’s routine.",
+      "bestFor": "A creative recipient who enjoys quiet, hands-on hobbies.",
+      "selectionGuidance": "Compare the range of colors, brush selection, palette layout, case format, and whether paper or other basics are included.",
+      "considerations": "Watercolor supplies need a suitable surface and storage space, and they may not appeal to someone who prefers screen-free relaxation of another kind.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "research_5365cfeb-939a-401f-82df-fee1ac7f36c5",
+      "productResolution": "unresolved",
+      "position": 18,
+      "heading": "Sewing Machine",
+      "editorialDescription": "Starting a hobby beyond school and work is the appeal of this gift. The milestone is also a chance to celebrate interests and plans beyond the new job.",
+      "whyItFits": "Starting a hobby beyond school and work.",
+      "bestFor": "Someone who would enjoy starting a hobby beyond school and work.",
+      "selectionGuidance": "Check included accessories, learning resources, and the projects they want to make.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "Brother Sewing Machine",
+          "description": "An option to compare for this sewing machine. Check included accessories, learning resources, and the projects they want to make.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71QdzSt93zL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B00JBKVN8S?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Janome 2212 Sewing Machine Includes Exclusive Bonus Bundle",
+          "description": "An option to compare for this sewing machine. Check included accessories, learning resources, and the projects they want to make.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61eWT+FxZCL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B015YCBNOU?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Stoigeld Portable Sewing Machine for Beginners with 20Pcs Fabric & 32Pcs…",
+          "description": "This option offers a set or kit format. Check included accessories, learning resources, and the projects they want to make.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61XgE+enF8L._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0HHDFP6Z7?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Sewing Machine for Beginners with 50 Pcs Fabric and 32 Pcs Sewing Threads Kit",
+          "description": "This option offers a set or kit format. Check included accessories, learning resources, and the projects they want to make.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71dHJN-Z8cL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0G59BDB3T?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Barbie Sew Chic Designer Sewing Machine Portable Starter Craft Kit",
+          "description": "This option offers a set or kit format. Check included accessories, learning resources, and the projects they want to make.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81+pqqHpgdL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0GTK14J2Z?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
     }
   ]
 }

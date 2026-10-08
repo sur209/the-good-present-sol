@@ -94,6 +94,449 @@
       "editorialStatus": "ready"
     },
     {
+      "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-9",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "Popotop Photo Album",
+          "description": "A linen-cover album with pockets for 4 by 6 inch photographs. Add your own photographs and captions before giving it.",
+          "imageUrl": "https://m.media-amazon.com/images/I/710a1XchpeL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CGCWY7ZJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Photo Album",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51FrLA5ebfL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CSQGQPGZ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Promot Personalized Photo Album Custom Photo Book",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71G2EtlMqeL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DH536NC8?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Photo Album Custom Picture Album Customized Printed Cloth Photo…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/812YcQCOTyL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F1N2S6TG?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Custom Photo Book Personalized Photo Album Hard Cover 12P/20P/40P (10*10in)",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71XpMkRC0NL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HFJZRYPJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Blank Calendar",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61cEgziG9FL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CGB2HWVQ?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 2,
+      "heading": "A Shared Memory Photo Book",
+      "editorialDescription": "Gather brief messages, approved photos, and milestones from a cohort into one collective thank-you. A thoughtfully edited book can reflect the learning and encouragement a preceptor or mentor provided throughout a placement or transition.",
+      "whyItFits": "It turns many individual thanks into a keepsake that reflects the mentor’s broader influence on the group.",
+      "bestFor": "A cohort or team thanking a preceptor together",
+      "selectionGuidance": "Use a simple layout that keeps messages readable and leaves room for different contributors. Proofread names and dates, choose a consistent opening or closing message, and include only photos approved for sharing.",
+      "considerations": "Obtain consent for contributed photos and omit patient-identifying, confidential, or workplace-sensitive content.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-10",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "ExcelMark Custom Desk Nameplate",
+          "description": "A desk nameplate with custom text and color choices. Check the spelling, title, and mounting option before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81MBfQz7PvL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08CDP1FKB?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Lasercrafting Custom Engraved Name Plates for Desk",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71m+umcZVgL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B007IW07PQ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Custom Engraved Office Door Name Plate & Desk Signs",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71vLAzBQh+L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07G3D79DD?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Custom Engraved Office Door Name Plate & Desk Signs",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81ZfjgzhPyL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07G3DBL7Q?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Custom Engraved Office Door Name Plate & Desk Signs",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/715M+QZ5bPL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07G3DJDF7?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 3,
+      "heading": "An Engraved Desk Nameplate",
+      "editorialDescription": "An engraved nameplate creates a polished desk or home-office keepsake that recognizes a preceptor or mentor’s teaching role. A short, sincere line makes it personal without falling into generic nurse novelty merchandise.",
+      "whyItFits": "It honors the professional relationship and creates a lasting reminder of guidance received.",
+      "bestFor": "A mentor with a dedicated desk or office",
+      "selectionGuidance": "Keep the inscription concise, legible, and centered on mentorship or thanks. Choose a restrained finish that suits a workplace, confirm the spelling and wording, and consider whether it will be displayed at work or home.",
+      "considerations": "Check workplace policies before giving a prominently displayed personalized item; a home-office version may be more flexible.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "research_bc7dfacc-3d2b-4bbd-844c-fc85fde779bb",
+      "productResolution": "unresolved",
+      "position": 4,
+      "heading": "Fountain Pen",
+      "editorialDescription": "Writing a thoughtful reply or keeping a handwritten journal is the appeal of this gift. Pair the gift with a note about a specific lesson or moment of support; keep workplace gift policies in mind.",
+      "whyItFits": "Writing a thoughtful reply or keeping a handwritten journal.",
+      "bestFor": "Someone who would enjoy writing a thoughtful reply or keeping a handwritten journal.",
+      "selectionGuidance": "Compare nib size, cartridges, and included ink before choosing.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "Matte Black Forest Fountain Pen Extra Fine Nib Classic Design with Converter…",
+          "description": "This option offers a set or kit format. Compare nib size, cartridges, and included ink before choosing.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61U93PZtgRL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07Y8KN5QD?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Scriveiner Fountain Pen Stunning Black Lacquer Pen",
+          "description": "This option offers a set or kit format. Compare nib size, cartridges, and included ink before choosing.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61Z0rbIFQiL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B08BZPNFYS?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "PILOT Precise Varsity Pre-Filled Fountain Pens",
+          "description": "An option to compare for this fountain pen. Compare nib size, cartridges, and included ink before choosing.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91tOscpA8pL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B00092PRCA?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Asvine Dark Green Forest Fountain Pen Fine Nib Classic Design with Converter…",
+          "description": "This option offers a set or kit format. Compare nib size, cartridges, and included ink before choosing.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61x1uTVCS8L._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B08HQXBHJR?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Wordsworth & Black Fountain Pen Set for Writing",
+          "description": "This option offers a set or kit format. Compare nib size, cartridges, and included ink before choosing.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81ONiVyXZDL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0B5796X8T?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-8",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "Simple Houseware Desk File Organizer for Office Supplies w/Drawer",
+          "description": "Compare this desk organizer with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91DUmkaTjBL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01N9HQM9F?tag=thegoodpresen-20"
+        },
+        {
+          "name": "SKYDUE 360 Rotating Plastic Desk Pen Organizer with 5 Slots",
+          "description": "Compare this desk organizer with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61yhHuVQp4L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0C9ZHWC9K?tag=thegoodpresen-20"
+        },
+        {
+          "name": "OPNICE Desk Organizer and Accessories",
+          "description": "Compare this desk organizer with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81MeUftFm8L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DB8F7GDN?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Marbrasse Pen Organizer with 2 Drawer",
+          "description": "Compare this desk organizer with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71B4FwZxCAL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BYMRJD7R?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Marbrasse 6 Tier Paper Organizer Letter Tray Mesh Desk File Organizer with…",
+          "description": "Compare this desk organizer with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81InLBb2JcL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08PBFKGJG?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 5,
+      "heading": "A Neat Desk Organizer",
+      "editorialDescription": "A desk organizer gives a preceptor or mentor a place for notes, pens, and small essentials after a busy teaching period. It keeps the gesture practical and professional without requiring you to choose clinical equipment or guess at the recipient’s size.",
+      "whyItFits": "It connects naturally to the planning and teaching that shaped a student’s or new nurse’s transition.",
+      "bestFor": "Mentors who use a desk at work or home",
+      "selectionGuidance": "A clean, neutral design with room for notes, pens, and small essentials is easiest to place. Consider whether it is intended for a work desk or home workspace, and avoid prominent profession branding.",
+      "considerations": "Desk space varies, so a compact, flexible design is safer than a large multi-compartment piece.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "research_ce0120ef-7e41-4495-8353-b6d82390b5c2",
+      "productResolution": "unresolved",
+      "position": 6,
+      "heading": "Portfolio Organizer",
+      "editorialDescription": "Keeping meeting notes and papers in one place is the appeal of this gift. Pair the gift with a note about a specific lesson or moment of support; keep workplace gift policies in mind.",
+      "whyItFits": "Keeping meeting notes and papers in one place.",
+      "bestFor": "Someone who would enjoy keeping meeting notes and papers in one place.",
+      "selectionGuidance": "Check paper size, materials, and whether a notepad is included.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "Cossini Black Superior Vegan Leather Business Portfolio with Zipper Padfolio…",
+          "description": "An option to compare for this portfolio organizer. Check paper size, materials, and whether a notepad is included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91sei2ybemL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B01N74KH32?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "STYLIO Padfolio Portfolio Organizer Binder",
+          "description": "An option to compare for this portfolio organizer. Check paper size, materials, and whether a notepad is included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61pTbfxuDML._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B01FDZ5D94?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Wundermax Vegan PU Leather Portfolio with Zipper Business Notebook Organizer…",
+          "description": "An option to compare for this portfolio organizer. Check paper size, materials, and whether a notepad is included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91gf1qGqgCL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07T9FNT6C?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Samsill Professional Padfolio Faux Leather Portfolio Folder for Men and Women",
+          "description": "An option to compare for this portfolio organizer. Check paper size, materials, and whether a notepad is included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91QF3vFWFrL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B004HMRQF4?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Pacific Mailer Padfolio Portfolio Leather Binder",
+          "description": "An option to compare for this portfolio organizer. Check paper size, materials, and whether a notepad is included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71iIFjfC9dL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07VLPS9ZK?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "research_f64b901e-9f93-4197-8f96-422791727f41",
+      "productResolution": "unresolved",
+      "position": 7,
+      "heading": "Bookends",
+      "editorialDescription": "Giving a reading or office shelf a personal touch is the appeal of this gift. Pair the gift with a note about a specific lesson or moment of support; keep workplace gift policies in mind.",
+      "whyItFits": "Giving a reading or office shelf a personal touch.",
+      "bestFor": "Someone who would enjoy giving a reading or office shelf a personal touch.",
+      "selectionGuidance": "Check weight, base grip, and the books they are meant to support.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "MaxGear Book Ends Tree Design Bookends for Shelves 7 x 4.7 x 3.5” 2 Pair",
+          "description": "An option to compare for this bookends. Check weight, base grip, and the books they are meant to support.",
+          "imageUrl": "https://m.media-amazon.com/images/I/816MJgimt1L._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B085G47VY4?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Heavy-Duty Metal Bookend Black L-Shaped Book End",
+          "description": "An option to compare for this bookends. Check weight, base grip, and the books they are meant to support.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51VfLvz-CCL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07LD9GY3J?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "MyGift Burnt Wood Bookends with Metal Industrial Pipe Design",
+          "description": "This option offers a set or kit format. Check weight, base grip, and the books they are meant to support.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81TN8ltaBcL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07STFL4CK?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "VFINE 4-Piece Modern Metal Bookends for Shelves",
+          "description": "An option to compare for this bookends. Check weight, base grip, and the books they are meant to support.",
+          "imageUrl": "https://m.media-amazon.com/images/I/610+J5mJogL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0DG59WL25?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Metal Bookends for Home Office",
+          "description": "An option to compare for this bookends. Check weight, base grip, and the books they are meant to support.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51P9tB8tK1S._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B091C1CNLP?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "research_7174af37-1bc4-4fc6-a00c-3e246fb234fb",
+      "productResolution": "unresolved",
+      "position": 8,
+      "heading": "Glass Paperweight",
+      "editorialDescription": "Adding a small decorative thank-you to a desk is the appeal of this gift. Pair the gift with a note about a specific lesson or moment of support; keep workplace gift policies in mind.",
+      "whyItFits": "Adding a small decorative thank-you to a desk.",
+      "bestFor": "Someone who would enjoy adding a small decorative thank-you to a desk.",
+      "selectionGuidance": "Check size, weight, and the actual design; pair it with a personal note.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "Crystal Apple Figurine Paperweight Art Glass Collectible Home Office Decor",
+          "description": "An option to compare for this glass paperweight. Check size, weight, and the actual design; pair it with a personal note.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61YjJqut+hL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B08BCGMC1Y?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Crystal Glass Diamond Shaped Decoration",
+          "description": "An option to compare for this glass paperweight. Check size, weight, and the actual design; pair it with a personal note.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51mZURcWllL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07H8GJ44Q?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "3.5\" Blown Glass Bird Figurine Handmade Art Glass Bird Crystal Paperweight",
+          "description": "An option to compare for this glass paperweight. Check size, weight, and the actual design; pair it with a personal note.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61e-nj4O45L._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B08BZC9C4W?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "LONGWIN Crystal Dome Magnifier/Paperweight Reading Magnifying Glass-2.4 Inch",
+          "description": "An option to compare for this glass paperweight. Check size, weight, and the actual design; pair it with a personal note.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71B5lPxWM+L._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B019DF2GLI?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Ruby Crystal Diamonds Paper Weights with Gift Box",
+          "description": "An option to compare for this glass paperweight. Check size, weight, and the actual design; pair it with a personal note.",
+          "imageUrl": "https://m.media-amazon.com/images/I/615vnHEitYS._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B096X7DYNR?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
+      "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-6",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "Altman Plants Specialty Live Succulent Plant ()",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81vUMYd2piL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B1N76P36?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Gray Flower Pots",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71AVevzYvCL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B9S77D2T?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Bonsai Tree Pots Small 6 Inch Ceramic Succulent Pots for Indoor Plants Outdoor",
+          "description": "Compare this small live desk plant with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/713IRi8vqvL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FP4MSB8F?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Selamica Ceramic Succulent Pots with Drainage Holes",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71hXm46lZCL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CJ7X6ZTK?tag=thegoodpresen-20"
+        },
+        {
+          "name": "T4U Self Watering Pots for Indoor Plants 6 Inch Planter Clear",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71LNnppvTaL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CWRKSHZP?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 9,
+      "heading": "A Small Desk Plant",
+      "editorialDescription": "A small plant can mark a new professional chapter with a calm touch for a desk or home. It offers appreciation without guessing at clothing sizes, clinical preferences, or personal hobbies.",
+      "whyItFits": "It is modest, distinct from nurse novelty gifts, and works for a mentor who enjoys a simple workspace accent.",
+      "bestFor": "A mentor with a suitable desk or home spot",
+      "selectionGuidance": "Look for a compact, easy-to-place option with clear care guidance and a container that feels professional rather than themed. Consider whether the recipient will use it at work or home, and choose presentation that travels easily.",
+      "considerations": "Some workplaces may not allow plants or may have limited desk space; home placement can avoid that mismatch.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "research_58d4b537-d60f-4209-ac27-9cdd9158a87c",
+      "productResolution": "unresolved",
+      "position": 10,
+      "heading": "Glass Vase",
+      "editorialDescription": "Giving a thank-you bouquet a lasting home is the appeal of this gift. Pair the gift with a note about a specific lesson or moment of support; keep workplace gift policies in mind.",
+      "whyItFits": "Giving a thank-you bouquet a lasting home.",
+      "bestFor": "Someone who would enjoy giving a thank-you bouquet a lasting home.",
+      "selectionGuidance": "Check dimensions and stability; flowers are not necessarily included.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "8 Inch Clear Glass Vase for Flowers",
+          "description": "An option to compare for this glass vase. Check dimensions and stability; flowers are not necessarily included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61lp5KNrteL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B09X34SFQF?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "CYS Excel Clear Glass Cylinder Vase (H:12\" D:4\")",
+          "description": "An option to compare for this glass vase. Check dimensions and stability; flowers are not necessarily included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61ZSAaIBsuL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B01CDI77U2?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Royal Imports Glass Cylinder Flower Vase 8\" Tall",
+          "description": "An option to compare for this glass vase. Check dimensions and stability; flowers are not necessarily included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61VQ5fyQ+yL._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B01MXHPJJ6?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "CEMABT Glass Vases for Flowers，Thickened 3.4 lb Morden vases for Tables…",
+          "description": "An option to compare for this glass vase. Check dimensions and stability; flowers are not necessarily included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/715Vh+gRI1L._AC_UL320_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0C66J3F75?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "TBWIND 12pcs Green Glass Bud Vases Set",
+          "description": "This option offers a set or kit format. Check dimensions and stability; flowers are not necessarily included.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71xn4OYMNoL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CKQL4Z9R?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
+    },
+    {
       "id": "review_1002ac32-a096-45f8-b9cb-a42386fdf38e",
       "productResolution": "unresolved",
       "shoppingOptions": [
@@ -168,7 +611,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B004CIUU6K?tag=thegoodpresen-20"
         }
       ],
-      "position": 2,
+      "position": 11,
       "heading": "A Premium Tea Sampler",
       "editorialDescription": "A well-presented tea assortment offers several quiet breaks rather than one more object to display. Pair it with a specific thank-you note so the appreciation remains personal even after the tea is gone.",
       "whyItFits": "It feels generous, is easy to share, and lets a mentor choose a blend that fits the moment.",
@@ -176,6 +619,54 @@
       "selectionGuidance": "Choose individually wrapped varieties with clear ingredient and caffeine information and a balanced mix of familiar flavors.",
       "considerations": "Confirm that the recipient drinks tea and check for allergies or ingredients they avoid.",
       "editorialStatus": "ready"
+    },
+    {
+      "id": "research_7e5eb142-812b-44e0-b905-737bb12228cb",
+      "productResolution": "unresolved",
+      "position": 12,
+      "heading": "Ceramic Teapot",
+      "editorialDescription": "Serving tea when there is time to sit and talk is the appeal of this gift. Pair the gift with a note about a specific lesson or moment of support; keep workplace gift policies in mind.",
+      "whyItFits": "Serving tea when there is time to sit and talk.",
+      "bestFor": "Someone who would enjoy serving tea when there is time to sit and talk.",
+      "selectionGuidance": "Check capacity, lid fit, infuser details, and cleaning instructions.",
+      "editorialStatus": "ready",
+      "shoppingOptions": [
+        {
+          "name": "RSVP International Stoneware Teapot Collection",
+          "description": "An option to compare for this ceramic teapot. Check capacity, lid fit, infuser details, and cleaning instructions.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61ewv1YVdCL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07XDD263L?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Sweejar Ceramic Tea Pots",
+          "description": "An option to compare for this ceramic teapot. Check capacity, lid fit, infuser details, and cleaning instructions.",
+          "imageUrl": "https://m.media-amazon.com/images/I/515GLJWeRvL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B087CT6XNV?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Porcelain Tea Sets British Royal Series",
+          "description": "An option to compare for this ceramic teapot. Check capacity, lid fit, infuser details, and cleaning instructions.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61yisrLqAzL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B075WPYDJN?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Tealyra Pluto Porcelain Small Teapot Turquoise 18.2-ounce (1-2 cups) Matte…",
+          "description": "An option to compare for this ceramic teapot. Check capacity, lid fit, infuser details, and cleaning instructions.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81hm4aTfe7L._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B078ZKPY25?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "European Style Ceramic Flower Teapot Coffee Pot Water Pot Porcelain Gift…",
+          "description": "An option to compare for this ceramic teapot. Check capacity, lid fit, infuser details, and cleaning instructions.",
+          "imageUrl": "https://m.media-amazon.com/images/I/6130hgbyzzL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B07L3Q3B2J?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        }
+      ]
     },
     {
       "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-3",
@@ -231,7 +722,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B09H18PMQH?tag=thegoodpresen-20"
         }
       ],
-      "position": 3,
+      "position": 13,
       "heading": "A Coffee Tasting Set",
       "editorialDescription": "A small coffee assortment offers a shareable or at-home treat without asking you to guess at a hobby. It can accompany a note of thanks and acknowledge the steady support a preceptor or mentor gave during a demanding transition.",
       "whyItFits": "It is easy to give, modest in spirit, and suitable for a professional relationship when preferences are unknown.",
@@ -280,314 +771,13 @@
           "affiliateUrl": "https://www.amazon.com/dp/B08826B2XL?tag=thegoodpresen-20"
         }
       ],
-      "position": 4,
+      "position": 14,
       "heading": "A Shareable Cookie Assortment",
       "editorialDescription": "A well-presented assortment of cookies offers a warm thank-you for one mentor or a small team. It requires no knowledge of hobbies or sizing and can be enjoyed during a break or taken home.",
       "whyItFits": "The gesture feels generous while staying modest, flexible, and appropriate for professional appreciation.",
       "bestFor": "A preceptor, mentor, or small team with broadly shared tastes",
       "selectionGuidance": "Clear ingredient information, sturdy packaging, and portions suited to the intended recipient or group matter most. Favor varied, broadly appealing flavors and a presentation that is easy to share.",
       "considerations": "It may be less suitable when you do not know whether the recipient or team enjoys sweets; keep workplace sharing and gift-value rules in mind.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "serp_a44e8508_5c32_4edb_b7e7_4faa652556eb",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "PoeticEHome silk neck scarf",
-          "description": "A small square scarf with a patterned finish. Check the chosen print, dimensions, material and care instructions.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71J75LW0TxL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B08ZNQ6GT7?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Square Mulberry Silk Scarf",
-          "description": "A silk scarf that can add color to an everyday outfit. Check the dimensions, pattern, fabric details, and care instructions.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61jhvJcIkbS._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07V3KXMGP?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Womens 100% Large Mulberry Silk Scarf Long Satin Scarf Fashion Lightweight Wraps",
-          "description": "Compare this mulberry silk scarf with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71O4I2PxNLL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0829YLHDX?tag=thegoodpresen-20"
-        },
-        {
-          "name": "100% Mulberry Silk Scarfs Small Square Scarf 21\"x21\" Neck Scarf for Women",
-          "description": "Compare this mulberry silk scarf with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61ChYOwElPL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07Y36GC85?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Mulberry Silk Scarfs Women Small Square Scarf 21\" x 21\" Neckerchief",
-          "description": "Compare this mulberry silk scarf with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61WJWYlhEyL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B08GSS571W?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 5,
-      "heading": "A Mulberry Silk Neck Scarf",
-      "editorialDescription": "A small silk scarf offers a polished thank-you that can be worn at the neck, tied to a bag, or kept for occasions outside work. Choosing a restrained pattern keeps the gesture personal without turning it into profession-themed merchandise.",
-      "whyItFits": "It recognizes the mentor as a person beyond the workplace and feels more considered than a minor desk accessory.",
-      "bestFor": "A mentor whose colors or accessory style you know reasonably well",
-      "selectionGuidance": "Look at fiber content, dimensions, edge finishing, care instructions, pattern scale, and colors the recipient already wears. Include a gift receipt when possible.",
-      "considerations": "Style is personal, and silk requires more careful cleaning than everyday fabrics. Choose another idea if you do not know whether the recipient wears scarves.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-6",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "Altman Plants Specialty Live Succulent Plant ()",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81vUMYd2piL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0B1N76P36?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Gray Flower Pots",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71AVevzYvCL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0B9S77D2T?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Bonsai Tree Pots Small 6 Inch Ceramic Succulent Pots for Indoor Plants Outdoor",
-          "description": "Compare this small live desk plant with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/713IRi8vqvL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0FP4MSB8F?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Selamica Ceramic Succulent Pots with Drainage Holes",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71hXm46lZCL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0CJ7X6ZTK?tag=thegoodpresen-20"
-        },
-        {
-          "name": "T4U Self Watering Pots for Indoor Plants 6 Inch Planter Clear",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71LNnppvTaL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0CWRKSHZP?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 6,
-      "heading": "A Small Desk Plant",
-      "editorialDescription": "A small plant can mark a new professional chapter with a calm touch for a desk or home. It offers appreciation without guessing at clothing sizes, clinical preferences, or personal hobbies.",
-      "whyItFits": "It is modest, distinct from nurse novelty gifts, and works for a mentor who enjoys a simple workspace accent.",
-      "bestFor": "A mentor with a suitable desk or home spot",
-      "selectionGuidance": "Look for a compact, easy-to-place option with clear care guidance and a container that feels professional rather than themed. Consider whether the recipient will use it at work or home, and choose presentation that travels easily.",
-      "considerations": "Some workplaces may not allow plants or may have limited desk space; home placement can avoid that mismatch.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "review_5da5eb0e-c039-42cc-809a-4084b3bb71f6",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "Artena covered ceramic baking dish",
-          "description": "A handled baking dish with a lid for oven-to-table meals. Check dimensions, weight and the separate care instructions for the dish and lid.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61RWlG95AYL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0FC62YFRY?tag=thegoodpresen-20"
-        },
-        {
-          "name": "FE Casserole Dish with Lid",
-          "description": "Compare this ceramic baking dish with lid with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61HahJqotmL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0B1PPW9D6?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Souper Cubes 5x5\" Ceramic Baking Dishes with Lids",
-          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51k6x9MwrEL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0G9577NJM?tag=thegoodpresen-20"
-        },
-        {
-          "name": "MALACASA 4.4 Qt Large Casserole Dish with Lid",
-          "description": "Compare this ceramic baking dish with lid with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71qSeXdP6OL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0B1PQ5VKQ?tag=thegoodpresen-20"
-        },
-        {
-          "name": "MALACASA 3.4 Qt Baking Dish with Lid",
-          "description": "Compare this ceramic baking dish with lid with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61N7S2MX+4L._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0D2VZDF2L?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 7,
-      "heading": "A Covered Ceramic Baking Dish",
-      "editorialDescription": "A covered ceramic baking dish feels presentable enough for a thank-you while remaining useful for casseroles, baked pasta, or dishes shared with family. A neutral finish keeps the choice flexible.",
-      "whyItFits": "It conveys generosity through a lasting home object without becoming overly personal or workplace-themed.",
-      "bestFor": "A mentor who enjoys cooking, baking, or bringing food to gatherings",
-      "selectionGuidance": "Compare capacity, handle shape, lid fit, weight, care instructions, and stated oven, refrigerator, and dishwasher compatibility.",
-      "considerations": "It is heavier and more fragile than a small token, so favor protective packaging and confirm that the recipient has storage space.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-8",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "Simple Houseware Desk File Organizer for Office Supplies w/Drawer",
-          "description": "Compare this desk organizer with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/91DUmkaTjBL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B01N9HQM9F?tag=thegoodpresen-20"
-        },
-        {
-          "name": "SKYDUE 360 Rotating Plastic Desk Pen Organizer with 5 Slots",
-          "description": "Compare this desk organizer with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61yhHuVQp4L._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0C9ZHWC9K?tag=thegoodpresen-20"
-        },
-        {
-          "name": "OPNICE Desk Organizer and Accessories",
-          "description": "Compare this desk organizer with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81MeUftFm8L._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0DB8F7GDN?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Marbrasse Pen Organizer with 2 Drawer",
-          "description": "Compare this desk organizer with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71B4FwZxCAL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0BYMRJD7R?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Marbrasse 6 Tier Paper Organizer Letter Tray Mesh Desk File Organizer with…",
-          "description": "Compare this desk organizer with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81InLBb2JcL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B08PBFKGJG?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 8,
-      "heading": "A Neat Desk Organizer",
-      "editorialDescription": "A desk organizer gives a preceptor or mentor a place for notes, pens, and small essentials after a busy teaching period. It keeps the gesture practical and professional without requiring you to choose clinical equipment or guess at the recipient’s size.",
-      "whyItFits": "It connects naturally to the planning and teaching that shaped a student’s or new nurse’s transition.",
-      "bestFor": "Mentors who use a desk at work or home",
-      "selectionGuidance": "A clean, neutral design with room for notes, pens, and small essentials is easiest to place. Consider whether it is intended for a work desk or home workspace, and avoid prominent profession branding.",
-      "considerations": "Desk space varies, so a compact, flexible design is safer than a large multi-compartment piece.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-9",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "Popotop Photo Album",
-          "description": "A linen-cover album with pockets for 4 by 6 inch photographs. Add your own photographs and captions before giving it.",
-          "imageUrl": "https://m.media-amazon.com/images/I/710a1XchpeL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0CGCWY7ZJ?tag=thegoodpresen-20",
-          "sources": ["serpapi"]
-        },
-        {
-          "name": "Personalized Photo Album",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51FrLA5ebfL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0CSQGQPGZ?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Promot Personalized Photo Album Custom Photo Book",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71G2EtlMqeL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0DH536NC8?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Personalized Photo Album Custom Picture Album Customized Printed Cloth Photo…",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/812YcQCOTyL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0F1N2S6TG?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Custom Photo Book Personalized Photo Album Hard Cover 12P/20P/40P (10*10in)",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71XpMkRC0NL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0HFJZRYPJ?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Blank Calendar",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61cEgziG9FL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B0CGB2HWVQ?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 9,
-      "heading": "A Shared Memory Photo Book",
-      "editorialDescription": "Gather brief messages, approved photos, and milestones from a cohort into one collective thank-you. A thoughtfully edited book can reflect the learning and encouragement a preceptor or mentor provided throughout a placement or transition.",
-      "whyItFits": "It turns many individual thanks into a keepsake that reflects the mentor’s broader influence on the group.",
-      "bestFor": "A cohort or team thanking a preceptor together",
-      "selectionGuidance": "Use a simple layout that keeps messages readable and leaves room for different contributors. Proofread names and dates, choose a consistent opening or closing message, and include only photos approved for sharing.",
-      "considerations": "Obtain consent for contributed photos and omit patient-identifying, confidential, or workplace-sensitive content.",
-      "editorialStatus": "ready"
-    },
-    {
-      "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-10",
-      "productResolution": "unresolved",
-      "shoppingOptions": [
-        {
-          "name": "ExcelMark Custom Desk Nameplate",
-          "description": "A desk nameplate with custom text and color choices. Check the spelling, title, and mounting option before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81MBfQz7PvL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B08CDP1FKB?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Lasercrafting Custom Engraved Name Plates for Desk",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71m+umcZVgL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B007IW07PQ?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Custom Engraved Office Door Name Plate & Desk Signs",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71vLAzBQh+L._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07G3D79DD?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Custom Engraved Office Door Name Plate & Desk Signs",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81ZfjgzhPyL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07G3DBL7Q?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Custom Engraved Office Door Name Plate & Desk Signs",
-          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/715M+QZ5bPL._AC_UL320_.jpg",
-          "sources": ["serpapi"],
-          "affiliateUrl": "https://www.amazon.com/dp/B07G3DJDF7?tag=thegoodpresen-20"
-        }
-      ],
-      "position": 10,
-      "heading": "An Engraved Desk Nameplate",
-      "editorialDescription": "An engraved nameplate creates a polished desk or home-office keepsake that recognizes a preceptor or mentor’s teaching role. A short, sincere line makes it personal without falling into generic nurse novelty merchandise.",
-      "whyItFits": "It honors the professional relationship and creates a lasting reminder of guidance received.",
-      "bestFor": "A mentor with a dedicated desk or office",
-      "selectionGuidance": "Keep the inscription concise, legible, and centered on mentorship or thanks. Choose a restrained finish that suits a workplace, confirm the spelling and wording, and consider whether it will be displayed at work or home.",
-      "considerations": "Check workplace policies before giving a prominently displayed personalized item; a home-office version may be more flexible.",
       "editorialStatus": "ready"
     },
     {
@@ -630,13 +820,111 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0CLWQ1GL9?tag=thegoodpresen-20"
         }
       ],
-      "position": 11,
+      "position": 15,
       "heading": "A Gourmet Oil and Vinegar Tasting Set",
       "editorialDescription": "A gourmet oil and vinegar tasting set turns everyday meals into an opportunity to sample different flavor pairings. The bottles can be enjoyed at home, brought out for guests, or shared as part of a casual meal.",
       "whyItFits": "It feels polished while remaining non-clinical and shareable, making it suitable for thanking a preceptor or mentor with a thoughtful gesture.",
       "bestFor": "A home cook or host who enjoys experimenting with flavors.",
       "selectionGuidance": "Compare the variety of included styles, bottle sizes, serving presentation, ingredient details, and storage requirements.",
       "considerations": "It may not suit someone who cooks infrequently or already has a well-stocked pantry of finishing ingredients.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "review_5da5eb0e-c039-42cc-809a-4084b3bb71f6",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "Artena covered ceramic baking dish",
+          "description": "A handled baking dish with a lid for oven-to-table meals. Check dimensions, weight and the separate care instructions for the dish and lid.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61RWlG95AYL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FC62YFRY?tag=thegoodpresen-20"
+        },
+        {
+          "name": "FE Casserole Dish with Lid",
+          "description": "Compare this ceramic baking dish with lid with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61HahJqotmL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B1PPW9D6?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Souper Cubes 5x5\" Ceramic Baking Dishes with Lids",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51k6x9MwrEL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0G9577NJM?tag=thegoodpresen-20"
+        },
+        {
+          "name": "MALACASA 4.4 Qt Large Casserole Dish with Lid",
+          "description": "Compare this ceramic baking dish with lid with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71qSeXdP6OL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B1PQ5VKQ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "MALACASA 3.4 Qt Baking Dish with Lid",
+          "description": "Compare this ceramic baking dish with lid with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61N7S2MX+4L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D2VZDF2L?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 16,
+      "heading": "A Covered Ceramic Baking Dish",
+      "editorialDescription": "A covered ceramic baking dish feels presentable enough for a thank-you while remaining useful for casseroles, baked pasta, or dishes shared with family. A neutral finish keeps the choice flexible.",
+      "whyItFits": "It conveys generosity through a lasting home object without becoming overly personal or workplace-themed.",
+      "bestFor": "A mentor who enjoys cooking, baking, or bringing food to gatherings",
+      "selectionGuidance": "Compare capacity, handle shape, lid fit, weight, care instructions, and stated oven, refrigerator, and dishwasher compatibility.",
+      "considerations": "It is heavier and more fragile than a small token, so favor protective packaging and confirm that the recipient has storage space.",
+      "editorialStatus": "ready"
+    },
+    {
+      "id": "serp_a44e8508_5c32_4edb_b7e7_4faa652556eb",
+      "productResolution": "unresolved",
+      "shoppingOptions": [
+        {
+          "name": "PoeticEHome silk neck scarf",
+          "description": "A small square scarf with a patterned finish. Check the chosen print, dimensions, material and care instructions.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71J75LW0TxL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08ZNQ6GT7?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Square Mulberry Silk Scarf",
+          "description": "A silk scarf that can add color to an everyday outfit. Check the dimensions, pattern, fabric details, and care instructions.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61jhvJcIkbS._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07V3KXMGP?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Womens 100% Large Mulberry Silk Scarf Long Satin Scarf Fashion Lightweight Wraps",
+          "description": "Compare this mulberry silk scarf with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71O4I2PxNLL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0829YLHDX?tag=thegoodpresen-20"
+        },
+        {
+          "name": "100% Mulberry Silk Scarfs Small Square Scarf 21\"x21\" Neck Scarf for Women",
+          "description": "Compare this mulberry silk scarf with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61ChYOwElPL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07Y36GC85?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Mulberry Silk Scarfs Women Small Square Scarf 21\" x 21\" Neckerchief",
+          "description": "Compare this mulberry silk scarf with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61WJWYlhEyL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08GSS571W?tag=thegoodpresen-20"
+        }
+      ],
+      "position": 17,
+      "heading": "A Mulberry Silk Neck Scarf",
+      "editorialDescription": "A small silk scarf offers a polished thank-you that can be worn at the neck, tied to a bag, or kept for occasions outside work. Choosing a restrained pattern keeps the gesture personal without turning it into profession-themed merchandise.",
+      "whyItFits": "It recognizes the mentor as a person beyond the workplace and feels more considered than a minor desk accessory.",
+      "bestFor": "A mentor whose colors or accessory style you know reasonably well",
+      "selectionGuidance": "Look at fiber content, dimensions, edge finishing, care instructions, pattern scale, and colors the recipient already wears. Include a gift receipt when possible.",
+      "considerations": "Style is personal, and silk requires more careful cleaning than everyday fabrics. Choose another idea if you do not know whether the recipient wears scarves.",
       "editorialStatus": "ready"
     },
     {
@@ -679,7 +967,7 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0H7VVBTDV?tag=thegoodpresen-20"
         }
       ],
-      "position": 12,
+      "position": 18,
       "heading": "A Monogrammed Travel Document Wallet",
       "editorialDescription": "A monogrammed travel document wallet keeps passports, boarding documents, cards, and other essentials together for trips. The personalized detail gives a practical organizer a more considered feel.",
       "whyItFits": "It recognizes the recipient as a person beyond the workplace and offers a useful keepsake without relying on a profession-themed design.",
