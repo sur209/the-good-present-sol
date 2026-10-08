@@ -43,7 +43,7 @@ export function relatedIdeas(guide: GiftGuide, idea: GuideRecommendation, guides
     },
     {
       match: /coffee|tea|kettle|tumbler|travel mug/i,
-      slugs: ["thank-you-gifts-for-nurse-preceptors-and-mentors", "practical", "night-shift"],
+      slugs: ["thank-you-gifts-for-nurse-preceptors-and-mentors", "night-shift"],
       label:
         "If a quiet coffee or tea break sounds like their kind of treat, explore more ideas here",
     },
@@ -60,9 +60,8 @@ export function relatedIdeas(guide: GiftGuide, idea: GuideRecommendation, guides
     },
     {
       match: /book light|e-reader|laptop|planner|notebook|desk mat/i,
-      slugs: ["gifts-for-nursing-students", "thank-you-gifts-for-nurse-preceptors-and-mentors"],
-      label:
-        "For more gifts that make reading, studying, or a desk setup more enjoyable, take a look here",
+      slugs: ["gifts-for-nursing-students"],
+      label: "For more gifts for a study space, explore these ideas for nursing students",
     },
     {
       match: /backpack|tote|power bank|charging|crossbody|travel document/i,
