@@ -31,6 +31,15 @@ const canonical = canonicalUrl(Astro.site ?? "https://thegoodpresent.com", canon
 <!doctype html>
 <html lang="en-US">
   <head>
+    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-2CHRWH3TGZ"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-2CHRWH3TGZ");
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
