@@ -6031,12 +6031,11 @@ test("renderiza sólo destinos del catálogo y distingue enlaces afiliados", asy
     "utf8",
   );
   const card = (html: string, productName: string): string => {
-    const nameIndex = html.lastIndexOf(productName);
-    assert.ok(nameIndex >= 0, `Missing ${productName}`);
-    const start = html.lastIndexOf("<article", nameIndex);
-    const end = html.indexOf("</article>", nameIndex);
-    assert.ok(start >= 0 && end >= 0);
-    return html.slice(start, end + "</article>".length);
+    const article = html.match(/<article\b[^>]*>[\s\S]*?<\/article>/g)?.find((entry) =>
+      entry.includes(productName),
+    );
+    assert.ok(article, `Missing card for ${productName}`);
+    return article;
   };
 
   const affiliateCard = card(practical, "Fragrance-Free Hand Cream Duo");
