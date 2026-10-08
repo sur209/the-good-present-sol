@@ -1,0 +1,14 @@
+---
+import MagazineLayout from "../../layouts/MagazineLayout.astro";
+import { content } from "../../lib/content.js";
+export function getStaticPaths() {
+  return import.meta.env.DEV
+    ? [
+        { params: { path: undefined } },
+        ...content.guides.map((guide) => ({ params: { path: guide.slug }, props: { guide } })),
+      ]
+    : [];
+}
+---
+
+<MagazineLayout guide={Astro.props.guide} preview />
