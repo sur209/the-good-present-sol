@@ -9024,7 +9024,10 @@ test("renderiza hubs según su cluster y ofrece un estado vacío honesto", async
   assert.match(nurseHubHtml, /<h1>Nurse Gifts<\/h1>/);
   assert.match(nurseHubHtml, /Gift guides for nurses\./);
   assert.match(nurseHubHtml, /class="hub-product-collage"/);
-  assert.doesNotMatch(nurseHubHtml, /Start with a focused guide|Useful context before product picks/);
+  assert.doesNotMatch(
+    nurseHubHtml,
+    /Start with a focused guide|Useful context before product picks/,
+  );
   assert.match(nurseHubHtml, /href="\/nurse-gifts\/practical\/"/);
   assert.match(nurseHubHtml, /Explore the Nurse Gifts collection/);
 
