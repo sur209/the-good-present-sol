@@ -1692,6 +1692,32 @@ body,
 .hub-hero__intro p {
   font-size: 14px;
 }
+.hub-product-collage {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.hub-product-collage a {
+  display: block;
+  background: white;
+  padding: 10px;
+  border: 1px solid #dedfd9;
+}
+.hub-product-collage a:nth-child(2n) {
+  transform: rotate(3deg);
+}
+.hub-product-collage a:nth-child(2n + 1) {
+  transform: rotate(-2deg);
+}
+.hub-hero__intro .hub-product-collage img {
+  display: block;
+  height: auto;
+  aspect-ratio: 1;
+  border: 0;
+}
+.hub-product-collage a:hover {
+  transform: none;
+}
 .section {
   padding-block: 35px;
 }

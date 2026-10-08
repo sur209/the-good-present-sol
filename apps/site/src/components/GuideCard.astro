@@ -8,15 +8,17 @@ interface Props {
   guide: GiftGuide;
   cluster: ClusterHub;
   number: number;
+  coverImage?: string;
 }
 
-const { guide, cluster, number } = Astro.props;
+const { guide, cluster, number, coverImage } = Astro.props;
 const date = guide.updatedAt ?? guide.publishedAt;
 const idea = guide.recommendations[0];
 const image =
-  idea &&
-  (recommendationIllustrations[idea.id]?.src ??
-    idea.shoppingOptions?.find((option) => option.imageUrl)?.imageUrl);
+  coverImage ??
+  (idea &&
+    (recommendationIllustrations[idea.id]?.src ??
+      idea.shoppingOptions?.find((option) => option.imageUrl)?.imageUrl));
 ---
 
 <article class="guide-card">

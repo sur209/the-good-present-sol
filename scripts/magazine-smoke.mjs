@@ -12,6 +12,27 @@ const jsonFiles = (directory) =>
 const clusters = new Map(jsonFiles("content/clusters").map((cluster) => [cluster.id, cluster]));
 const guides = jsonFiles("content/guides").filter((guide) => guide.status === "published");
 const home = read("apps/site/dist/index.html");
+const nurseHub = read("apps/site/dist/nurse-gifts/index.html");
+assert.ok(nurseHub.includes('class="hub-product-collage"'));
+assert.ok(!nurseHub.includes("Useful context before product picks."));
+assert.ok(!nurseHub.includes('id="choose-path"'));
+const photoHeadings = [
+  "A Cooling Pillowcase Set for Daytime Sleep",
+  "A Coffee Tasting Set",
+  "Insulated Lunch Bag for Long Shifts",
+  "A Soft Lounge Robe",
+  "Automatic wristwatch",
+  "A Ceramic Keepsake Jewelry Box",
+  "A Large Ceramic Baking Dish",
+  "A Glass Plant Propagation Station",
+];
+for (const heading of photoHeadings) {
+  const idea = guides
+    .flatMap((guide) => guide.recommendations)
+    .find((idea) => idea.heading === heading);
+  const image = idea?.shoppingOptions?.find((option) => option.imageUrl)?.imageUrl;
+  assert.ok(image && nurseHub.includes(image), heading + ": real product cover");
+}
 assert.ok(home.includes("Thoughtful gifts."));
 assert.ok(!home.includes('aria-label="Explore"'));
 assert.ok(!existsSync(resolve(root, "apps/site/dist/magazine")));
@@ -19,6 +40,9 @@ let options = 0;
 for (const guide of guides) {
   const path = "/" + clusters.get(guide.clusterId).slug + "/" + guide.slug + "/";
   const html = read("apps/site/dist" + path + "index.html");
+  if (clusters.get(guide.clusterId).slug === "nurse-gifts") {
+    assert.ok(nurseHub.includes('href="' + path + '"'), path + ": hub access preserved");
+  }
   assert.ok(home.includes('href="' + path + '"'), path + ": homepage link");
   assert.ok(html.includes('href="https://thegoodpresent.com' + path + '"'), path + ": canonical");
   assert.ok(html.includes("application/ld+json"), path + ": structured data");

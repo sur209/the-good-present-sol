@@ -9,7 +9,7 @@ import {
 import Breadcrumbs from "../../components/Breadcrumbs.astro";
 import GuideCard from "../../components/GuideCard.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { content, guidesById, primaryAxisLabels } from "../../lib/content.js";
+import { content } from "../../lib/content.js";
 import { breadcrumbStructuredData, clusterStructuredData } from "../../lib/structured-data.js";
 import { recommendationIllustrations } from "../../lib/illustrations.js";
 
@@ -32,12 +32,36 @@ const coverImage =
   cover &&
   (recommendationIllustrations[cover.id]?.src ??
     cover.shoppingOptions?.find((option) => option.imageUrl)?.imageUrl);
-const navigationGroups = cluster.navigationGroups
-  .map((group) => ({
-    ...group,
-    guides: group.guideIds.map((guideId) => guidesById.get(guideId)!),
-  }))
-  .filter((group) => group.guides.length > 0);
+const photoHeadings: Record<string, string> = {
+  "night-shift": "A Cooling Pillowcase Set for Daytime Sleep",
+  "thank-you-gifts-for-nurse-preceptors-and-mentors": "A Coffee Tasting Set",
+  "practical-gifts-for-nurses": "Insulated Lunch Bag for Long Shifts",
+  "gifts-for-new-nurses": "A Soft Lounge Robe",
+  "gifts-for-male-nurses": "Automatic wristwatch",
+  graduation: "A Ceramic Keepsake Jewelry Box",
+  practical: "A Large Ceramic Baking Dish",
+  "under-25": "A Glass Plant Propagation Station",
+};
+const productPhotos =
+  cluster.slug === "nurse-gifts"
+    ? clusterGuides.flatMap((guide) => {
+        const idea = guide.recommendations.find(
+          (idea) => idea.heading === photoHeadings[guide.slug],
+        );
+        const image = idea?.shoppingOptions?.find((option) => option.imageUrl)?.imageUrl;
+        return idea && image ? [{ guide, idea, image }] : [];
+      })
+    : [];
+const collage = productPhotos.filter(({ guide }) =>
+  [
+    "night-shift",
+    "thank-you-gifts-for-nurse-preceptors-and-mentors",
+    "practical-gifts-for-nurses",
+    "gifts-for-male-nurses",
+    "graduation",
+    "under-25",
+  ].includes(guide.slug),
+);
 ---
 
 <BaseLayout
@@ -69,49 +93,37 @@ const navigationGroups = cluster.navigationGroups
       <p class="eyebrow">Explore the collection</p>
       <h1>{cluster.title}</h1>
       <p class="lede">{cluster.excerpt}</p>
+      <p>{cluster.introduction}</p>
+      {
+        clusterGuides.length > 0 && (
+          <a class="button button--outline" href="#featured-guides">
+            Explore the gift guides <span aria-hidden="true">→</span>
+          </a>
+        )
+      }
     </div>
     <div class="hub-hero__intro">
-      {coverImage && <img src={coverImage} alt={cover?.heading ?? cluster.title} />}
-      <p>{cluster.introduction}</p>
+      {
+        collage.length > 0 ? (
+          <div class="hub-product-collage" aria-label="Gifts from our nurse gift guides">
+            {collage.map(({ guide, idea, image }) => (
+              <a
+                href={`${guidePath(cluster.slug, guide.slug)}#pick-${idea.position}`}
+                aria-label={idea.heading}
+              >
+                <img src={image} alt={idea.heading} width="320" height="320" />
+              </a>
+            ))}
+          </div>
+        ) : (
+          coverImage && <img src={coverImage} alt={cover?.heading ?? cluster.title} />
+        )
+      }
     </div>
   </header>
 
   {
-    navigationGroups.length > 0 ? (
-      <section class="hub-paths section shell" aria-labelledby="choose-path">
-        <div class="section-heading section-heading--split">
-          <div>
-            <p class="eyebrow">Choose your way in</p>
-            <h2 id="choose-path">Start with a focused guide.</h2>
-          </div>
-          <p>Choose a moment, a gift style, or a budget to begin exploring.</p>
-        </div>
-
-        <div class="hub-paths__list">
-          {navigationGroups.map((group, index) => (
-            <section class="hub-path" aria-labelledby={`group-${group.id}`}>
-              <div class="hub-path__number" aria-hidden="true">
-                0{index + 1}
-              </div>
-              <div>
-                <p class="kicker">{primaryAxisLabels[group.axis]}</p>
-                <h3 id={`group-${group.id}`}>{group.label}</h3>
-              </div>
-              <ul>
-                {group.guides.map((guide) => (
-                  <li>
-                    <a href={guidePath(cluster.slug, guide.slug)}>
-                      <span>{guide.title}</span>
-                      <span aria-hidden="true">↗</span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
-        </div>
-      </section>
-    ) : (
+    clusterGuides.length === 0 && (
       <section class="hub-paths section shell" aria-labelledby="empty-guides">
         <div class="section-heading section-heading--split">
           <div>
@@ -135,8 +147,8 @@ const navigationGroups = cluster.navigationGroups
         <div class="shell">
           <div class="section-heading section-heading--split">
             <div>
-              <p class="eyebrow">Featured guides</p>
-              <h2 id="featured-guides">Useful context before product picks.</h2>
+              <p class="eyebrow">Find their next gift</p>
+              <h2 id="featured-guides">Explore {cluster.title.toLowerCase()} guides.</h2>
             </div>
             <a class="text-link text-link--light" href={PUBLIC_PATHS.giftGuides}>
               All gift guides <span aria-hidden="true">→</span>
@@ -144,7 +156,12 @@ const navigationGroups = cluster.navigationGroups
           </div>
           <div class="guide-grid">
             {clusterGuides.map((guide, index) => (
-              <GuideCard guide={guide} cluster={cluster} number={index + 1} />
+              <GuideCard
+                guide={guide}
+                cluster={cluster}
+                number={index + 1}
+                coverImage={productPhotos.find((photo) => photo.guide.id === guide.id)?.image}
+              />
             ))}
           </div>
         </div>
