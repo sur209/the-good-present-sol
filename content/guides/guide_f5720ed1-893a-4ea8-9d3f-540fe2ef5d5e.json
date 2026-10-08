@@ -48,7 +48,8 @@
           "name": "FM301 square automatic watch",
           "description": "An automatic watch with a square case for someone who enjoys mechanical accessories. Check dimensions and maintenance requirements before choosing.",
           "affiliateUrl": "https://www.amazon.com/dp/B083BNDYLH?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71yQHlcn9vL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71yQHlcn9vL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "An automatic wristwatch can mark a milestone with an accessory worn for years. Choose a restrained design that fits the recipient's everyday style and can move between casual and dressed-up settings.",
@@ -88,7 +89,8 @@
           "name": "AERLANG mini massage gun",
           "description": "A portable percussion model for an existing recovery routine. Compare weight and attachments and follow the manufacturer's safety guidance.",
           "affiliateUrl": "https://www.amazon.com/dp/B09TQC7CYZ?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/61QSuXJxLzL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/61QSuXJxLzL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A compact percussion massager is easy to keep near a sofa, desk, or gym bag for brief off-duty use. A small model feels substantial as a gift without taking over a shelf or requiring a complicated setup.",
@@ -128,7 +130,8 @@
           "name": "Alexander Del Rossa hooded fleece robe",
           "description": "A hooded fleece robe for home lounging. Check the size chart, garment length and warmth level before choosing.",
           "affiliateUrl": "https://www.amazon.com/dp/B0D6ZR7DBT?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71LPQ2kn3XL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71LPQ2kn3XL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A soft hooded robe creates an easy layer for slow mornings, post-shower routines, or relaxed evenings at home. A simple solid color keeps it useful without relying on profession-themed decoration.",
@@ -188,7 +191,8 @@
           "name": "Cosori TurboBlaze 6-quart air fryer",
           "description": "A countertop model for a household that would use the larger basket. Check counter clearance, power requirements and cleaning instructions.",
           "affiliateUrl": "https://www.amazon.com/dp/B0C33CHG99?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/81R9sA3IyBL._AC_UY218_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/81R9sA3IyBL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A roomy air fryer is a substantial home gift for preparing crisp vegetables, reheating leftovers, or cooking straightforward meals with one countertop appliance. The larger basket is especially useful for someone who cooks for a partner, family, or visiting friends.",
@@ -248,7 +252,8 @@
           "name": "DateNUp movie-night gift box",
           "description": "A packaged movie-night gift for a shared evening. Check the current contents and any food ingredients; the listing does not include a film subscription unless stated.",
           "affiliateUrl": "https://www.amazon.com/dp/B0FSL4R92B?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/81qURDy1RsL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/81qURDy1RsL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A movie-night gift box brings together snacks and simple comforts for an easy evening at home. It can be enjoyed solo or shared with friends, family, or a partner whenever the recipient has time off.",
@@ -268,7 +273,8 @@
           "name": "Stainless-steel oven and storage tray set",
           "description": "A set of metal trays with storage lids for preparing meals. Check dimensions and which parts are suitable for the oven, freezer and dishwasher.",
           "affiliateUrl": "https://www.amazon.com/dp/B0F93M45DD?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/61cG-3I+aQL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/61cG-3I+aQL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A set of stainless-steel trays provides space for preparing ingredients, cooking, and storing food when the individual pieces are designed for those uses. A nesting set is useful for someone who likes to organize several parts of a meal at once.",

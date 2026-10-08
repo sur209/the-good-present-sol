@@ -34,14 +34,6 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0D3L6XCLG?tag=thegoodpresen-20"
         }
       ],
-      "shoppingOptions": [
-        {
-          "name": "BAGSMART Tote Bag",
-          "description": "A lightweight tote for everyday belongings. Check the dimensions, pockets, and laptop fit for the recipient's usual load.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61t4jBybtfL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0D3L6XCLG?tag=thegoodpresen-20"
-        }
-      ],
       "productId": "product_shift-tote",
       "position": 1,
       "heading": "A Roomy Graduation Tote",
@@ -61,7 +53,8 @@
           "name": "Instant Pot Vortex 4-quart mini air fryer",
           "description": "A compact countertop cooker for smaller portions. Check its actual dimensions and power requirements before buying.",
           "affiliateUrl": "https://www.amazon.com/dp/B0F9B4YCZF?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71uH9rgfwLL._AC_UY218_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71uH9rgfwLL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A compact air fryer can make small portions of vegetables, snacks, and simple dinners in a first kitchen. It is a substantial graduation gift when the recipient has counter space and likes this style of cooking.",
@@ -78,15 +71,8 @@
           "name": "Owala SmoothSip 20 oz Tumbler",
           "description": "An insulated coffee tumbler. Check its lid, dimensions, and care instructions against how the recipient carries drinks.",
           "imageUrl": "https://m.media-amazon.com/images/I/61Gvw0-b0eL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0DF3M7V3T?tag=thegoodpresen-20"
-        }
-      ],
-      "shoppingOptions": [
-        {
-          "name": "Owala SmoothSip 20 oz Tumbler",
-          "description": "An insulated coffee tumbler. Check its lid, dimensions, and care instructions against how the recipient carries drinks.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61Gvw0-b0eL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0DF3M7V3T?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B0DF3M7V3T?tag=thegoodpresen-20",
+          "sources": ["serpapi"]
         }
       ],
       "productId": "product_insulated-tumbler",
@@ -100,14 +86,6 @@
     },
     {
       "id": "graduation_penlight",
-      "shoppingOptions": [
-        {
-          "name": "OLIGHT ArkPro Ultra Flashlight",
-          "description": "A rechargeable pocket flashlight. Check the dimensions and charging equipment; it is not a clinical penlight.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61MzEKy0vCL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0GHR5DXFC?tag=thegoodpresen-20"
-        }
-      ],
       "shoppingOptions": [
         {
           "name": "OLIGHT ArkPro Ultra Flashlight",
@@ -135,14 +113,6 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0DJ1XNTV2?tag=thegoodpresen-20"
         }
       ],
-      "shoppingOptions": [
-        {
-          "name": "Turtle Badge Reel",
-          "description": "A retractable badge reel with a turtle design. Check the clip style and whether personal badge reels are allowed.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71qNZ5FF7mL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0DJ1XNTV2?tag=thegoodpresen-20"
-        }
-      ],
       "productId": "product_badge-reel",
       "position": 5,
       "heading": "A Decorative Badge Reel",
@@ -154,14 +124,6 @@
     },
     {
       "id": "review_2f3f9216-0df9-494f-b633-61019b1e8a79",
-      "shoppingOptions": [
-        {
-          "name": "COLLECTIVE HOME Jewelry Box",
-          "description": "A small ceramic jewelry box with an initial and bow detail. Select the right initial and check the internal dimensions.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61YzQXI18bL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0FVF3ML2C?tag=thegoodpresen-20"
-        }
-      ],
       "shoppingOptions": [
         {
           "name": "COLLECTIVE HOME Jewelry Box",
@@ -190,7 +152,8 @@
           "name": "ChicSilver initial pendant",
           "description": "A letter pendant to personalize by initial. Confirm the letter, chain length, finish and material details before ordering.",
           "affiliateUrl": "https://www.amazon.com/dp/B07TLS3MT8?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/61W5CgUUHeL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/61W5CgUUHeL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "An initial pendant adds a quiet personal touch to everyday outfits while marking the graduate’s transition into a new chapter. It can be worn on its own or layered with other simple jewelry.",
@@ -210,7 +173,8 @@
           "name": "Personalized engraved quartz wristwatch",
           "description": "A quartz watch with an engraving option on the case back. Check wrist size, dial style, engraving preview and production time.",
           "affiliateUrl": "https://www.amazon.com/dp/B0CT1T728T?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/81+fA5rY+UL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/81+fA5rY+UL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "An engraved wristwatch gives a graduation gift a lasting, commemorative quality while remaining useful for everyday wear. A short inscription can mark the date, achievement, or encouragement behind the gift.",
@@ -230,7 +194,8 @@
           "name": "Bjork Maja leather clogs",
           "description": "A leather clog with a wooden base. Check the size chart and whether the recipient prefers this style; do not assume it meets workplace footwear rules.",
           "affiliateUrl": "https://www.amazon.com/dp/B09CLQ8R5H?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71QG1lzSqSL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71QG1lzSqSL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A pair of leather clogs can become a versatile part of a graduate’s work-and-commute wardrobe, with a polished look that works beyond the workplace. Their simple silhouette also pairs easily with casual off-duty clothing.",
@@ -250,7 +215,8 @@
           "name": "Winsor & Newton Cotman studio watercolor set",
           "description": "A 45-half-pan set for painting at a table or studio. Compare the palette with the recipient's paints and check whether brushes and paper are needed.",
           "affiliateUrl": "https://www.amazon.com/dp/B000XYHYI4?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71jMSPsMwJS._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71jMSPsMwJS._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A studio watercolor set creates an inviting way to spend unstructured time away from work. It can support casual experimentation, small projects, or a more focused creative practice.",
@@ -270,7 +236,8 @@
           "name": "Infinity Collection graduation charm bracelet",
           "description": "An adjustable graduation bracelet with selectable details. Confirm the initial, year and birthstone against the actual occasion.",
           "affiliateUrl": "https://www.amazon.com/dp/B08Z8LJRTV?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/515Z0HRY0GL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/515Z0HRY0GL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A charm bracelet offers a wearable way to mark graduation and leave room for future additions. Choose a simple base that lets the achievement charm remain the focal point.",
@@ -290,7 +257,8 @@
           "name": "Ninja Express Chop NJ110GR",
           "description": "A small electric chopper for routine food preparation. Check bowl size, controls and cleaning instructions for the recipient's kitchen.",
           "affiliateUrl": "https://www.amazon.com/dp/B00HL3TBDQ?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/51FwbHQaUUL._AC_UY218_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/51FwbHQaUUL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A compact food chopper can streamline small kitchen tasks such as preparing vegetables, herbs, sauces, or ingredients for quick meals. Its smaller footprint suits a first apartment or a crowded countertop.",

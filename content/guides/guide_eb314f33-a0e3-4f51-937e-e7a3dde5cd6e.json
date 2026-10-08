@@ -66,7 +66,8 @@
           "name": "PrinStory soft lounge robe",
           "description": "A lightweight long knit robe for home. Check the size chart, fabric composition and length instead of relying on the usual clothing size.",
           "affiliateUrl": "https://www.amazon.com/dp/B0DC99ZTY7?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/5115gW+uTjL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/5115gW+uTjL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A soft robe makes slow mornings and post-shower evenings feel a little more settled. Choose the fabric and weight around what the recipient likes to wear at home.",
@@ -106,7 +107,8 @@
           "name": "Personalized reading and tablet stand",
           "description": "A customized stand for reading or displaying a device. Confirm the engraving, support dimensions and the recipient's book or tablet size.",
           "affiliateUrl": "https://www.amazon.com/dp/B0F1DKHVZ8?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71dY8vOrtCL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71dY8vOrtCL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A wooden reading stand holds a book, tablet, or recipe at a comfortable viewing angle while adding a warm detail to a desk or kitchen. A discreet name or short inscription can mark the new chapter without covering the piece in occupational slogans.",
@@ -166,7 +168,8 @@
           "name": "Foot Renew cordless heated foot wrap pair",
           "description": "A portable heated wrap set with vibration controls. Review fit, charging and safety guidance; comfort claims are not medical advice.",
           "affiliateUrl": "https://www.amazon.com/dp/B0HFVLFNCJ?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71PbV1wjBcL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71PbV1wjBcL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A cordless heated foot wrap offers a clearly defined home comfort ritual without taking over a room or requiring a permanent setup. A flexible pair can be used while reading, watching a show, or settling in after a demanding day.",
@@ -226,7 +229,8 @@
           "name": "LOXP rotating laptop stand",
           "description": "An adjustable stand with a rotating base for a desk. Check supported laptop size, stability and keyboard placement.",
           "affiliateUrl": "https://www.amazon.com/dp/B0DBLBJ2HG?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71DQp57-ltL._AC_UY218_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71DQp57-ltL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "An adjustable laptop stand makes it easier to shift between a desk, kitchen table, or other study spot while keeping the computer at a more comfortable working height. Its rotating design can also help when sharing a screen or changing positions.",
@@ -246,7 +250,8 @@
           "name": "Pinky Up Noelle ceramic kettle",
           "description": "A ceramic electric kettle with a gooseneck spout. Check capacity, weight, temperature controls and the recipient's preferred color.",
           "affiliateUrl": "https://www.amazon.com/dp/B07TJSSGB7?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/61nH-elbYeL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/61nH-elbYeL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A gooseneck kettle turns tea preparation into a small, unhurried ritual during time off. Its distinctive shape also brings a considered look to an otherwise functional kitchen item.",

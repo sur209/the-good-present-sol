@@ -2,6 +2,7 @@
 import { content, formatDate, clustersById, productsById } from "../lib/content.js";
 import { recommendationIllustrations } from "../lib/illustrations.js";
 import RecommendationCard from "../components/RecommendationCard.astro";
+import { informationalLinks, relatedIdeas, sourceLabel } from "../lib/gift-resources.js";
 import {
   guidePath,
   clusterPath,
@@ -227,6 +228,11 @@ const hasAffiliateLinks =
                               <div>
                                 <h3>{option.name}</h3>
                                 <p>{option.description}</p>
+                                {option.sources && (
+                                  <small class="product-source">
+                                    {sourceLabel(option.sources)}
+                                  </small>
+                                )}
                                 <a
                                   href={option.affiliateUrl}
                                   target="_blank"
@@ -248,6 +254,22 @@ const hasAffiliateLinks =
                           <p>{"selectionGuidance" in idea ? idea.selectionGuidance : undefined}</p>
                           <p>{idea.considerations}</p>
                         </details>
+                        <div class="useful-links">
+                          {relatedIdeas(guide, idea, guides).map((match) => (
+                            <p>
+                              <a href={`${href(match.guide)}#pick-${match.position}`}>
+                                See this gift in {match.guide.title} →
+                              </a>
+                            </p>
+                          ))}
+                          {informationalLinks(label(idea)).map((resource) => (
+                            <p>
+                              <a href={resource.url} target="_blank" rel="noopener noreferrer">
+                                {resource.label} ↗
+                              </a>
+                            </p>
+                          ))}
+                        </div>
                       </article>
                     ),
                   )}
@@ -268,6 +290,15 @@ const hasAffiliateLinks =
               <>
                 {guide.conclusion && <p class="introduction">{guide.conclusion}</p>}
                 <h2>Keep exploring</h2>
+                <p>
+                  <a
+                    href="https://consumer.ftc.gov/articles/online-shopping"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Before buying online: comparison and shopping tips from the FTC ↗
+                  </a>
+                </p>
                 <div class="cards">
                   {related.map((item) => (
                     <a class="card" href={href(item)}>
@@ -420,6 +451,16 @@ const hasAffiliateLinks =
   </body>
 </html>
 <style>
+  .product-source {
+    display: block;
+    color: #666;
+    font-size: 0.75rem;
+    margin-bottom: 0.6rem;
+  }
+  .useful-links {
+    font-size: 0.85rem;
+    margin-top: 1rem;
+  }
   :global(*) {
     box-sizing: border-box;
   }

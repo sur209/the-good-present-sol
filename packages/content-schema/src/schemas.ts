@@ -146,6 +146,15 @@ export const shoppingOptionsSchema = z
       name: nonEmptyString.max(120),
       description: nonEmptyString.max(500),
       imageUrl: imageSchema.optional(),
+      sources: z
+        .array(z.enum(["serpapi", "amazon-agent"]))
+        .min(1)
+        .max(2)
+        .refine(
+          (sources) => new Set(sources).size === sources.length,
+          "Duplicate discovery source.",
+        )
+        .optional(),
       affiliateUrl: amazonAffiliateUrlSchema.refine((value) => {
         if (!URL.canParse(value)) return false;
         const url = new URL(value);

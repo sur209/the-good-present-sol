@@ -166,7 +166,8 @@
           "name": "ZIMASILK adjustable silk sleep mask",
           "description": "An adjustable eye mask to compare for a comfortable fit. Check material, fastening and care instructions; light blocking depends on facial fit.",
           "affiliateUrl": "https://www.amazon.com/dp/B0BWQRXFGJ?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71+GI8ZDWdL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71+GI8ZDWdL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A well-made silk sleep mask is small enough for a stocking but polished enough to feel like a real present. It can make travel, naps, or an early night more comfortable without adding a complicated routine.",
@@ -226,7 +227,8 @@
           "name": "Rechargeable hand-warmer pair",
           "description": "A rechargeable pair for cold-weather outings. Compare size, controls and charging needs, and follow the heat-safety instructions.",
           "affiliateUrl": "https://www.amazon.com/dp/B0CDPTWT1M?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71FW3ew-iBL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71FW3ew-iBL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "Rechargeable hand warmers are easy to tuck into a coat pocket or bag for commutes, outdoor plans, and chilly pauses between activities. They offer a small seasonal comfort that can be shared or kept as part of a winter routine.",
@@ -246,7 +248,8 @@
           "name": "JBL Tune Buds",
           "description": "A noise-cancelling earbud model to compare for everyday listening. Confirm fit, phone compatibility and the return policy.",
           "affiliateUrl": "https://www.amazon.com/dp/B0C1QWWZR4?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/51EZig0rEAL._AC_UY218_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/51EZig0rEAL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "Wireless earbuds can make commutes, walks, podcasts, and quiet downtime easier to fit into a busy week. Their compact format keeps personal entertainment close without adding much to a bag.",

@@ -23,15 +23,8 @@
           "name": "Physix Gear Compression Socks",
           "description": "Compression socks offered in different sizes and patterns. Choose the recipient's preferred fit and compression level rather than treating them as a universal choice.",
           "imageUrl": "https://m.media-amazon.com/images/I/711vGxLodJL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B01J4MF53Q?tag=thegoodpresen-20"
-        }
-      ],
-      "shoppingOptions": [
-        {
-          "name": "Physix Gear Compression Socks",
-          "description": "Compression socks offered in different sizes and patterns. Choose the recipient's preferred fit and compression level rather than treating them as a universal choice.",
-          "imageUrl": "https://m.media-amazon.com/images/I/711vGxLodJL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B01J4MF53Q?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B01J4MF53Q?tag=thegoodpresen-20",
+          "sources": ["serpapi"]
         }
       ],
       "productResolution": "unresolved",
@@ -46,14 +39,6 @@
     },
     {
       "id": "guide_da3a6205-a952-4f6a-95c4-abce5a35b7ef_slot-2",
-      "shoppingOptions": [
-        {
-          "name": "Owala FreeSip 24 oz Water Bottle",
-          "description": "An insulated bottle with a built-in straw and a sip opening. Choose a color the recipient likes and check the size before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61Gvw0-b0eL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BZYCJK89?tag=thegoodpresen-20"
-        }
-      ],
       "shoppingOptions": [
         {
           "name": "Owala FreeSip 24 oz Water Bottle",
@@ -82,14 +67,6 @@
           "affiliateUrl": "https://www.amazon.com/dp/B0GDPG291K?tag=thegoodpresen-20"
         }
       ],
-      "shoppingOptions": [
-        {
-          "name": "SHULOOK Work Shoes",
-          "description": "Work shoes offered in several sizes. Confirm the recipient's fit, workplace rules, and preferred support before buying footwear as a gift.",
-          "imageUrl": "https://m.media-amazon.com/images/I/714hK2QXdoL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0GDPG291K?tag=thegoodpresen-20"
-        }
-      ],
       "productResolution": "unresolved",
       "position": 3,
       "heading": "Work Shoes Built for Long Days",
@@ -102,14 +79,6 @@
     },
     {
       "id": "guide_da3a6205-a952-4f6a-95c4-abce5a35b7ef_slot-4",
-      "shoppingOptions": [
-        {
-          "name": "BAGSMART Insulated Lunch Bag",
-          "description": "A lunch bag with separate storage areas. Check the interior dimensions and whether it holds the recipient's meal containers.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71xaCKsEiQL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0F1TBSQP6?tag=thegoodpresen-20"
-        }
-      ],
       "shoppingOptions": [
         {
           "name": "BAGSMART Insulated Lunch Bag",
@@ -138,14 +107,6 @@
           "affiliateUrl": "https://www.amazon.com/dp/B07N1G7179?tag=thegoodpresen-20"
         }
       ],
-      "shoppingOptions": [
-        {
-          "name": "CAVN Penlight Set",
-          "description": "Two reusable penlights with pupil gauges. Check battery requirements and workplace equipment rules before choosing them.",
-          "imageUrl": "https://m.media-amazon.com/images/I/41R4xBR2kqL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B07N1G7179?tag=thegoodpresen-20"
-        }
-      ],
       "productResolution": "unresolved",
       "position": 5,
       "heading": "Compact Pen Light for Clinical Tasks",
@@ -166,7 +127,8 @@
           "name": "TRAUSI open-ear earbuds",
           "description": "An earhook-style pair to compare for listening without an in-ear fit. Check device compatibility and the exact model's controls.",
           "affiliateUrl": "https://www.amazon.com/dp/B0HC6ZQQXW?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71q4VNgbmLL._AC_UY218_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71q4VNgbmLL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "Open-ear headphones sit outside the ear canal and can suit walks, workouts, chores, or relaxed listening at home. The format feels novel while remaining useful outside a clinical setting.",
@@ -178,14 +140,6 @@
     },
     {
       "id": "guide_da3a6205-a952-4f6a-95c4-abce5a35b7ef_slot-7",
-      "shoppingOptions": [
-        {
-          "name": "O'Keeffe's Hand Cream Duo",
-          "description": "A two-tube set with regular Working Hands cream and a nighttime treatment. Review both ingredient lists if the recipient has sensitivities.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51fk3qgrHcL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B07YX5Y2DB?tag=thegoodpresen-20"
-        }
-      ],
       "shoppingOptions": [
         {
           "name": "O'Keeffe's Hand Cream Duo",
@@ -214,14 +168,6 @@
           "affiliateUrl": "https://www.amazon.com/dp/B08XQZX9K3?tag=thegoodpresen-20"
         }
       ],
-      "shoppingOptions": [
-        {
-          "name": "Ultima Electrolyte Variety Pack",
-          "description": "Individually packed electrolyte drink mix in different flavors. Review the ingredients and choose it only if it fits the recipient's dietary preferences.",
-          "imageUrl": "https://m.media-amazon.com/images/I/711WJgJ7LzL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B08XQZX9K3?tag=thegoodpresen-20"
-        }
-      ],
       "productResolution": "unresolved",
       "position": 8,
       "heading": "Electrolyte Packets for Hot or Long Days",
@@ -242,7 +188,8 @@
           "name": "KOMUEE glass meal-prep containers",
           "description": "A set of glass containers with lids for portioning meals. Compare capacity, cupboard space and the different care rules for glass and lids.",
           "affiliateUrl": "https://www.amazon.com/dp/B08X4615SC?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71FEUOgXhfS._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71FEUOgXhfS._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A set of glass containers gives batch cooking and leftovers a durable, easy-to-see home. Choose a modest number of useful sizes rather than a sprawling set that creates another storage problem.",
@@ -262,7 +209,8 @@
           "name": "CushZone seat and lumbar cushion set",
           "description": "A two-piece set for an existing chair. Check seat dimensions and support position; comfort is personal and a return option is useful.",
           "affiliateUrl": "https://www.amazon.com/dp/B0BFPJ5VR3?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71WIaB4l9+L._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71WIaB4l9+L._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A coordinated seat and lumbar cushion can make a home desk, dining chair, or long drive more comfortable. Unlike a work-specific gadget, it can move between settings as the recipient's routine changes.",
@@ -282,7 +230,8 @@
           "name": "Nekteck heated foot massager",
           "description": "A home foot-massage unit to compare for fit and controls. Read the safety guidance and do not treat advertised comfort features as medical treatment.",
           "affiliateUrl": "https://www.amazon.com/dp/B07WYX1D4H?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71oHyjUSfBL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71oHyjUSfBL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A foot massager gives the recipient a dedicated way to unwind at home while reading, watching television, or catching up on a favorite show. The heat option adds another layer of comfort for people who enjoy a warmer routine.",
@@ -302,7 +251,8 @@
           "name": "tomtoc compact sling bag",
           "description": "A small crossbody bag for daily essentials. Check its capacity and strap adjustment rather than assuming it can carry a full work kit.",
           "affiliateUrl": "https://www.amazon.com/dp/B0D479ZVP7?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71sNr4hqtiL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71sNr4hqtiL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A crossbody sling keeps a phone, keys, wallet, badge, and other small essentials close without the bulk of a larger work bag. Its compact shape works well for commuting, errands, and quick outings.",

@@ -53,7 +53,8 @@
           "name": "CorningWare French White bakeware set",
           "description": "A coordinated ceramic bakeware set with lids. Compare the included sizes with the recipient's cupboards and cooking habits.",
           "affiliateUrl": "https://www.amazon.com/dp/B07V8VPMNT?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71vnPOWZnUL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71vnPOWZnUL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A coordinated ceramic bakeware set can move from oven to table and then store leftovers with less transferring. Choose a versatile size range and a finish that fits the recipient's kitchen rather than a decorative trend.",
@@ -233,7 +234,8 @@
           "name": "Reversible weighted sleep mask",
           "description": "A reversible mask with different fabric finishes. Check the weight, fit and care instructions; pressure preferences vary.",
           "affiliateUrl": "https://www.amazon.com/dp/B0H4LB6CVJ?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/51HTdHoCnlL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/51HTdHoCnlL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A reversible sleep mask can feel cool on one side and softly cozy on the other, making it useful in more than one season. It is a simple off-shift comfort rather than another object tied to work.",
@@ -253,7 +255,29 @@
           "name": "Homde five-layer jewelry organizer",
           "description": "A multi-drawer jewelry box for a dresser. Check its footprint and compartment sizes against the jewelry the recipient actually wears.",
           "affiliateUrl": "https://www.amazon.com/dp/B0CLCH13T7?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71Cdfx8DiGL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71Cdfx8DiGL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "SONGMICS Four-Layer Jewelry Organizer",
+          "description": "A four-layer jewelry organizer with three drawers and a glass lid for storing and viewing accessories. Verify the drawer layout, overall dimensions, and compatibility with the intended storage area before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/817Lo5PYZUL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BS2D1MBM?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "GUKA Ten-Drawer Jewelry Organizer",
+          "description": "A large jewelry organizer with ten drawers for watches, earrings, necklaces, rings, and bracelets. Verify the drawer sizes, footprint, and whether the layout suits the jewelry being stored before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71cdM6jff3L._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CMC67HFS?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "SONGMICS Seven-Drawer Rotating Jewelry Organizer",
+          "description": "A rotating jewelry organizer with seven drawers for arranging accessories while keeping them accessible. Verify the drawer sizes, rotation clearance, footprint, and compatibility with the intended surface before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81qN40t17WL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0CYZ9PKYM?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         }
       ],
       "editorialDescription": "A large jewelry storage organizer gives necklaces, earrings, bracelets, and rings a dedicated place while keeping favorites visible. It can make choosing accessories easier and add a finished look to a bedroom or dressing area.",
@@ -273,7 +297,8 @@
           "name": "ANDANTINO silk square scarf",
           "description": "A patterned square scarf for wearing or styling. Confirm the exact print, dimensions, material and care instructions before choosing.",
           "affiliateUrl": "https://www.amazon.com/dp/B07V3KXMGP?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/61jhvJcIkbS._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/61jhvJcIkbS._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A mulberry silk scarf adds color, pattern, or texture to everyday outfits and can be styled in several ways. It works as a personal accessory for time off, travel, gatherings, or simple wardrobe refreshes.",

@@ -33,7 +33,8 @@
           "name": "BOB AND BRAD Q2 Pro mini massager",
           "description": "A compact percussion model for someone who already enjoys recovery tools. Compare weight, controls and attachments; follow the manufacturer's safety guidance.",
           "affiliateUrl": "https://www.amazon.com/dp/B0D16W8531?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71iVIfcJKDL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71iVIfcJKDL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A small percussion massager offers a straightforward way to unwind after an active day. Compact models fit more easily in a drawer or travel bag, which makes them more likely to be used than bulky recovery equipment.",
@@ -53,25 +54,29 @@
           "name": "Soundcore Space A40",
           "description": "A compact noise-cancelling pair to compare for everyday listening. Check ear-tip fit and compatibility with the recipient's phone.",
           "affiliateUrl": "https://www.amazon.com/dp/B0B1LVC5VZ?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/51EwBP9U2YL._AC_UY218_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/51EwBP9U2YL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
         },
         {
           "name": "TOZO NC9",
           "description": "Another noise-cancelling option for music and podcasts. Compare its controls, fit and return conditions before choosing.",
           "affiliateUrl": "https://www.amazon.com/dp/B0DD41G2NZ?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/818Tszb+hNL._AC_UY218_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/818Tszb+hNL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
         },
         {
           "name": "JBL Vibe Beam 2",
           "description": "A JBL alternative in the same gift category. Check the exact model's listening modes and device compatibility on the listing.",
           "affiliateUrl": "https://www.amazon.com/dp/B0DN45YMP6?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/618f5yBk26L._AC_UY218_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/618f5yBk26L._AC_UY218_.jpg",
+          "sources": ["serpapi"]
         },
         {
           "name": "Soundcore P30i",
           "description": "A different Soundcore model to consider alongside the A40. Compare case design and controls rather than assuming the two are interchangeable.",
           "affiliateUrl": "https://www.amazon.com/dp/B0CRTYZG5C?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/51HbL1WS+KL._AC_UY218_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/51HbL1WS+KL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "Wireless earbuds with adjustable noise reduction can make commuting, errands, and quiet time more enjoyable. Choose a compact set with controls the recipient can understand without turning every use into an app project.",
@@ -91,7 +96,8 @@
           "name": "DOWAN ceramic baking dish",
           "description": "A handled ceramic dish for baked meals and oven-to-table serving. Check dimensions, storage space and care instructions before choosing.",
           "affiliateUrl": "https://www.amazon.com/dp/B08R7D4CCM?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/51e9P-LRqYL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/51e9P-LRqYL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A deep ceramic baking dish is useful for casseroles, roasted vegetables, baked pasta, and food shared with family or friends. An attractive finish lets it move from oven to table for serving.",
@@ -103,14 +109,6 @@
     },
     {
       "id": "practical_shift-tote",
-      "shoppingOptions": [
-        {
-          "name": "BAGSMART Tote Bag",
-          "description": "A lightweight tote for everyday belongings. Check the dimensions, pockets, and laptop fit for the recipient's usual load.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61t4jBybtfL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0D3L6XCLG?tag=thegoodpresen-20"
-        }
-      ],
       "shoppingOptions": [
         {
           "name": "BAGSMART Tote Bag",
@@ -138,14 +136,6 @@
           "affiliateUrl": "https://www.amazon.com/dp/B07YX5Y2DB?tag=thegoodpresen-20"
         }
       ],
-      "shoppingOptions": [
-        {
-          "name": "O'Keeffe's Hand Cream Duo",
-          "description": "A two-tube set with regular Working Hands cream and a nighttime treatment. Review both ingredient lists if the recipient has sensitivities.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51fk3qgrHcL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B07YX5Y2DB?tag=thegoodpresen-20"
-        }
-      ],
       "productId": "product_hand-cream",
       "position": 5,
       "heading": "A Fragrance-Free Hand Cream Duo",
@@ -165,7 +155,8 @@
           "name": "Pure Bamboo queen pillowcase pair",
           "description": "A pair of bamboo-derived viscose pillowcases for an everyday bedding upgrade. Confirm pillow size and fabric preferences; comfort varies between sleepers.",
           "affiliateUrl": "https://www.amazon.com/dp/B07MZ8VJD4?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/61bCAdRx3WL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/61bCAdRx3WL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A smooth bamboo-derived pillowcase set makes an everyday bed feel more intentional and gives the recipient a spare for laundry rotation. Neutral colors and a simple closure keep the idea easy to integrate into an existing room.",
@@ -185,7 +176,8 @@
           "name": "Cushion Lab seat cushion",
           "description": "A contoured cushion to compare for a desk chair or car seat. Check the shape and seat dimensions; it is not a substitute for medical care.",
           "affiliateUrl": "https://www.amazon.com/dp/B08RCV3MRP?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/51jlg6xxfOL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/51jlg6xxfOL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A seat cushion can make commuting, charting, studying, or relaxing in one spot feel more comfortable. Its portable format lets the recipient move it between a car, desk chair, and favorite seat.",
@@ -205,7 +197,8 @@
           "name": "DreamSky wooden alarm clock",
           "description": "A wooden digital clock with a wireless-charging feature. Check display dimming, power requirements and phone compatibility before gifting.",
           "affiliateUrl": "https://www.amazon.com/dp/B0BKZ1Y2MF?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71Y3hRmkUsL._AC_UY218_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71Y3hRmkUsL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A wooden digital alarm clock puts the time in view and adds a warm detail to a bedside table. A model with a charging surface can also give a compatible phone a regular place overnight.",
@@ -225,7 +218,8 @@
           "name": "Crock-Pot portable food warmer",
           "description": "A small electric warmer for a packed meal. Check capacity, outlet access and heating instructions against the recipient's routine.",
           "affiliateUrl": "https://www.amazon.com/dp/B09BDFXNQX?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71aoc56LL2L._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71aoc56LL2L._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A portable meal warmer lets the recipient bring a homemade dish and warm it when their schedule allows. It is especially useful for meals that are easier to enjoy hot than straight from the refrigerator.",
@@ -245,7 +239,8 @@
           "name": "KitchenAid KFC3516ER food chopper",
           "description": "A compact food chopper for everyday kitchen preparation. Compare bowl capacity, cleanup and counter space with the recipient's current setup.",
           "affiliateUrl": "https://www.amazon.com/dp/B01LZIHVTC?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/6186h7rqz0L._AC_UY218_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/6186h7rqz0L._AC_UY218_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A compact food chopper can handle everyday prep for ingredients, sauces, or quick meal components without taking over the kitchen. It helps shorten the most repetitive part of cooking on a busy evening.",
@@ -265,7 +260,8 @@
           "name": "Comfytemp neck-and-shoulder heating pad",
           "description": "A weighted electric pad for quiet time at home. Check fit, power access and care instructions, and follow the stated precautions for heat use.",
           "affiliateUrl": "https://www.amazon.com/dp/B08RNBCH6K?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/611TIoY-akL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/611TIoY-akL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A heated wrap creates an easy transition from work mode to quiet time at home. The wearable shape leaves the recipient free to sit, read, or watch something while using it.",
@@ -285,7 +281,8 @@
           "name": "COMFEE 3-quart multicooker",
           "description": "A small multicooker for someone who enjoys preparing meals at home. Check serving capacity, cooking modes and storage space before choosing.",
           "affiliateUrl": "https://www.amazon.com/dp/B0FNC3PYK5?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71qUvfq4LxL._AC_UY218_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71qUvfq4LxL._AC_UY218_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A multi-cooker can simplify weeknight meals, batch cooking, and reheating when the recipient’s schedule changes from day to day. Its range of functions makes it useful for more than one type of dish.",

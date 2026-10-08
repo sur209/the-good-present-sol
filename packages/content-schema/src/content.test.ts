@@ -26,6 +26,13 @@ test("shopping options require unique tagged Amazon product links and exclude sc
   };
   assert.equal(shoppingOptionsSchema.safeParse([option]).success, true);
   assert.equal(
+    shoppingOptionsSchema.safeParse([{ ...option, sources: ["serpapi", "amazon-agent"] }]).success,
+    true,
+  );
+  for (const sources of [[], ["unknown"], ["serpapi", "serpapi"]]) {
+    assert.equal(shoppingOptionsSchema.safeParse([{ ...option, sources }]).success, false);
+  }
+  assert.equal(
     shoppingOptionsSchema.safeParse([
       { ...option, imageUrl: "https://m.media-amazon.com/images/I/example.jpg" },
     ]).success,

@@ -25,6 +25,12 @@ for (const guide of guides) {
   for (const idea of guide.recommendations) {
     assert.ok(html.includes('id="pick-' + idea.position + '"'), path + ": anchor");
     for (const option of idea.shoppingOptions ?? []) {
+      for (const source of option.sources ?? []) {
+        assert.ok(
+          html.includes(source === "serpapi" ? "SerpAPI" : "Amazon Agent"),
+          path + ": discovery label",
+        );
+      }
       assert.ok(
         html.includes(option.affiliateUrl.replaceAll("&", "&amp;")),
         path + ": affiliate link",
@@ -32,6 +38,10 @@ for (const guide of guides) {
       options++;
     }
   }
+  assert.ok(
+    html.includes("https://consumer.ftc.gov/articles/online-shopping"),
+    path + ": informative link",
+  );
 }
 assert.equal(read("apps/site/dist/CNAME").trim(), "thegoodpresent.com");
 console.log(

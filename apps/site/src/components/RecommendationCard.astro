@@ -1,4 +1,5 @@
 ---
+import { sourceLabel } from "../lib/gift-resources.js";
 import {
   productDisplayName,
   recommendationDestination,
@@ -152,6 +153,7 @@ const accent = `recommendation--accent-${((recommendation.position - 1) % 4) + 1
                 )}
                 <h3>{option.name}</h3>
                 <p>{option.description}</p>
+                {option.sources && <small>{sourceLabel(option.sources)}</small>}
                 <a
                   href={option.affiliateUrl}
                   target="_blank"

@@ -74,25 +74,29 @@
           "name": "Tea Forte sampler",
           "description": "A pyramid-infuser assortment for someone who enjoys trying different teas. Check the included blends and caffeine content before gifting.",
           "affiliateUrl": "https://www.amazon.com/dp/B0GM1MN2LZ?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/714K8WVLY7L._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/714K8WVLY7L._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         },
         {
           "name": "Tiesta Tea favorites sampler",
           "description": "A loose-leaf assortment for someone who already has an infuser. The format makes sense when preparing tea is part of their routine.",
           "affiliateUrl": "https://www.amazon.com/dp/B08VF85JJF?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/81b3WRLyKQL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/81b3WRLyKQL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         },
         {
           "name": "Stash Relax and Unwind sampler",
           "description": "A tea-bag assortment to compare for an easy-to-prepare gift. Review the blend list for ingredients the recipient likes or avoids.",
           "affiliateUrl": "https://www.amazon.com/dp/B0CP8FZJ14?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71Nl3T7CYlL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71Nl3T7CYlL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         },
         {
           "name": "Pukka herbal tea gift set",
           "description": "An herbal assortment for someone who prefers that style of tea. Check individual ingredients and the current package contents on Amazon.",
           "affiliateUrl": "https://www.amazon.com/dp/B0D5MFLFM2?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71PzTq29oSL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71PzTq29oSL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A well-presented tea assortment offers several quiet breaks rather than one more object to display. Pair it with a specific thank-you note so the appreciation remains personal even after the tea is gone.",
@@ -110,6 +114,34 @@
           "description": "A coffee sampler with beans from different origins. This is the whole-bean version, so confirm that the recipient has a grinder.",
           "imageUrl": "https://m.media-amazon.com/images/I/61IXvH6YM2L._AC_UL320_.jpg",
           "affiliateUrl": "https://www.amazon.com/dp/B09GW99L8W?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Four-Bag Gourmet Whole-Bean Coffee Sampler",
+          "description": "A giftable assortment of whole-bean coffees with varied origins and roast profiles. Before buying, verify that the recipient has a grinder and a brewing method suited to whole beans.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71zldH22lPL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BV2GXHDG?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Ground Coffee Tasting Box",
+          "description": "A multi-bag sampler of ground coffees featuring Brazilian, Kenyan, and Ethiopian profiles, with espresso-oriented options. Before buying, verify the grind is suitable for the recipient’s brewer or espresso machine.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71An954WTrL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BV798MJT?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Nespresso Vertuo Intense Roast Variety Pack",
+          "description": "A selection of intense dark-roast coffee pods for Nespresso Vertuo machines. Before buying, verify that the recipient owns a Vertuo system rather than an Original Line machine.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71vhbkrErFL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B01N011V5A?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "Decaffeinated Flavored Coffee Pod Sampler",
+          "description": "An assortment of flavored decaffeinated coffee pods intended for Keurig K-Cup brewers. Before buying, verify K-Cup compatibility and whether decaffeinated coffee matches the recipient’s routine.",
+          "imageUrl": "https://m.media-amazon.com/images/I/910veI8FSTL._AC_UL480_FMwebp_QL65_.jpg",
+          "affiliateUrl": "https://www.amazon.com/dp/B0BDB65Z6B?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
         }
       ],
       "productResolution": "unresolved",
@@ -152,7 +184,8 @@
           "name": "PoeticEHome silk neck scarf",
           "description": "A small square scarf with a patterned finish. Check the chosen print, dimensions, material and care instructions.",
           "affiliateUrl": "https://www.amazon.com/dp/B08ZNQ6GT7?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71J75LW0TxL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/71J75LW0TxL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A small silk scarf offers a polished thank-you that can be worn at the neck, tied to a bag, or kept for occasions outside work. Choosing a restrained pattern keeps the gesture personal without turning it into profession-themed merchandise.",
@@ -192,7 +225,8 @@
           "name": "Artena covered ceramic baking dish",
           "description": "A handled baking dish with a lid for oven-to-table meals. Check dimensions, weight and the separate care instructions for the dish and lid.",
           "affiliateUrl": "https://www.amazon.com/dp/B0FC62YFRY?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/61RWlG95AYL._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/61RWlG95AYL._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A covered ceramic baking dish feels presentable enough for a thank-you while remaining useful for casseroles, baked pasta, or dishes shared with family. A neutral finish keeps the choice flexible.",
@@ -272,7 +306,8 @@
           "name": "Blazing Bella oil and vinegar sampler",
           "description": "A tasting set of flavored oils and balsamic vinegars. Check the flavors, ingredients and bottle sizes for the recipient's cooking preferences.",
           "affiliateUrl": "https://www.amazon.com/dp/B0842D7DZZ?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/61vLsfNoU5L._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/61vLsfNoU5L._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A gourmet oil and vinegar tasting set turns everyday meals into an opportunity to sample different flavor pairings. The bottles can be enjoyed at home, brought out for guests, or shared as part of a casual meal.",
@@ -292,7 +327,8 @@
           "name": "Monogrammed passport cover and luggage-tag set",
           "description": "A personalized travel-document set. Check passport fit, initials, material and production time; personalization should be reviewed before ordering.",
           "affiliateUrl": "https://www.amazon.com/dp/B0D7RKTRD9?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/81NTA148q9L._AC_UL320_.jpg"
+          "imageUrl": "https://m.media-amazon.com/images/I/81NTA148q9L._AC_UL320_.jpg",
+          "sources": ["serpapi"]
         }
       ],
       "editorialDescription": "A monogrammed travel document wallet keeps passports, boarding documents, cards, and other essentials together for trips. The personalized detail gives a practical organizer a more considered feel.",
