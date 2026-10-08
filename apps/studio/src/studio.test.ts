@@ -6031,9 +6031,9 @@ test("renderiza sólo destinos del catálogo y distingue enlaces afiliados", asy
     "utf8",
   );
   const card = (html: string, productName: string): string => {
-    const article = html.match(/<article\b[^>]*>[\s\S]*?<\/article>/g)?.find((entry) =>
-      entry.includes(productName),
-    );
+    const article = html
+      .match(/<article\b[^>]*>[\s\S]*?<\/article>/g)
+      ?.find((entry) => entry.includes(productName));
     assert.ok(article, `Missing card for ${productName}`);
     return article;
   };
