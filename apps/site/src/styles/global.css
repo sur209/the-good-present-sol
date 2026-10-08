@@ -1725,6 +1725,9 @@ body,
   background: #f3f4ee;
   color: var(--color-ink);
 }
+.theme-hub .section--ink .eyebrow {
+  color: #646860;
+}
 .section h2 {
   font-size: 30px;
 }

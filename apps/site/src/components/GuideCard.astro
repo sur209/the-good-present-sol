@@ -26,7 +26,7 @@ const image =
     {image && <img class="guide-card__image" src={image} alt="" loading="lazy" />}
     <div class="guide-card__topline">
       <span>{primaryAxisLabels[guide.primaryAxis]}</span>
-      <span aria-hidden="true">0{number}</span>
+      <span aria-hidden="true">{String(number).padStart(2, "0")}</span>
     </div>
     <h3>{guide.title}</h3>
     <p>{guide.excerpt}</p>

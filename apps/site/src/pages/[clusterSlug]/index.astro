@@ -148,7 +148,11 @@ const collage = productPhotos.filter(({ guide }) =>
           <div class="section-heading section-heading--split">
             <div>
               <p class="eyebrow">Find their next gift</p>
-              <h2 id="featured-guides">Explore {cluster.title.toLowerCase()} guides.</h2>
+              <h2 id="featured-guides">
+                {cluster.slug === "nurse-gifts"
+                  ? "Gift guides for nurses."
+                  : `Explore ${cluster.title.toLowerCase()}.`}
+              </h2>
             </div>
             <a class="text-link text-link--light" href={PUBLIC_PATHS.giftGuides}>
               All gift guides <span aria-hidden="true">→</span>
