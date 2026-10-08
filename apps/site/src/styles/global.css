@@ -1645,18 +1645,23 @@ body,
 }
 .site-footer {
   display: flex;
+  min-height: 0;
+  padding-block: 0;
   justify-content: space-between;
   align-items: center;
   font-size: 12px;
 }
 .site-footer nav {
+  flex-direction: row;
   justify-content: start;
   font-size: 12px;
 }
 .site-footer__note {
   margin: 0;
+  color: #646860;
 }
 .hub-hero {
+  min-height: 0;
   background: #f3f4ee;
   padding: 30px;
   gap: 36px;
@@ -1665,9 +1670,12 @@ body,
 }
 .hub-hero h1,
 .listing-hero h1 {
+  max-width: none;
   font-size: clamp(36px, 4.5vw, 56px);
 }
 .hub-hero__intro {
+  border-radius: 0;
+  box-shadow: none;
   background: none;
   border: 0;
   padding: 0;
@@ -1700,6 +1708,8 @@ body,
   box-shadow: none;
 }
 .guide-card > a {
+  min-height: 0;
+  border-radius: 3px;
   background: white;
   border: 1px solid #dedfd9;
   box-shadow: none;
