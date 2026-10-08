@@ -2,6 +2,7 @@
 import { guidePath, type ClusterHub, type GiftGuide } from "@the-good-present/content-schema";
 
 import { formatDate, primaryAxisLabels } from "../lib/content.js";
+import { recommendationIllustrations } from "../lib/illustrations.js";
 
 interface Props {
   guide: GiftGuide;
@@ -11,10 +12,16 @@ interface Props {
 
 const { guide, cluster, number } = Astro.props;
 const date = guide.updatedAt ?? guide.publishedAt;
+const idea = guide.recommendations[0];
+const image =
+  idea &&
+  (recommendationIllustrations[idea.id]?.src ??
+    idea.shoppingOptions?.find((option) => option.imageUrl)?.imageUrl);
 ---
 
 <article class="guide-card">
   <a href={guidePath(cluster.slug, guide.slug)}>
+    {image && <img class="guide-card__image" src={image} alt="" loading="lazy" />}
     <div class="guide-card__topline">
       <span>{primaryAxisLabels[guide.primaryAxis]}</span>
       <span aria-hidden="true">0{number}</span>

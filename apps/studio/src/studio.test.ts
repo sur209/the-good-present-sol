@@ -9025,7 +9025,7 @@ test("renderiza hubs según su cluster y ofrece un estado vacío honesto", async
   assert.match(nurseHubHtml, /<h1>Nurse Gifts<\/h1>/);
   assert.match(nurseHubHtml, /Start with a focused guide\./);
   assert.match(nurseHubHtml, /href="\/nurse-gifts\/practical\/"/);
-  assert.match(nurseHubHtml, /This hub brings together the whole Nurse Gifts collection\./);
+  assert.match(nurseHubHtml, /Explore the Nurse Gifts collection/);
 
   assert.match(firefighterHubHtml, /<h1>Firefighter Gifts<\/h1>/);
   assert.match(firefighterHubHtml, /No focused guides are published in this cluster\./);

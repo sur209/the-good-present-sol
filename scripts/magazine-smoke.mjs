@@ -12,7 +12,8 @@ const jsonFiles = (directory) =>
 const clusters = new Map(jsonFiles("content/clusters").map((cluster) => [cluster.id, cluster]));
 const guides = jsonFiles("content/guides").filter((guide) => guide.status === "published");
 const home = read("apps/site/dist/index.html");
-assert.ok(home.includes("Good gifts, worth a closer look."));
+assert.ok(home.includes("Thoughtful gifts."));
+assert.ok(!home.includes('aria-label="Explore"'));
 assert.ok(!existsSync(resolve(root, "apps/site/dist/magazine")));
 let options = 0;
 for (const guide of guides) {

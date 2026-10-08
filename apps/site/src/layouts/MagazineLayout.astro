@@ -51,6 +51,13 @@ const visual = (idea?: GuideRecommendation) =>
   idea?.shoppingOptions?.find((option) => option.imageUrl)?.imageUrl ??
   "/favicon.svg";
 const cover = (item: GiftGuide) => item.recommendations[0];
+const categoryNames: Record<string, string> = {
+  "under-25": "Under $25",
+  practical: "Practical gifts",
+  "personalized-gifts-for-nurses": "Personalized gifts",
+  "funny-gifts-for-nurses": "Funny gifts",
+  graduation: "Graduation",
+};
 const sections = [
   { title: "Mark a milestone", axes: ["occasion", "career-stage"] },
   {
@@ -126,9 +133,7 @@ const hasAffiliateLinks =
     <header>
       <div class="masthead wrap">
         <a class="brand" href={home}
-          ><span>✦</span> The Good Present<span class="brand-note"
-            >A little inspiration. A good gift.</span
-          ></a
+          >The Good Present<span class="brand-note">A little inspiration. A good gift.</span></a
         >
         <form action={`${home}#browse`} role="search">
           <label for="search">Find a gift guide</label><input
@@ -139,12 +144,6 @@ const hasAffiliateLinks =
           /><button>Search →</button>
         </form>
       </div>
-      <nav class="wrap" aria-label="Explore">
-        <a href={`${home}#browse`}>All gift guides</a><a href={`${home}#milestones`}>Milestones</a
-        ><a href={`${home}#styles`}>Gift styles</a><a href="/nurse-gifts/">Nurse gifts</a><a
-          href="/about/">Our approach</a
-        >
-      </nav>
     </header>
     <main id="main" class="wrap">
       <p class={hasAffiliateLinks ? "guide-disclosure disclosure" : "disclosure"}>
@@ -159,23 +158,27 @@ const hasAffiliateLinks =
               <a href={home}>The magazine</a> /{" "}
               <a href={clusterPath(cluster!.slug)}>{cluster!.title}</a>
             </p>
-            <div class="guide-heading">
-              <>
-                <p class="eyebrow">Gift guide · {guide.recommendations.length} ideas</p>
-                <h1>{guide.title}</h1>
-                <p class="intro">{guide.excerpt}</p>
-                <p class="date">Updated {formatDate(guide.updatedAt ?? guide.publishedAt)}</p>
-              </>
-            </div>
-            <div class="guide-banner">
-              {guide.recommendations.slice(0, 3).map((idea) => (
-                <a href={`#pick-${idea.position}`}>
-                  <img src={visual(idea)} alt={label(idea)} />
-                  <span>{label(idea)}</span>
-                </a>
-              ))}
-            </div>
-            <p class="introduction">{guide.introduction}</p>
+            <>
+              <div class="guide-hero">
+                <div class="guide-heading">
+                  <>
+                    <p class="eyebrow">Gift guide · {guide.recommendations.length} ideas</p>
+                    <h1>{guide.title}</h1>
+                    <p class="intro">{guide.excerpt}</p>
+                    <p class="date">Updated {formatDate(guide.updatedAt ?? guide.publishedAt)}</p>
+                  </>
+                </div>
+                <div class="guide-banner">
+                  {guide.recommendations.slice(0, 3).map((idea) => (
+                    <a href={`#pick-${idea.position}`}>
+                      <img src={visual(idea)} alt={label(idea)} />
+                      <span>{label(idea)}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+              <p class="introduction">{guide.introduction}</p>
+            </>
             <section aria-labelledby="overview">
               <>
                 <h2 id="overview">Every gift at a glance</h2>
@@ -275,7 +278,17 @@ const hasAffiliateLinks =
                   )}
                 </div>
                 <aside class="sidebar">
-                  <h2>Another way in</h2>
+                  <>
+                    <h2>In this guide</h2>
+                    <ol class="contents">
+                      {guide.recommendations.map((idea) => (
+                        <li>
+                          <a href={`#pick-${idea.position}`}>{label(idea)}</a>
+                        </li>
+                      ))}
+                    </ol>
+                    <h2>Related guides</h2>
+                  </>
                   {related.map((item) => (
                     <a href={href(item)}>
                       <img src={visual(cover(item)!)} alt="" loading="lazy" />
@@ -313,47 +326,82 @@ const hasAffiliateLinks =
           </>
         ) : (
           <>
-            <div class="opening">
-              <aside class="latest">
-                <h2>Find your way in</h2>
-                {guides.slice(0, 5).map((item) => (
-                  <a href={href(item)}>
-                    <strong>{item.title}</strong>
-                    <span>{item.recommendations.length} gift ideas →</span>
-                  </a>
+            <section class="home-hero" aria-labelledby="home-title">
+              <div class="hero-copy">
+                <p class="eyebrow">Gifts for a brighter everyday</p>
+                <h1 id="home-title">
+                  Thoughtful gifts.
+                  <br />A little more inspiration.
+                </h1>
+                <p class="intro">
+                  From everyday surprises to life's big moments, find something useful, beautiful,
+                  and right for them.
+                </p>
+                <a class="primary-cta" href="#browse">
+                  Explore gift guides →
+                </a>
+                <a class="quiet-link" href="/nurse-gifts/">
+                  Explore Nurse Gifts →
+                </a>
+              </div>
+              <a class="hero-art" href={href(featured)} aria-label={featured.title}>
+                {featured.recommendations.slice(0, 3).map((idea) => (
+                  <img src={visual(idea)} alt={label(idea)} />
                 ))}
-              </aside>
-              <article class="lead">
-                <>
-                  <a href={href(featured)}>
-                    <>
-                      <div class="collage">
-                        {featured.recommendations.slice(0, 3).map((idea) => (
-                          <img src={visual(idea)} alt={label(idea)} />
-                        ))}
-                      </div>
-                      <p class="eyebrow">The everyday edit</p>
-                      <h1>Good gifts, worth a closer look.</h1>
-                      <h2>{featured.title} →</h2>
-                    </>
-                  </a>
-                  <p>{featured.excerpt}</p>
-                </>
-              </article>
-              <aside class="small-finds">
-                <h2>A few discoveries</h2>
-                {guides.slice(3, 6).map((item) => {
-                  const idea = cover(item)!;
+                <span class="hero-caption">
+                  Small gifts.
+                  <br />
+                  Bright moments.
+                </span>
+              </a>
+            </section>
+            <section class="category-section">
+              <h2>Find your kind of gift</h2>
+              <div class="category-grid">
+                {[
+                  "under-25",
+                  "practical",
+                  "personalized-gifts-for-nurses",
+                  "funny-gifts-for-nurses",
+                  "graduation",
+                ].map((slug) => {
+                  const item = guides.find((item) => item.slug === slug);
                   return (
-                    <a href={`${href(item)}#pick-${idea.position}`}>
-                      <img src={visual(idea)} alt="" />
-                      <strong>{label(idea)}</strong>
-                      <span>Explore the idea →</span>
-                    </a>
+                    item && (
+                      <a href={href(item)}>
+                        <img src={visual(cover(item))} alt="" />
+                        <strong>{categoryNames[slug]} →</strong>
+                      </a>
+                    )
                   );
                 })}
-              </aside>
-            </div>
+              </div>
+            </section>
+            <section class="spotlight">
+              <div>
+                <>
+                  <p class="eyebrow">The everyday edit</p>
+                  <h2>The gifts that make life a little brighter.</h2>
+                  <p>
+                    Start with the person, not just the occasion. Explore our guides for ideas and
+                    concrete options to compare.
+                  </p>
+                  <a class="outline-cta" href="/about/">
+                    How we choose →
+                  </a>
+                </>
+              </div>
+              <div class="spotlight-cards">
+                {guides.slice(2, 5).map((item) => (
+                  <a class="card" href={href(item)}>
+                    <img src={visual(cover(item))} alt="" loading="lazy" />
+                    <p class="eyebrow">Gift guide</p>
+                    <h3>{item.title}</h3>
+                    <span>Explore the guide →</span>
+                  </a>
+                ))}
+              </div>
+            </section>
             <section id="browse">
               <>
                 <div class="section-heading">
@@ -414,15 +462,8 @@ const hasAffiliateLinks =
       }
     </main>
     <footer class="wrap">
-      <a class="brand" href={home}>✦ The Good Present</a><p>
-        Follow your curiosity. Find something that feels like them.
-      </p>{
-        preview ? (
-          <a href="/">View the current website →</a>
-        ) : (
-          <a href="/gift-guides/">All gift guides →</a>
-        )
-      }
+      <a href="/about/">About</a><a href="/affiliate-disclosure/">Affiliate disclosure</a><small
+        >© {new Date().getUTCFullYear()} The Good Present</small>
     </footer>
     <script>
       const input = document.querySelector<HTMLInputElement>("#search");
@@ -451,42 +492,31 @@ const hasAffiliateLinks =
   </body>
 </html>
 <style>
-  .product-source {
-    display: block;
-    color: #666;
-    font-size: 0.75rem;
-    margin-bottom: 0.6rem;
-  }
-  .useful-links {
-    font-size: 0.85rem;
-    margin-top: 1rem;
-  }
   :global(*) {
     box-sizing: border-box;
   }
   :global(html) {
     scroll-behavior: smooth;
-    scroll-padding-top: 150px;
+    scroll-padding-top: 110px;
   }
   :global(body) {
     margin: 0;
-    background: #fffdf8;
-    color: #25251e;
+    background: #fff;
+    color: #252823;
     font-family: Arial, sans-serif;
   }
   :global(a) {
     color: inherit;
     text-decoration: none;
   }
-  :global(a:hover h3),
-  :global(a:hover strong) {
+  :global(a:hover) {
     text-decoration: underline;
   }
   :global(a:focus-visible),
   :global(button:focus-visible),
   :global(input:focus-visible),
   :global(summary:focus-visible) {
-    outline: 3px solid #94651b;
+    outline: 3px solid #54654c;
     outline-offset: 5px;
   }
   :global(img) {
@@ -498,202 +528,229 @@ const hasAffiliateLinks =
     display: none !important;
   }
   .wrap {
-    max-width: 1280px;
+    max-width: 1220px;
     margin: auto;
     padding: 0 28px;
-  }
-  .preview {
-    text-align: center;
-    background: #f4d566;
-    padding: 8px;
-    font-size: 11px;
-    letter-spacing: 0.08em;
   }
   header {
     position: sticky;
     top: 0;
-    z-index: 2;
-    background: #fffdf8;
-    border-bottom: 1px solid #ddd8cc;
+    z-index: 4;
+    background: #fffffff5;
+    border-bottom: 1px solid #dedfd9;
   }
   .masthead {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 40px;
-    padding-top: 22px;
-    padding-bottom: 20px;
+    gap: 48px;
+    padding-top: 24px;
+    padding-bottom: 24px;
   }
   .brand {
-    font-family: Georgia, serif;
-    font-weight: bold;
-    font-size: 28px;
+    font:
+      bold 30px Georgia,
+      serif;
     white-space: nowrap;
-  }
-  .brand > span:first-child {
-    color: #aa771b;
+    letter-spacing: -0.04em;
   }
   .brand-note {
     display: block;
     font:
-      12px Arial,
+      10px Arial,
       sans-serif;
-    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
     margin-top: 8px;
   }
   form {
     display: flex;
-    border: 1px solid #8c8a7c;
-    border-radius: 5px;
-    max-width: 640px;
+    border: 1px solid #b9bcb4;
+    border-radius: 3px;
+    max-width: 560px;
     width: 100%;
-    padding: 8px;
+    padding: 5px;
     align-items: center;
     gap: 10px;
   }
-  form label {
+  form label,
+  .sr-only {
     position: absolute;
     width: 1px;
     height: 1px;
     overflow: hidden;
+    clip-path: inset(50%);
   }
   input {
     width: 100%;
     border: 0;
     background: transparent;
-    font-size: 15px;
-    padding: 6px;
+    font-size: 14px;
+    padding: 10px;
     min-width: 0;
   }
   button {
     border: 0;
-    background: #f4d566;
-    padding: 10px;
+    background: #303b2e;
+    color: white;
+    padding: 11px 16px;
     white-space: nowrap;
     cursor: pointer;
   }
-  nav {
-    display: flex;
-    gap: 32px;
-    padding-bottom: 15px;
-    font-size: 14px;
-    font-weight: bold;
-  }
-  nav a:hover {
-    text-decoration: underline;
-  }
   .disclosure {
     text-align: center;
-    font-size: 12px;
-    padding: 16px 0;
-    color: #666;
+    font-size: 11px;
+    padding: 13px 0;
+    color: #646860;
   }
-  .disclosure a {
+  .disclosure a,
+  .useful-links a {
     text-decoration: underline;
-  }
-  .opening {
-    display: grid;
-    grid-template-columns: 200px minmax(0, 1fr) 190px;
-    gap: 30px;
-    margin: 20px 0 70px;
   }
   h1,
   h2,
   h3 {
-    line-height: 1.1;
-    letter-spacing: -0.035em;
+    font-family: Georgia, serif;
+    line-height: 1.12;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
   }
   h1 {
-    font-size: clamp(36px, 4vw, 56px);
-    margin: 15px 0;
+    font-size: clamp(36px, 4.5vw, 58px);
+    margin: 16px 0 20px;
   }
   h2 {
-    font-size: 32px;
+    font-size: 30px;
   }
   h3 {
-    font-size: 24px;
+    font-size: 22px;
     margin: 14px 0;
   }
   p {
-    line-height: 1.55;
+    line-height: 1.6;
   }
   .eyebrow {
-    font-size: 11px;
+    font-size: 10px;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.15em;
     font-weight: bold;
   }
-  .latest h2,
-  .small-finds h2,
-  .sidebar h2 {
-    font:
-      24px Georgia,
-      serif;
-    border-top: 2px solid;
-    padding-top: 10px;
-    margin: 0 0 18px;
-  }
-  .latest a {
-    display: block;
-    margin-bottom: 28px;
-    font-size: 17px;
-    line-height: 1.3;
-  }
-  .latest span,
-  .small-finds span {
-    display: block;
-    font-size: 12px;
-    margin-top: 10px;
-    color: #666;
-  }
-  .collage {
-    display: grid;
-    grid-template-columns: 1.4fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    height: 360px;
-    background: #e9dfcd;
-    gap: 12px;
-    padding: 18px;
-  }
-  .collage img {
-    height: 100%;
-    min-height: 0;
-    background: #fff8eb;
-  }
-  .collage img:first-child {
-    grid-row: span 2;
-  }
-  .lead h1 {
-    border-top: 5px solid;
-    padding-top: 16px;
-  }
-  .lead h2 {
-    font-size: 22px;
-  }
-  .lead > p {
-    font:
-      19px/1.5 Georgia,
-      serif;
-  }
-  .small-finds a {
-    display: block;
-    margin-bottom: 25px;
-  }
-  .small-finds img {
-    height: 130px;
-    background: white;
-    margin-bottom: 12px;
-  }
-  .small-finds strong {
-    font-size: 16px;
-  }
   section {
-    border-top: 5px solid;
-    margin: 65px 0;
-    padding-top: 8px;
+    border-top: 1px solid #dedfd9;
+    margin: 48px 0;
+    padding-top: 20px;
   }
   section h2 {
-    margin: 14px 0 30px;
+    margin: 8px 0 24px;
+  }
+  .home-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 42px;
+    background: #f3f4ee;
+    border: 0;
+    padding: 42px;
+    margin: 10px 0 36px;
+  }
+  .hero-copy {
+    max-width: 520px;
+  }
+  .intro {
+    font-size: 18px;
+    color: #50574d;
+  }
+  .primary-cta,
+  .outline-cta {
+    display: inline-block;
+    padding: 13px 20px;
+    border: 1px solid #303b2e;
+    border-radius: 3px;
+    font-size: 14px;
+  }
+  .primary-cta {
+    background: #303b2e;
+    color: white;
+  }
+  .quiet-link {
+    display: block;
+    font-size: 12px;
+    margin-top: 18px;
+    text-decoration: underline;
+  }
+  .hero-art {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 14px;
+    height: 350px;
+    position: relative;
+    padding: 10px;
+  }
+  .hero-art img {
+    min-height: 0;
+    height: 100%;
+    background: #f7efe1;
+    border: 8px solid white;
+    box-shadow: 0 2px 12px #25282313;
+  }
+  .hero-art img:first-child {
+    grid-row: span 2;
+    transform: rotate(-4deg);
+  }
+  .hero-art img:nth-child(2) {
+    transform: rotate(5deg);
+  }
+  .hero-caption {
+    position: absolute;
+    bottom: -4px;
+    right: -8px;
+    background: #fff;
+    box-shadow: 0 2px 12px #25282318;
+    transform: rotate(4deg);
+    padding: 16px;
+    font:
+      italic 20px Georgia,
+      serif;
+  }
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+  }
+  .category-grid a {
+    border: 1px solid #d6d9d0;
+    padding: 12px;
+    background: #fafaf7;
+  }
+  .category-grid img {
+    height: 120px;
+    margin-bottom: 12px;
+  }
+  .category-grid strong {
+    font-size: 14px;
+  }
+  .spotlight {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 38px;
+    background: #f3f4ee;
+    padding: 30px;
+    border: 0;
+  }
+  .spotlight-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .spotlight .card {
+    background: white;
+  }
+  .spotlight .card img {
+    height: 160px;
+  }
+  .spotlight .card h3 {
+    font-size: 20px;
   }
   .section-heading {
     display: flex;
@@ -701,163 +758,209 @@ const hasAffiliateLinks =
     align-items: end;
     gap: 20px;
   }
+  .section-heading h3 {
+    font-size: 17px;
+  }
+  #result-count {
+    font-size: 13px;
+    color: #646860;
+  }
   .cards {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 28px;
-  }
-  .card img {
-    height: 190px;
-    background: #f0eadd;
-    margin-bottom: 20px;
-  }
-  .card p {
-    font:
-      17px/1.5 Georgia,
-      serif;
-    color: #555;
+    gap: 20px;
   }
   .card {
-    padding-bottom: 25px;
+    border: 1px solid #d6d9d0;
+    padding: 12px;
+    min-width: 0;
+  }
+  .card img {
+    height: 170px;
+    background: #f5f3ee;
+    margin-bottom: 16px;
+  }
+  .card p {
+    font-size: 14px;
+    color: #646860;
+  }
+  .card span:not(.eyebrow) {
+    font-size: 12px;
   }
   .editorial-row {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
-    gap: 28px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
   }
   .editorial-row img {
-    height: 180px;
-    background: #efe4cf;
-  }
-  .editorial-row > a:first-child img {
-    height: 290px;
+    height: 190px;
+    background: #f4f2ec;
   }
   .editorial-row p {
-    font:
-      17px/1.5 Georgia,
-      serif;
+    font-size: 14px;
+    color: #646860;
   }
   .editorial-row span {
-    font-size: 13px;
-    font-weight: bold;
+    font-size: 12px;
   }
-  .guide-heading {
-    max-width: 920px;
-    border-top: 5px solid;
-    padding-top: 15px;
+  .guide-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 36px;
+    background: #f3f4ee;
+    padding: 30px;
   }
-  .intro {
-    font:
-      23px/1.45 Georgia,
-      serif;
+  .guide-heading h1 {
+    font-size: clamp(32px, 4vw, 48px);
   }
   .date {
     font-size: 12px;
-    color: #666;
+    color: #646860;
   }
   .guide-banner {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    background: #ede2cc;
-    padding: 25px;
-    gap: 20px;
-    margin: 30px 0;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .guide-banner a {
+    background: #fff;
+    padding: 10px;
+    border: 1px solid #d6d9d0;
+  }
+  .guide-banner a:first-child {
+    grid-column: span 2;
   }
   .guide-banner img {
-    height: 250px;
+    height: 120px;
+  }
+  .guide-banner a:first-child img {
+    height: 170px;
   }
   .guide-banner span {
     display: block;
-    font-weight: bold;
+    font-size: 12px;
+    margin-top: 10px;
     text-align: center;
-    margin-top: 14px;
   }
   .introduction {
     max-width: 850px;
-    font:
-      21px/1.65 Georgia,
-      serif;
+    font-size: 17px;
+    line-height: 1.7;
+    margin-top: 30px;
   }
   .overview {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 22px;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .overview a {
+    border: 1px solid #d6d9d0;
+    padding: 10px;
   }
   .overview img {
-    height: 100px;
-    background: #f1edde;
+    height: 95px;
+    background: #f5f3ee;
     margin-bottom: 10px;
   }
   .overview span {
-    font-size: 13px;
-    font-weight: bold;
+    font-size: 12px;
     line-height: 1.35;
   }
   .reading-layout {
     display: grid;
-    grid-template-columns: minmax(0, 850px) 230px;
-    gap: 65px;
+    grid-template-columns: minmax(0, 1fr) 230px;
+    gap: 36px;
   }
   .idea {
-    border-top: 2px solid;
-    margin: 45px 0 65px;
-    padding-top: 20px;
-    scroll-margin-top: 150px;
+    border: 1px solid #d6d9d0;
+    margin: 24px 0 36px;
+    padding: 24px;
+    scroll-margin-top: 120px;
   }
   .idea h2 {
-    font-size: 36px;
-    margin-top: 12px;
+    font-size: 30px;
+    margin-top: 10px;
   }
   .idea-intro {
     display: grid;
-    grid-template-columns: 220px 1fr;
-    gap: 30px;
+    grid-template-columns: 190px 1fr;
+    gap: 24px;
   }
   .idea-intro > img {
-    height: 230px;
-    background: #f1e9d9;
+    height: 210px;
+    background: #f5f3ee;
   }
   .idea-intro p {
-    font:
-      19px/1.6 Georgia,
-      serif;
+    font-size: 15px;
     margin-top: 0;
   }
   .option-heading {
-    font-size: 18px;
-    margin-top: 30px;
+    font:
+      bold 15px Arial,
+      sans-serif;
+    margin-top: 24px;
   }
   .options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
     padding: 0;
     list-style: none;
   }
   .options li {
     display: flex;
-    gap: 25px;
-    padding: 22px 0;
-    border-bottom: 1px solid #d3cebf;
+    flex-direction: column;
+    border: 1px solid #dedfd9;
+    padding: 16px;
+    min-width: 0;
+    background: #fff;
   }
   .options img {
-    width: 125px;
-    height: 125px;
-    flex-shrink: 0;
-    background: white;
+    height: 140px;
+    width: 100%;
+    margin-bottom: 14px;
+  }
+  .options li > div {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
   }
   .options h3 {
-    font-size: 20px;
+    font:
+      bold 16px/1.3 Arial,
+      sans-serif;
+    letter-spacing: 0;
     margin: 0;
   }
   .options p {
-    font-size: 15px;
+    font-size: 13px;
   }
   .options a {
+    display: block;
+    border: 1px solid #303b2e;
+    border-radius: 3px;
+    padding: 10px;
+    text-align: center;
+    font-size: 12px;
     font-weight: bold;
-    text-decoration: underline;
-    font-size: 14px;
+    margin-top: auto;
+  }
+  .product-source {
+    display: block;
+    color: #74796e;
+    font-size: 10px;
+    margin-bottom: 12px;
+  }
+  .useful-links {
+    font-size: 12px;
+    margin-top: 16px;
   }
   details {
-    margin-top: 25px;
-    font-size: 15px;
+    margin-top: 20px;
+    font-size: 14px;
+    border-top: 1px solid #dedfd9;
+    padding-top: 14px;
   }
   summary {
     cursor: pointer;
@@ -865,28 +968,49 @@ const hasAffiliateLinks =
   }
   .sidebar {
     align-self: start;
-    margin-top: 45px;
+    margin-top: 24px;
     position: sticky;
-    top: 165px;
+    top: 120px;
+    border: 1px solid #d6d9d0;
+    padding: 18px;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
+  }
+  .sidebar h2 {
+    font-size: 20px;
+    margin: 0 0 14px;
+  }
+  .contents {
+    padding-left: 18px;
+    font-size: 12px;
+  }
+  .contents li {
+    margin: 9px 0;
+    line-height: 1.4;
   }
   .sidebar > a {
-    display: block;
-    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    margin-bottom: 14px;
   }
   .sidebar img {
-    height: 110px;
-    background: #f0eadd;
-    margin-bottom: 10px;
+    height: 54px;
+    width: 54px;
+    flex-shrink: 0;
+    background: #f5f3ee;
   }
   footer {
-    border-top: 1px solid #bbb;
-    padding-top: 35px !important;
-    padding-bottom: 40px !important;
-    margin-top: 65px !important;
+    display: flex;
+    gap: 22px;
+    border-top: 1px solid #dedfd9;
+    padding-top: 22px !important;
+    padding-bottom: 28px !important;
+    font-size: 12px;
   }
-  footer > a:last-child {
-    text-decoration: underline;
-    font-size: 14px;
+  footer small {
+    margin-left: auto;
   }
   .skip {
     position: absolute;
@@ -899,33 +1023,36 @@ const hasAffiliateLinks =
     background: white;
     padding: 15px;
   }
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
+  .preview {
+    text-align: center;
+    padding: 8px;
+    background: #eee;
+    font-size: 11px;
   }
   @media (max-width: 1000px) {
-    .opening {
-      grid-template-columns: 1fr 3fr;
-    }
-    .small-finds {
-      display: none;
-    }
     .cards {
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
     .reading-layout {
       grid-template-columns: 1fr;
     }
     .sidebar {
+      position: static;
+      max-height: none;
+      grid-row: 1;
+    }
+    .sidebar > a,
+    .sidebar h2:not(:first-child) {
       display: none;
     }
-    .editorial-row {
-      grid-template-columns: repeat(2, 1fr);
+    .contents {
+      columns: 2;
+    }
+    .spotlight {
+      grid-template-columns: 1fr;
     }
     .overview {
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
   @media (max-width: 640px) {
@@ -935,11 +1062,11 @@ const hasAffiliateLinks =
     }
     .masthead {
       display: block;
-      padding-top: 15px;
-      padding-bottom: 12px;
+      padding-top: 16px;
+      padding-bottom: 14px;
     }
     .brand {
-      font-size: 24px;
+      font-size: 26px;
     }
     .brand-note {
       display: none;
@@ -948,109 +1075,111 @@ const hasAffiliateLinks =
       margin-top: 14px;
     }
     input {
-      font-size: 13px;
-    }
-    nav {
-      gap: 20px;
-      overflow: auto;
-      white-space: nowrap;
       font-size: 12px;
     }
     .disclosure {
-      font-size: 11px;
+      font-size: 10px;
     }
-    .opening {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 40px;
+    .home-hero,
+    .guide-hero {
+      grid-template-columns: 1fr;
+      padding: 22px;
+      gap: 20px;
     }
-    .lead {
-      order: -1;
+    .hero-art {
+      height: 250px;
     }
-    .collage {
-      height: 270px;
+    .hero-caption {
+      font-size: 16px;
     }
-    .latest {
+    .category-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .category-grid img {
+      height: 110px;
+    }
+    .spotlight {
+      padding: 20px;
+    }
+    .spotlight-cards {
+      grid-template-columns: 1fr;
+    }
+    .spotlight .card {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
+      grid-template-columns: 90px 1fr;
+      gap: 12px;
     }
-    .latest h2 {
-      grid-column: span 2;
+    .spotlight .card img {
+      height: 90px;
+      grid-row: span 3;
     }
-    .latest a {
-      font-size: 15px;
-      margin-bottom: 10px;
+    .spotlight .card h3,
+    .spotlight .card p {
+      margin: 0;
     }
-    .cards {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 18px;
+    .cards,
+    .editorial-row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
     }
-    .card img {
-      height: 135px;
+    .card img,
+    .editorial-row img {
+      height: 120px;
     }
     .card h3,
     .editorial-row h3 {
       font-size: 20px;
     }
     .card p {
-      font-size: 15px;
+      font-size: 13px;
     }
     .section-heading {
       display: block;
     }
-    .guide-banner {
-      padding: 12px;
-      gap: 10px;
+    .guide-banner a:first-child img {
+      height: 140px;
     }
     .guide-banner img {
-      height: 110px;
-    }
-    .guide-banner span {
-      font-size: 12px;
-    }
-    .intro {
-      font-size: 20px;
-    }
-    .introduction {
-      font-size: 18px;
+      height: 90px;
     }
     .overview {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
     }
     .overview img {
-      height: 80px;
+      height: 75px;
+    }
+    .idea {
+      padding: 16px;
     }
     .idea-intro {
-      display: block;
+      grid-template-columns: 1fr;
     }
     .idea-intro > img {
-      height: 240px;
-      width: 100%;
-      margin-bottom: 25px;
-    }
-    .idea h2 {
-      font-size: 30px;
+      height: 210px;
     }
     .options {
-      overflow-wrap: anywhere;
+      grid-template-columns: 1fr;
     }
     .options li {
-      gap: 15px;
+      display: grid;
+      grid-template-columns: 85px minmax(0, 1fr);
+      gap: 14px;
     }
     .options img {
-      width: 85px;
-      height: 85px;
+      height: 95px;
+      margin-bottom: 0;
     }
-    .editorial-row > a:first-child img {
-      height: 180px;
+    .options li:not(:has(img)) {
+      grid-template-columns: 1fr;
     }
-    h2 {
-      font-size: 28px;
+    footer {
+      flex-wrap: wrap;
+      gap: 14px;
     }
-    section {
-      margin-top: 45px;
+    footer small {
+      margin-left: 0;
+      width: 100%;
     }
   }
   @media (prefers-reduced-motion: reduce) {

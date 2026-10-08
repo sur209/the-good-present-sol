@@ -11,6 +11,7 @@ import GuideCard from "../../components/GuideCard.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { content, guidesById, primaryAxisLabels } from "../../lib/content.js";
 import { breadcrumbStructuredData, clusterStructuredData } from "../../lib/structured-data.js";
+import { recommendationIllustrations } from "../../lib/illustrations.js";
 
 export function getStaticPaths() {
   return content.clusters.map((cluster) => ({
@@ -26,6 +27,11 @@ interface Props {
 const { cluster } = Astro.props;
 const clusterGuides = content.guides.filter((guide) => guide.clusterId === cluster.id);
 const publicPath = clusterPath(cluster.slug);
+const cover = clusterGuides[0]?.recommendations[0];
+const coverImage =
+  cover &&
+  (recommendationIllustrations[cover.id]?.src ??
+    cover.shoppingOptions?.find((option) => option.imageUrl)?.imageUrl);
 const navigationGroups = cluster.navigationGroups
   .map((group) => ({
     ...group,
@@ -60,12 +66,12 @@ const navigationGroups = cluster.navigationGroups
 
   <header class="hub-hero shell">
     <div>
-      <p class="eyebrow">Editorial cluster</p>
+      <p class="eyebrow">Explore the collection</p>
       <h1>{cluster.title}</h1>
       <p class="lede">{cluster.excerpt}</p>
     </div>
     <div class="hub-hero__intro">
-      <span class="hub-hero__star" aria-hidden="true">✦</span>
+      {coverImage && <img src={coverImage} alt={cover?.heading ?? cluster.title} />}
       <p>{cluster.introduction}</p>
     </div>
   </header>
@@ -78,7 +84,7 @@ const navigationGroups = cluster.navigationGroups
             <p class="eyebrow">Choose your way in</p>
             <h2 id="choose-path">Start with a focused guide.</h2>
           </div>
-          <p>These groups are selected by editors. Tags do not create extra pages.</p>
+          <p>Choose a moment, a gift style, or a budget to begin exploring.</p>
         </div>
 
         <div class="hub-paths__list">
@@ -148,17 +154,17 @@ const navigationGroups = cluster.navigationGroups
 
   <section class="hub-method section shell" aria-labelledby="hub-method-heading">
     <div>
-      <p class="eyebrow">How this cluster works</p>
-      <h2 id="hub-method-heading">Broad enough to explore. Focused enough to help.</h2>
+      <p class="eyebrow">A thoughtful starting point</p>
+      <h2 id="hub-method-heading">Choose with the person in mind.</h2>
     </div>
     <div>
       <p>
-        This hub brings together the whole {cluster.title} collection. Each child guide answers a more
-        specific question with its own criteria and recommendation copy.
+        Explore the {cluster.title} collection for useful objects, personal touches, and gifts for different
+        moments. Each guide includes concrete options and details to check before buying.
       </p>
       <p>
-        We do not publish every combination of occasion, recipient, style, and price. If a need is
-        better served by a section inside an existing guide, it stays a section.
+        Think about what they enjoy, what they already own, and what would make their day a little
+        brighter. The best choice does not have to be related to their work.
       </p>
       <a class="button button--outline" href={clusterPath(cluster.slug)}>Back to the top</a>
     </div>
