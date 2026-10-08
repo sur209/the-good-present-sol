@@ -18,15 +18,44 @@
   "recommendations": [
     {
       "id": "guide_096afebb-cdbd-4577-98c2-8aaf3b195889_slot-1",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Personalized Leather Tote",
-          "description": "A leather tote with seller-provided personalization. Check the available initials, dimensions, and lead time before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81TjoJKKB1L._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B08N4MLSKL?tag=thegoodpresen-20"
+          "name": "Embroidery Monogram Initial Tote Bag Gift for Women Mom Friend Teacher…",
+          "description": "This version offers an initial or monogram design and a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Ny+Zs6ufL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H8RRRWJP?tag=thegoodpresen-20"
+        },
+        {
+          "name": "3D Cube Tote Bag Cubic Garden Monogram Print Leather Women Weekender Bag…",
+          "description": "This version offers an initial or monogram design. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91DWAM76T7L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H337RNZ1?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Custom Name Leather Handbag For Women Customized Tote Bags For Woman…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Nx5sL9+gL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FLPWSNHS?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Leather Handbag",
+          "description": "This version offers an initial or monogram design and a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71u2-8s1wFL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F138W2R7?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Custom Face Leather Handbag for Women Personalized Tote Purse with Strap",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/817JV-aj0eL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HF91HSYD?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 1,
       "heading": "Initialed Leather Work Tote",
       "editorialDescription": "Initials or a name turn a leather tote into a distinctly personal carryall for shifts, classes, and everyday errands. Choose a clean design with organization suited to what the recipient actually carries, so the personalization adds ownership to a useful item.",
@@ -38,15 +67,44 @@
     },
     {
       "id": "guide_096afebb-cdbd-4577-98c2-8aaf3b195889_slot-2",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Engraved Wooden Keepsake Box",
-          "description": "A wooden box for letters, photographs, or small keepsakes. Review the engraving choices and usable interior size.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61cZkrORY3L._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0DZCWFWCQ?tag=thegoodpresen-20"
+          "name": "Let's Make Memories Personalized Wooden Keepsake Box With Hinged Lid Wood…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/817WJsVEWrL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0C9F5SYVR?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Wooden Keepsake Box",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71crDe8t7ML._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01LXOMU7K?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Memory Keepsake Wooden Box Gift for Him",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81yO5fILvRL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DJ9WBZ6H?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Walnut Wood Wedding Keepsake Box",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81Kk0Jd0LBL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F5Y7FX4V?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Engraved Wooden Keepsake Box",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/816jS1pUXuL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FL958G1B?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 2,
       "heading": "Engraved Memento Box",
       "editorialDescription": "An engraved wooden box gives photographs, cards, and other small mementos a dedicated home. A name, date, or short message keeps the focus on the recipient's milestone rather than on generic nurse-themed décor.",
@@ -58,15 +116,44 @@
     },
     {
       "id": "slot_48aa411c-051b-45b6-afaf-267812937264",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Personalized Leather Desk Mat",
-          "description": "A desk mat with a custom engraving option. Check the dimensions and enter the recipient's name or initials carefully.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71QIaoMMBDL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0FK5P3TTF?tag=thegoodpresen-20"
+          "name": "ELIZO Personalized Custom Desk Pad Set Real Leather Desk Mat Mouse Pad…",
+          "description": "This version offers an initial or monogram design and a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/819oZNQoMJL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DJDDW5LB?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Mouse Pad Custom Large Desk Pad with Photo Picture Text Logo…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/711U6D5wLZL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F4XWNMXS?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Custom Desk Mat Personalized Large Mouse Pad with Photo 12x31.5inch",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71mbEXwvqsL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CYZLM7WY?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Custom Mouse Pad & Desk Mat",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/715mHGjMeKL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GT1KC2RS?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Custom Desk Mat (16x32 Inches) Your Photo or Image Non Slip Rubber Bottom",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61DaJSloabL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FHBM3867?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 3,
       "heading": "Personalized Desk Mat",
       "editorialDescription": "On a home office or study surface, a monogrammed desk mat creates a clear sense of ownership without adding workplace or patient information. It is a quiet, useful accent for studying, writing, and organizing everyday tasks.",
@@ -78,15 +165,51 @@
     },
     {
       "id": "guide_096afebb-cdbd-4577-98c2-8aaf3b195889_slot-4",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "Lillian Vernon Photo-Insert Calendar",
           "description": "A 2027 calendar with spaces for your own photographs. Add the photos before giving it; this is not a seller-printed photo book.",
           "imageUrl": "https://m.media-amazon.com/images/I/71YbiLYwJnL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0GLR88396?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B0GLR88396?tag=thegoodpresen-20",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Let's Make Memories Personalized Photo Calendar Custom 2027 Photo Wall…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81zdBVg9riL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DNG5C3GB?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Custom Photo Calendar Personalized 2024 2025 2026 2027 2028 Pictures…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/618zdI7BlQL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B29HXKHN?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Custom Calendar 2026 2027 Personalized Photo Wall Calendar Make Your Own…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71F1r-+rdmL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0G2VBD857?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Custom Calendar 2027",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71qLYp7QHlL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DBVYXXYM?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Wall Calendar 2027",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71DAsTXMRbL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0G1CGNTT2?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 4,
       "heading": "Custom Photo Calendar",
       "editorialDescription": "Shared photos become part of everyday home planning with a custom calendar filled with familiar faces and memories. Add names or brief captions when they improve recognition, and choose images that will feel warm and enduring throughout the year.",
@@ -98,15 +221,44 @@
     },
     {
       "id": "guide_096afebb-cdbd-4577-98c2-8aaf3b195889_slot-5",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "SANDJEST Initial Travel Jewelry Case",
-          "description": "A small travel case with an initial on the cover. Select the recipient's initial and check the compartment layout.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61EIPzu0ekL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0D7M6H3QY?tag=thegoodpresen-20"
+          "name": "Travel Jewelry Box for Girls Women",
+          "description": "This version offers an initial or monogram design. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71iT6VGOVCL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CRYWN1Q3?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Custom Leather Customized Jewelry Organizer Box w/Name & Birth Flower Month…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91KkZGAEniL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09SZC4GZ1?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Travel Jewelry Box with Name and Birth Flower Bridesmaid Gifts…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71xM5MoDXJL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B4SK1TPS?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Jewelry Box for Women",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71uX7sknZYL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B2WL4CSB?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Travel Jewelry Case Box Organizer Personalized Gifts for Women",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71xyIHYk1wL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CRD1G7L7?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 5,
       "heading": "Monogrammed Travel Jewelry Case",
       "editorialDescription": "For overnights and travel, a compact jewelry case with a monogram gives small accessories a dedicated place. It feels personal in a low-key way and remains useful without relying on professional branding.",
@@ -118,15 +270,44 @@
     },
     {
       "id": "guide_096afebb-cdbd-4577-98c2-8aaf3b195889_slot-6",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Personalized Wooden Recipe Box",
-          "description": "A wooden recipe box with personalization and dividers. Add a few meaningful recipes yourself and check which cards are included.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81Vcp4ilqLL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0GY4HK55P?tag=thegoodpresen-20"
+          "name": "LGU Monogrammed Personalized Custom Family Wooden Recipe Box",
+          "description": "This version offers an initial or monogram design and a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/41uynNPCDyL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01HSLQF9I?tag=thegoodpresen-20"
+        },
+        {
+          "name": "GiftsForYouNow Personalized Engraved Happily Ever After Wooden Recipe Box…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61gwN8egFWL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01D3ES2V8?tag=thegoodpresen-20"
+        },
+        {
+          "name": "My Personal Memories Personalized Recipe Box For Her Custom Wood Recipe…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81yaxrmGuLL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01L0FZ93G?tag=thegoodpresen-20"
+        },
+        {
+          "name": "The Wedding Party Store Customized Bamboo Wood Recipe Box Holder Custom…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81XQeDXF1rL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07Q1CZYVW?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Acacia Wood Recipe Box (4x6)",
+          "description": "Compare this wooden recipe box with the other options for the recipient's routine and preferences. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71ihpbHij2L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D2VYSD5X?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 6,
       "heading": "Personalized Recipe Box",
       "editorialDescription": "A named recipe box creates a home for family recipes, favorite dishes, and new cooking notes. A family name or meaningful phrase can make it feel inherited or intentional while keeping the design grounded in the recipient's life outside work.",
@@ -138,15 +319,44 @@
     },
     {
       "id": "guide_096afebb-cdbd-4577-98c2-8aaf3b195889_slot-7",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "KeySmart Original Key Organizer",
-          "description": "A compact holder for up to eight compatible keys. Engraving is not included in this listing; arrange it separately if you want the personalized version of this gift.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71IFjC98yDL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B00WKJY8BQ?tag=thegoodpresen-20"
+          "name": "Leather Key Organizer",
+          "description": "A compact key organizer sold without confirmed personalization. Arrange engraving separately only after checking that the material and design are suitable. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71+lFWyTLKL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B06XW7VZM7?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Genuine Leather Key Case for Men Women Large Capacity Key Holder Bag",
+          "description": "A compact key organizer sold without confirmed personalization. Arrange engraving separately only after checking that the material and design are suitable. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71c81TuODIL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0G5Q4HL4D?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Key Organizer for Men",
+          "description": "A compact key organizer sold without confirmed personalization. Arrange engraving separately only after checking that the material and design are suitable. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61p+6na-ZML._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GTM5Q13C?tag=thegoodpresen-20"
+        },
+        {
+          "name": "KeySmart Rugged Key Holder (Titanium) & MagConnect",
+          "description": "A compact key organizer sold without confirmed personalization. Arrange engraving separately only after checking that the material and design are suitable. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71ZnhhflidL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CXFDC16G?tag=thegoodpresen-20"
+        },
+        {
+          "name": "KeySmart Air Compact Keyholder & AirKey KW1",
+          "description": "A compact key organizer sold without confirmed personalization. Arrange engraving separately only after checking that the material and design are suitable. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/711PQTIEPzL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CWSFV3GK?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 7,
       "heading": "Engraved Key Organizer",
       "editorialDescription": "Small but genuinely useful, an engraved key organizer turns a daily carry item into something unmistakably theirs. Initials or a full name add identification without slogans, making the gift quietly personal for errands and time between work and home.",
@@ -158,15 +368,44 @@
     },
     {
       "id": "guide_096afebb-cdbd-4577-98c2-8aaf3b195889_slot-8",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Avery Printable Notecards",
-          "description": "Textured blank cards for creating a personalized stationery set. Print the name or monogram yourself; the seller does not supply custom printing.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71y6PCIlnjL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B000E25W98?tag=thegoodpresen-20"
+          "name": "Current Personalized Note Cards",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51nTc309fnL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01F9ED8YG?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Modern Pink Paper Classic Monogram Stationary Set FOLDED NOTE CARDS",
+          "description": "This version offers an initial or monogram design and a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/6154HRMx3SS._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07B88TTJ5?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Stationery for Women",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51MflEpzotS._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07VB4T42L?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Modern Pink Paper Elegant Personalized Stationery for Women",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51Zvu9R8tOS._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0914JZFPX?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Modern Pink Paper Mens Personalized Stationery Set for Boys",
+          "description": "This version offers a customization option and a multi-piece format. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61N9hdlKXfS._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B016QQ8NXM?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 8,
       "heading": "Personalized Notecard Set",
       "editorialDescription": "Handwritten thank-yous, congratulations, and everyday correspondence feel more deliberate on personalized notecards. A name or monogram keeps the design useful at home or at a personal desk while leaving room for the recipient's own words.",
@@ -178,22 +417,44 @@
     },
     {
       "id": "guide_096afebb-cdbd-4577-98c2-8aaf3b195889_slot-9",
+      "productResolution": "unresolved",
       "shoppingOptions": [
-        {
-          "name": "Monogrammed Throw Blanket",
-          "description": "A throw with seller-provided embroidered personalization. Check the size, embroidery choices, and delivery time.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71czm4w2T3L._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0DL5R2C9N?tag=thegoodpresen-20"
-        },
         {
           "name": "GiftsForYouNow Personalized Sherpa Throw",
           "description": "An embroidered throw that adds a personal detail to a sofa or bed. Check the name preview, blanket size, fabric, and washing instructions.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0147CCAWC?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/41ZDyhm-ZjL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0147CCAWC?tag=thegoodpresen-20"
+        },
+        {
+          "name": "GiftsForYouNow Embroidered Any Message Personalized Sherpa Throw Blanket",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61tqBbai6OL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07CZQYQ51?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Threadart Personalized Orange Blanket Embroidered Plush Fleece Throw 50x60",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/813Y078PwRL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CBL923RV?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Embroidered Wedding Throw Blanket with Arrows and Heart Design",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71X4YwgWZML._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DKPFZRS8?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Couples Blanket with Embroidered Name & Date",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81zV7cfxh3L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HGF34FV4?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 9,
       "heading": "Embroidered Milestone Throw",
       "editorialDescription": "For quiet time at home, a throw blanket embroidered with initials, a name, or a meaningful date adds a personal touch to a useful textile. A restrained design can recognize a demanding season or achievement without becoming generic nurse merchandise.",
@@ -206,24 +467,45 @@
     {
       "id": "review_2e9b614c-7bb8-4cdb-9633-dc35bc305266",
       "productResolution": "unresolved",
-      "position": 10,
-      "heading": "A Personalized Serving Board Gift Set",
       "shoppingOptions": [
         {
           "name": "Blue Ridge Mountain Gifts engraved board set",
           "description": "A personalized wooden board set for serving or display. Check board dimensions, included accessories and engraving preview before ordering.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0D54WGYK9?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/81DK1WMDFgL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D54WGYK9?tag=thegoodpresen-20"
         },
         {
           "name": "Personalized Marble Cheese Board Set",
           "description": "A personalized board set for serving and display. Review the engraving preview, dimensions, included utensils, and cleaning instructions.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0DXDKHQF4?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/7120nBvV3xL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DXDKHQF4?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Charcuterie Board",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91UkcXYfZWL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09G9CDGYK?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Cutting Board",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71I10KXFk4L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BPGHJ7YX?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Tayfus Personalized Cutting Board",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61CbFog5RvL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BMW99L2Q?tag=thegoodpresen-20"
         }
       ],
+      "position": 10,
+      "heading": "A Personalized Serving Board Gift Set",
       "editorialDescription": "An engraved wooden serving board feels personal without becoming a display-only award. Choose a restrained monogram, family name, or meaningful date so it can move easily from weeknight snacks to relaxed hosting.",
       "whyItFits": "It combines a visible personal detail with a useful object the recipient can keep in regular rotation.",
       "bestFor": "Someone who enjoys cooking, grazing boards, or having friends over",
@@ -234,24 +516,45 @@
     {
       "id": "serp_57ee19ea_e36a_4f18_8aa7_8c1321e0729c",
       "productResolution": "unresolved",
-      "position": 11,
-      "heading": "A Personalized Cookbook Display Stand",
       "shoppingOptions": [
         {
           "name": "The Wedding Party Store personalized cookbook stand",
           "description": "A bamboo cookbook holder with an engraving option. Confirm the wording, holder dimensions and production time before choosing.",
-          "affiliateUrl": "https://www.amazon.com/dp/B07RD7QB88?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/81JhG8paLsL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07RD7QB88?tag=thegoodpresen-20"
         },
         {
-          "name": "Personalized Engraved Bamboo Recipe Holder",
-          "description": "A bamboo cookbook stand with custom monogramming and engraving for a personalized kitchen display. Before buying, verify the personalization options, stand dimensions, and whether the support fits your cookbook or tablet.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51x4gsMjdPL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0GTDJHQJR?tag=thegoodpresen-20",
-          "sources": ["amazon-agent"]
+          "name": "My Personal Memories Custom Engraved Cookbook Stand Personalized Recipe Cook…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81bItTG4bgL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07DVRYPHK?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Bamboo Cookbook Stand for Kitchen Counter",
+          "description": "This version offers a customization option and an adjustable design. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71mQiHHt31L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GRPXSD7C?tag=thegoodpresen-20"
+        },
+        {
+          "name": "wishacc Bamboo Book Stand",
+          "description": "A wooden book or recipe stand sold without confirmed personalization. Arrange engraving separately only after checking that the material and design are suitable. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Mda9UuJhL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07459P7BF?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Beautiful Cookbook Stand for Your Kitchen Counter Solid Wood",
+          "description": "A wooden book or recipe stand sold without confirmed personalization. Arrange engraving separately only after checking that the material and design are suitable. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81g6JgKgTRL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F37XNX9Y?tag=thegoodpresen-20"
         }
       ],
+      "position": 11,
+      "heading": "A Personalized Cookbook Display Stand",
       "editorialDescription": "A cookbook display stand keeps a favorite recipe open and visible while adding a personalized accent to the kitchen. It can hold a treasured cookbook, a handwritten recipe, or a menu card when not in use.",
       "whyItFits": "Personalization gives an everyday cooking accessory a sense of ownership, especially for someone who enjoys making meals and collecting meaningful recipes.",
       "bestFor": "A home cook with a favorite cookbook or family recipe tradition.",
@@ -262,17 +565,45 @@
     {
       "id": "review_935227fb-7a11-4646-ad76-4a454a7a7d01",
       "productResolution": "unresolved",
-      "position": 12,
-      "heading": "A Birth-Flower Pendant Necklace",
       "shoppingOptions": [
         {
           "name": "Anavia birth-flower necklace",
           "description": "A floral pendant that can be personalized. Review the flower selection, chain length, engraving and material details on the listing.",
-          "affiliateUrl": "https://www.amazon.com/dp/B09JZ1JZZC?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/61S6lRV0-EL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09JZ1JZZC?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Birth Flower Disc Necklaces for Women 14 Botanical Designs",
+          "description": "Compare this birth flower pendant necklace with the other options for the recipient's routine and preferences. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61w77rGhUbL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08R79HLV9?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Forget-Me-Not Pressed Flower Necklace",
+          "description": "Compare this birth flower pendant necklace with the other options for the recipient's routine and preferences. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61ENcAL7h8L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09X363D13?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Gold Necklace for Women Birth Flower Necklaces 18K Gold Plated Custom Birth…",
+          "description": "Compare this birth flower pendant necklace with the other options for the recipient's routine and preferences. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61AdKGTrDpL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BG8JNGTH?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Women Birth Flower Necklace Gold Coin Engraved Disc 12 Month Flower Bouquet…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/619cDvbbr5L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08SJXRHJD?tag=thegoodpresen-20"
         }
       ],
+      "position": 12,
+      "heading": "A Birth-Flower Pendant Necklace",
       "editorialDescription": "An engraved flower pendant makes a small piece of jewelry personal through a birth month or a flower that means something to the recipient. A simple coin shape works with everyday outfits and leaves room for a discreet detail.",
       "whyItFits": "It adds a wearable option to the guide and connects the gift to a specific person or date.",
       "bestFor": "Someone who wears necklaces and likes botanical details",

@@ -46,17 +46,45 @@
     {
       "id": "review_6f7b505a-2e7f-401f-bcde-c7c2fc1b131e",
       "productResolution": "unresolved",
-      "position": 1,
-      "heading": "A Ceramic Bakeware Set With Storage Lids",
       "shoppingOptions": [
         {
           "name": "CorningWare French White bakeware set",
           "description": "A coordinated ceramic bakeware set with lids. Compare the included sizes with the recipient's cupboards and cooking habits.",
-          "affiliateUrl": "https://www.amazon.com/dp/B07V8VPMNT?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71vnPOWZnUL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07V8VPMNT?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Artena Casserole Dishes For Oven",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61Sdu7LeOTL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FC5TQSNF?tag=thegoodpresen-20"
+        },
+        {
+          "name": "CorningWare Ceramic Bakeware Set with Lids",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71iG1SfDm3L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0C4CJL3K6?tag=thegoodpresen-20"
+        },
+        {
+          "name": "MALACASA Baking Dishes for Oven",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61ZnHrXE2oL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GXD2PWSN?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Rectangular Ceramic Baking Dish Set with Lids",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61eCKNjPQyL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H45CZB1R?tag=thegoodpresen-20"
         }
       ],
+      "position": 1,
+      "heading": "A Ceramic Bakeware Set With Storage Lids",
       "editorialDescription": "A coordinated ceramic bakeware set can move from oven to table and then store leftovers with less transferring. Choose a versatile size range and a finish that fits the recipient's kitchen rather than a decorative trend.",
       "whyItFits": "It feels generous, useful, and visually presentable for someone building or upgrading a home routine.",
       "bestFor": "Someone who enjoys baking, shared meals, or preparing food ahead",
@@ -66,15 +94,44 @@
     },
     {
       "id": "guide_c6486516-1afc-4104-8407-50fc3fb37550_slot-5",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Hanes Loungewear Set",
-          "description": "A two-piece shirt-and-shorts set for time at home. Choose the recipient's size and preferred coverage, and review the fabric details.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71MlEP1AXSL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0F949WDVJ?tag=thegoodpresen-20"
+          "name": "Pajama Sets for Women 2 Piece Short Sleeve Lounge Pj Sets",
+          "description": "Compare this women loungewear set with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51Uzd+ihgWL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F4KMHHMR?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Womens Pajama Set Short Sleeve Sleepwear Soft Pjs Lounge Set",
+          "description": "This version offers a multi-piece format. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/712NKSiPOiL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CY2D7SXZ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Women's Long Sleeve Pajama Sets V Neck Lounge Sets",
+          "description": "This version offers a multi-piece format. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71HjkEV7DSL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D2RTGM19?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Pajama Sets Women 2 Piece Long Sleeve Lounge Pj Sets Fall Outfits",
+          "description": "Compare this women loungewear set with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71wXW-RSy+L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DD6WGJDZ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Womens Pajama Sets Long Sleeve Lounge Sets Soft Pj Loungewear Sleepwear",
+          "description": "This version offers a multi-piece format. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71vPv+S+bwL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D3HBHBNQ?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 2,
       "heading": "A Comfortable Loungewear Set",
       "editorialDescription": "A loungewear set marks the transition from work to home with something she can wear for ordinary evenings and days off. Let her existing style guide the fabric, fit, and silhouette so it feels like her, not a stereotyped idea of what she should like.",
@@ -86,15 +143,44 @@
     },
     {
       "id": "guide_c6486516-1afc-4104-8407-50fc3fb37550_slot-6",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Sony WH-CH720N Headphones",
-          "description": "Over-ear wireless headphones with active noise cancellation. Check device compatibility and whether the recipient prefers this style to earbuds.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51rpbVmi9XL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BS1QCFHX?tag=thegoodpresen-20"
+          "name": "Soundcore by Anker Q20i Hybrid Active Noise Cancelling Headphones",
+          "description": "Compare this noise cancelling headphones with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71XBzSvq-NL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0C3HCD34R?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Beats Studio Pro Wireless Over-Ear Headphones- Up to 40-Hour Battery…",
+          "description": "Compare this noise cancelling headphones with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61u-OaDSfQL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0C8PR4W22?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Bose QuietComfort Headphones Wireless Bluetooth Headphones",
+          "description": "Compare this noise cancelling headphones with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61C5t1ltM5L._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D4Z9C562?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Bose QuietComfort Bluetooth Headphones",
+          "description": "Compare this noise cancelling headphones with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51f7a115ZGL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CCZ1SQ8G?tag=thegoodpresen-20"
+        },
+        {
+          "name": "TRAUSI Wireless Bluetooth 5.4 Headphones",
+          "description": "Compare this noise cancelling headphones with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/716uLGLoj9L._AC_UY218_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H8Y9LL1G?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 3,
       "heading": "Noise-Canceling Headphones",
       "editorialDescription": "Noise-canceling headphones can support a commute, a favorite podcast, music, or quiet time away from work. Choose them around how she actually listens and travels, so they feel like an off-shift interest rather than another work accessory.",
@@ -106,15 +192,44 @@
     },
     {
       "id": "review_41de4b54-fb72-467f-87cd-3d09fc8f7750",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Kindle Paperwhite 16 GB",
-          "description": "An e-reader with a seven-inch screen. Check the recipient's preferred ebook services; books and subscriptions are separate purchases.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71p5phOtT-L._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0CFPHV9ZN?tag=thegoodpresen-20"
+          "name": "Amazon Kindle Paperwhite 16GB (2024 model) 7\" glare-free display and weeks…",
+          "description": "Compare this ereader with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61KMlIaN9pL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CFPJYX7P?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Amazon Kindle Paperwhite Signature Edition 32GB (2024 model) Auto-adjusting…",
+          "description": "Compare this ereader with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61sCPMkILGL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0C8RR4WN3?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Amazon Kindle Colorsoft 16 GB (2024 model) With color display that brings…",
+          "description": "Compare this ereader with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61fIm26jzvL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CGVSKR1G?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Kobo Clara BW",
+          "description": "Compare this ereader with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61COzsfwaUL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D1KV8J76?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Kobo Clara Colour",
+          "description": "Compare this ereader with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71WXIbM44gL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FKD3QDMM?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 4,
       "heading": "A Compact E-Reader",
       "editorialDescription": "A dedicated e-reader keeps novels and other books together in a device that is easy to carry. It makes a substantial gift for someone who reads during travel, at home, or whenever a quiet stretch opens up.",
@@ -126,15 +241,44 @@
     },
     {
       "id": "slot_ca99d6c5-f446-4aed-93db-b3f92876de56",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "Anker Soundcore 2 Speaker",
           "description": "A portable Bluetooth speaker. Check the dimensions and charging connection, and choose it for someone who uses music in shared spaces.",
           "imageUrl": "https://m.media-amazon.com/images/I/61ad7wmJ5lL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
           "affiliateUrl": "https://www.amazon.com/dp/B01MTB55WH?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ortizan X10 Portable Bluetooth Speaker (1st Gen)",
+          "description": "Compare this portable bluetooth speaker with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81-YRA6tQqL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08FDPW8KR?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Bluetooth Speaker",
+          "description": "Compare this portable bluetooth speaker with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/8165VSHcJlL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BRKPVZB4?tag=thegoodpresen-20"
+        },
+        {
+          "name": "JBL Go 4 Ultra-Portable",
+          "description": "Compare this portable bluetooth speaker with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71kzInVwzgL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CTNWBT1Z?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Bose SoundLink Flex Bluetooth Speaker (2nd Gen) Portable Outdoor Speaker…",
+          "description": "Compare this portable bluetooth speaker with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/7192Qca-fUL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D6WD2QSQ?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 5,
       "heading": "A Portable Bluetooth Speaker",
       "editorialDescription": "A portable Bluetooth speaker gives music, podcasts, or shared home listening a place in her off-shift routine. Match it to the spaces where she spends time and whether she prefers listening alone or sharing music with friends.",
@@ -146,15 +290,44 @@
     },
     {
       "id": "slot_3b8a96a2-d2e5-4350-9495-ac832850f38a",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "HOTOR Trunk Organizer",
           "description": "A foldable organizer for a car trunk. Check the measurements against the vehicle and the items the recipient carries.",
           "imageUrl": "https://m.media-amazon.com/images/I/812I20cYC2L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
           "affiliateUrl": "https://www.amazon.com/dp/B0CM6KVCSX?tag=thegoodpresen-20"
+        },
+        {
+          "name": "FORTEM Trunk Organizer Foldable Car Organizer & Storage for SUVs & Trucks",
+          "description": "This version offers a folding design. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81tOvk78l4L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01DIMTWCS?tag=thegoodpresen-20"
+        },
+        {
+          "name": "DRIVE Car Trunk Organizer Collapsible",
+          "description": "This version offers an adjustable design. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71jSv9yNRZL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B071F82CYJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Car Trunk Organizer for SUV & Truck Cargo Storage",
+          "description": "Compare this car trunk organizer with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81r4DnL2LOL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01ECMRFTA?tag=thegoodpresen-20"
+        },
+        {
+          "name": "FORTEM Trunk Organizer Collapsible Car Organizer & Storage Bag for SUVs",
+          "description": "Compare this car trunk organizer with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81bvuLCGeZL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CVPRFYQ5?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 6,
       "heading": "A Car Trunk Organizer",
       "editorialDescription": "For a nurse who drives, a trunk organizer can separate groceries, commute supplies, and everyday essentials instead of letting them become a loose pile. It earns its place when the gift reflects how she actually uses her car.",
@@ -166,15 +339,44 @@
     },
     {
       "id": "slot_1576304a-8862-4b68-97b7-1fcd88c6ea78",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "Grilling Spice Variety Set",
           "description": "A set of seasonings for someone who enjoys cooking or grilling. Review the ingredients and blends before choosing it.",
           "imageUrl": "https://m.media-amazon.com/images/I/81h4IexFzrL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
           "affiliateUrl": "https://www.amazon.com/dp/B083C4TBT5?tag=thegoodpresen-20"
+        },
+        {
+          "name": "McCormick Grill Mates Spices",
+          "description": "This version offers an assortment to try and a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91D-9HNRmWL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07BQ5LG76?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Smokehouse BBQ Seasoning Rubs Gift Set",
+          "description": "This version offers an assortment to try and a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81Iytt6tXXL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07F2Q2W5C?tag=thegoodpresen-20"
+        },
+        {
+          "name": "TIMBER TASTE® Grilling Spices Gift Set 5 handcrafted BBQ Seasonings",
+          "description": "This version offers a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/811u3BbP3XL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07TL8T5T8?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Spice Rack Co. BBQ Seasonings And Rubs",
+          "description": "Compare this cooking spice gift set with the other options for the recipient's routine and preferences. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81FCGO-5GIL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09SXKFNT3?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 7,
       "heading": "A Cooking Spice Gift Set",
       "editorialDescription": "A gourmet spice set turns an interest in cooking into something useful at home. Choose a set based on the flavors she already enjoys and the meals she likes to make, so it adds to her kitchen rather than becoming attractive clutter.",
@@ -186,15 +388,44 @@
     },
     {
       "id": "slot_542142bf-d0d6-4b3b-b590-a77b66364dcb",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "ZAZE Picnic Blanket",
           "description": "A foldable picnic blanket with a gingham design. Check its open size, packed size, and cleaning instructions.",
           "imageUrl": "https://m.media-amazon.com/images/I/81xYT5Q0UeL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
           "affiliateUrl": "https://www.amazon.com/dp/B08HGY1Q4K?tag=thegoodpresen-20"
+        },
+        {
+          "name": "WEKAPO Beach Blanket Sandproof Waterproof",
+          "description": "Compare this outdoor picnic blanket with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71JKPyUX-RL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08X6VQBGJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "scuddles Extra Large Picnic Blanket 60\" x 80\" for Beach & Camping",
+          "description": "Compare this outdoor picnic blanket with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91K-XJEXZ-L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07D39W1JV?tag=thegoodpresen-20"
+        },
+        {
+          "name": "scuddles Extra Large Picnic Blanket",
+          "description": "Compare this outdoor picnic blanket with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/811rz0kGKLL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01FI1QXS8?tag=thegoodpresen-20"
+        },
+        {
+          "name": "ZAZE Picnic Blankets Machine Washable",
+          "description": "This version offers a folding design and a machine-washable design. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81gMeBSJYZS._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0919RGDRV?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 8,
       "heading": "An Outdoor Picnic Blanket",
       "editorialDescription": "A picnic blanket supports park visits, outdoor concerts, reading breaks, or casual time with friends on a day off. Choose for the way she actually gets outside, whether she needs something easy to carry or a comfortable base for lingering.",
@@ -206,15 +437,51 @@
     },
     {
       "id": "slot_2580ed1c-c59e-4244-bc33-1db7a056812a",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "Ahopegarden Indoor Growing Kit",
           "description": "An indoor hydroponic growing kit with a light and ten planting positions. Check what is included; seeds or growing supplies may need to be purchased separately.",
           "imageUrl": "https://m.media-amazon.com/images/I/813MA4ZTVHL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0B6BB4TVC?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B0B6BB4TVC?tag=thegoodpresen-20",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Click & Grow Indoor Herb Garden Kit with Grow Light",
+          "description": "Compare this kitchen herb growing kit with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61x0v5xJahL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01MRVMKQH?tag=thegoodpresen-20"
+        },
+        {
+          "name": "10-Herb Indoor Garden Kit",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81bX3BcjTWL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H6JVLX68?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Indoor Herb Garden Kit",
+          "description": "Compare this kitchen herb growing kit with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91QgPFi5+eL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GR93MPX1?tag=thegoodpresen-20"
+        },
+        {
+          "name": "owltron Hydroponics Growing System Kit",
+          "description": "Compare this kitchen herb growing kit with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71A3MAs2jDL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HDZCWW49?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Herb Garden Kit",
+          "description": "Compare this kitchen herb growing kit with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71bi+TRw1qL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GK15T9SC?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 9,
       "heading": "A Kitchen Herb-Growing Kit",
       "editorialDescription": "An indoor herb garden kit gives a cooking-minded recipient a small home hobby tied to fresh ingredients. It is most appealing when she enjoys tending plants or experimenting in the kitchen, not when she wants a completely hands-off gift.",
@@ -227,17 +494,45 @@
     {
       "id": "review_9dd5601b-c490-4af2-977a-83cf25869adb",
       "productResolution": "unresolved",
-      "position": 10,
-      "heading": "A Reversible Fabric Sleep Mask",
       "shoppingOptions": [
         {
           "name": "Reversible weighted sleep mask",
           "description": "A reversible mask with different fabric finishes. Check the weight, fit and care instructions; pressure preferences vary.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0H4LB6CVJ?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/51HTdHoCnlL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H4LB6CVJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Tonight/Not Tonight Reversible Sleeping Mask. Funny Wedding Gift for New…",
+          "description": "Compare this reversible sleep mask with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51VhvK5CPrL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0C4WNGXM7?tag=thegoodpresen-20"
+        },
+        {
+          "name": "LitBear Sleep Mask for Women Men",
+          "description": "Compare this reversible sleep mask with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71yJR0raf3L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H2YRNG7W?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Sleep Eye Mask for Men Women",
+          "description": "This version offers an adjustable design. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51NS+nKVfZL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H6M2B13D?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Blackout Sleep Mask Set",
+          "description": "This version offers a multi-piece format. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71tJ0ak6W-L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HCPV8GZN?tag=thegoodpresen-20"
         }
       ],
+      "position": 10,
+      "heading": "A Reversible Fabric Sleep Mask",
       "editorialDescription": "A reversible sleep mask can feel cool on one side and softly cozy on the other, making it useful in more than one season. It is a simple off-shift comfort rather than another object tied to work.",
       "whyItFits": "It offers an immediate, flexible way to make rest feel more intentional without assuming how she spends her free time.",
       "bestFor": "Someone who values quiet downtime, travel comfort, or daytime rest",
@@ -248,73 +543,80 @@
     {
       "id": "serp_655c15c3_a3a2_49d0_8dfd_b0271dbba06c",
       "productResolution": "unresolved",
-      "position": 11,
-      "heading": "A Large Jewelry Storage Organizer",
       "shoppingOptions": [
         {
           "name": "Homde five-layer jewelry organizer",
           "description": "A multi-drawer jewelry box for a dresser. Check its footprint and compartment sizes against the jewelry the recipient actually wears.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0CLCH13T7?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71Cdfx8DiGL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CLCH13T7?tag=thegoodpresen-20"
         },
         {
           "name": "SONGMICS Four-Layer Jewelry Organizer",
           "description": "A four-layer jewelry organizer with three drawers and a glass lid for storing and viewing accessories. Verify the drawer layout, overall dimensions, and compatibility with the intended storage area before buying.",
           "imageUrl": "https://m.media-amazon.com/images/I/817Lo5PYZUL._AC_UL480_FMwebp_QL65_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BS2D1MBM?tag=thegoodpresen-20",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BS2D1MBM?tag=thegoodpresen-20"
         },
         {
           "name": "GUKA Ten-Drawer Jewelry Organizer",
           "description": "A large jewelry organizer with ten drawers for watches, earrings, necklaces, rings, and bracelets. Verify the drawer sizes, footprint, and whether the layout suits the jewelry being stored before buying.",
           "imageUrl": "https://m.media-amazon.com/images/I/71cdM6jff3L._AC_UL480_FMwebp_QL65_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0CMC67HFS?tag=thegoodpresen-20",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CMC67HFS?tag=thegoodpresen-20"
         },
         {
           "name": "SONGMICS Seven-Drawer Rotating Jewelry Organizer",
           "description": "A rotating jewelry organizer with seven drawers for arranging accessories while keeping them accessible. Verify the drawer sizes, rotation clearance, footprint, and compatibility with the intended surface before buying.",
           "imageUrl": "https://m.media-amazon.com/images/I/81qN40t17WL._AC_UL480_FMwebp_QL65_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0CYZ9PKYM?tag=thegoodpresen-20",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CYZ9PKYM?tag=thegoodpresen-20"
         },
         {
           "name": "VLANDO Six-Layer Jewelry Organizer",
           "description": "A large six-layer jewelry box with removable dividers for organizing necklaces, earrings, bracelets, and rings. Verify the dimensions, divider arrangement, and available space before buying.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0D4C4SG8W?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71vLG9hleVL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D4C4SG8W?tag=thegoodpresen-20"
         },
         {
           "name": "AKOZLIN Six-Level Jewelry Organizer",
           "description": "A six-level jewelry organizer with five drawers for keeping different accessories separated. Verify the dimensions, drawer capacity, and compatibility with the intended dresser or vanity before buying.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BRCFFSNK?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/81hHlKxD4HL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BRCFFSNK?tag=thegoodpresen-20"
         },
         {
           "name": "BOOVO Six-Layer Jewelry Box",
           "description": "A large six-layer jewelry box designed for necklaces, bracelets, earrings, and rings. Verify the compartment arrangement, dimensions, and available space before buying.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0CPBF3V94?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/51jP7sbc48L._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"]
-        },
-        {
-          "name": "Dajasan Six-Level Jewelry Box",
-          "description": "A six-level jewelry storage box with five drawers, double doors, and a mirror. Verify the organizer’s dimensions, door clearance, and compatibility with the intended placement area before buying.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0F6651HCG?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/811BPZpqwUL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CPBF3V94?tag=thegoodpresen-20"
         },
         {
           "name": "AKOZLIN Four-Level Jewelry Box",
           "description": "A four-level jewelry organizer with three drawers, a lock, a ring holder, and a mirror. Verify the storage capacity, dimensions, locking mechanism, and compatibility with the intended space before buying.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0DB8RF3YP?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/81otJvHZoUL._AC_UL320_.jpg",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DB8RF3YP?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Umbra Stowit Jewelry Box",
+          "description": "Compare this jewelry organizer box with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61EGx1O3ZaL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01ANF7QD0?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Vintage Glass Keepsake Box",
+          "description": "Compare this jewelry organizer box with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61LqVZbrZnL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07ZVHK4RC?tag=thegoodpresen-20"
         }
       ],
+      "position": 11,
+      "heading": "A Large Jewelry Storage Organizer",
       "editorialDescription": "A large jewelry storage organizer gives necklaces, earrings, bracelets, and rings a dedicated place while keeping favorites visible. It can make choosing accessories easier and add a finished look to a bedroom or dressing area.",
       "whyItFits": "It celebrates the recipient’s individual style and home routine rather than reducing the gift to her profession.",
       "bestFor": "Someone with a growing jewelry collection or a preference for neatly arranged accessories.",
@@ -325,24 +627,45 @@
     {
       "id": "serp_67e030c7_9b07_4369_abc8_87d74be16445",
       "productResolution": "unresolved",
-      "position": 12,
-      "heading": "A Mulberry Silk Scarf",
       "shoppingOptions": [
         {
           "name": "ANDANTINO silk square scarf",
           "description": "A patterned square scarf for wearing or styling. Confirm the exact print, dimensions, material and care instructions before choosing.",
-          "affiliateUrl": "https://www.amazon.com/dp/B07V3KXMGP?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/61jhvJcIkbS._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07V3KXMGP?tag=thegoodpresen-20"
         },
         {
           "name": "Mulberry Silk Neck Scarf",
           "description": "A silk scarf that can add color to an everyday outfit. Check the dimensions, pattern, fabric details, and care instructions.",
-          "affiliateUrl": "https://www.amazon.com/dp/B08ZNQ6GT7?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71J75LW0TxL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08ZNQ6GT7?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Womens 100% Large Mulberry Silk Scarf Long Satin Scarf Fashion Lightweight Wraps",
+          "description": "Compare this mulberry silk scarf with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71O4I2PxNLL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0829YLHDX?tag=thegoodpresen-20"
+        },
+        {
+          "name": "100% Mulberry Silk Scarfs Small Square Scarf 21\"x21\" Neck Scarf for Women",
+          "description": "Compare this mulberry silk scarf with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61ChYOwElPL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07Y36GC85?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Mulberry Silk Scarfs Women Small Square Scarf 21\" x 21\" Neckerchief",
+          "description": "Compare this mulberry silk scarf with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61WJWYlhEyL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08GSS571W?tag=thegoodpresen-20"
         }
       ],
+      "position": 12,
+      "heading": "A Mulberry Silk Scarf",
       "editorialDescription": "A mulberry silk scarf adds color, pattern, or texture to everyday outfits and can be styled in several ways. It works as a personal accessory for time off, travel, gatherings, or simple wardrobe refreshes.",
       "whyItFits": "It offers an elegant, non-work-specific way to reflect the recipient’s taste and mark a birthday, promotion, or appreciation moment.",
       "bestFor": "Someone who enjoys accessories and has a clear sense of favorite colors or patterns.",

@@ -46,15 +46,44 @@
   "recommendations": [
     {
       "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-1",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Kraft Notecards and Envelopes",
-          "description": "Blank cards for writing a personal thank-you. Write the message before giving it; the product itself does not contain a handwritten note.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71h4sHX6HmL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0GHFWQRWP?tag=thegoodpresen-20"
+          "name": "VNS Creations Thank You Cards With Envelopes 4 x 6 Navy Blue",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71JLV77gIHL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07ZRS4Q68?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Amazon Basics Thank You Cards and Envelopes",
+          "description": "Compare this thank you greeting cards with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71CnJglXwXL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07RXWGLKF?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Mr. Pen- Thank You Cards with Envelopes",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/914RcpL7nIL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B086V5HX7H?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Hallmark Bulk Thank You Cards",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81MDQx1nNPL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07X43DW7N?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Hartensteler® Butterflies in Nature Pop Up Card 3D Butterfly Card for Wife",
+          "description": "Compare this thank you greeting cards with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71UWbQih3JL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0C45RJRZ6?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 1,
       "heading": "A Handwritten Thank-You Card",
       "editorialDescription": "A handwritten card gives the preceptor or mentor a lasting record of what their guidance meant. Mention one teaching moment, practical lesson, or piece of encouragement; specificity is more meaningful than decorative design.",
@@ -67,66 +96,80 @@
     {
       "id": "review_1002ac32-a096-45f8-b9cb-a42386fdf38e",
       "productResolution": "unresolved",
-      "position": 2,
-      "heading": "A Premium Tea Sampler",
       "shoppingOptions": [
         {
           "name": "Tea Forte sampler",
           "description": "A pyramid-infuser assortment for someone who enjoys trying different teas. Check the included blends and caffeine content before gifting.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0GM1MN2LZ?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/714K8WVLY7L._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GM1MN2LZ?tag=thegoodpresen-20"
         },
         {
           "name": "Tiesta Tea favorites sampler",
           "description": "A loose-leaf assortment for someone who already has an infuser. The format makes sense when preparing tea is part of their routine.",
-          "affiliateUrl": "https://www.amazon.com/dp/B08VF85JJF?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/81b3WRLyKQL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08VF85JJF?tag=thegoodpresen-20"
         },
         {
           "name": "Stash Relax and Unwind sampler",
           "description": "A tea-bag assortment to compare for an easy-to-prepare gift. Review the blend list for ingredients the recipient likes or avoids.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0CP8FZJ14?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71Nl3T7CYlL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CP8FZJ14?tag=thegoodpresen-20"
         },
         {
           "name": "Pukka herbal tea gift set",
           "description": "An herbal assortment for someone who prefers that style of tea. Check individual ingredients and the current package contents on Amazon.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0D5MFLFM2?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71PzTq29oSL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D5MFLFM2?tag=thegoodpresen-20"
         },
         {
           "name": "Tea Forte 20-Infuser Tea Sampler",
           "description": "A selection of teas to explore at home. Check the blend list, caffeine content, and brewing format against their preferences.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0GM1CNL5R?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71aeDlPeNqL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GM1CNL5R?tag=thegoodpresen-20"
         },
         {
           "name": "Tea Forte 40-Infuser Tea Sampler",
           "description": "A selection of teas to explore at home. Check the blend list, caffeine content, and brewing format against their preferences.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0GKJ1P4RT?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71p+3gxdmhL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GKJ1P4RT?tag=thegoodpresen-20"
         },
         {
           "name": "Stash Assorted Tea Bags",
           "description": "A selection of teas to explore at home. Check the blend list, caffeine content, and brewing format against their preferences.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0F4F3TL1X?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/91AyTh1CQmL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F4F3TL1X?tag=thegoodpresen-20"
         },
         {
           "name": "Loose-Leaf Tea and Infuser Cup Set",
           "description": "A selection of teas to explore at home. Check the blend list, caffeine content, and brewing format against their preferences.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0F3PLV59Y?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/91xM1hj2mKL._AC_UL320_.jpg",
-          "sources": ["serpapi", "amazon-agent"]
+          "sources": ["serpapi", "amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F3PLV59Y?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ahmad Tea Variety Gift Box",
+          "description": "This version offers an assortment to try. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81QyRGm+uTL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B004UWZ090?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Celestial Seasonings Herbal Tea Sampler Variety Pack",
+          "description": "This version offers an assortment to try and a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81XyLJ0JwFL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B004CIUU6K?tag=thegoodpresen-20"
         }
       ],
+      "position": 2,
+      "heading": "A Premium Tea Sampler",
       "editorialDescription": "A well-presented tea assortment offers several quiet breaks rather than one more object to display. Pair it with a specific thank-you note so the appreciation remains personal even after the tea is gone.",
       "whyItFits": "It feels generous, is easy to share, and lets a mentor choose a blend that fits the moment.",
       "bestFor": "A preceptor who enjoys tea at home or keeps a small break-room stash",
@@ -136,71 +179,58 @@
     },
     {
       "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-3",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "Atlas Coffee Club Whole-Bean Sampler",
           "description": "A coffee sampler with beans from different origins. This is the whole-bean version, so confirm that the recipient has a grinder.",
           "imageUrl": "https://m.media-amazon.com/images/I/61IXvH6YM2L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
           "affiliateUrl": "https://www.amazon.com/dp/B09GW99L8W?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Four-Bag Gourmet Whole-Bean Coffee Sampler",
-          "description": "A giftable assortment of whole-bean coffees with varied origins and roast profiles. Before buying, verify that the recipient has a grinder and a brewing method suited to whole beans.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71zldH22lPL._AC_UL480_FMwebp_QL65_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BV2GXHDG?tag=thegoodpresen-20",
-          "sources": ["amazon-agent"]
-        },
-        {
-          "name": "Ground Coffee Tasting Box",
-          "description": "A multi-bag sampler of ground coffees featuring Brazilian, Kenyan, and Ethiopian profiles, with espresso-oriented options. Before buying, verify the grind is suitable for the recipient’s brewer or espresso machine.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71An954WTrL._AC_UL480_FMwebp_QL65_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BV798MJT?tag=thegoodpresen-20",
-          "sources": ["amazon-agent"]
         },
         {
           "name": "Nespresso Vertuo Intense Roast Variety Pack",
           "description": "A selection of intense dark-roast coffee pods for Nespresso Vertuo machines. Before buying, verify that the recipient owns a Vertuo system rather than an Original Line machine.",
           "imageUrl": "https://m.media-amazon.com/images/I/71vhbkrErFL._AC_UL480_FMwebp_QL65_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B01N011V5A?tag=thegoodpresen-20",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01N011V5A?tag=thegoodpresen-20"
         },
         {
           "name": "Decaffeinated Flavored Coffee Pod Sampler",
           "description": "An assortment of flavored decaffeinated coffee pods intended for Keurig K-Cup brewers. Before buying, verify K-Cup compatibility and whether decaffeinated coffee matches the recipient’s routine.",
           "imageUrl": "https://m.media-amazon.com/images/I/910veI8FSTL._AC_UL480_FMwebp_QL65_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BDB65Z6B?tag=thegoodpresen-20",
-          "sources": ["amazon-agent"]
-        },
-        {
-          "name": "World Origins K-Cup Coffee Sampler",
-          "description": "A large assortment inspired by coffee origins including Colombia, Ethiopia, Kenya, and Costa Rica, with medium and dark roasts. Before buying, verify that the recipient’s machine accepts compatible K-Cup pods.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0H9V7ZZZ6?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/914-9D1TGpL._AC_UL320_.jpg",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BDB65Z6B?tag=thegoodpresen-20"
         },
         {
           "name": "Bit of Everything Single-Serve Coffee Sampler",
           "description": "A broad assortment of single-serve coffees for trying different flavors and styles. Before buying, verify compatibility with the recipient’s K-Cup or Keurig brewer.",
-          "affiliateUrl": "https://www.amazon.com/dp/B00N0JHZ6A?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/A1Nq1PwAjiL._AC_UL320_.jpg",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B00N0JHZ6A?tag=thegoodpresen-20"
         },
         {
-          "name": "Hawaiian Paradise Three-Bag Coffee Gift Box",
-          "description": "A gift box containing three flavored coffee bags, including crème brûlée, peppermint mocha, and a medium roast. Before buying, verify whether the recipient prefers whole coffee, ground coffee, or another preparation format, since the title does not specify it.",
-          "affiliateUrl": "https://www.amazon.com/dp/B09M6D5D27?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71TObn44MLL._AC_UL320_.jpg",
-          "sources": ["amazon-agent"]
+          "name": "Door County Coffee Gourmet Flavored Sampler Pack",
+          "description": "This version offers an assortment to try and a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71W4ANUrHqL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07PPP7SN4?tag=thegoodpresen-20"
         },
         {
-          "name": "Forty-Count Flavored K-Cup Sampler",
-          "description": "A large assortment of flavored coffee pods for Keurig K-Cup brewers. Before buying, verify that the recipient’s machine accepts the listed K-Cup format and that flavored coffees suit their preferences.",
-          "affiliateUrl": "https://www.amazon.com/dp/B01N1A4MMW?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/911rPyFyYWL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"]
+          "name": "Starbucks Whole Coffee Beans",
+          "description": "This version offers an assortment to try and a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/8145WujhgPL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07LFSNK9M?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Atlas Coffee Club Coffee Sampler Gift Set",
+          "description": "This version offers an assortment to try and a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71bLF3gx8UL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09H18PMQH?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 3,
       "heading": "A Coffee Tasting Set",
       "editorialDescription": "A small coffee assortment offers a shareable or at-home treat without asking you to guess at a hobby. It can accompany a note of thanks and acknowledge the steady support a preceptor or mentor gave during a demanding transition.",
@@ -212,15 +242,44 @@
     },
     {
       "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-4",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "David's Cookies Mini Cookie Basket",
-          "description": "A basket of mini cookies to share. Review the flavors, allergen information, and delivery conditions on the listing.",
-          "imageUrl": "https://m.media-amazon.com/images/I/91J8ydcdbdL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0CW57NRTD?tag=thegoodpresen-20"
+          "name": "OREO",
+          "description": "This version offers an assortment to try and a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81AMtCW3bdL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0872ZMXBG?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Royal Dansk Butter Cookies",
+          "description": "Compare this cookie gift assortment with the other options for the recipient's routine and preferences. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81ZYAARnhHL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B000FNFL0G?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Grandma's Cookies",
+          "description": "This version offers an assortment to try and a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91hN0GRPYhL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B076BYR9JP?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Nabisco Snacks Variety Pack",
+          "description": "This version offers an assortment to try and a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81fUaHoEPGL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01BXU1RV6?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Frito-Lay Classic Snacks Package",
+          "description": "This version offers an assortment to try and a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91dqrCz23TL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08826B2XL?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 4,
       "heading": "A Shareable Cookie Assortment",
       "editorialDescription": "A well-presented assortment of cookies offers a warm thank-you for one mentor or a small team. It requires no knowledge of hobbies or sizing and can be enjoyed during a break or taken home.",
@@ -233,24 +292,45 @@
     {
       "id": "serp_a44e8508_5c32_4edb_b7e7_4faa652556eb",
       "productResolution": "unresolved",
-      "position": 5,
-      "heading": "A Mulberry Silk Neck Scarf",
       "shoppingOptions": [
         {
           "name": "PoeticEHome silk neck scarf",
           "description": "A small square scarf with a patterned finish. Check the chosen print, dimensions, material and care instructions.",
-          "affiliateUrl": "https://www.amazon.com/dp/B08ZNQ6GT7?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71J75LW0TxL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08ZNQ6GT7?tag=thegoodpresen-20"
         },
         {
           "name": "Square Mulberry Silk Scarf",
           "description": "A silk scarf that can add color to an everyday outfit. Check the dimensions, pattern, fabric details, and care instructions.",
-          "affiliateUrl": "https://www.amazon.com/dp/B07V3KXMGP?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/61jhvJcIkbS._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07V3KXMGP?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Womens 100% Large Mulberry Silk Scarf Long Satin Scarf Fashion Lightweight Wraps",
+          "description": "Compare this mulberry silk scarf with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71O4I2PxNLL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0829YLHDX?tag=thegoodpresen-20"
+        },
+        {
+          "name": "100% Mulberry Silk Scarfs Small Square Scarf 21\"x21\" Neck Scarf for Women",
+          "description": "Compare this mulberry silk scarf with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61ChYOwElPL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07Y36GC85?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Mulberry Silk Scarfs Women Small Square Scarf 21\" x 21\" Neckerchief",
+          "description": "Compare this mulberry silk scarf with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61WJWYlhEyL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08GSS571W?tag=thegoodpresen-20"
         }
       ],
+      "position": 5,
+      "heading": "A Mulberry Silk Neck Scarf",
       "editorialDescription": "A small silk scarf offers a polished thank-you that can be worn at the neck, tied to a bag, or kept for occasions outside work. Choosing a restrained pattern keeps the gesture personal without turning it into profession-themed merchandise.",
       "whyItFits": "It recognizes the mentor as a person beyond the workplace and feels more considered than a minor desk accessory.",
       "bestFor": "A mentor whose colors or accessory style you know reasonably well",
@@ -260,15 +340,44 @@
     },
     {
       "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-6",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Costa Farms Money Tree",
-          "description": "A live money tree in a decorative pot. Check its shipped size, delivery area, and care requirements; photographs show an example plant.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61OsqnSZaSL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0F38Q9HY2?tag=thegoodpresen-20"
+          "name": "Altman Plants Specialty Live Succulent Plant ()",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81vUMYd2piL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B1N76P36?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Gray Flower Pots",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71AVevzYvCL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B9S77D2T?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Bonsai Tree Pots Small 6 Inch Ceramic Succulent Pots for Indoor Plants Outdoor",
+          "description": "Compare this small live desk plant with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/713IRi8vqvL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FP4MSB8F?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Selamica Ceramic Succulent Pots with Drainage Holes",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71hXm46lZCL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CJ7X6ZTK?tag=thegoodpresen-20"
+        },
+        {
+          "name": "T4U Self Watering Pots for Indoor Plants 6 Inch Planter Clear",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71LNnppvTaL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CWRKSHZP?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 6,
       "heading": "A Small Desk Plant",
       "editorialDescription": "A small plant can mark a new professional chapter with a calm touch for a desk or home. It offers appreciation without guessing at clothing sizes, clinical preferences, or personal hobbies.",
@@ -281,17 +390,45 @@
     {
       "id": "review_5da5eb0e-c039-42cc-809a-4084b3bb71f6",
       "productResolution": "unresolved",
-      "position": 7,
-      "heading": "A Covered Ceramic Baking Dish",
       "shoppingOptions": [
         {
           "name": "Artena covered ceramic baking dish",
           "description": "A handled baking dish with a lid for oven-to-table meals. Check dimensions, weight and the separate care instructions for the dish and lid.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0FC62YFRY?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/61RWlG95AYL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FC62YFRY?tag=thegoodpresen-20"
+        },
+        {
+          "name": "FE Casserole Dish with Lid",
+          "description": "Compare this ceramic baking dish with lid with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61HahJqotmL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B1PPW9D6?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Souper Cubes 5x5\" Ceramic Baking Dishes with Lids",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51k6x9MwrEL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0G9577NJM?tag=thegoodpresen-20"
+        },
+        {
+          "name": "MALACASA 4.4 Qt Large Casserole Dish with Lid",
+          "description": "Compare this ceramic baking dish with lid with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71qSeXdP6OL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B1PQ5VKQ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "MALACASA 3.4 Qt Baking Dish with Lid",
+          "description": "Compare this ceramic baking dish with lid with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61N7S2MX+4L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D2VZDF2L?tag=thegoodpresen-20"
         }
       ],
+      "position": 7,
+      "heading": "A Covered Ceramic Baking Dish",
       "editorialDescription": "A covered ceramic baking dish feels presentable enough for a thank-you while remaining useful for casseroles, baked pasta, or dishes shared with family. A neutral finish keeps the choice flexible.",
       "whyItFits": "It conveys generosity through a lasting home object without becoming overly personal or workplace-themed.",
       "bestFor": "A mentor who enjoys cooking, baking, or bringing food to gatherings",
@@ -301,15 +438,44 @@
     },
     {
       "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-8",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Walnut Desk Pen Holder",
-          "description": "A wooden organizer with two compartments for pens and small desk items. Check the dimensions to see whether it fits the recipient's workspace.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71QtRXZkXWL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0D8RZCH4W?tag=thegoodpresen-20"
+          "name": "Simple Houseware Desk File Organizer for Office Supplies w/Drawer",
+          "description": "Compare this desk organizer with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91DUmkaTjBL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01N9HQM9F?tag=thegoodpresen-20"
+        },
+        {
+          "name": "SKYDUE 360 Rotating Plastic Desk Pen Organizer with 5 Slots",
+          "description": "Compare this desk organizer with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61yhHuVQp4L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0C9ZHWC9K?tag=thegoodpresen-20"
+        },
+        {
+          "name": "OPNICE Desk Organizer and Accessories",
+          "description": "Compare this desk organizer with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81MeUftFm8L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DB8F7GDN?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Marbrasse Pen Organizer with 2 Drawer",
+          "description": "Compare this desk organizer with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71B4FwZxCAL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BYMRJD7R?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Marbrasse 6 Tier Paper Organizer Letter Tray Mesh Desk File Organizer with…",
+          "description": "Compare this desk organizer with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81InLBb2JcL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08PBFKGJG?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 8,
       "heading": "A Neat Desk Organizer",
       "editorialDescription": "A desk organizer gives a preceptor or mentor a place for notes, pens, and small essentials after a busy teaching period. It keeps the gesture practical and professional without requiring you to choose clinical equipment or guess at the recipient’s size.",
@@ -321,15 +487,51 @@
     },
     {
       "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-9",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "Popotop Photo Album",
           "description": "A linen-cover album with pockets for 4 by 6 inch photographs. Add your own photographs and captions before giving it.",
           "imageUrl": "https://m.media-amazon.com/images/I/710a1XchpeL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0CGCWY7ZJ?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B0CGCWY7ZJ?tag=thegoodpresen-20",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Personalized Photo Album",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51FrLA5ebfL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CSQGQPGZ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Promot Personalized Photo Album Custom Photo Book",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71G2EtlMqeL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DH536NC8?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Photo Album Custom Picture Album Customized Printed Cloth Photo…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/812YcQCOTyL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F1N2S6TG?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Custom Photo Book Personalized Photo Album Hard Cover 12P/20P/40P (10*10in)",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71XpMkRC0NL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HFJZRYPJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Blank Calendar",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61cEgziG9FL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CGB2HWVQ?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 9,
       "heading": "A Shared Memory Photo Book",
       "editorialDescription": "Gather brief messages, approved photos, and milestones from a cohort into one collective thank-you. A thoughtfully edited book can reflect the learning and encouragement a preceptor or mentor provided throughout a placement or transition.",
@@ -341,15 +543,44 @@
     },
     {
       "id": "guide_6820b5e1-0dd2-438d-a0b2-9b601b897c3f_slot-10",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "ExcelMark Custom Desk Nameplate",
           "description": "A desk nameplate with custom text and color choices. Check the spelling, title, and mounting option before ordering.",
           "imageUrl": "https://m.media-amazon.com/images/I/81MBfQz7PvL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
           "affiliateUrl": "https://www.amazon.com/dp/B08CDP1FKB?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Lasercrafting Custom Engraved Name Plates for Desk",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71m+umcZVgL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B007IW07PQ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Custom Engraved Office Door Name Plate & Desk Signs",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71vLAzBQh+L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07G3D79DD?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Custom Engraved Office Door Name Plate & Desk Signs",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81ZfjgzhPyL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07G3DBL7Q?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Custom Engraved Office Door Name Plate & Desk Signs",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/715M+QZ5bPL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07G3DJDF7?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 10,
       "heading": "An Engraved Desk Nameplate",
       "editorialDescription": "An engraved nameplate creates a polished desk or home-office keepsake that recognizes a preceptor or mentor’s teaching role. A short, sincere line makes it personal without falling into generic nurse novelty merchandise.",
@@ -362,17 +593,45 @@
     {
       "id": "serp_3d632095_8824_4e9e_b046_7d6622f87837",
       "productResolution": "unresolved",
-      "position": 11,
-      "heading": "A Gourmet Oil and Vinegar Tasting Set",
       "shoppingOptions": [
         {
           "name": "Blazing Bella oil and vinegar sampler",
           "description": "A tasting set of flavored oils and balsamic vinegars. Check the flavors, ingredients and bottle sizes for the recipient's cooking preferences.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0842D7DZZ?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/61vLsfNoU5L._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0842D7DZZ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Viva Oliva Six Bottle (/) Variety Gift Set Flavored Extra Virgin…",
+          "description": "This version offers an assortment to try and a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81p2pEAnr1L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07ZZLZBF8?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Blazing Bella Chef’s Set Balsamic Vinegar and Olive Oil Set Barrel-Aged…",
+          "description": "This version offers a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71ebUgvYLAL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07T44GV65?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Kouzini Variety Gift Pack Greek Extra Virgin Olive Oil and Balsamic Vinegar",
+          "description": "This version offers an assortment to try and a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71QJVm5wk6L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07J2767F4?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Kosterina Extra Virgin Olive Oil & Balsamic Vinegar Gift Set (2x12.)",
+          "description": "This version offers a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/41aJpSsh7kL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CLWQ1GL9?tag=thegoodpresen-20"
         }
       ],
+      "position": 11,
+      "heading": "A Gourmet Oil and Vinegar Tasting Set",
       "editorialDescription": "A gourmet oil and vinegar tasting set turns everyday meals into an opportunity to sample different flavor pairings. The bottles can be enjoyed at home, brought out for guests, or shared as part of a casual meal.",
       "whyItFits": "It feels polished while remaining non-clinical and shareable, making it suitable for thanking a preceptor or mentor with a thoughtful gesture.",
       "bestFor": "A home cook or host who enjoys experimenting with flavors.",
@@ -383,17 +642,45 @@
     {
       "id": "serp_5343c876_4443_4d93_834f_1a46d3c82870",
       "productResolution": "unresolved",
-      "position": 12,
-      "heading": "A Monogrammed Travel Document Wallet",
       "shoppingOptions": [
         {
-          "name": "Monogrammed passport cover and luggage-tag set",
-          "description": "A personalized travel-document set. Check passport fit, initials, material and production time; personalization should be reviewed before ordering.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0D7RKTRD9?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/81NTA148q9L._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "name": "Personalized Passport Holder Custom Vegan Leather RFID Passport Cover",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71qp43l5VlS._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07786GBZW?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Passport Holder Cover Travel Wallet RFID Blocking Passport Wallets Family…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81eOdgfJRvL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CLK43B5K?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Passport Holder Wallet Cover Personalized Initial Travel Essentials",
+          "description": "This version offers an initial or monogram design and a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71utBbHq-JL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DNTJ6WL5?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Passport Holder Cover Initial Letter A-Z Travel Wallet Personalized",
+          "description": "This version offers an initial or monogram design and a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61FoetQAHBL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F4XJJFCY?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Passport Holder for Travel Essentials Personalized Initial Wallets",
+          "description": "This version offers an initial or monogram design and a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71nnlKhMjZL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H7VVBTDV?tag=thegoodpresen-20"
         }
       ],
+      "position": 12,
+      "heading": "A Monogrammed Travel Document Wallet",
       "editorialDescription": "A monogrammed travel document wallet keeps passports, boarding documents, cards, and other essentials together for trips. The personalized detail gives a practical organizer a more considered feel.",
       "whyItFits": "It recognizes the recipient as a person beyond the workplace and offers a useful keepsake without relying on a profession-themed design.",
       "bestFor": "Someone who travels regularly or likes keeping important documents organized.",

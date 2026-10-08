@@ -26,45 +26,59 @@
     {
       "id": "review_c05c936a-c844-49d3-8f82-1671182be9a8",
       "productResolution": "unresolved",
-      "position": 1,
-      "heading": "A Compact Muscle Recovery Massager",
       "shoppingOptions": [
         {
           "name": "BOB AND BRAD Q2 Pro mini massager",
           "description": "A compact percussion model for someone who already enjoys recovery tools. Compare weight, controls and attachments; follow the manufacturer's safety guidance.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0D16W8531?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71iVIfcJKDL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi", "amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D16W8531?tag=thegoodpresen-20"
         },
         {
           "name": "BOB AND BRAD Q2 Mini Massager",
           "description": "A handheld percussion massager for someone who already enjoys this kind of relaxation accessory. Compare size, attachments, noise, and the manufacturer's use restrictions; it is not a medical treatment.",
-          "affiliateUrl": "https://www.amazon.com/dp/B08M8YSFC7?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71rl7e88AJL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
-        },
-        {
-          "name": "AERLANG Mini Massage Gun",
-          "description": "A handheld percussion massager for someone who already enjoys this kind of relaxation accessory. Compare size, attachments, noise, and the manufacturer's use restrictions; it is not a medical treatment.",
-          "affiliateUrl": "https://www.amazon.com/dp/B09TQC7CYZ?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/61QSuXJxLzL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi", "amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08M8YSFC7?tag=thegoodpresen-20"
         },
         {
           "name": "Arboleaf Mini Massage Gun",
           "description": "A handheld percussion massager for someone who already enjoys this kind of relaxation accessory. Compare size, attachments, noise, and the manufacturer's use restrictions; it is not a medical treatment.",
-          "affiliateUrl": "https://www.amazon.com/dp/B09NZ72B5X?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/61WjiYZOCnL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi", "amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09NZ72B5X?tag=thegoodpresen-20"
         },
         {
-          "name": "TOLOCO Massage Gun",
-          "description": "A handheld percussion massager for someone who already enjoys this kind of relaxation accessory. Compare size, attachments, noise, and the manufacturer's use restrictions; it is not a medical treatment.",
-          "affiliateUrl": "https://www.amazon.com/dp/B083L8RNJR?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71Jot9nj6qL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "name": "LifePro Sonic Massage Gun Percussion Muscle Massager",
+          "description": "Compare this massage gun with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71tzxgUSiLL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07QTBVYJ1?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Opove M3 Pro 2 Massage Gun Deep Tissue for Workout Recovery",
+          "description": "Compare this massage gun with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51VQlFR4o+L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07TWFK7JW?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Mebak 3 Massage Gun Deep Tissue",
+          "description": "Compare this massage gun with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/611wyVfOhQL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B083BY3B2T?tag=thegoodpresen-20"
+        },
+        {
+          "name": "BOB AND BRAD Q2 Ultra Mini Massage Gun with Red Light Infrared",
+          "description": "Compare this massage gun with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/713nh95DxcL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FKN2FSZS?tag=thegoodpresen-20"
         }
       ],
+      "position": 1,
+      "heading": "A Compact Muscle Recovery Massager",
       "editorialDescription": "A small percussion massager offers a straightforward way to unwind after an active day. Compact models fit more easily in a drawer or travel bag, which makes them more likely to be used than bulky recovery equipment.",
       "whyItFits": "It feels substantial as a gift and can support the recipient's broader exercise, travel, and downtime routines.",
       "bestFor": "Someone who is active and already enjoys practical recovery tools",
@@ -75,45 +89,45 @@
     {
       "id": "review_5c79aaf5-07aa-47b1-bdfb-86b0d032b3bd",
       "productResolution": "unresolved",
-      "position": 2,
-      "heading": "Noise-Reducing Wireless Earbuds",
       "shoppingOptions": [
         {
-          "name": "Soundcore Space A40",
-          "description": "A compact noise-cancelling pair to compare for everyday listening. Check ear-tip fit and compatibility with the recipient's phone.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0B1LVC5VZ?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/51EwBP9U2YL._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "name": "Wireless Earbuds",
+          "description": "Compare this noise cancelling wireless earbuds with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61aSuH86kYL._AC_UY218_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HCTKSSQK?tag=thegoodpresen-20"
         },
         {
-          "name": "TOZO NC9",
-          "description": "Another noise-cancelling option for music and podcasts. Compare its controls, fit and return conditions before choosing.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0DD41G2NZ?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/818Tszb+hNL._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "name": "XIAOWTEK Wireless Earbuds",
+          "description": "Compare this noise cancelling wireless earbuds with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61ZL+jCLi-L._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HCXW6CDR?tag=thegoodpresen-20"
         },
         {
-          "name": "JBL Vibe Beam 2",
-          "description": "A JBL alternative in the same gift category. Check the exact model's listening modes and device compatibility on the listing.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0DN45YMP6?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/618f5yBk26L._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "name": "Sleep Earbuds for Side Sleepers with White Noise & Sleep Mode",
+          "description": "Compare this noise cancelling wireless earbuds with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61FU5KHBQ7L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H7WX35B1?tag=thegoodpresen-20"
         },
         {
-          "name": "Soundcore P30i",
-          "description": "A different Soundcore model to consider alongside the A40. Compare case design and controls rather than assuming the two are interchangeable.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0CRTYZG5C?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/51HbL1WS+KL._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "name": "Wireless Earbuds",
+          "description": "Compare this noise cancelling wireless earbuds with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/618n7fFdFXL._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HDB41H28?tag=thegoodpresen-20"
         },
         {
-          "name": "JBL Tune Buds",
-          "description": "Wireless earbuds for music and everyday listening. Compare fit, device compatibility, charging case, and listening controls before choosing.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0C1QWWZR4?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/51EZig0rEAL._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "name": "GNMN Active Noise Cancelling Ear Buds Wireless Earbuds 96hrs Playback…",
+          "description": "Compare this noise cancelling wireless earbuds with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/717VeiPNjDL._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HBQD3ZGP?tag=thegoodpresen-20"
         }
       ],
+      "position": 2,
+      "heading": "Noise-Reducing Wireless Earbuds",
       "editorialDescription": "Wireless earbuds with adjustable noise reduction can make commuting, errands, and quiet time more enjoyable. Choose a compact set with controls the recipient can understand without turning every use into an app project.",
       "whyItFits": "They make music, podcasts, and private listening easier to enjoy during travel and time off.",
       "bestFor": "Someone who listens to music, podcasts, or audiobooks on the go",
@@ -124,17 +138,45 @@
     {
       "id": "serp_8d03067d_3d10_4934_94aa_dc45aab335fe",
       "productResolution": "unresolved",
-      "position": 3,
-      "heading": "A Large Ceramic Baking Dish",
       "shoppingOptions": [
         {
           "name": "DOWAN ceramic baking dish",
           "description": "A handled ceramic dish for baked meals and oven-to-table serving. Check dimensions, storage space and care instructions before choosing.",
-          "affiliateUrl": "https://www.amazon.com/dp/B08R7D4CCM?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/51e9P-LRqYL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08R7D4CCM?tag=thegoodpresen-20"
+        },
+        {
+          "name": "MALACASA Casserole Dishes for Oven",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61YkOaANYvL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08T99DPF3?tag=thegoodpresen-20"
+        },
+        {
+          "name": "MALACASA Ceramic Casserole Baking Dishes Set of 4",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71MbicU7p8L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08T9CPWB8?tag=thegoodpresen-20"
+        },
+        {
+          "name": "FE Casserole Dish with Lid",
+          "description": "Compare this large ceramic baking dish with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61HahJqotmL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B1PPW9D6?tag=thegoodpresen-20"
+        },
+        {
+          "name": "MALACASA 4.4 Qt Large Casserole Dish with Lid",
+          "description": "Compare this large ceramic baking dish with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71qSeXdP6OL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B1PQ5VKQ?tag=thegoodpresen-20"
         }
       ],
+      "position": 3,
+      "heading": "A Large Ceramic Baking Dish",
       "editorialDescription": "A deep ceramic baking dish is useful for casseroles, roasted vegetables, baked pasta, and food shared with family or friends. An attractive finish lets it move from oven to table for serving.",
       "whyItFits": "It is a durable home tool with both functional and visual value, making it practical without feeling like a minor supply purchase.",
       "bestFor": "A nurse who enjoys cooking, hosting, or preparing a dish to share",
@@ -144,15 +186,44 @@
     },
     {
       "id": "practical_shift-tote",
+      "productId": "product_shift-tote",
       "shoppingOptions": [
         {
-          "name": "BAGSMART Tote Bag",
-          "description": "A lightweight tote for everyday belongings. Check the dimensions, pockets, and laptop fit for the recipient's usual load.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61t4jBybtfL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0D3L6XCLG?tag=thegoodpresen-20"
+          "name": "Oversize Pu Leather Tote Women Weekender Bag Shopper Handbag Travel Purse",
+          "description": "Compare this large tote bag with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/713Q4cAWaPL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09QSVL5LS?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Tote Bag for Women",
+          "description": "This version offers a folding design. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71zPMYPHodL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B6VN9LLR?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Canvas Tote Bag for Women with Zipper Closure & Individual Compartments for…",
+          "description": "Compare this large tote bag with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81pgsciPd6L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D97ZDLMT?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Laptop Tote Bag for Women 15.6 Inch Waterproof Leather Computer Bags…",
+          "description": "Compare this large tote bag with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Qcx0KAT+L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B085Q2NMPT?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Travel Duffel Bag Weekender Bags for Women",
+          "description": "Compare this large tote bag with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71+fHOpi8ML._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DK9DCC9J?tag=thegoodpresen-20"
         }
       ],
-      "productId": "product_shift-tote",
       "position": 4,
       "heading": "A Roomy Everyday Tote",
       "editorialDescription": "A roomy tote keeps everyday essentials together for errands, visits, and travel. A few well-placed pockets make keys and other small belongings easier to find without adding unnecessary bulk.",
@@ -163,15 +234,44 @@
     },
     {
       "id": "practical_hand-cream",
+      "productId": "product_hand-cream",
       "shoppingOptions": [
         {
-          "name": "O'Keeffe's Hand Cream Duo",
-          "description": "A two-tube set with regular Working Hands cream and a nighttime treatment. Review both ingredient lists if the recipient has sensitivities.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51fk3qgrHcL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B07YX5Y2DB?tag=thegoodpresen-20"
+          "name": "Neutrogena Norwegian Formula Hand Cream",
+          "description": "Compare this fragrance free hand cream with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61D6vr-IuxL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B000052YP6?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Aveeno Skin Relief Intense Moisture Hand Cream",
+          "description": "Compare this fragrance free hand cream with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71NJRNYvtuL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B00008J2XQ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Lubriderm Advanced Therapy Hand & Body Lotion",
+          "description": "Compare this fragrance free hand cream with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61+DbA6lhHL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B005IHSSL8?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Bag Balm Vermont's Original Hand & Body Dry Skin Lotion with Shea Butter and…",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/617Nv98sIZL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07X58ZWKF?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Badger Unscented Hand Balm",
+          "description": "Compare this fragrance free hand cream with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/816k-cQXmcL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B007A4VY9A?tag=thegoodpresen-20"
         }
       ],
-      "productId": "product_hand-cream",
       "position": 5,
       "heading": "A Fragrance-Free Hand Cream Duo",
       "editorialDescription": "A small duo lets the recipient keep one tube close and one at home. Fragrance-free is the more considerate default for shared workplaces and for anyone whose preferences you do not know well.",
@@ -183,17 +283,45 @@
     {
       "id": "serp_4e61eee9_f0da_47c9_b05d_3773eb1b8154",
       "productResolution": "unresolved",
-      "position": 6,
-      "heading": "A Cooling Bamboo Pillowcase Set",
       "shoppingOptions": [
         {
           "name": "Pure Bamboo queen pillowcase pair",
           "description": "A pair of bamboo-derived viscose pillowcases for an everyday bedding upgrade. Confirm pillow size and fabric preferences; comfort varies between sleepers.",
-          "affiliateUrl": "https://www.amazon.com/dp/B07MZ8VJD4?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/61bCAdRx3WL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07MZ8VJD4?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Bedsure Pillow Cases Queen Set of 2 Dark Grey Double Brushed Microfiber…",
+          "description": "This version offers a multi-piece format. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71-A+zzwEgL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07PJ4YCL4?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Dreamcare King Black Pillow Cases Set of 2 Double Brushed 1500 Series…",
+          "description": "This version offers a multi-piece format. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61y2tddTuPL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07Z4SWJCS?tag=thegoodpresen-20"
+        },
+        {
+          "name": "King Pillowcases by Pure Bamboo Genuine 100% Organic Viscose Derived from Bamboo",
+          "description": "Compare this cooling pillowcase set with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61bCAdRx3WL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07MZ92DML?tag=thegoodpresen-20"
+        },
+        {
+          "name": "THREAD SPREAD 100% Cotton Pillow Cases Queen Size Set of 2 400 Thread…",
+          "description": "This version offers a multi-piece format. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71ZepKLmvsL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09ZHS2YHZ?tag=thegoodpresen-20"
         }
       ],
+      "position": 6,
+      "heading": "A Cooling Bamboo Pillowcase Set",
       "editorialDescription": "A smooth bamboo-derived pillowcase set makes an everyday bed feel more intentional and gives the recipient a spare for laundry rotation. Neutral colors and a simple closure keep the idea easy to integrate into an existing room.",
       "whyItFits": "Fresh pillowcases can refresh a familiar bedroom with a fabric the recipient enjoys using every night.",
       "bestFor": "A nurse who prefers breathable bedding or refreshes pillowcases frequently",
@@ -204,17 +332,45 @@
     {
       "id": "serp_11bccc4b_13f7_4098_9f03_127e5a7bd114",
       "productResolution": "unresolved",
-      "position": 7,
-      "heading": "A Pressure-Relieving Seat Cushion",
       "shoppingOptions": [
         {
-          "name": "Cushion Lab seat cushion",
-          "description": "A contoured cushion to compare for a desk chair or car seat. Check the shape and seat dimensions; it is not a substitute for medical care.",
-          "affiliateUrl": "https://www.amazon.com/dp/B08RCV3MRP?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/51jlg6xxfOL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "name": "Everlasting Comfort Ventilated Wheelchair Cushions for Pressure Relief Gel…",
+          "description": "Compare this seat cushion with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91v5m5jnJpL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07LB8TRL3?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Sleepavo Office Chair Cushion",
+          "description": "Compare this seat cushion with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/713FqdIJ5LL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07BB315ZL?tag=thegoodpresen-20"
+        },
+        {
+          "name": "BUYUE Dining Chair Cushions 2.5 Inch Thick",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71mdrhZQlQL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0C3QLP3YH?tag=thegoodpresen-20"
+        },
+        {
+          "name": "SAIREIDER Chair Cushion and Lumbar Support Pillow for Office Chair",
+          "description": "Compare this seat cushion with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61QWw7DS-mL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BLHZBYS1?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Upgrade Airplane Seat Cushion with No External Air Pump",
+          "description": "This version offers an adjustable design. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Jvw5-+svL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HF7M221X?tag=thegoodpresen-20"
         }
       ],
+      "position": 7,
+      "heading": "A Pressure-Relieving Seat Cushion",
       "editorialDescription": "A seat cushion can make commuting, charting, studying, or relaxing in one spot feel more comfortable. Its portable format lets the recipient move it between a car, desk chair, and favorite seat.",
       "whyItFits": "It suits someone whose routine includes long stretches of sitting between active parts of the day.",
       "bestFor": "A nurse who commutes, studies, or spends breaks seated",
@@ -225,17 +381,45 @@
     {
       "id": "review_decaa884-97a8-44df-94da-75cd94d6b9ab",
       "productResolution": "unresolved",
-      "position": 8,
-      "heading": "A Wooden Bedside Alarm Clock",
       "shoppingOptions": [
         {
-          "name": "DreamSky wooden alarm clock",
-          "description": "A wooden digital clock with a wireless-charging feature. Check display dimming, power requirements and phone compatibility before gifting.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BKZ1Y2MF?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71Y3hRmkUsL._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "name": "JALL Wooden Digital Alarm Clock for Bedrooms and Office",
+          "description": "Compare this wooden bedside alarm clock with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71dqsoqSQdL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07WGXRDJ4?tag=thegoodpresen-20"
+        },
+        {
+          "name": "DreamSky Wooden Digital Alarm Clock for Bedrooms Desk with Large Numbers",
+          "description": "Compare this wooden bedside alarm clock with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71mdSJmKilL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BYSVGS2Q?tag=thegoodpresen-20"
+        },
+        {
+          "name": "DreamSky Wooden Digital Alarm Clock for Bedroom Living Room",
+          "description": "Compare this wooden bedside alarm clock with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71dWseGzRYL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BYST53T6?tag=thegoodpresen-20"
+        },
+        {
+          "name": "DreamSky Wooden Digital Alarm Clock for Bedrooms with Large Numbers",
+          "description": "Compare this wooden bedside alarm clock with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/512Jhq7AxcL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BYSQPLJN?tag=thegoodpresen-20"
+        },
+        {
+          "name": "DreamSky Wooden Digital Alarm Clock for Bedroom with RGB Large Numbers",
+          "description": "Compare this wooden bedside alarm clock with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61fAP822zwL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DHV9S851?tag=thegoodpresen-20"
         }
       ],
+      "position": 8,
+      "heading": "A Wooden Bedside Alarm Clock",
       "editorialDescription": "A wooden digital alarm clock puts the time in view and adds a warm detail to a bedside table. A model with a charging surface can also give a compatible phone a regular place overnight.",
       "whyItFits": "It keeps the time easy to check from bed while adding a simple decorative detail to the room.",
       "bestFor": "Someone who wants a visible bedside clock and likes a wooden finish",
@@ -246,17 +430,45 @@
     {
       "id": "serp_7146c104_c9d4_4099_bd01_3373c0127f9a",
       "productResolution": "unresolved",
-      "position": 9,
-      "heading": "A Portable Electric Meal Warmer",
       "shoppingOptions": [
         {
           "name": "Crock-Pot portable food warmer",
           "description": "A small electric warmer for a packed meal. Check capacity, outlet access and heating instructions against the recipient's routine.",
-          "affiliateUrl": "https://www.amazon.com/dp/B09BDFXNQX?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71aoc56LL2L._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09BDFXNQX?tag=thegoodpresen-20"
+        },
+        {
+          "name": "TRAVELISIMO Electric Lunch Box for Adults 100W Heated Lunch Box For Men 1.5L…",
+          "description": "Compare this electric heated lunch box with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/818YnSGXmkL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D22TGD88?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Electric Lunch Box Food Heater",
+          "description": "Compare this electric heated lunch box with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/712in-kP0kL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08MLHZ86G?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Buddew Electric Heated Lunch Box",
+          "description": "Compare this electric heated lunch box with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81Bil7LPpAL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09G2X39MK?tag=thegoodpresen-20"
+        },
+        {
+          "name": "TRAVELISIMO Extra-Large Electric Lunch Box For Adults Holds up to 8 Cups…",
+          "description": "Compare this electric heated lunch box with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81xW25lAaBL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D5RZ7BRD?tag=thegoodpresen-20"
         }
       ],
+      "position": 9,
+      "heading": "A Portable Electric Meal Warmer",
       "editorialDescription": "A portable meal warmer lets the recipient bring a homemade dish and warm it when their schedule allows. It is especially useful for meals that are easier to enjoy hot than straight from the refrigerator.",
       "whyItFits": "It supports a familiar routine—bringing food from home—while accommodating breaks that may not happen at a predictable time.",
       "bestFor": "A nurse who regularly packs homemade lunches",
@@ -267,17 +479,52 @@
     {
       "id": "serp_b9698c37_2b55_427a_82e6_ad91f731e516",
       "productResolution": "unresolved",
-      "position": 10,
-      "heading": "A Countertop Food-Preparation Chopper",
       "shoppingOptions": [
         {
           "name": "KitchenAid KFC3516ER food chopper",
           "description": "A compact food chopper for everyday kitchen preparation. Compare bowl capacity, cleanup and counter space with the recipient's current setup.",
-          "affiliateUrl": "https://www.amazon.com/dp/B01LZIHVTC?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/6186h7rqz0L._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01LZIHVTC?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Hamilton Beach 3 Cup Electric Vegetable Chopper & Mini Food Processor",
+          "description": "Compare this electric food chopper with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71yhvgRx6HL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B06Y2GZWCJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "BLACK+DECKER 1.5-Cup Electric Food Chopper",
+          "description": "Compare this electric food chopper with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/815Gfj8hrhL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01LYR6VNZ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "KOIOS Food Processor",
+          "description": "Compare this electric food chopper with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71VgnBf7bML._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D96DKGL4?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Electric Garlic Chopper Mini",
+          "description": "This version offers rechargeable operation. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71WTxFB6NdL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GS4YCFNG?tag=thegoodpresen-20"
+        },
+        {
+          "name": "5-in-1 Wireless Electric Vegetable Chopper",
+          "description": "This version offers rechargeable operation. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61UYo0rDJhL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HJCVFZ2J?tag=thegoodpresen-20"
         }
       ],
+      "position": 10,
+      "heading": "A Countertop Food-Preparation Chopper",
       "editorialDescription": "A compact food chopper can handle everyday prep for ingredients, sauces, or quick meal components without taking over the kitchen. It helps shorten the most repetitive part of cooking on a busy evening.",
       "whyItFits": "It is a practical home gift for someone balancing irregular hours with a preference for preparing food themselves.",
       "bestFor": "A nurse who cooks in short bursts during busy weeks",
@@ -288,17 +535,45 @@
     {
       "id": "serp_9a1d7d0d_e580_417f_87a6_0f3a6c17fbae",
       "productResolution": "unresolved",
-      "position": 11,
-      "heading": "A Heated Neck-and-Shoulder Wrap",
       "shoppingOptions": [
         {
-          "name": "Comfytemp neck-and-shoulder heating pad",
-          "description": "A weighted electric pad for quiet time at home. Check fit, power access and care instructions, and follow the stated precautions for heat use.",
-          "affiliateUrl": "https://www.amazon.com/dp/B08RNBCH6K?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/611TIoY-akL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "name": "Heating Pad for Neck and Shoulders",
+          "description": "Compare this neck shoulder heating pad with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/818ZSJFLbFL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H1CGNR2C?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Graphene-Infused Instant Heating Pad with 3M Thinsulate",
+          "description": "Compare this neck shoulder heating pad with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/819viSU3TkL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FPMG7Q91?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Heating Pad for Neck & Shoulders & Back: Electric Instant Heat 2026 Upgrade",
+          "description": "Compare this neck shoulder heating pad with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71RdyHDHElL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HDJ2KW8X?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Neck and Shoulder Heating Pad for Pain Relief",
+          "description": "Compare this neck shoulder heating pad with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61dQ1qX8aGL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DXZT6CFQ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Fast-Heating Far Infrared Heating Pad for Neck Shoulders and Back",
+          "description": "Compare this neck shoulder heating pad with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71OSb2OUCWL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GX129R8L?tag=thegoodpresen-20"
         }
       ],
+      "position": 11,
+      "heading": "A Heated Neck-and-Shoulder Wrap",
       "editorialDescription": "A heated wrap creates an easy transition from work mode to quiet time at home. The wearable shape leaves the recipient free to sit, read, or watch something while using it.",
       "whyItFits": "It turns a demanding day into a more intentional evening routine without requiring much setup or space.",
       "bestFor": "A nurse who enjoys quiet, low-effort comfort at home",
@@ -309,17 +584,45 @@
     {
       "id": "serp_1a87cc16_8b8e_4adc_a0cc_69e2e47f3a93",
       "productResolution": "unresolved",
-      "position": 12,
-      "heading": "A Compact Multi-Cooker",
       "shoppingOptions": [
         {
           "name": "COMFEE 3-quart multicooker",
           "description": "A small multicooker for someone who enjoys preparing meals at home. Check serving capacity, cooking modes and storage space before choosing.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0FNC3PYK5?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71qUvfq4LxL._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi", "amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FNC3PYK5?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Instant Pot Duo 7-in-1 Mini Electric Pressure Cooker",
+          "description": "Compare this compact multicooker with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71N1lhYC--L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B06Y1YD5W7?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Apto para lavaplatos. Base de aluminio cocina Kettle multi-cooker Steamer",
+          "description": "Compare this compact multicooker with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/712UxkUOoRL._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B002JM202I?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Instant Pot Stainless Steel Inner Cooking Pot Mini 3-Qt",
+          "description": "Compare this compact multicooker with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71YqB7EoyvL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B072K19MQV?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Instant Pot Rio Mini 4 Qt 7-in-1 Electric Pressure Cooker",
+          "description": "Compare this compact multicooker with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61oLmsFZzmL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0G5B2LDMT?tag=thegoodpresen-20"
         }
       ],
+      "position": 12,
+      "heading": "A Compact Multi-Cooker",
       "editorialDescription": "A multi-cooker can simplify weeknight meals, batch cooking, and reheating when the recipient’s schedule changes from day to day. Its range of functions makes it useful for more than one type of dish.",
       "whyItFits": "It offers a substantial everyday upgrade for someone who wants home-cooked food without spending every free evening on preparation.",
       "bestFor": "A nurse who cooks ahead or wants simpler weeknight meals",

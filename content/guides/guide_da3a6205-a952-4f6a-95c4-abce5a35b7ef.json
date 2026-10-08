@@ -14,20 +14,48 @@
   "seoDescription": "Gift ideas for getting to work, carrying meals, and winding down after a shift.",
   "status": "published",
   "publishedAt": "2026-09-15",
-  "updatedAt": "2026-09-29",
+  "updatedAt": "2026-10-08",
   "recommendations": [
     {
       "id": "guide_da3a6205-a952-4f6a-95c4-abce5a35b7ef_slot-1",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Physix Gear Compression Socks",
-          "description": "Compression socks offered in different sizes and patterns. Choose the recipient's preferred fit and compression level rather than treating them as a universal choice.",
-          "imageUrl": "https://m.media-amazon.com/images/I/711vGxLodJL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B01J4MF53Q?tag=thegoodpresen-20",
-          "sources": ["serpapi"]
+          "name": "Physix Gear Compression Socks 20-30 mmHg Men & Women Running",
+          "description": "Compare this compression socks with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61K+KjL9+DL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08P61K3BY?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Compression Socks for Women & Men Circulation (8 Pairs) 15-20 mmHg Calf…",
+          "description": "Compare this compression socks with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61CklKJQ4PL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B071RRHYJ8?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Copper Compression Socks for Women & Men (6 pairs) Support for Nurses",
+          "description": "Compare this compression socks with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Z1UPg2KiL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07ZFJ5RPJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Copper Compression Socks 15-20 mmHg for Men & Women 8 Pairs Circulation…",
+          "description": "Compare this compression socks with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81YjtgcUZ9L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B071ZZBZRD?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Copper Compression Socks for Men & Women 15-20mmHg Knee High Stockings Best…",
+          "description": "This version offers a multi-piece format. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81jfRJvPhvL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07RNBJBYG?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 1,
       "heading": "Compression Socks for Long Shifts",
       "editorialDescription": "Compression socks can make standing and walking through a long shift feel more comfortable, and they fit easily into a work bag or locker. Look for a pair that comes in a clear size range and states its compression level plainly, since those details matter more than decorative patterns. Consider fabric that is breathable and easy to wash, plus a fit that stays smooth under scrubs without pinching at the toes or calf. If you are unsure about the recipient's preferred firmness, choose a lower-commitment style or ask a question first.",
@@ -39,15 +67,44 @@
     },
     {
       "id": "guide_da3a6205-a952-4f6a-95c4-abce5a35b7ef_slot-2",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "Owala FreeSip 24 oz Water Bottle",
           "description": "An insulated bottle with a built-in straw and a sip opening. Choose a color the recipient likes and check the size before buying.",
           "imageUrl": "https://m.media-amazon.com/images/I/61Gvw0-b0eL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
           "affiliateUrl": "https://www.amazon.com/dp/B0BZYCJK89?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Owala FreeSip Stainless Steel Water Bottle Very",
+          "description": "Compare this insulated water bottle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Cfld2aMpL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B085DVHQ57?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Takeya Actives Stainless Steel Water Bottle",
+          "description": "Compare this insulated water bottle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61+qXeSck2L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B071WYHFC9?tag=thegoodpresen-20"
+        },
+        {
+          "name": "ThermoFlask Double Wall Vacuum Insulated Stainless Steel Water Bottle…",
+          "description": "Compare this insulated water bottle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/614w2MR3YpL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B00JEZ20GO?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Under Armour Insulated Water Bottle with Handle & Fence Hook",
+          "description": "Compare this insulated water bottle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81BQherq42L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BT8K88SR?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 2,
       "heading": "Insulated Bottle for Shift Hydration",
       "editorialDescription": "A good insulated bottle keeps water cold through a busy shift and makes it easier to sip between tasks. Nurses often have limited time to refill, so a size that fits their bag, desk, or station matters as much as the insulation. Look for a leakproof lid, a shape that is easy to clean, and a mouthpiece that works one-handed if they are often moving. A simple, neutral finish tends to get used more than one with obvious profession branding.",
@@ -59,15 +116,44 @@
     },
     {
       "id": "guide_da3a6205-a952-4f6a-95c4-abce5a35b7ef_slot-3",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "SHULOOK Work Shoes",
-          "description": "Work shoes offered in several sizes. Confirm the recipient's fit, workplace rules, and preferred support before buying footwear as a gift.",
-          "imageUrl": "https://m.media-amazon.com/images/I/714hK2QXdoL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0GDPG291K?tag=thegoodpresen-20"
+          "name": "Women's Slip On Walking Shoes Running Sneakers",
+          "description": "Compare this nurse work shoes with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/7124Cd2CZcL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FX8BKGKX?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Womens Walking Shoes Slip on Sneakers Cushion Running Nurse Tennis",
+          "description": "Compare this nurse work shoes with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71YPA1jxpzL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H4PKMGHS?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Women's Non-Slip Work Shoes Restaurant & Kitchen",
+          "description": "Compare this nurse work shoes with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71M5sL1KyIL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H1KXH48Z?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Crocs Unisex-Adult Bistro Work Clogs",
+          "description": "Compare this nurse work shoes with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/618oshc1F4L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0014JLYPQ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Men's Non Slip Work Shoes Waterproof Easy Slip Sneakers for Kitchen…",
+          "description": "Compare this nurse work shoes with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51IVgK6DIQL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FXB1TJJX?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 3,
       "heading": "Work Shoes Built for Long Days",
       "editorialDescription": "The right work shoe can change how a long shift feels, especially when most of it is spent standing or walking. Slip-resistant soles add confidence on smooth floors, while cushioning and support help with comfort during long hours. Because fit is highly individual, prioritize brands or styles with a strong size range, easy returns, and clear guidance on width. A breathable upper and washable surface are useful details for anyone who works in a clinical setting.",
@@ -79,15 +165,44 @@
     },
     {
       "id": "guide_da3a6205-a952-4f6a-95c4-abce5a35b7ef_slot-4",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "BAGSMART Insulated Lunch Bag",
-          "description": "A lunch bag with separate storage areas. Check the interior dimensions and whether it holds the recipient's meal containers.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71xaCKsEiQL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0F1TBSQP6?tag=thegoodpresen-20"
+          "name": "Carhartt Camping Cooler",
+          "description": "Compare this insulated lunch bag with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91wzueGxKcL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B075LXP47V?tag=thegoodpresen-20"
+        },
+        {
+          "name": "opux Insulated Lunch Bag for Men Women",
+          "description": "Compare this insulated lunch bag with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91lKtD6IRWL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07GXCYF1S?tag=thegoodpresen-20"
+        },
+        {
+          "name": "ExtraCharm Insulated Lunch Bag for Women/Men Reusable Lunch Box for Office…",
+          "description": "This version offers an adjustable design. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71jcR1Ab0+L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08DQTTFQB?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Coobiiya Lunch Box Lunch Bag for Women Men",
+          "description": "Compare this insulated lunch bag with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81IfwTvJHzL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BQHKMZZ1?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Femuar Reusable Lunch Box for Men/Women Insulated Lunch Bag Leakproof…",
+          "description": "This version offers an adjustable design. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81IYP-pTcAL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B091CL4YKY?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 4,
       "heading": "Insulated Lunch Bag for Long Shifts",
       "editorialDescription": "A thoughtful lunch bag helps a nurse bring meals and snacks instead of relying on whatever is available during a rushed break. Insulation keeps food at a more suitable temperature, and compartments make it easier to separate a main meal from snacks or drinks. Look for a leakproof lining, sturdy zippers, and a shape that fits the recipient's usual commute and locker space. Easy-to-wipe materials are worth prioritizing because clinical workdays leave little time for fussy cleanup.",
@@ -99,15 +214,44 @@
     },
     {
       "id": "guide_da3a6205-a952-4f6a-95c4-abce5a35b7ef_slot-5",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "CAVN Penlight Set",
           "description": "Two reusable penlights with pupil gauges. Check battery requirements and workplace equipment rules before choosing them.",
           "imageUrl": "https://m.media-amazon.com/images/I/41R4xBR2kqL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
           "affiliateUrl": "https://www.amazon.com/dp/B07N1G7179?tag=thegoodpresen-20"
+        },
+        {
+          "name": "RISEMART Pen Lights for Nurses",
+          "description": "This version offers a multi-piece format. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61PsPh3tUML._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08X3D2KP3?tag=thegoodpresen-20"
+        },
+        {
+          "name": "MEUUT Medical Scissors with Pen Lights and 4 AAA Batteries for Nurse",
+          "description": "This version offers a multi-piece format. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71nllJpSZLL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09B5FPK59?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Primacare DL- of 6 Disposable Diagnostic Penlight with Imprinted Pupil Gauge",
+          "description": "This version offers a multi-piece format. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81Wow4ltepL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B00CL6FDAS?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Weltool M6-Dr Diagnostic Medical Penlight No-Glare for Doctor Nurse…",
+          "description": "Compare this nurse penlight with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61eQAZkNxzL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07KW4SP8M?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 5,
       "heading": "Compact Pen Light for Clinical Tasks",
       "editorialDescription": "A small pen light is easy to keep in a pocket and useful for quick visual checks or reading in dim areas. Because it is compact, the best versions are comfortable to hold, simple to switch on, and sturdy enough to survive being carried every day. Reusable designs that use common batteries or rechargeable power are easier to maintain. Keep the presentation simple; a well-made pen light earns its place through daily use.",
@@ -120,17 +264,45 @@
     {
       "id": "review_e3385850-d321-4585-911d-9391779a087a",
       "productResolution": "unresolved",
-      "position": 6,
-      "heading": "Open-Ear Wireless Headphones",
       "shoppingOptions": [
         {
-          "name": "TRAUSI open-ear earbuds",
-          "description": "An earhook-style pair to compare for listening without an in-ear fit. Check device compatibility and the exact model's controls.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0HC6ZQQXW?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71q4VNgbmLL._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "name": "1MORE Open Ear Earbuds",
+          "description": "Compare this open ear wireless headphones with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71RU0JgnrSL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HFWS4MND?tag=thegoodpresen-20"
+        },
+        {
+          "name": "SHOKZ OpenRun Pro Open-Ear Bluetooth Bone Conduction Sport Headphones Sweat…",
+          "description": "Compare this open ear wireless headphones with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/41HKPiu-O-L._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09BVXT8TJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Open Ear Headphones",
+          "description": "Compare this open ear wireless headphones with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71LSGiVL5XL._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FWXL7S41?tag=thegoodpresen-20"
+        },
+        {
+          "name": "New Bone Conduction Headphones Bluetooth 6.0",
+          "description": "Compare this open ear wireless headphones with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61pNOBS8tuL._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H9YT4Q48?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Bone Conduction Headphones Upgrade Bluetooth 6.0 Open Ear Earbuds with Mic",
+          "description": "Compare this open ear wireless headphones with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/617v1TDJ4cL._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H6ZZZDG5?tag=thegoodpresen-20"
         }
       ],
+      "position": 6,
+      "heading": "Open-Ear Wireless Headphones",
       "editorialDescription": "Open-ear headphones sit outside the ear canal and can suit walks, workouts, chores, or relaxed listening at home. The format feels novel while remaining useful outside a clinical setting.",
       "whyItFits": "It offers a meaningful everyday upgrade without repeating another employer-adjacent accessory.",
       "bestFor": "Someone who dislikes in-ear buds or wants audio for walks and workouts",
@@ -140,15 +312,44 @@
     },
     {
       "id": "guide_da3a6205-a952-4f6a-95c4-abce5a35b7ef_slot-7",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "O'Keeffe's Hand Cream Duo",
-          "description": "A two-tube set with regular Working Hands cream and a nighttime treatment. Review both ingredient lists if the recipient has sensitivities.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51fk3qgrHcL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B07YX5Y2DB?tag=thegoodpresen-20"
+          "name": "NIVEA Soft Moisturizing Cream for Body",
+          "description": "Compare this hand cream with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81hdRWglUYL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B00QQ8SN0O?tag=thegoodpresen-20"
+        },
+        {
+          "name": "O'Keeffe's Working Hands Hand Cream for Extreme Dryness Tube () Repairing…",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81fg68WEZwL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0148PKYXU?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Gold Bond Healing Hand Cream",
+          "description": "Compare this hand cream with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61WISQB7KNL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B00A8S6HM4?tag=thegoodpresen-20"
+        },
+        {
+          "name": "eos Shea Better Hand Cream Vanilla Cashmere",
+          "description": "Compare this hand cream with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71nmiIuTJXL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09QP658PT?tag=thegoodpresen-20"
+        },
+        {
+          "name": "eos Shea Better Hand Cream- Fresh & Cozy",
+          "description": "Compare this hand cream with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/616YEnfu90L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CC6HQCHB?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 7,
       "heading": "Hand Cream for Frequent Washing",
       "editorialDescription": "Frequent handwashing and sanitizing can leave hands feeling dry, so a moisturizing hand cream can be a welcome comfort item for a work bag or locker. The best choice is one the recipient will actually use: a texture that absorbs reasonably quickly, a scent they enjoy or an unscented option, and packaging that does not leak. Travel sizes make it easy to keep one at work and one at home.",
@@ -160,15 +361,44 @@
     },
     {
       "id": "guide_da3a6205-a952-4f6a-95c4-abce5a35b7ef_slot-8",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "Ultima Electrolyte Variety Pack",
           "description": "Individually packed electrolyte drink mix in different flavors. Review the ingredients and choose it only if it fits the recipient's dietary preferences.",
           "imageUrl": "https://m.media-amazon.com/images/I/711WJgJ7LzL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
           "affiliateUrl": "https://www.amazon.com/dp/B08XQZX9K3?tag=thegoodpresen-20"
+        },
+        {
+          "name": "DripDrop Hydration Electrolyte Powder Packets",
+          "description": "This version offers an assortment to try and a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/612dSrTgAxL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08TZD2R7L?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Pedialyte Electrolyte Powder Packets",
+          "description": "This version offers an assortment to try and a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61FmK2tbdsL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01JO4KWAU?tag=thegoodpresen-20"
+        },
+        {
+          "name": "DripDrop Hydration Juicy Variety Pack",
+          "description": "This version offers an assortment to try and a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61cLXS1-6DL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B094QB6PH6?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Pedialyte AdvancedCare Plus Electrolyte Powder Packets–18ct",
+          "description": "Compare this electrolyte packets with the other options for the recipient's routine and preferences. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71nk8v7MS3L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B079YBV7Q9?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 8,
       "heading": "Electrolyte Packets for Hot or Long Days",
       "editorialDescription": "Single-serve electrolyte packets make it easy to add flavor and minerals to a water bottle during a hot shift or a long stretch without a proper break. They are lightweight, portable, and simple to keep in a locker or bag. Look for a flavor profile the recipient enjoys, a formula that dissolves easily, and packaging that opens without making a mess. If they prefer low-sugar options, check the label before choosing.",
@@ -181,17 +411,45 @@
     {
       "id": "review_40184132-d588-44cc-bc0c-7b14dc0919c2",
       "productResolution": "unresolved",
-      "position": 9,
-      "heading": "A Glass Meal-Prep Container Set",
       "shoppingOptions": [
         {
           "name": "KOMUEE glass meal-prep containers",
           "description": "A set of glass containers with lids for portioning meals. Compare capacity, cupboard space and the different care rules for glass and lids.",
-          "affiliateUrl": "https://www.amazon.com/dp/B08X4615SC?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71FEUOgXhfS._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08X4615SC?tag=thegoodpresen-20"
+        },
+        {
+          "name": "C CREST [] Glass Meal Prep Containers",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81HfSfzlqUL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07R8BQD66?tag=thegoodpresen-20"
+        },
+        {
+          "name": "C CREST [10-Pack Glass Food Storage Containers (A Set of Five Colors)",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81UlHhAwFZL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07R55DZRY?tag=thegoodpresen-20"
+        },
+        {
+          "name": "M MCIRCO Glass Food Storage Containers with Lids",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71VKuXwIKOL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B081JTZNRS?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Vtopmart Glass Food Storage Containers with Lids Green",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71xlXpdVSUL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B9S5HZ26?tag=thegoodpresen-20"
         }
       ],
+      "position": 9,
+      "heading": "A Glass Meal-Prep Container Set",
       "editorialDescription": "A set of glass containers gives batch cooking and leftovers a durable, easy-to-see home. Choose a modest number of useful sizes rather than a sprawling set that creates another storage problem.",
       "whyItFits": "It supports practical weekly routines while remaining distinct from the insulated lunch bag already in the guide.",
       "bestFor": "A nurse who prepares several meals or portions at once",
@@ -202,17 +460,45 @@
     {
       "id": "review_633f3eb3-e43c-4505-ada7-825b1a465bbd",
       "productResolution": "unresolved",
-      "position": 10,
-      "heading": "An Ergonomic Seat Cushion With Back Support",
       "shoppingOptions": [
         {
-          "name": "CushZone seat and lumbar cushion set",
-          "description": "A two-piece set for an existing chair. Check seat dimensions and support position; comfort is personal and a return option is useful.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BFPJ5VR3?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71WIaB4l9+L._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "name": "Car Seat Cushion with Lumbar Support",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71UONXzfX0L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H7RN1N46?tag=thegoodpresen-20"
+        },
+        {
+          "name": "SAIREIDER Chair Cushion and Lumbar Support Pillow for Office Chair",
+          "description": "Compare this seat cushion lumbar support set with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61QWw7DS-mL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BLHZBYS1?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ergonomic Seat Cushion & Lumbar Support Pillow for Office Chair",
+          "description": "Compare this seat cushion lumbar support set with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71fY2Cs1LeL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GXK9VZ8R?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Seat Cushion and Lumbar Support for Office Chair",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81OhKyIe-uL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GRVFTN52?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Coverado Car Seat Cushion and Lumbar Support Pillow One Piece",
+          "description": "Compare this seat cushion lumbar support set with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81szOtVzyUL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GWL2XLFJ?tag=thegoodpresen-20"
         }
       ],
+      "position": 10,
+      "heading": "An Ergonomic Seat Cushion With Back Support",
       "editorialDescription": "A coordinated seat and lumbar cushion can make a home desk, dining chair, or long drive more comfortable. Unlike a work-specific gadget, it can move between settings as the recipient's routine changes.",
       "whyItFits": "It is a noticeable everyday upgrade with practical value beyond a single shift or workplace.",
       "bestFor": "Someone who studies at home, commutes by car, or spends time at a desk",
@@ -223,17 +509,45 @@
     {
       "id": "serp_6166d22e_7630_40d3_916d_465aadf2cc8a",
       "productResolution": "unresolved",
-      "position": 11,
-      "heading": "A Shiatsu Foot Massager With Heat",
       "shoppingOptions": [
         {
-          "name": "Nekteck heated foot massager",
-          "description": "A home foot-massage unit to compare for fit and controls. Read the safety guidance and do not treat advertised comfort features as medical treatment.",
-          "affiliateUrl": "https://www.amazon.com/dp/B07WYX1D4H?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71oHyjUSfBL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "name": "MIKO Shiatsu Foot Massager with Heat and Air Compression",
+          "description": "Compare this shiatsu foot massager heat with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81dK7F7SjKL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09ZVR5HDR?tag=thegoodpresen-20"
+        },
+        {
+          "name": "MIKO Shiatsu Foot Massager with Heat for Neuropathy & Plantar Fasciitis",
+          "description": "Compare this shiatsu foot massager heat with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71vNbEX6A9L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01H5QZ5X8?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Shiatsu Foot Massager with Heat and Remote Control for Plantar Fasciitis",
+          "description": "Compare this shiatsu foot massager heat with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71GyAxpiyWL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H2J4GVBY?tag=thegoodpresen-20"
+        },
+        {
+          "name": "MIKO Shiatsu Foot",
+          "description": "Compare this shiatsu foot massager heat with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/6195ot59cmL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0849K4FHJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Shiatsu Foot Massager with Heat",
+          "description": "Compare this shiatsu foot massager heat with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91NipXxvseL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HCN23ZFB?tag=thegoodpresen-20"
         }
       ],
+      "position": 11,
+      "heading": "A Shiatsu Foot Massager With Heat",
       "editorialDescription": "A foot massager gives the recipient a dedicated way to unwind at home while reading, watching television, or catching up on a favorite show. The heat option adds another layer of comfort for people who enjoy a warmer routine.",
       "whyItFits": "It feels personal and restorative without assuming that every nurse wants more work-themed gear.",
       "bestFor": "A nurse who likes a structured at-home wind-down",
@@ -244,17 +558,45 @@
     {
       "id": "serp_7065d5b8_c098_4c92_9cfa_7846cdcc4acc",
       "productResolution": "unresolved",
-      "position": 12,
-      "heading": "A Compact Crossbody Sling Bag",
       "shoppingOptions": [
         {
           "name": "tomtoc compact sling bag",
           "description": "A small crossbody bag for daily essentials. Check its capacity and strap adjustment rather than assuming it can carry a full work kit.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0D479ZVP7?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71sNr4hqtiL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D479ZVP7?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Large Fanny Pack for Women Men Crossbody Bag with 4-Zipper Pockets",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61yp4ryRMVL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07WYKJXXY?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Crossbody Sling Backpack Sling Bag Travel Hiking Chest Bag Daypack (Black)",
+          "description": "Compare this crossbody sling bag with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/610QzKj7tLL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07T5D98RW?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Sling Bag for Men Women",
+          "description": "Compare this crossbody sling bag with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81eqzQEQZuL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08FKW7Y6R?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Mini Crossbody Sling Bag Water-Resistant Dual Pocket Chest Pack Lightweight…",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/41gWF9Q-6QL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BWH7GP46?tag=thegoodpresen-20"
         }
       ],
+      "position": 12,
+      "heading": "A Compact Crossbody Sling Bag",
       "editorialDescription": "A crossbody sling keeps a phone, keys, wallet, badge, and other small essentials close without the bulk of a larger work bag. Its compact shape works well for commuting, errands, and quick outings.",
       "whyItFits": "It supports the in-between moments of a nurse’s routine, when a full bag is unnecessary but pockets are not enough.",
       "bestFor": "A nurse who wants a small everyday bag for commuting and errands",

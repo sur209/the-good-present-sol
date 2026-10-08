@@ -41,17 +41,45 @@
     {
       "id": "review_10e59e75-a15e-4483-a705-ab27e98325ea",
       "productResolution": "unresolved",
-      "position": 1,
-      "heading": "Automatic wristwatch",
       "shoppingOptions": [
         {
-          "name": "FM301 square automatic watch",
-          "description": "An automatic watch with a square case for someone who enjoys mechanical accessories. Check dimensions and maintenance requirements before choosing.",
-          "affiliateUrl": "https://www.amazon.com/dp/B083BNDYLH?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71yQHlcn9vL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "name": "Men's Pro Diver Collection Coin-Edge Automatic Watch",
+          "description": "Compare this automatic wristwatch with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/711tP0gJ75L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B000JQJS6M?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Men's Pro Diver Automatic Watch",
+          "description": "Compare this automatic wristwatch with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71ITqw6hYbL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07M8F7HLJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Men's & Women's Pro Diver Automatic Watch",
+          "description": "Compare this automatic wristwatch with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71qSFCuqDiL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07JGH1ZW9?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Men's Watch",
+          "description": "Compare this automatic wristwatch with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/711Fz-mfHfL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0183NWFB2?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Men's 16036 Pro Diver Analog Display Automatic Self Wind Silver Watch",
+          "description": "Compare this automatic wristwatch with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61Te9YkD8IL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01N2WHP4G?tag=thegoodpresen-20"
         }
       ],
+      "position": 1,
+      "heading": "Automatic wristwatch",
       "editorialDescription": "An automatic wristwatch can mark a milestone with an accessory worn for years. Choose a restrained design that fits the recipient's everyday style and can move between casual and dressed-up settings.",
       "whyItFits": "It feels substantial and personal while remaining useful well beyond a particular shift or workplace.",
       "bestFor": "Someone who already wears watches or appreciates mechanical objects",
@@ -61,15 +89,44 @@
     },
     {
       "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-2",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "MATEIN Laptop Backpack",
-          "description": "A backpack with a laptop compartment and separate storage areas. Check the laptop dimensions and bag size; any charging feature still needs a separate power source.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81NLN-V4S2L._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B07HMMM934?tag=thegoodpresen-20"
+          "name": "MATEIN Travel Laptop Backpack",
+          "description": "Compare this commuter backpack with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71ocYTnmgeL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B06XZTZ7GB?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Lenovo Laptop Backpack B210",
+          "description": "Compare this commuter backpack with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/6157zAcYYVL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B075Y72PHZ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Volher Laptop Backpack",
+          "description": "Compare this commuter backpack with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81wJz33E29L._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07F2YJRN2?tag=thegoodpresen-20"
+        },
+        {
+          "name": "SWISSGEAR 1900 ScanSmart Laptop Backpack",
+          "description": "Compare this commuter backpack with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/716WdTwO7fL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B006HFJA12?tag=thegoodpresen-20"
+        },
+        {
+          "name": "The North Face Borealis Commuter Laptop Backpack",
+          "description": "Compare this commuter backpack with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71isbGx5gXL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CN9SD8JF?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 2,
       "heading": "A polished commuter backpack",
       "editorialDescription": "A commuter backpack can gather daily essentials for shifts, errands, and home in one carry. An understated style makes it useful in professional and casual settings, while organization should reflect what he actually brings.",
@@ -82,45 +139,59 @@
     {
       "id": "review_08602464-4e12-4ce6-b04b-427817a60801",
       "productResolution": "unresolved",
-      "position": 3,
-      "heading": "A Portable Muscle Massager",
       "shoppingOptions": [
-        {
-          "name": "AERLANG mini massage gun",
-          "description": "A portable percussion model for an existing recovery routine. Compare weight and attachments and follow the manufacturer's safety guidance.",
-          "affiliateUrl": "https://www.amazon.com/dp/B09TQC7CYZ?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/61QSuXJxLzL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
-        },
         {
           "name": "BOB AND BRAD Q2 Pro Mini Massager",
           "description": "A handheld percussion massager for someone who already enjoys this kind of relaxation accessory. Compare size, attachments, noise, and the manufacturer's use restrictions; it is not a medical treatment.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0D16W8531?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71iVIfcJKDL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi", "amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D16W8531?tag=thegoodpresen-20"
         },
         {
           "name": "BOB AND BRAD Q2 Mini Massager",
           "description": "A handheld percussion massager for someone who already enjoys this kind of relaxation accessory. Compare size, attachments, noise, and the manufacturer's use restrictions; it is not a medical treatment.",
-          "affiliateUrl": "https://www.amazon.com/dp/B08M8YSFC7?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71rl7e88AJL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi", "amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08M8YSFC7?tag=thegoodpresen-20"
         },
         {
           "name": "Arboleaf Mini Massage Gun",
           "description": "A handheld percussion massager for someone who already enjoys this kind of relaxation accessory. Compare size, attachments, noise, and the manufacturer's use restrictions; it is not a medical treatment.",
-          "affiliateUrl": "https://www.amazon.com/dp/B09NZ72B5X?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/61WjiYZOCnL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi", "amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09NZ72B5X?tag=thegoodpresen-20"
         },
         {
-          "name": "TOLOCO Massage Gun",
-          "description": "A handheld percussion massager for someone who already enjoys this kind of relaxation accessory. Compare size, attachments, noise, and the manufacturer's use restrictions; it is not a medical treatment.",
-          "affiliateUrl": "https://www.amazon.com/dp/B083L8RNJR?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71Jot9nj6qL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "name": "LifePro Sonic Massage Gun Percussion Muscle Massager",
+          "description": "Compare this massage gun with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71tzxgUSiLL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07QTBVYJ1?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Opove M3 Pro 2 Massage Gun Deep Tissue for Workout Recovery",
+          "description": "Compare this massage gun with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51VQlFR4o+L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07TWFK7JW?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Mebak 3 Massage Gun Deep Tissue",
+          "description": "Compare this massage gun with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/611wyVfOhQL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B083BY3B2T?tag=thegoodpresen-20"
+        },
+        {
+          "name": "BOB AND BRAD Q2 Ultra Mini Massage Gun with Red Light Infrared",
+          "description": "Compare this massage gun with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/713nh95DxcL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FKN2FSZS?tag=thegoodpresen-20"
         }
       ],
+      "position": 3,
+      "heading": "A Portable Muscle Massager",
       "editorialDescription": "A compact percussion massager is easy to keep near a sofa, desk, or gym bag for brief off-duty use. A small model feels substantial as a gift without taking over a shelf or requiring a complicated setup.",
       "whyItFits": "It supports recovery and relaxation while avoiding profession-themed stereotypes or employer-supplied gear.",
       "bestFor": "Someone who exercises, travels, or appreciates practical recovery tools",
@@ -130,71 +201,58 @@
     },
     {
       "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-4",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "Atlas Coffee Club Whole-Bean Sampler",
           "description": "A coffee sampler with beans from different origins. This is the whole-bean version, so confirm that the recipient has a grinder.",
           "imageUrl": "https://m.media-amazon.com/images/I/61IXvH6YM2L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
           "affiliateUrl": "https://www.amazon.com/dp/B09GW99L8W?tag=thegoodpresen-20"
-        },
-        {
-          "name": "Four-Bag Gourmet Whole-Bean Coffee Sampler",
-          "description": "A giftable assortment of whole-bean coffees with varied origins and roast profiles. Before buying, verify that the recipient has a grinder and a brewing method suited to whole beans.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BV2GXHDG?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71zldH22lPL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"]
-        },
-        {
-          "name": "Ground Coffee Tasting Box",
-          "description": "A multi-bag sampler of ground coffees featuring Brazilian, Kenyan, and Ethiopian profiles, with espresso-oriented options. Before buying, verify the grind is suitable for the recipient’s brewer or espresso machine.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BV798MJT?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71An954WTrL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"]
-        },
-        {
-          "name": "World Origins K-Cup Coffee Sampler",
-          "description": "A large assortment inspired by coffee origins including Colombia, Ethiopia, Kenya, and Costa Rica, with medium and dark roasts. Before buying, verify that the recipient’s machine accepts compatible K-Cup pods.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0H9V7ZZZ6?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/914-9D1TGpL._AC_UL320_.jpg",
-          "sources": ["amazon-agent"]
         },
         {
           "name": "Bit of Everything Single-Serve Coffee Sampler",
           "description": "A broad assortment of single-serve coffees for trying different flavors and styles. Before buying, verify compatibility with the recipient’s K-Cup or Keurig brewer.",
-          "affiliateUrl": "https://www.amazon.com/dp/B00N0JHZ6A?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/A1Nq1PwAjiL._AC_UL320_.jpg",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B00N0JHZ6A?tag=thegoodpresen-20"
         },
         {
           "name": "Nespresso Vertuo Intense Roast Variety Pack",
           "description": "A selection of intense dark-roast coffee pods for Nespresso Vertuo machines. Before buying, verify that the recipient owns a Vertuo system rather than an Original Line machine.",
-          "affiliateUrl": "https://www.amazon.com/dp/B01N011V5A?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71vhbkrErFL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"]
-        },
-        {
-          "name": "Hawaiian Paradise Three-Bag Coffee Gift Box",
-          "description": "A gift box containing three flavored coffee bags, including crème brûlée, peppermint mocha, and a medium roast. Before buying, verify whether the recipient prefers whole coffee, ground coffee, or another preparation format, since the title does not specify it.",
-          "affiliateUrl": "https://www.amazon.com/dp/B09M6D5D27?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71TObn44MLL._AC_UL320_.jpg",
-          "sources": ["amazon-agent"]
-        },
-        {
-          "name": "Forty-Count Flavored K-Cup Sampler",
-          "description": "A large assortment of flavored coffee pods for Keurig K-Cup brewers. Before buying, verify that the recipient’s machine accepts the listed K-Cup format and that flavored coffees suit their preferences.",
-          "affiliateUrl": "https://www.amazon.com/dp/B01N1A4MMW?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/911rPyFyYWL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01N011V5A?tag=thegoodpresen-20"
         },
         {
           "name": "Decaffeinated Flavored Coffee Pod Sampler",
           "description": "An assortment of flavored decaffeinated coffee pods intended for Keurig K-Cup brewers. Before buying, verify K-Cup compatibility and whether decaffeinated coffee matches the recipient’s routine.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BDB65Z6B?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/910veI8FSTL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BDB65Z6B?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Door County Coffee Gourmet Flavored Sampler Pack",
+          "description": "This version offers an assortment to try and a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71W4ANUrHqL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07PPP7SN4?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Starbucks Whole Coffee Beans",
+          "description": "This version offers an assortment to try and a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/8145WujhgPL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07LFSNK9M?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Atlas Coffee Club Coffee Sampler Gift Set",
+          "description": "This version offers an assortment to try and a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71bLF3gx8UL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09H18PMQH?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 4,
       "heading": "A coffee tasting set",
       "editorialDescription": "A coffee sampler turns a familiar drink into a small ritual, making it suitable for a birthday, thank-you, promotion, or everyday encouragement. Variety lets him explore preferences without committing the gift to one style.",
@@ -207,17 +265,45 @@
     {
       "id": "review_9102a651-bc8c-41c2-a073-b092d75c4a4e",
       "productResolution": "unresolved",
-      "position": 5,
-      "heading": "A Warm Hooded Lounge Robe",
       "shoppingOptions": [
         {
           "name": "Alexander Del Rossa hooded fleece robe",
           "description": "A hooded fleece robe for home lounging. Check the size chart, garment length and warmth level before choosing.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0D6ZR7DBT?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71LPQ2kn3XL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D6ZR7DBT?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Men's Plush Fleece Hooded Robe with Pockets",
+          "description": "Compare this hooded bathrobe with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81DvGn+yNOL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B086691KFP?tag=thegoodpresen-20"
+        },
+        {
+          "name": "U2SKIIN Mens Hooded Robe",
+          "description": "Compare this hooded bathrobe with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61VcRaPOgyL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07GSVDSF5?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ross Michaels Mens Robe Hooded Big and Tall Long Plush Fleece Bath…",
+          "description": "Compare this hooded bathrobe with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81x-QHPy1lL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07ND7DK73?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ross Michaels Mens Robe Hooded Wrap Style Mid Length Plush Fleece Bathrobe",
+          "description": "Compare this hooded bathrobe with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81xoNLgsz6L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01LG53Q5I?tag=thegoodpresen-20"
         }
       ],
+      "position": 5,
+      "heading": "A Warm Hooded Lounge Robe",
       "editorialDescription": "A soft hooded robe creates an easy layer for slow mornings, post-shower routines, or relaxed evenings at home. A simple solid color keeps it useful without relying on profession-themed decoration.",
       "whyItFits": "It offers a noticeable comfort upgrade and feels more substantial to receive than another pair of everyday slippers.",
       "bestFor": "Someone who values comfortable, low-key time at home",
@@ -227,15 +313,44 @@
     },
     {
       "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-6",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Shower Steamer Variety Set",
-          "description": "A six-piece shower steamer assortment. Check the scents and ingredients; these are for use in a shower, not as bath bombs.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71ZsjiiiZPL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0CJ6DH4MD?tag=thegoodpresen-20"
+          "name": "BodyRestore Shower Steamers Aromatherapy",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61Uwj2eMlML._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08FDCLXNP?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Shower Steamers for Women Gift Set 24pc Shower Bombs Aromatherapy Gift Set",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91Wlqboli1L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BCDXXRM7?tag=thegoodpresen-20"
+        },
+        {
+          "name": "BodyRestore Shower Steamers Aromatherapy",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71dJ+npggkL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BJYCRS51?tag=thegoodpresen-20"
+        },
+        {
+          "name": "BodyRestore Shower Steamers Aromatherapy",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/714wxDgW4oL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BJXRWWHX?tag=thegoodpresen-20"
+        },
+        {
+          "name": "TranquilBliss Shower Steamers",
+          "description": "Compare this shower steamer gift set with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/711y17r6qzL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CJ2K61WK?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 6,
       "heading": "A Shower Steamer Gift Set",
       "editorialDescription": "A shower steamer set adds a small home ritual after work or on a day off. It feels more considered when the scent profile and presentation match his preferences, making it easy to give for several occasions.",
@@ -247,43 +362,51 @@
     },
     {
       "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-7",
+      "productResolution": "unresolved",
       "shoppingOptions": [
-        {
-          "name": "Anlmz 3-in-1 Charging Station",
-          "description": "A charging stand for compatible Apple devices. Check the exact phone, watch, and earbuds models supported before ordering.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71jeB93YWmL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BFCC18FS?tag=thegoodpresen-20"
-        },
         {
           "name": "Anker Prime Foldable Charging Dock",
           "description": "A charging station to keep compatible devices together. Confirm the exact phone, watch, and earbud models supported, and whether the required power adapter is included.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0FHWK3W1S?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/610vBZrBPQL._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FHWK3W1S?tag=thegoodpresen-20"
         },
         {
-          "name": "Charging Station with Clock and Night Light",
-          "description": "A charging station to keep compatible devices together. Confirm the exact phone, watch, and earbud models supported, and whether the required power adapter is included.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0GVNGLVCB?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/81A+-WnjKoL._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "name": "Anker Prime 3-in-1 Qi2.2 MagSafe Compatible 25W Wireless Charging Station",
+          "description": "Compare this wireless charging station with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61nZaKC+I6L._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F9L1PPPJ?tag=thegoodpresen-20"
         },
         {
-          "name": "Foldable Three-Device Charging Station",
-          "description": "A charging station to keep compatible devices together. Confirm the exact phone, watch, and earbud models supported, and whether the required power adapter is included.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BQBNLCHY?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/617hyCMPr+L._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "name": "3 in 1 Foldable Wireless Charger Stand for iPhone Apple Watch AirPods",
+          "description": "This version offers a folding design. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71gnEu6NZ3L._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HCTMJYCY?tag=thegoodpresen-20"
         },
         {
-          "name": "Anlmz Three-Device Charging Station",
-          "description": "A charging station to keep compatible devices together. Confirm the exact phone, watch, and earbud models supported, and whether the required power adapter is included.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BF9TYJWR?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71BqMZSnhjL._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "name": "300W Charging Station for Multiple Devices",
+          "description": "Compare this wireless charging station with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71WCFrK809L._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H82H71Y3?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Belkin Qi2 15W Wireless Charging Dock",
+          "description": "Compare this wireless charging station with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61rVDRlc-YL._AC_UY218_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FQS1T3SK?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Aeinidi 25W 3 in 1 Wireless Fast Charging Station for Apple MagSafe Charger",
+          "description": "Compare this wireless charging station with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61Fh2SPIzSL._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H4NP15X8?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 7,
       "heading": "A tidy bedside charging station",
       "editorialDescription": "A bedside charging station gives everyday devices a consistent home, helping keep a nightstand or desk more orderly between workdays and time off. It is most thoughtful when it matches the devices and setup he already uses.",
@@ -296,17 +419,45 @@
     {
       "id": "serp_09946e4f_f24c_4d93_b0a6_e22f61ee7747",
       "productResolution": "unresolved",
-      "position": 8,
-      "heading": "A Large-Capacity Air Fryer",
       "shoppingOptions": [
         {
           "name": "Cosori TurboBlaze 6-quart air fryer",
           "description": "A countertop model for a household that would use the larger basket. Check counter clearance, power requirements and cleaning instructions.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0C33CHG99?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/81R9sA3IyBL._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi", "amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0C33CHG99?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Dash Tasti-Crisp Small Air Fryer",
+          "description": "Compare this large air fryer with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/514YCMftobL._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0815KPZVB?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Dash Tasti-Crisp Digital Air Fryer",
+          "description": "Compare this large air fryer with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61yMLt6vK4L._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08QQRH2Z9?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Chefman Air Fryer 6 QT Compact Airfryer for Quick & Easy Meals in Minutes",
+          "description": "Compare this large air fryer with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71WCBoDBHsL._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CNY1YVDD?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Gourmia Air Fryer 7 Qt Basket Capacity",
+          "description": "Compare this large air fryer with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71jdTtL0oNL._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08R6GZ2KP?tag=thegoodpresen-20"
         }
       ],
+      "position": 8,
+      "heading": "A Large-Capacity Air Fryer",
       "editorialDescription": "A roomy air fryer is a substantial home gift for preparing crisp vegetables, reheating leftovers, or cooking straightforward meals with one countertop appliance. The larger basket is especially useful for someone who cooks for a partner, family, or visiting friends.",
       "whyItFits": "It offers an obvious everyday upgrade and enough presence to feel like a real gift rather than another small organizer.",
       "bestFor": "A nurse who enjoys practical cooking and has room for a countertop appliance",
@@ -316,15 +467,51 @@
     },
     {
       "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-9",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "Popotop Photo Album",
           "description": "A linen-cover album with pockets for 4 by 6 inch photographs. Add your own photographs and captions before giving it.",
           "imageUrl": "https://m.media-amazon.com/images/I/710a1XchpeL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0CGCWY7ZJ?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B0CGCWY7ZJ?tag=thegoodpresen-20",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Personalized Photo Album",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51FrLA5ebfL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CSQGQPGZ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Promot Personalized Photo Album Custom Photo Book",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71G2EtlMqeL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DH536NC8?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Photo Album Custom Picture Album Customized Printed Cloth Photo…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/812YcQCOTyL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F1N2S6TG?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Custom Photo Book Personalized Photo Album Hard Cover 12P/20P/40P (10*10in)",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71XpMkRC0NL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HFJZRYPJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Blank Calendar",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61cEgziG9FL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CGB2HWVQ?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 9,
       "heading": "A photo book of shared memories",
       "editorialDescription": "A custom photo book turns shared moments into a keepsake for a birthday, thank-you, promotion, holiday, or meaningful encouragement. It acknowledges the person behind the profession through photos, captions, and moments that belong to your relationship.",
@@ -336,15 +523,44 @@
     },
     {
       "id": "guide_f5720ed1-893a-4ea8-9d3f-540fe2ef5d5e_slot-10",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "The Crew: Mission Deep Sea",
           "description": "A cooperative card game for two to five players. Check the edition's language and player requirements before choosing it.",
           "imageUrl": "https://m.media-amazon.com/images/I/71dY-l2nbBL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
           "affiliateUrl": "https://www.amazon.com/dp/B08TX1GGSH?tag=thegoodpresen-20"
+        },
+        {
+          "name": "The Mind Card Game Addictive Mind-Melding Fun",
+          "description": "Compare this cooperative card game with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71ibImCtJaL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07C4F3KLF?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Thames & Kosmos The Crew: The Quest for Planet Nine",
+          "description": "Compare this cooperative card game with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71KCKQDRiHL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B084GP7X3P?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Rick and Morty Total Rickall Cooperative Card Game",
+          "description": "Compare this cooperative card game with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71DBOZSnSOL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01BEZTEXS?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Arkham Horror Card Game Mystery Cooperative Card Game for Ages 14+",
+          "description": "Compare this cooperative card game with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81+-lu0Fe8S._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01L3ZTXS0?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 10,
       "heading": "A Cooperative Card Game",
       "editorialDescription": "A cooperative card game creates a low-pressure way to unwind and spend time with a partner, friends, or family. Its value comes from being genuinely playable by the people around him, not from a profession-themed joke.",
@@ -357,17 +573,52 @@
     {
       "id": "serp_184ebaa5_a4a1_456a_8427_3cfe0b0aa5b8",
       "productResolution": "unresolved",
-      "position": 11,
-      "heading": "A Movie-Night Gift Box",
       "shoppingOptions": [
         {
           "name": "DateNUp movie-night gift box",
           "description": "A packaged movie-night gift for a shared evening. Check the current contents and any food ingredients; the listing does not include a film subscription unless stated.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0FSL4R92B?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/81qURDy1RsL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FSL4R92B?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Urban Accents Movie Night Popcorn Gift Set",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81Cmn1ERtSL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07JN5467R?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Pop n' Dulge Popcorn Movie Night Supplies 16 pcs Gift Set",
+          "description": "This version offers an assortment to try and a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81ZCAoimEAL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B4X5SLKC?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Halloween Gifts Popcorn Spooky Movie Night Gift Basket Gourmet Kernels and…",
+          "description": "This version offers an assortment to try and a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/817sVO1sE9L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CGBYMPFY?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Movie Night Popcorn Gift Set",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61-GhQQvE7L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B25S6T1N?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Movie Night Gift Basket 42-Piece Movie Night Supplies Box Popcorn Candy Set",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81YQLhEPemL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BNGT2W9M?tag=thegoodpresen-20"
         }
       ],
+      "position": 11,
+      "heading": "A Movie-Night Gift Box",
       "editorialDescription": "A movie-night gift box brings together snacks and simple comforts for an easy evening at home. It can be enjoyed solo or shared with friends, family, or a partner whenever the recipient has time off.",
       "whyItFits": "It supports an uncomplicated way to relax after a demanding schedule while leaving the recipient free to choose the film and company.",
       "bestFor": "Someone who enjoys low-key evenings with a favorite movie or television series.",
@@ -378,17 +629,45 @@
     {
       "id": "serp_7f8a0cc7_0654_444b_82a4_0abf9ad84894",
       "productResolution": "unresolved",
-      "position": 12,
-      "heading": "Stainless-Steel Oven and Storage Trays",
       "shoppingOptions": [
         {
-          "name": "Stainless-steel oven and storage tray set",
-          "description": "A set of metal trays with storage lids for preparing meals. Check dimensions and which parts are suitable for the oven, freezer and dishwasher.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0F93M45DD?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/61cG-3I+aQL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "name": "Wildone Baking Sheet with Rack Set (3 Pans + 3 Racks)",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81WIQIARcAL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07NNQ4G96?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Wildone Baking Sheet & Rack Set [2 Sheets + 2 Racks]",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/718AmgWLnoL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07NN8TFQN?tag=thegoodpresen-20"
+        },
+        {
+          "name": "TeamFar Stainless Steel Compact Toaster Oven Pan Tray Ovenware",
+          "description": "Compare this stainless steel oven baking trays with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51GCmofsljL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01L3L81IC?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Baking Sheet with Cooling Wire Rack Set",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61IW0gZUgEL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08SVYWVMX?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Half Baking Sheet Pan Cooling Rack Set",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71bDR+XEx2L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0992HQPL8?tag=thegoodpresen-20"
         }
       ],
+      "position": 12,
+      "heading": "Stainless-Steel Oven and Storage Trays",
       "editorialDescription": "A set of stainless-steel trays provides space for preparing ingredients, cooking, and storing food when the individual pieces are designed for those uses. A nesting set is useful for someone who likes to organize several parts of a meal at once.",
       "whyItFits": "It supports a home-cooking routine with reusable pieces that stack away between meals.",
       "bestFor": "A home cook building a practical kitchen setup or refreshing everyday tools.",

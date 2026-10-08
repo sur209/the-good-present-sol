@@ -28,17 +28,45 @@
     {
       "id": "serp_9fca8240_da6a_4453_9aaa_7d114d35955f",
       "productResolution": "unresolved",
-      "position": 1,
-      "heading": "An Air-Compression Leg Massager",
       "shoppingOptions": [
         {
           "name": "MEKZU air-compression leg massager",
           "description": "A heated compression model for home relaxation. Review sizing, controls and safety restrictions; it is not a substitute for medical care.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0GWJ3PDMS?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/81jtk++hhvL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GWJ3PDMS?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Leg Massager with Heat and Compression for Circulation",
+          "description": "Compare this air compression leg massager with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81xBl9ztmYL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GY8BMX4Y?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Air Compression Leg Massager with Heat for Circulation",
+          "description": "Compare this air compression leg massager with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91qvNHn8UnL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GYCKTVX3?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Sequential Leg Compression Massager for Circulation : Full Leg Air…",
+          "description": "Compare this air compression leg massager with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81ZoKR1JrGL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GWZVSSTZ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Leg Compression Massager",
+          "description": "Compare this air compression leg massager with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71SFehsFomL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CTYXH2Q9?tag=thegoodpresen-20"
         }
       ],
+      "position": 1,
+      "heading": "An Air-Compression Leg Massager",
       "editorialDescription": "An air-compression leg massager creates a substantial at-home wind-down ritual after an overnight schedule. Wraparound sections for the feet and calves make it more distinctive than another small comfort item, while adjustable controls let the recipient choose how they use it.",
       "whyItFits": "It gives the recipient a concrete off-shift comfort setup without becoming workplace equipment or a nurse-themed novelty.",
       "bestFor": "A night-shift nurse who already enjoys compression-style massage at home",
@@ -49,17 +77,45 @@
     {
       "id": "review_3685ec52-5e19-4b71-a133-e9639effe4bd",
       "productResolution": "unresolved",
-      "position": 2,
-      "heading": "A Cooling Pillowcase Set for Daytime Sleep",
       "shoppingOptions": [
         {
           "name": "Ultra-Chill cooling pillowcase pair",
           "description": "A pair of zippered pillow covers to compare for a sleep setup. Check the exact fabric, size and washing instructions on the listing.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0FFM8XY9K?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/81Kc1QIprpL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FFM8XY9K?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Bedsure Pillow Cases Queen Set of 2 Dark Grey Double Brushed Microfiber…",
+          "description": "This version offers a multi-piece format. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71-A+zzwEgL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07PJ4YCL4?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Dreamcare King Black Pillow Cases Set of 2 Double Brushed 1500 Series…",
+          "description": "This version offers a multi-piece format. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61y2tddTuPL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07Z4SWJCS?tag=thegoodpresen-20"
+        },
+        {
+          "name": "King Pillowcases by Pure Bamboo Genuine 100% Organic Viscose Derived from Bamboo",
+          "description": "Compare this cooling pillowcase set with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61bCAdRx3WL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07MZ92DML?tag=thegoodpresen-20"
+        },
+        {
+          "name": "THREAD SPREAD 100% Cotton Pillow Cases Queen Size Set of 2 400 Thread…",
+          "description": "This version offers a multi-piece format. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71ZepKLmvsL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09ZHS2YHZ?tag=thegoodpresen-20"
         }
       ],
+      "position": 2,
+      "heading": "A Cooling Pillowcase Set for Daytime Sleep",
       "editorialDescription": "A breathable pillowcase set can make a daytime sleep setup feel cooler and more intentional without adding another device. A neutral pair is easy to rotate through laundry days and works beyond shift weeks.",
       "whyItFits": "It responds directly to sleeping after sunrise while feeling like a comfortable home upgrade rather than work equipment.",
       "bestFor": "A night-shift nurse whose room tends to feel warm during the day",
@@ -70,17 +126,45 @@
     {
       "id": "review_f8cad862-dcee-4a30-91e8-4c492eb23e74",
       "productResolution": "unresolved",
-      "position": 3,
-      "heading": "An Electric Neck-and-Shoulder Heating Pad",
       "shoppingOptions": [
         {
-          "name": "Weighted electric shoulder heating pad",
-          "description": "An electric wrap for the neck and shoulders. Check plug compatibility, heat controls and safety instructions; do not use while sleeping.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0CGM2SWK2?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/712vPB9eJIL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "name": "Heating Pad for Neck and Shoulders",
+          "description": "Compare this neck shoulder heating pad with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/818ZSJFLbFL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H1CGNR2C?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Graphene-Infused Instant Heating Pad with 3M Thinsulate",
+          "description": "Compare this neck shoulder heating pad with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/819viSU3TkL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FPMG7Q91?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Heating Pad for Neck & Shoulders & Back: Electric Instant Heat 2026 Upgrade",
+          "description": "Compare this neck shoulder heating pad with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71RdyHDHElL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HDJ2KW8X?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Neck and Shoulder Heating Pad for Pain Relief",
+          "description": "Compare this neck shoulder heating pad with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61dQ1qX8aGL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DXZT6CFQ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Fast-Heating Far Infrared Heating Pad for Neck Shoulders and Back",
+          "description": "Compare this neck shoulder heating pad with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71OSb2OUCWL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GX129R8L?tag=thegoodpresen-20"
         }
       ],
+      "position": 3,
+      "heading": "An Electric Neck-and-Shoulder Heating Pad",
       "editorialDescription": "A shaped electric heating pad adds adjustable warmth to a seated wind-down routine at home. A neck-and-shoulder design stays focused on that area without requiring a full heated blanket.",
       "whyItFits": "It is a reusable home-comfort gift for someone who already enjoys gentle warmth after a long day.",
       "bestFor": "A night-shift nurse who enjoys warmth while reading or unwinding",
@@ -90,15 +174,44 @@
     },
     {
       "id": "guide_63fde941-0c72-439d-869d-cd3c991132c5_slot-4",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "MATEIN Laptop Backpack",
-          "description": "A backpack with a laptop compartment and separate storage areas. Check the laptop dimensions and bag size; any charging feature still needs a separate power source.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81NLN-V4S2L._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B07HMMM934?tag=thegoodpresen-20"
+          "name": "MATEIN Travel Laptop Backpack",
+          "description": "Compare this commuter backpack with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71ocYTnmgeL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B06XZTZ7GB?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Lenovo Laptop Backpack B210",
+          "description": "Compare this commuter backpack with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/6157zAcYYVL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B075Y72PHZ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Volher Laptop Backpack",
+          "description": "Compare this commuter backpack with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81wJz33E29L._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07F2YJRN2?tag=thegoodpresen-20"
+        },
+        {
+          "name": "SWISSGEAR 1900 ScanSmart Laptop Backpack",
+          "description": "Compare this commuter backpack with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/716WdTwO7fL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B006HFJA12?tag=thegoodpresen-20"
+        },
+        {
+          "name": "The North Face Borealis Commuter Laptop Backpack",
+          "description": "Compare this commuter backpack with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71isbGx5gXL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CN9SD8JF?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 4,
       "heading": "An Organized Commuter Backpack",
       "editorialDescription": "A commuter backpack gathers the items that travel with them between home, transit, and work. Look for a layout that makes personal essentials easy to find without adding novelty branding or assuming what clinical equipment they carry.",
@@ -110,15 +223,44 @@
     },
     {
       "id": "guide_63fde941-0c72-439d-869d-cd3c991132c5_slot-5",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Anker Nano Power Bank",
-          "description": "A portable battery for charging compatible devices away from an outlet. Check the connector, capacity, and charging requirements of the recipient's phone.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51J2B-9T-HL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0D45MSMJR?tag=thegoodpresen-20"
+          "name": "Miady 2-Pack Portable Charger",
+          "description": "This version offers a multi-piece format. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51FkvjwnydL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GQH1QHDH?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Anker Power Bank",
+          "description": "Compare this portable power bank with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61jWG2JyYNL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CXDXP8VR?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Anker Power Bank",
+          "description": "This version offers a multi-piece format. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71JJLJnwREL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D5CLSMFB?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Anker Zolo Magnetic Power Bank",
+          "description": "Compare this portable power bank with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61NmRnphNJL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DCNKDS5B?tag=thegoodpresen-20"
+        },
+        {
+          "name": "VRURC Portable Charger",
+          "description": "Compare this portable power bank with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61seywU2r2L._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DR84888W?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 5,
       "heading": "A Compact Portable Power Bank",
       "editorialDescription": "A portable power bank can be handy when a phone needs topping up during a long shift or the journey home. It is a practical small gift that stays relevant without assuming the recipient’s work setup.",
@@ -131,17 +273,45 @@
     {
       "id": "serp_d916b5d8_a250_4f6e_903b_c4550d5e3acd",
       "productResolution": "unresolved",
-      "position": 6,
-      "heading": "A Nesting Food-Prep Bowl Set",
       "shoppingOptions": [
         {
           "name": "COOK WITH COLOR nesting prep bowls",
           "description": "A lidded nesting bowl set for small food-preparation tasks. Compare the bowl sizes, material and storage space.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0CCBX4K5Q?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/51V-wibwfbL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CCBX4K5Q?tag=thegoodpresen-20"
+        },
+        {
+          "name": "COOK WITH COLOR Mixing Bowls with Lids 12 Piece Plastic Nesting Bowls Set…",
+          "description": "This version offers a nesting or stacking format and a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71WJFVJacOL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CG68QPTB?tag=thegoodpresen-20"
+        },
+        {
+          "name": "COOK WITH COLOR Mixing Bowls with TPR Lids 12 Piece Plastic Nesting Bowls…",
+          "description": "This version offers a nesting or stacking format and a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Dfr5zbMML._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D1GKLCLT?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Wildone Mixing Bowls with Airtight Lids Set",
+          "description": "This version offers a nesting or stacking format and a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71dqDSOHnPL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07N646N9S?tag=thegoodpresen-20"
+        },
+        {
+          "name": "KitchenAid Universal Nesting Plastic Mixing Bowls",
+          "description": "This version offers a nesting or stacking format and a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51by0bpLdLL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0888TF9PK?tag=thegoodpresen-20"
         }
       ],
+      "position": 6,
+      "heading": "A Nesting Food-Prep Bowl Set",
       "editorialDescription": "A coordinated set of prep bowls with fitted lids helps portion ingredients, store leftovers, and prepare several meals without filling a cabinet with mismatched containers. A colorful or polished set can feel like a genuine kitchen upgrade rather than basic meal-storage gear.",
       "whyItFits": "It supports flexible meal preparation around overnight hours and remains useful for cooking, serving, and storage on days off.",
       "bestFor": "A night-shift nurse who cooks ahead or likes an organized kitchen",
@@ -152,17 +322,45 @@
     {
       "id": "serp_01382b2b_abf7_4d22_92fc_308091b8909f",
       "productResolution": "unresolved",
-      "position": 7,
-      "heading": "A Large-Capacity Heated Lunch Container",
       "shoppingOptions": [
         {
-          "name": "Double-layer electric lunch box",
-          "description": "A larger heated lunch container for someone with a suitable place to plug it in. Compare capacity, weight and cleaning instructions.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0FNQZ7S3R?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/812p4gSdSEL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "name": "TRAVELISIMO Electric Lunch Box for Adults 100W Heated Lunch Box For Men 1.5L…",
+          "description": "Compare this large electric heated lunch box with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/818YnSGXmkL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D22TGD88?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Buddew Electric Heated Lunch Box",
+          "description": "Compare this large electric heated lunch box with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81Bil7LPpAL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09G2X39MK?tag=thegoodpresen-20"
+        },
+        {
+          "name": "TRAVELISIMO Extra-Large Electric Lunch Box For Adults Holds up to 8 Cups…",
+          "description": "Compare this large electric heated lunch box with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81xW25lAaBL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D5RZ7BRD?tag=thegoodpresen-20"
+        },
+        {
+          "name": "DUPASU Electric Lunch Box Food Warmer",
+          "description": "Compare this large electric heated lunch box with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71+pDemTNuL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DG8KFCTJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "SOHIDA 1.5L Electric Lunch Box Food Heater",
+          "description": "Compare this large electric heated lunch box with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/715a83Wv22L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CS9L17ZR?tag=thegoodpresen-20"
         }
       ],
+      "position": 7,
+      "heading": "A Large-Capacity Heated Lunch Container",
       "editorialDescription": "A heated lunch container gives the recipient a self-contained way to warm a substantial packed meal when their break falls outside ordinary dining hours. A larger, divided design can keep different parts of the meal organized without relying on a shared kitchen setup.",
       "whyItFits": "It responds directly to an overnight schedule with a concrete product that can travel between home, work, and other long days.",
       "bestFor": "A night-shift nurse who regularly brings a full meal from home",
@@ -172,15 +370,51 @@
     },
     {
       "id": "review_06381bf4-d157-4ca6-afca-d2a891fe44a4",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "PoKat Touch Bedside Lamps",
           "description": "A pair of touch-controlled bedside lamps. Review the dimming settings, plug compatibility, and included bulbs before ordering.",
           "imageUrl": "https://m.media-amazon.com/images/I/81ssOvcVW8L._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0F6WD58BJ?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B0F6WD58BJ?tag=thegoodpresen-20",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "Yarra-Decor Bedside Table Lamp with USB Ports",
+          "description": "Compare this dimmable bedside lamp with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51x--gHbxuL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B087CDBKCH?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Fenmzee Bedside Table Lamp for Bedroom Dimmable Touch",
+          "description": "Compare this dimmable bedside lamp with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71zreHoOzVL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BZXNSW5K?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Fenmzee Brown Bedside Lamp for Bedroom",
+          "description": "Compare this dimmable bedside lamp with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/618JNC5zC7L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DJ6XPMY9?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Touch Bedside Table LED Lamp",
+          "description": "Compare this dimmable bedside lamp with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51F1eWcmohL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BR5JHB3Z?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Dicoool Bedside Table Lamp for Bedroom 3-Way Dimmable Touch Lamp",
+          "description": "Compare this dimmable bedside lamp with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71RL9RdCSzL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DD7JFK68?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 8,
       "heading": "A Dimmable Bedside Accent Lamp",
       "editorialDescription": "A small accent lamp gives a bedside table or living-room corner a gentle pool of light. An adjustable shade lets the recipient choose the atmosphere for arriving home, having a drink, or settling into quiet time.",
@@ -192,15 +426,44 @@
     },
     {
       "id": "guide_63fde941-0c72-439d-869d-cd3c991132c5_slot-9",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Loop Quiet 2 Earplugs",
-          "description": "Reusable earplugs with interchangeable tips. Fit and comfort are personal, so check the sizing and return terms.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51vun8qtNlL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0D3V61JC8?tag=thegoodpresen-20"
+          "name": "AZEN 55 Pairs Silicone Ear Plugs",
+          "description": "Compare this reusable noise reducing earplugs with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/815FFSmXLOL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DJ8PYSXM?tag=thegoodpresen-20"
+        },
+        {
+          "name": "45dB Ear Plugs for Sleeping Noise Cancelling Ear Plugs for Noise Reduction &…",
+          "description": "Compare this reusable noise reducing earplugs with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/519CH-PAehL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H6HMJG59?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ear Plugs for Sleeping 50dB Earplugs Noise Cancelling Ear Plugs for Noise…",
+          "description": "Compare this reusable noise reducing earplugs with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61tBi3z0zAL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H6S4QCGT?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ear Plugs for Sleeping",
+          "description": "Compare this reusable noise reducing earplugs with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71JwCL+GmXL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GDZLZVNJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ear Plugs for Sleeping Noise Cancelling",
+          "description": "Compare this reusable noise reducing earplugs with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71RTXEaQ4CL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HJGS9VVN?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 9,
       "heading": "Reusable Noise-Reducing Earplugs",
       "editorialDescription": "Noise-reducing earplugs offer a small, portable way to make quiet time at home or on a commute feel more intentional. They can suit someone who prefers a low-profile option and does not want another bulky item.",
@@ -213,31 +476,52 @@
     {
       "id": "review_9143db57-0df8-4e49-bb74-f06cf5cd038b",
       "productResolution": "unresolved",
-      "position": 10,
-      "heading": "A Portable Watercolor Painting Kit",
       "shoppingOptions": [
         {
           "name": "ARTISTRO x Hannah M.P watercolor kit",
           "description": "A portable painting set in a bamboo box with brushes and paper. Check the included colors and supplies against the recipient's existing kit.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0CFLXPZS5?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/81PnmR50t+L._AC_UL320_.jpg",
-          "sources": ["serpapi"]
-        },
-        {
-          "name": "Fuumuui Travel Watercolor Kit",
-          "description": "A compact watercolor set for painting away from a full studio. Check which brushes, paper, and mixing surfaces are included.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0G5191G5F?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/719+9a9v2nL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CFLXPZS5?tag=thegoodpresen-20"
         },
         {
           "name": "Winsor & Newton Cotman Field Set",
           "description": "A compact watercolor set for painting away from a full studio. Check which brushes, paper, and mixing surfaces are included.",
-          "affiliateUrl": "https://www.amazon.com/dp/B000N9B3WM?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71-1LAWLicL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B000N9B3WM?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Artecho 100 Colors Watercolor Paint Set with Metallics",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/7181p9JwTaL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CLTLKQWF?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Artecho 50-Color Watercolor Paint Set",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81JWkKM-q+L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BVZBRPDD?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Watercolor Paint Set 50 Travel Watercolors Kit for Adults",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81L1trzypbL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BZHQ1VCW?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Funto Mini Watercolor Paint Set",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81WNuLAh44L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DJ791K18?tag=thegoodpresen-20"
         }
       ],
+      "position": 10,
+      "heading": "A Portable Watercolor Painting Kit",
       "editorialDescription": "A compact watercolor set creates an easy invitation to make something on a quiet day off. A small palette, a couple of good brushes, and a travel pad are enough to begin without turning the gift into a major new commitment.",
       "whyItFits": "It gives the recipient a concrete way to shift attention away from work and screens at their own pace.",
       "bestFor": "Someone who likes creative hobbies or wants a calmer off-duty ritual",
@@ -248,52 +532,66 @@
     {
       "id": "serp_5d1b6307_c94f_44d0_bd5c_a3d5760a0b39",
       "productResolution": "unresolved",
-      "position": 11,
-      "heading": "A Temperature-Control Electric Kettle",
       "shoppingOptions": [
         {
           "name": "Govee temperature-control kettle",
           "description": "A gooseneck electric kettle for a tea or coffee setup. Check capacity, temperature settings, plug type and whether smart features would be useful.",
-          "affiliateUrl": "https://www.amazon.com/dp/B09TSKDKCL?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/614JetLU+tL._AC_UL320_.jpg",
-          "sources": ["serpapi", "amazon-agent"]
-        },
-        {
-          "name": "Chefman Temperature-Control Glass Kettle",
-          "description": "A 1.8 L glass kettle with five preset temperature settings, an infuser, LED indicators, and a 360-degree rotating base. Verify voltage, counter space, and whether the glass design suits the recipient before buying.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81kasfUEgcL._AC_UL480_FMwebp_QL65_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B07FNW57J7?tag=thegoodpresen-20",
-          "sources": ["amazon-agent"]
+          "sources": ["serpapi", "amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09TSKDKCL?tag=thegoodpresen-20"
         },
         {
           "name": "Gooseneck Temperature-Control Kettle",
           "description": "A 0.8 L stainless-steel gooseneck kettle with customizable temperature presets for tea and coffee and a keep-warm option. Verify voltage, capacity, and kitchen compatibility before buying.",
           "imageUrl": "https://m.media-amazon.com/images/I/81H6AIHw9aL._AC_UL480_FMwebp_QL65_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B06XPLM49J?tag=thegoodpresen-20",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B06XPLM49J?tag=thegoodpresen-20"
         },
         {
           "name": "Gooseneck Kettle with Integrated Timer",
           "description": "A 0.8 L stainless-steel gooseneck kettle with temperature control, 1200 W heating, and an integrated timer for coffee and tea. Verify voltage, timer controls, and kitchen compatibility before buying.",
           "imageUrl": "https://m.media-amazon.com/images/I/61ZGpdDamjL._AC_UL480_FMwebp_QL65_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0B1MLVMY5?tag=thegoodpresen-20",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B1MLVMY5?tag=thegoodpresen-20"
         },
         {
           "name": "1.7 L Temperature-Control Kettle",
           "description": "A 1.7 L electric kettle with temperature control and 1500 W power. Verify the available temperature settings, voltage, and machine compatibility before buying.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0H3P2Q4SL?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71Mm9BgufmL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H3P2Q4SL?tag=thegoodpresen-20"
         },
         {
-          "name": "1 L Seven-Setting Kettle",
-          "description": "A 1 L electric kettle with 1200 W power, seven temperature settings, and a four-hour keep-warm function. Verify voltage, control layout, and machine compatibility before buying.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0H93JQXWF?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/61HdrCr5OUL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"]
+          "name": "Cosori Electric Kettle with Temperature Control",
+          "description": "Compare this temperature control electric kettle with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61xDp9Wx9RL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08BFMV68M?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Amazon Basics Electric Kettle with Glass Carafe for Tea and Coffee",
+          "description": "Compare this temperature control electric kettle with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61rMZtKYnGL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B082MVGP8T?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Cosori Gooseneck Electric Kettle with Temperature Control",
+          "description": "Compare this temperature control electric kettle with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51wSbjhVnZL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07T1CH2HH?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Mecity Electric Kettle 1.7L Touch Screen Temperature Control Water Boiler",
+          "description": "Compare this temperature control electric kettle with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61uXJ4l2ofL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FV857DSP?tag=thegoodpresen-20"
         }
       ],
+      "position": 11,
+      "heading": "A Temperature-Control Electric Kettle",
       "editorialDescription": "A temperature-control electric kettle makes it easy to prepare tea, cocoa, or another favorite hot drink at home. It can become part of a quiet daytime wind-down or a convenient break before heading to work.",
       "whyItFits": "It acknowledges the recipient’s need for comforting routines around an overnight schedule without assuming what they drink or how they relax.",
       "bestFor": "Someone who enjoys hot drinks and appreciates a simple home ritual.",
@@ -304,38 +602,52 @@
     {
       "id": "serp_09b5da01_a585_44a9_9b65_ee65928d3fa7",
       "productResolution": "unresolved",
-      "position": 12,
-      "heading": "An Assorted Tea Bag Collection",
       "shoppingOptions": [
         {
           "name": "Stash assorted tea bag sampler",
           "description": "A tea assortment to explore different flavors. Check the included blends, caffeine content and ingredients for the recipient's preferences.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0F4F3TL1X?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/91AyTh1CQmL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F4F3TL1X?tag=thegoodpresen-20"
         },
         {
           "name": "Tea Forte Tea Sampler",
           "description": "An assortment for trying different teas without loose-leaf equipment. Check the ingredient list and caffeine content before choosing.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0GM1CNL5R?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71aeDlPeNqL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GM1CNL5R?tag=thegoodpresen-20"
         },
         {
           "name": "Pukka Herbal Tea Bags",
           "description": "An assortment for trying different teas without loose-leaf equipment. Check the ingredient list and caffeine content before choosing.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0D5MFLFM2?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71PzTq29oSL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D5MFLFM2?tag=thegoodpresen-20"
         },
         {
           "name": "Stash Herbal Tea Assortment",
           "description": "An assortment for trying different teas without loose-leaf equipment. Check the ingredient list and caffeine content before choosing.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0CP8FZJ14?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71Nl3T7CYlL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CP8FZJ14?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ahmad Tea Variety Gift Box",
+          "description": "This version offers an assortment to try. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81QyRGm+uTL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B004UWZ090?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Celestial Seasonings Herbal Tea Sampler Variety Pack",
+          "description": "This version offers an assortment to try and a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81XyLJ0JwFL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B004CIUU6K?tag=thegoodpresen-20"
         }
       ],
+      "position": 12,
+      "heading": "An Assorted Tea Bag Collection",
       "editorialDescription": "An assorted tea bag collection offers a range of flavors to sample at home, bring along, or share with others. The variety lets the recipient choose something suited to the moment rather than committing to one blend.",
       "whyItFits": "It is an approachable thank-you for someone whose schedule may make small, flexible comforts especially welcome.",
       "bestFor": "A tea drinker who likes variety or enjoys sharing a warm drink with coworkers or guests.",

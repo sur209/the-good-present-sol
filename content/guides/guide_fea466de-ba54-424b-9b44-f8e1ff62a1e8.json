@@ -18,15 +18,51 @@
   "recommendations": [
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-1",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "EverFoams Slipper Boots",
           "description": "Slipper boots with a soft warm lining. Review the material, size chart, and care instructions to match the recipient's preferences.",
           "imageUrl": "https://m.media-amazon.com/images/I/81bVmFu1lKL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BJZGD8SD?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B0BJZGD8SD?tag=thegoodpresen-20",
+          "sources": ["amazon-agent"]
+        },
+        {
+          "name": "ULTRAIDEAS Mens Warm Fuzzy Slip On Slippers",
+          "description": "Compare this fleece lined slippers with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61CDaaKCXIL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09KXVDPXV?tag=thegoodpresen-20"
+        },
+        {
+          "name": "shoeslocker Men's Slippers Indoor Outdoor Warm Soft Plush Memory Foam House…",
+          "description": "Compare this fleece lined slippers with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81yAhtvYSYL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07WVY1N9H?tag=thegoodpresen-20"
+        },
+        {
+          "name": "SDBING Fuzzy Slipper Socks for Women with Grips",
+          "description": "Compare this fleece lined slippers with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81WuEqdD+-L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01MXFH0PG?tag=thegoodpresen-20"
+        },
+        {
+          "name": "WateLves Women's Slippers Comfort Memory Foam House Slippers Plush Lining…",
+          "description": "Compare this fleece lined slippers with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81BakdUMVOL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07H318KRP?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Crocs Unisex-Adult Classic Fleece Lined Clogs",
+          "description": "Compare this fleece lined slippers with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61j-WBNh04L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F5GT34CG?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 1,
       "heading": "Fleece-Lined Slippers",
       "editorialDescription": "Fleece-lined slippers make the move from a long shift to a winter evening at home feel more comfortable. They offer a warm, useful gesture without relying on nurse-themed decoration.",
@@ -38,15 +74,44 @@
     },
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-2",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Gourmet Nut Gift Basket",
-          "description": "A packaged assortment of sweet, salted, and roasted nuts. Review the contents and allergen information before giving it.",
-          "imageUrl": "https://m.media-amazon.com/images/I/919ORz0v6IL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B08X94JGJ1?tag=thegoodpresen-20"
+          "name": "Chocolate Gift Basket",
+          "description": "Compare this gourmet snack gift basket with the other options for the recipient's routine and preferences. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81bnwjXx4LL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07K38QBKQ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Dried Fruit Gift Basket Healthy Gourmet Snack Box Holiday Food Tray Variety…",
+          "description": "This version offers an assortment to try. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71baxHB-fYL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07CHSN691?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ferrero Collection Gourmet Gift Box",
+          "description": "This version offers a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81Fm7Im+R7L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BPLGVTPB?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Pop n' Dulge Popcorn Movie Night Supplies 16 pcs Gift Set",
+          "description": "This version offers an assortment to try and a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81ZCAoimEAL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B4X5SLKC?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ferrero Collection Gourmet Gift Box",
+          "description": "This version offers a multi-piece format. Review the included foods, ingredients, allergens, and expiry information before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91h8Bs29CuL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0G2WPBZ1L?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 2,
       "heading": "Gourmet Snack Basket",
       "editorialDescription": "A thoughtfully assembled snack basket gives a nurse something festive to open and share during holiday visits. A balanced mix of sweet and savory treats keeps it useful for casual family grazing.",
@@ -58,15 +123,44 @@
     },
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-3",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Bamboo Cheese Board Set",
-          "description": "A bamboo serving board with accessories. Check the board's dimensions and cleaning instructions before choosing it for the recipient's kitchen.",
-          "imageUrl": "https://m.media-amazon.com/images/I/81Ms6RgWvqL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B01DTFF0Y8?tag=thegoodpresen-20"
+          "name": "SMIRLY Charcuterie Board Set with Serving Accessories",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/8142dAEim3L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07DL7ZV31?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Kikcoin 17\"×11\" Bamboo Cutting Boards for Kitchen",
+          "description": "Compare this wooden serving board with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/819GDbFB7ZL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CC8SZRT3?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Cutting Board",
+          "description": "This version offers a customization option. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71I10KXFk4L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BPGHJ7YX?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Tayfus Personalized Cutting Board",
+          "description": "This version offers a customization option. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61CbFog5RvL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BMW99L2Q?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Miicol Wood Charcuterie Board",
+          "description": "This version offers an initial or monogram design. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61inosugq1L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B077RMTN78?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 3,
       "heading": "Wooden Serving Board",
       "editorialDescription": "A wooden serving board brings a warm, useful touch to holiday hosting, from arranging appetizers to setting out snacks for family. Its everyday purpose gives the gift staying power beyond one gathering.",
@@ -78,15 +172,44 @@
     },
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-4",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "Crown Awards Engraved Photo Frame",
           "description": "A personalized frame for a 5 by 7 inch photograph. Check the engraving text and orientation, and add your own photo before giving it.",
           "imageUrl": "https://m.media-amazon.com/images/I/71lmovvGHsL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
           "affiliateUrl": "https://www.amazon.com/dp/B07PH2TYM1?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Picture Frame Gift for Dad Sentimental Dad Picture Frame with…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/814ryKOEXrL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07TXM4BQ1?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Picture Frame with Custom Letter Board Two Photo Display for Mom",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81puALmk9hL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07N8DRRSG?tag=thegoodpresen-20"
+        },
+        {
+          "name": "KATE POSH 5 Years of Marriage Photo Frame Happy 5th Anniversary Wood…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61ypLRjDlZL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B06WWFLQQD?tag=thegoodpresen-20"
+        },
+        {
+          "name": "HELORAY Engagement Gifts for Couples Gifts for Newly Engaged Couples…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81CdevHpWKL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DQGBWPS3?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 4,
       "heading": "Personalized Photo Frame",
       "editorialDescription": "A personalized photo frame turns a family picture, team memory, or milestone image into a keepsake for the home. It feels intentional without depending on generic holiday or profession-themed wording.",
@@ -98,15 +221,44 @@
     },
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-5",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "FANCIME Birthstone Necklace",
-          "description": "A necklace with birthstone choices. Select the correct month, check the metal and chain length, and review any sensitivities.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61MMQO47mCL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0D46PMRBX?tag=thegoodpresen-20"
+          "name": "Birthstone Charms for Charms Bracelet: 925 Sterling Silver Heart Dangle…",
+          "description": "Compare this birthstone necklace with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61N8n-A+2xL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0C1WSZ6WC?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Birthstone Gold Necklaces for Women Dainty 14K Gold Plated Necklace",
+          "description": "Compare this birthstone necklace with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61185MFm+WL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0G6JZVJ8D?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Gold Necklace for Women Birth Flower Necklace with Birthstone 14K Gold…",
+          "description": "This version offers a customization option. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Qz0+h3ZZL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CWXSRX28?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Birth Flower Necklaces for Women",
+          "description": "Compare this birthstone necklace with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51fSk-a8NYL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DSJ13H32?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Personalized Birthstone Necklace with Birth Flower",
+          "description": "This version offers a customization option. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71BdH8Cr4XL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BWF2T8Z3?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 5,
       "heading": "Birthstone Necklace",
       "editorialDescription": "A birthstone necklace offers a compact keepsake tied to a meaningful month, family connection, or personal milestone. Its understated nature makes it feel more personal than a seasonal novelty.",
@@ -118,15 +270,44 @@
     },
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-6",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Microwavable Neck Wrap",
-          "description": "A wrap intended to be warmed in a microwave. Follow the seller's heating and care instructions; this is not a medical treatment.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61YW8oWEcpL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B08NTPB49D?tag=thegoodpresen-20"
+          "name": "Carex Bed Buddy Heat Pad And Cooling Neck Wrap Microwave Heating Pad For…",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71gPwJK2K-L._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B000KBNPQ0?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Microwavable Heating Pads Release Moist Heat for Back Pain",
+          "description": "Compare this microwavable heat wrap with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91rPvko2HeL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0814DD4M5?tag=thegoodpresen-20"
+        },
+        {
+          "name": "SacksyThyme Microwave Heating Pad for Cramps",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81gwyQpPR0L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B076663MLC?tag=thegoodpresen-20"
+        },
+        {
+          "name": "SacksyThyme Microwave Heating Pad for Back",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81QSyLLNcpL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0C7HXMM1R?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Bed Buddy 2-Pack Microwave Heating Pad for Sore Muscles",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/710-v4IPPpL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08T8JYW94?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 6,
       "heading": "Microwavable Heat Wrap",
       "editorialDescription": "A microwavable heat wrap brings simple warmth to quiet winter time at home, especially after a demanding shift. It feels like a thoughtful comfort gift while staying practical and easy to use.",
@@ -138,15 +319,44 @@
     },
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-7",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Scented Candle Gift Set",
-          "description": "A boxed set of scented candles. Choose scents the recipient likes, check the ingredients, and follow the safety instructions.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61MM5C2ZV2L._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B07XDJ7Y6M?tag=thegoodpresen-20"
+          "name": "Scented Candles Gift Set for Women",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81VRIxNX7fL._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GF7K3V5J?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Scented Candles Gift Set for Women",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81uG9hIQuvL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07TYM4LMX?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Fall Scented Candles Gift Set",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71mFxdY0MlL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H8N7JJNM?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Scented Candles for Men",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/711chwdQVZL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H6W5MRXT?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Scented Candles for Home",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81EMGMLiJ3L._AC_UL320_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CR7L79Q2?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 7,
       "heading": "Scented Candle Gift Set",
       "editorialDescription": "A scented candle set creates a festive home accent for quiet holiday downtime. A thoughtfully chosen selection can add seasonal atmosphere without turning the gift into nurse-themed merchandise.",
@@ -159,24 +369,45 @@
     {
       "id": "review_4bfc35b6-7542-4bc6-99bc-01d69e40a60d",
       "productResolution": "unresolved",
-      "position": 8,
-      "heading": "A Luxury Silk Sleep Mask",
       "shoppingOptions": [
-        {
-          "name": "ZIMASILK adjustable silk sleep mask",
-          "description": "An adjustable eye mask to compare for a comfortable fit. Check material, fastening and care instructions; light blocking depends on facial fit.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BWQRXFGJ?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71+GI8ZDWdL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
-        },
         {
           "name": "Alaska Bear Silk Sleep Mask",
           "description": "A silk sleep mask for a darker resting space. Compare the strap, shape, and washing instructions.",
-          "affiliateUrl": "https://www.amazon.com/dp/B07L91H64N?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71uW+WDY7gL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07L91H64N?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Alaska Bear Sleep Mask Silk Eye Cover with Shaped Pad",
+          "description": "This version offers a machine-washable design. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/711yfrILKUL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B00GSO1D9O?tag=thegoodpresen-20"
+        },
+        {
+          "name": "BeeVines 100% Mulberry Silk Sleep Mask",
+          "description": "Compare this silk sleep mask with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61AkmB-Ha5L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08817H6HS?tag=thegoodpresen-20"
+        },
+        {
+          "name": "100% Natural Silk Eye Mask for Women Men",
+          "description": "This version offers an adjustable design. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61t7hRnDSTL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BB9Z23FD?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Silk Sleep Mask for Women Soft Breathable Organic Natural Mulberry Silk…",
+          "description": "This version offers an adjustable design. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61R3m7881+L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0C1YYKVDQ?tag=thegoodpresen-20"
         }
       ],
+      "position": 8,
+      "heading": "A Luxury Silk Sleep Mask",
       "editorialDescription": "A well-made silk sleep mask is small enough for a stocking but polished enough to feel like a real present. It can make travel, naps, or an early night more comfortable without adding a complicated routine.",
       "whyItFits": "It is festive, easy to wrap, and gives the recipient a reusable comfort rather than another scheduled obligation.",
       "bestFor": "Someone who travels, sleeps off schedule, or enjoys upgraded everyday basics",
@@ -186,15 +417,44 @@
     },
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-9",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "ESTROSO Wooden Trout Puzzle",
-          "description": "A 300-piece wooden jigsaw puzzle with shaped pieces and a gift box. Check the finished size and difficulty for the recipient.",
-          "imageUrl": "https://m.media-amazon.com/images/I/91mJjhU6riL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0DSBFF9YC?tag=thegoodpresen-20"
+          "name": "Jigsaw Puzzles for Adults 1000 Pieces",
+          "description": "Compare this adult jigsaw puzzle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81J2jKw+UwL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DT3QTLZD?tag=thegoodpresen-20"
+        },
+        {
+          "name": "PICKFORU Stained Glass Puzzle Tree of Life Puzzles for Adults 1000 Pieces",
+          "description": "Compare this adult jigsaw puzzle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81hWonALyqL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D13Z9HGV?tag=thegoodpresen-20"
+        },
+        {
+          "name": "National Parks Puzzle for Adults 1000 Pieces",
+          "description": "Compare this adult jigsaw puzzle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81CSP+mmj2L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BFDDYZCW?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Vintage Paint Hummingbird Flower 500 Piece Puzzles for Adults",
+          "description": "Compare this adult jigsaw puzzle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91X-vQcoNqL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F29FKM7H?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Jigsaw Puzzles for Adults 1000 Pieces",
+          "description": "Compare this adult jigsaw puzzle with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81Pw2rkUZML._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F29KTKTD?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 9,
       "heading": "Adult Jigsaw Puzzle",
       "editorialDescription": "An adult jigsaw puzzle is an easygoing Secret Santa choice that invites screen-free downtime without relying on nurse-themed merchandise. It can become a relaxed solo activity or something to share at home.",
@@ -206,15 +466,44 @@
     },
     {
       "id": "guide_fea466de-ba54-424b-9b44-f8e1ff62a1e8_slot-10",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "Merino Wool Tartan Scarf",
           "description": "A wool tartan scarf in a gift box. Check the fiber information, dimensions, and care instructions before choosing a color.",
           "imageUrl": "https://m.media-amazon.com/images/I/716mXOLdv6L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
           "affiliateUrl": "https://www.amazon.com/dp/B09BCQWLGJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "100% Lambswool Tartan Plaid Scarf",
+          "description": "Compare this wool scarf with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71qThcc2MXL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07CJT3FJ3?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Women's Wool Scarf Winter Checked Scarves for Women",
+          "description": "Compare this wool scarf with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61WBFud4lAL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09BCQXCV1?tag=thegoodpresen-20"
+        },
+        {
+          "name": "100% Merino Wool Neck Gaiter Men Women Winter Ski Face Mask Scarf",
+          "description": "Compare this wool scarf with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81iU+8CXVvL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B2QMZZGT?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Genuine US Army Military GI 100% Wool Warm Winter Scarf",
+          "description": "Compare this wool scarf with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/815vSAaOXtL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08L5PBVHZ?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 10,
       "heading": "Wool Scarf",
       "editorialDescription": "A wool scarf adds practical warmth to winter commuting and off-duty outfits while keeping the gift personal rather than profession-branded. It is useful through the season without being limited to holiday decor.",
@@ -227,17 +516,45 @@
     {
       "id": "serp_997dd025_90af_42f5_9dae_59763f6f3af3",
       "productResolution": "unresolved",
-      "position": 11,
-      "heading": "Rechargeable Hand Warmers",
       "shoppingOptions": [
         {
           "name": "Rechargeable hand-warmer pair",
           "description": "A rechargeable pair for cold-weather outings. Compare size, controls and charging needs, and follow the heat-safety instructions.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0CDPTWT1M?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71FW3ew-iBL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CDPTWT1M?tag=thegoodpresen-20"
+        },
+        {
+          "name": "AI Hand Warmers Rechargeable",
+          "description": "This version offers rechargeable operation and a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/719bvl0LppL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CG65PYBV?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Hand Warmers Rechargeable",
+          "description": "This version offers rechargeable operation and a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Syleje74L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BG9TB26K?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Hotdot Rechargeable Hand Warmers",
+          "description": "This version offers rechargeable operation and a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81VE0OJYV3L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FNNCKC3J?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Lerat Hand Warmers Rechargeable",
+          "description": "This version offers rechargeable operation and a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71ozvjNpZ0L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FNQLTK83?tag=thegoodpresen-20"
         }
       ],
+      "position": 11,
+      "heading": "Rechargeable Hand Warmers",
       "editorialDescription": "Rechargeable hand warmers are easy to tuck into a coat pocket or bag for commutes, outdoor plans, and chilly pauses between activities. They offer a small seasonal comfort that can be shared or kept as part of a winter routine.",
       "whyItFits": "They suit a holiday gift exchange while still feeling thoughtful for someone whose schedule includes early starts or time outdoors.",
       "bestFor": "A winter commuter or anyone who spends part of the day outside.",
@@ -248,45 +565,45 @@
     {
       "id": "serp_e1055f79_1c92_4ae6_8d70_696f1b64d1d5",
       "productResolution": "unresolved",
-      "position": 12,
-      "heading": "Premium Wireless Earbuds",
       "shoppingOptions": [
         {
-          "name": "JBL Tune Buds",
-          "description": "A noise-cancelling earbud model to compare for everyday listening. Confirm fit, phone compatibility and the return policy.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0C1QWWZR4?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/51EZig0rEAL._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "name": "Wireless Earbuds",
+          "description": "Compare this wireless earbuds with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61aSuH86kYL._AC_UY218_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HCTKSSQK?tag=thegoodpresen-20"
         },
         {
-          "name": "TOZO NC9 Wireless Earbuds",
-          "description": "Wireless earbuds for music and everyday listening. Compare fit, device compatibility, charging case, and listening controls before choosing.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0DD41G2NZ?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/818Tszb+hNL._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "name": "XIAOWTEK Wireless Earbuds",
+          "description": "Compare this wireless earbuds with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61ZL+jCLi-L._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HCXW6CDR?tag=thegoodpresen-20"
         },
         {
-          "name": "JBL Vibe Beam 2 Earbuds",
-          "description": "Wireless earbuds for music and everyday listening. Compare fit, device compatibility, charging case, and listening controls before choosing.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0DN45YMP6?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/618f5yBk26L._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "name": "Sleep Earbuds for Side Sleepers with White Noise & Sleep Mode",
+          "description": "Compare this wireless earbuds with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61FU5KHBQ7L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H7WX35B1?tag=thegoodpresen-20"
         },
         {
-          "name": "Soundcore Space A40 Earbuds",
-          "description": "Wireless earbuds for music and everyday listening. Compare fit, device compatibility, charging case, and listening controls before choosing.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0B1LVC5VZ?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/51EwBP9U2YL._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "name": "Wireless Earbuds",
+          "description": "Compare this wireless earbuds with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/618n7fFdFXL._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HDB41H28?tag=thegoodpresen-20"
         },
         {
-          "name": "Soundcore P30i Earbuds",
-          "description": "Wireless earbuds for music and everyday listening. Compare fit, device compatibility, charging case, and listening controls before choosing.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0CRTYZG5C?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/51HbL1WS+KL._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "name": "OKEEFE Wireless Earbuds Bluetooth Earbuds Translation Earbud Real Time 70H…",
+          "description": "Compare this wireless earbuds with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71lnG04RfZL._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HGKPYWST?tag=thegoodpresen-20"
         }
       ],
+      "position": 12,
+      "heading": "Premium Wireless Earbuds",
       "editorialDescription": "Wireless earbuds can make commutes, walks, podcasts, and quiet downtime easier to fit into a busy week. Their compact format keeps personal entertainment close without adding much to a bag.",
       "whyItFits": "They feel substantial enough for a personal holiday gift while supporting the recipient’s own ways of relaxing between obligations.",
       "bestFor": "Someone who listens to music, podcasts, or audiobooks throughout the day.",

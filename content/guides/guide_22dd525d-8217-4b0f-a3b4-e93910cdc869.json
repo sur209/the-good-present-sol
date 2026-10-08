@@ -18,15 +18,51 @@
   "recommendations": [
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-1",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "Owala FreeSip 24 oz Water Bottle",
           "description": "An insulated bottle with a built-in straw and a sip opening. Choose a color the recipient likes and check the size before buying.",
           "imageUrl": "https://m.media-amazon.com/images/I/61Gvw0-b0eL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BZYCJK89?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B0BZYCJK89?tag=thegoodpresen-20",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "POWCAN Insulated Water Bottle with 2-in-1 Straw and Spout Lid",
+          "description": "Compare this insulated water bottle straw lid with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51bhuWp4FbL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CQCS5329?tag=thegoodpresen-20"
+        },
+        {
+          "name": "POWCAN Insulated Water Bottle with 2-in-1 Straw and Spout Lid",
+          "description": "Compare this insulated water bottle straw lid with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51ad8onffJL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DCW6NPTG?tag=thegoodpresen-20"
+        },
+        {
+          "name": "SENDESTAR Insulated Water Bottle",
+          "description": "Compare this insulated water bottle straw lid with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61PnzABM2-L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07RZYMYQH?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Oldley Insulated Water Bottle for Adults Kids Stainless Steel Water Bottles…",
+          "description": "Compare this insulated water bottle straw lid with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61+zeY7tuyL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0972QLLJR?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Konokyo Insulated Tumbler Water Bottle with Handle",
+          "description": "Compare this insulated water bottle straw lid with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51glS04LCRL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CP7Q1QZM?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 1,
       "heading": "Insulated Bottle With Straw Lid",
       "editorialDescription": "A straw-lid insulated bottle makes water easy to sip between lectures, on transit, and during breaks in a long clinical day. Look for a lid that seals well, a straw that is simple to clean, and a shape that slides into a backpack side pocket without tipping. A wide opening helps with filling and adding ice, while a durable finish stands up to daily use.",
@@ -38,15 +74,44 @@
     },
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-2",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "MIYCOO Insulated Lunch Bag",
           "description": "A lunch bag for packed meals and snacks. Check the interior dimensions against the containers the recipient uses.",
           "imageUrl": "https://m.media-amazon.com/images/I/81jvwgZeusL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
           "affiliateUrl": "https://www.amazon.com/dp/B0C2YW1TCK?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Carhartt Camping Cooler",
+          "description": "Compare this insulated lunch bag with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91wzueGxKcL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B075LXP47V?tag=thegoodpresen-20"
+        },
+        {
+          "name": "opux Insulated Lunch Bag for Men Women",
+          "description": "Compare this insulated lunch bag with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91lKtD6IRWL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07GXCYF1S?tag=thegoodpresen-20"
+        },
+        {
+          "name": "ExtraCharm Insulated Lunch Bag for Women/Men Reusable Lunch Box for Office…",
+          "description": "This version offers an adjustable design. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71jcR1Ab0+L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08DQTTFQB?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Coobiiya Lunch Box Lunch Bag for Women Men",
+          "description": "Compare this insulated lunch bag with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81IfwTvJHzL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BQHKMZZ1?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 2,
       "heading": "Insulated Lunch Bag for Packed Days",
       "editorialDescription": "Packing meals and snacks becomes simpler with a soft-sided insulated bag that holds a few containers and fits inside a backpack or locker. A leak-resistant lining, a smooth zipper, and a wide opening make daily packing less frustrating. Pockets for utensils or napkins add convenience, while a wipe-clean interior helps with spills.",
@@ -58,15 +123,44 @@
     },
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-3",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "BAGSMART Tote Bag",
-          "description": "A lightweight tote for everyday belongings. Check the dimensions, pockets, and laptop fit for the recipient's usual load.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61t4jBybtfL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0D3L6XCLG?tag=thegoodpresen-20"
+          "name": "Oversize Pu Leather Tote Women Weekender Bag Shopper Handbag Travel Purse",
+          "description": "Compare this large tote bag with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/713Q4cAWaPL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09QSVL5LS?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Tote Bag for Women",
+          "description": "This version offers a folding design. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71zPMYPHodL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B6VN9LLR?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Canvas Tote Bag for Women with Zipper Closure & Individual Compartments for…",
+          "description": "Compare this large tote bag with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81pgsciPd6L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D97ZDLMT?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Laptop Tote Bag for Women 15.6 Inch Waterproof Leather Computer Bags…",
+          "description": "Compare this large tote bag with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Qcx0KAT+L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B085Q2NMPT?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Travel Duffel Bag Weekender Bags for Women",
+          "description": "Compare this large tote bag with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71+fHOpi8ML._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DK9DCC9J?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 3,
       "heading": "Roomy Tote for Class and Clinical",
       "editorialDescription": "A large tote with structured pockets can carry notebooks, a change of clothes, snacks, and everyday essentials between campus and clinical placements. Look for durable fabric, reinforced straps, and a base that holds its shape when the bag is full. An easy-to-clean exterior and a top closure help with busy days and unpredictable weather.",
@@ -78,15 +172,44 @@
     },
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-4",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "Nursing School Academic Planner",
           "description": "A planner dated August 2026 through August 2027. Confirm that those dates match the recipient's course schedule.",
           "imageUrl": "https://m.media-amazon.com/images/I/51K1PE6xcML._AC_UL320_.jpg",
+          "sources": ["serpapi"],
           "affiliateUrl": "https://www.amazon.com/dp/B0H1PQG55F?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Blue Sky 2026-2027 Weekly & Monthly Academic Planner",
+          "description": "Compare this nursing school planner with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71dtkmasQwL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FYRBKD2G?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Blue Sky 2026-2027 Weekly & Monthly Academic Planner",
+          "description": "Compare this nursing school planner with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71jnslqACTL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FYRBG61H?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Rileys Academic Planner 2026-2027",
+          "description": "Compare this nursing school planner with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/717ahlk8GBL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FSJVHCF9?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Rileys Academic Planner 2026-2027",
+          "description": "Compare this nursing school planner with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71DY8-5p0TL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FSJTVW9W?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 4,
       "heading": "Planner for Nursing School Deadlines",
       "editorialDescription": "A paper planner gives nursing students one place to track class schedules, assignment due dates, exam dates, and clinical obligations. Weekly spreads work well for seeing the whole week at a glance, while monthly pages help with bigger deadlines. Extra note pages can hold questions for a preceptor, study points, or permitted task reminders.",
@@ -99,45 +222,52 @@
     {
       "id": "review_3483c66f-e0a1-42c7-bd4d-1c13afc26640",
       "productResolution": "unresolved",
-      "position": 5,
-      "heading": "A Premium Wireless Charging Dock",
       "shoppingOptions": [
         {
           "name": "Belkin Qi2 charging dock",
           "description": "A two-device dock to compare for a compatible iPhone and earbuds. Confirm the recipient's exact models and the included power adapter.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0FQT4XL3G?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/61cZrnRyaWL._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FQT4XL3G?tag=thegoodpresen-20"
         },
         {
           "name": "Anker Prime Foldable Charging Dock",
           "description": "A charging station to keep compatible devices together. Confirm the exact phone, watch, and earbud models supported, and whether the required power adapter is included.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0FHWK3W1S?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/610vBZrBPQL._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FHWK3W1S?tag=thegoodpresen-20"
         },
         {
-          "name": "Charging Station with Clock and Night Light",
-          "description": "A charging station to keep compatible devices together. Confirm the exact phone, watch, and earbud models supported, and whether the required power adapter is included.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0GVNGLVCB?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/81A+-WnjKoL._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "name": "Anker Prime 3-in-1 Qi2.2 MagSafe Compatible 25W Wireless Charging Station",
+          "description": "Compare this wireless charging station with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61nZaKC+I6L._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F9L1PPPJ?tag=thegoodpresen-20"
         },
         {
-          "name": "Foldable Three-Device Charging Station",
-          "description": "A charging station to keep compatible devices together. Confirm the exact phone, watch, and earbud models supported, and whether the required power adapter is included.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BQBNLCHY?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/617hyCMPr+L._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "name": "3 in 1 Foldable Wireless Charger Stand for iPhone Apple Watch AirPods",
+          "description": "This version offers a folding design. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71gnEu6NZ3L._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HCTMJYCY?tag=thegoodpresen-20"
         },
         {
-          "name": "Anlmz Three-Device Charging Station",
-          "description": "A charging station to keep compatible devices together. Confirm the exact phone, watch, and earbud models supported, and whether the required power adapter is included.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BF9TYJWR?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71BqMZSnhjL._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "name": "300W Charging Station for Multiple Devices",
+          "description": "Compare this wireless charging station with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71WCFrK809L._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H82H71Y3?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Aeinidi 25W 3 in 1 Wireless Fast Charging Station for Apple MagSafe Charger",
+          "description": "Compare this wireless charging station with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61Fh2SPIzSL._AC_UY327_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H4NP15X8?tag=thegoodpresen-20"
         }
       ],
+      "position": 5,
+      "heading": "A Premium Wireless Charging Dock",
       "editorialDescription": "A compact charging dock gives a crowded desk or nightstand one dependable place for daily devices. It is a polished upgrade that can simplify study nights without adding another clinical accessory.",
       "whyItFits": "It supports the student's real routine and feels more generous than another small item they would usually buy for themselves.",
       "bestFor": "A student balancing classes, clinical days, and a phone-heavy schedule",
@@ -147,15 +277,44 @@
     },
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-6",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "MNGARISTA Retractable Badge Holder",
-          "description": "A retractable badge holder with a carabiner attachment. Confirm that this attachment style is permitted where the recipient wears a badge.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61wNrPijnoL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B09GK2TSVB?tag=thegoodpresen-20"
+          "name": "Retractable Badge Reel with Claw Clasp and Clip for Id Card Holders ()",
+          "description": "Compare this nurse badge reel id holder with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61xuUNI+6YL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07BPXKWMW?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Retractable Badge Holder with Alligator Clip",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51ww3jDg1fL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01LLXNDOE?tag=thegoodpresen-20"
+        },
+        {
+          "name": "QREEL Badge Reel",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61PY3ndUO3L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07WPRJY9K?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Retractable Badge Holder",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81ZGCCmXyFL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B088LS243F?tag=thegoodpresen-20"
+        },
+        {
+          "name": "2-Pack Badge Holder Retractable Clip Heavy Duty Carabiner Badge Reel",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71S89H6wUCL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CB86M3MW?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 6,
       "heading": "Badge Reel and ID Holder",
       "editorialDescription": "A retractable badge reel keeps a student ID, clinical badge, or access card close at hand without constant fumbling. A secure clip attaches to a lanyard, waistband, or pocket, and a clear holder makes the card easy to show. Choose a model with a sturdy cord and a simple design that can be wiped clean.",
@@ -167,15 +326,44 @@
     },
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-7",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "GOLDEN HOUR Nurse Watch",
-          "description": "A watch with a visible second hand and silicone strap. Review the dial, strap size, and workplace requirements before choosing it.",
-          "imageUrl": "https://m.media-amazon.com/images/I/61FweFJvPyL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0C1MX2M97?tag=thegoodpresen-20"
+          "name": "Scrub Petite Watch Made for Doctors",
+          "description": "Compare this nurse watch second hand with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51GKTJYZP1L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08J88YRL1?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Nurse Watch for Nurse Medical Professionals Students Women Men",
+          "description": "Compare this nurse watch second hand with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/710DD3MPqcL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D2J9XC84?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Nurse Watch for Medical Professionals",
+          "description": "Compare this nurse watch second hand with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/613T1jt71wL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B5SZ2L7G?tag=thegoodpresen-20"
+        },
+        {
+          "name": "3X Retractable Nurse Watch for Nurses Doctors",
+          "description": "Compare this nurse watch second hand with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61ck9I-NHSL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0C2MXNV7P?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Nurse Watch for Medical Doctor Professionals Student Easy Read Dial with…",
+          "description": "Compare this nurse watch second hand with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61aqg5hbf9L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CCNXNFPS?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 7,
       "heading": "Watch With a Clear Second Hand",
       "editorialDescription": "A watch with an easy-to-read second hand helps a nursing student track seconds during skills practice and timed tasks without reaching for a phone. A clean face, a secure band or clip, and a comfortable fit matter more than extra features. Wipeable materials and a simple design make it easy to wear through long days.",
@@ -187,16 +375,44 @@
     },
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-8",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Physix Gear Compression Socks",
-          "description": "Compression socks offered in different sizes and patterns. Choose the recipient's preferred fit and compression level rather than treating them as a universal choice.",
-          "imageUrl": "https://m.media-amazon.com/images/I/711vGxLodJL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B01J4MF53Q?tag=thegoodpresen-20",
-          "sources": ["serpapi"]
+          "name": "Physix Gear Compression Socks 20-30 mmHg Men & Women Running",
+          "description": "Compare this compression socks with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61K+KjL9+DL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08P61K3BY?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Compression Socks for Women & Men Circulation (8 Pairs) 15-20 mmHg Calf…",
+          "description": "Compare this compression socks with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61CklKJQ4PL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B071RRHYJ8?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Copper Compression Socks for Women & Men (6 pairs) Support for Nurses",
+          "description": "Compare this compression socks with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Z1UPg2KiL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07ZFJ5RPJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Copper Compression Socks 15-20 mmHg for Men & Women 8 Pairs Circulation…",
+          "description": "Compare this compression socks with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81YjtgcUZ9L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B071ZZBZRD?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Copper Compression Socks for Men & Women 15-20mmHg Knee High Stockings Best…",
+          "description": "This version offers a multi-piece format. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81jfRJvPhvL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07RNBJBYG?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 8,
       "heading": "Compression Socks in Their Preferred Fit",
       "editorialDescription": "For a student who already wears compression socks and wants another pair, this can be a useful addition to the laundry rotation. Match the size and compression level they already use, then look for a fabric they like and manageable care instructions. Choose colors that fit their uniform requirements.",
@@ -208,15 +424,44 @@
     },
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-9",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Anker Nano Power Bank",
-          "description": "A portable battery for charging compatible devices away from an outlet. Check the connector, capacity, and charging requirements of the recipient's phone.",
-          "imageUrl": "https://m.media-amazon.com/images/I/51J2B-9T-HL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0D45MSMJR?tag=thegoodpresen-20"
+          "name": "Miady 2-Pack Portable Charger",
+          "description": "This version offers a multi-piece format. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51FkvjwnydL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GQH1QHDH?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Anker Power Bank",
+          "description": "Compare this portable power bank with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61jWG2JyYNL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CXDXP8VR?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Anker Power Bank",
+          "description": "This version offers a multi-piece format. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71JJLJnwREL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0D5CLSMFB?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Anker Zolo Magnetic Power Bank",
+          "description": "Compare this portable power bank with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61NmRnphNJL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DCNKDS5B?tag=thegoodpresen-20"
+        },
+        {
+          "name": "VRURC Portable Charger",
+          "description": "Compare this portable power bank with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61seywU2r2L._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DR84888W?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 9,
       "heading": "Portable Power Bank for Commute Days",
       "editorialDescription": "A portable power bank keeps a phone, tablet, or study device charged through long commutes and back-to-back clinical days. Helpful features include a clear capacity indicator, a secure charging port, and a compact shape that fits a bag pocket. Some models include a built-in cable, which can simplify packing.",
@@ -228,79 +473,72 @@
     },
     {
       "id": "guide_22dd525d-8217-4b0f-a3b4-e93910cdc869_slot-10",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "Gritin Rechargeable Book Light",
           "description": "A clip-on light for reading. Check its controls and charging connection; the recipient can choose the brightness that feels comfortable.",
           "imageUrl": "https://m.media-amazon.com/images/I/81n7M-T19NL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B08GG42WXY?tag=thegoodpresen-20",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent", "serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08GG42WXY?tag=thegoodpresen-20"
         },
         {
           "name": "Gritin 19-LED Rechargeable Book Light",
           "description": "A clip-on reading light with a wider LED head. Compare its weight, clip opening and light coverage with the books the recipient reads.",
           "imageUrl": "https://m.media-amazon.com/images/I/711p9Q6p0vL._AC_UL480_FMwebp_QL65_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0C3BC4QG2?tag=thegoodpresen-20",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0C3BC4QG2?tag=thegoodpresen-20"
         },
         {
           "name": "86lux Rechargeable Clip-On Book Light",
           "description": "A compact rechargeable light that clips to a book. Check charging requirements and whether its clip suits paperback and hardcover pages.",
           "imageUrl": "https://m.media-amazon.com/images/I/71UiTdnmXWL._AC_UL480_FMwebp_QL65_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0B84TC271?tag=thegoodpresen-20",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B84TC271?tag=thegoodpresen-20"
         },
         {
           "name": "Glocusent USB Rechargeable Book Light",
           "description": "A portable clip-on reading light with USB charging. Check the charging connection, adjustment range and available brightness settings before choosing.",
           "imageUrl": "https://m.media-amazon.com/images/I/717ha4BTZTL._AC_UL480_FMwebp_QL65_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0DWSNHJFQ?tag=thegoodpresen-20",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DWSNHJFQ?tag=thegoodpresen-20"
         },
         {
           "name": "VAVOFO Rechargeable Reading Light",
           "description": "A seven-LED clip light with adjustable color and brightness settings. Compare the controls, clip size and charging requirements with the recipient’s reading setup.",
           "imageUrl": "https://m.media-amazon.com/images/I/51tsHAqMiuL._AC_UL480_FMwebp_QL65_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0BCVLYTHN?tag=thegoodpresen-20",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BCVLYTHN?tag=thegoodpresen-20"
         },
         {
           "name": "Vekkia 14-LED Book Light",
           "description": "A rechargeable light for reading without lighting the whole room. Compare its shape, attachment, charging connection, and brightness controls for the way they read.",
-          "affiliateUrl": "https://www.amazon.com/dp/B083W1SDK1?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/61AsoJ+vDmL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B083W1SDK1?tag=thegoodpresen-20"
         },
         {
           "name": "Glocusent Rechargeable Neck Light",
           "description": "A rechargeable light for reading without lighting the whole room. Compare its shape, attachment, charging connection, and brightness controls for the way they read.",
-          "affiliateUrl": "https://www.amazon.com/dp/B07WNRN9WQ?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/614xoTCz--L._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07WNRN9WQ?tag=thegoodpresen-20"
         },
         {
           "name": "Hooga Amber Clip-On Book Light",
           "description": "A rechargeable light for reading without lighting the whole room. Compare its shape, attachment, charging connection, and brightness controls for the way they read.",
-          "affiliateUrl": "https://www.amazon.com/dp/B07Q87WJ7M?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/61+ivGFcB7L._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"]
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07Q87WJ7M?tag=thegoodpresen-20"
         },
         {
-          "name": "Energizer Flex-R Book Light",
-          "description": "A rechargeable light for reading without lighting the whole room. Compare its shape, attachment, charging connection, and brightness controls for the way they read.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0DD7X659T?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/610CGBAiSUL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"]
-        },
-        {
-          "name": "Mighty Bright WonderFlex Book Light",
-          "description": "A flexible rechargeable book light with adjustable brightness. Check its clip, charging connection, and reach against the books they use.",
-          "affiliateUrl": "https://www.amazon.com/dp/1681800373?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/41B-gOtY5YL._AC_UL480_FMwebp_QL65_.jpg",
-          "sources": ["amazon-agent"]
+          "name": "Gritin Rechargeable Book Light for Reading in Bed with 19 LED",
+          "description": "This version offers rechargeable operation. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71A3c74fhML._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0CBPL4RKH?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 10,
       "heading": "Rechargeable Book Light for Shared Spaces",
       "editorialDescription": "A rechargeable book light clips to a textbook or notebook for reading away from a desk. Look for an adjustable head that directs light onto the page and a clip that holds without making a paperback awkward to handle. Simple brightness controls are useful when moving between a shared room and a brighter study area.",
@@ -313,17 +551,45 @@
     {
       "id": "serp_afb5cec0_521e_4e4e_80df_feae2783a0d5",
       "productResolution": "unresolved",
-      "position": 11,
-      "heading": "A Wooden Laptop Stand",
       "shoppingOptions": [
         {
           "name": "NAMAII wooden laptop stand",
           "description": "A walnut-finish stand for a desk-based laptop setup. Check laptop dimensions, typing position and whether a separate keyboard would be needed.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0DB27PGF1?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/61ce1S4qF5L._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DB27PGF1?tag=thegoodpresen-20"
+        },
+        {
+          "name": "SAMDI Wood Laptop Stand for Desk",
+          "description": "Compare this wooden laptop stand with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51XxnpmYWbL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B087B52Y7B?tag=thegoodpresen-20"
+        },
+        {
+          "name": "SAMDI Wooden Laptop Stand",
+          "description": "Compare this wooden laptop stand with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61BQB+47kfL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09XHWF3WN?tag=thegoodpresen-20"
+        },
+        {
+          "name": "muso wood Laptop Stand for Desk",
+          "description": "Compare this wooden laptop stand with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/710VrdLcugL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FDKHPTRT?tag=thegoodpresen-20"
+        },
+        {
+          "name": "aceyoon Walnut Wood Laptop Stand 180° Adjustable Retro Style Foldable…",
+          "description": "This version offers an adjustable design and a folding design. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61wJwQE8YAL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GWJCTQVF?tag=thegoodpresen-20"
         }
       ],
+      "position": 11,
+      "heading": "A Wooden Laptop Stand",
       "editorialDescription": "A wooden laptop stand gives a study desk a more finished look while creating a dedicated place for the computer. It can help separate the screen from notebooks, reference materials, and other study supplies.",
       "whyItFits": "It is useful during lectures, assignments, and review sessions while still feeling like a considered addition to a personal space.",
       "bestFor": "A nursing student building a more comfortable study setup",
@@ -333,15 +599,44 @@
     },
     {
       "id": "review_47359910-2ce9-4516-b9a1-62af5a3b4de6",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "CAROTE Cookware Set with Detachable Handles",
           "description": "A nesting cookware set with detachable handles. Review the included pans, stove compatibility, and care instructions before ordering.",
           "imageUrl": "https://m.media-amazon.com/images/I/715Enc++7PL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
           "affiliateUrl": "https://www.amazon.com/dp/B0CNKJ1ZG1?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Astercook 21 Pcs Pots and Pans Set Non Stick",
+          "description": "This version offers a detachable handle and a nesting or stacking format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71QGP9TL77L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F2937DQQ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Chef Power Ceramic Cookware Set",
+          "description": "This version offers a detachable handle and a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/813oBjRYi5L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DHKR9XCP?tag=thegoodpresen-20"
+        },
+        {
+          "name": "CAROTE 27pcs Ceramic Cookware Set",
+          "description": "This version offers a detachable handle and a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71yQRGS-KfL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DPKDRB61?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Tramontina Non Stick 6-Piece Nesting Sauce Pan Set with Lids Naval",
+          "description": "This version offers a nesting or stacking format and a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81t6ZwX8kQL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08DXCS224?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 12,
       "heading": "A Nesting Saucepan and Frying-Pan Set",
       "editorialDescription": "A saucepan and frying pan cover simple meals in a first apartment: pasta, eggs, vegetables, and quick dinners. Pieces that nest together make a useful gift for someone furnishing a small shared kitchen.",

@@ -18,15 +18,44 @@
   "recommendations": [
     {
       "id": "guide_eb314f33-a0e3-4f51-937e-e7a3dde5cd6e_slot-1",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "2027 Monthly Wall Calendar",
-          "description": "A dated monthly wall calendar for writing plans and reminders. Confirm the year and dimensions; it is not a shift-scheduling app.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71YvYHqXbKL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B07PRHD3YN?tag=thegoodpresen-20"
+          "name": "SUNEE Calendar 2026-2027 18 Months Wall Calendar Jul. 2026 Dec. 2027",
+          "description": "Compare this wall calendar with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61yLoTgTb8L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GCHW8J3G?tag=thegoodpresen-20"
+        },
+        {
+          "name": "SUNEE 2026-2027 Wall Calendar Large 22.75\"x15.5\"",
+          "description": "Compare this wall calendar with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/710svDHx58L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GY8MMWMP?tag=thegoodpresen-20"
+        },
+        {
+          "name": "SUNEE 2026-2027 Large Wall Calendar 21 Months Jul. 2026 Mar. 2028",
+          "description": "Compare this wall calendar with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71sJw1XVBwL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BYYXNGL4?tag=thegoodpresen-20"
+        },
+        {
+          "name": "SUNEE 2026-2027 Wall Calendar Extra Large 17\"x27\"",
+          "description": "Compare this wall calendar with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/715x1lW0x8L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GY8FBY46?tag=thegoodpresen-20"
+        },
+        {
+          "name": "2027 Calendar 2027 Wall Calendar",
+          "description": "Compare this wall calendar with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71N1+wZ4DAL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08HKM5LL3?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 1,
       "heading": "A Wall Calendar That Keeps Shift Changes Visible",
       "editorialDescription": "A dry-erase wall calendar gives a new nurse one central place to note shift times, appointments, household plans, and errands as the week shifts. Look for a smooth writing surface, an easy-to-clean finish, and a mounting style that suits a rental or shared home. A monthly layout works well for broad planning, while a weekly or combination layout can hold more detail. Check that mounting hardware is included.",
@@ -38,15 +67,44 @@
     },
     {
       "id": "guide_eb314f33-a0e3-4f51-937e-e7a3dde5cd6e_slot-2",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "NICETOWN Blackout Curtains",
           "description": "A pair of blackout curtain panels. Measure the window, check the panel dimensions, and choose a color that works in the room.",
           "imageUrl": "https://m.media-amazon.com/images/I/61Xsz1yLEML._AC_UL320_.jpg",
+          "sources": ["serpapi"],
           "affiliateUrl": "https://www.amazon.com/dp/B01CS31R94?tag=thegoodpresen-20"
+        },
+        {
+          "name": "NICETOWN White 100% Blackout Curtains 84 inch Long for Bedroom 2 Pieces",
+          "description": "Compare this blackout curtains with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51o9GXVUYCL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B077RPXSF3?tag=thegoodpresen-20"
+        },
+        {
+          "name": "BGment Navy Blue Blackout Curtains for Bedroom 63 Inch Long 2 Panels",
+          "description": "Compare this blackout curtains with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61hCzv+DC5L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07D6HCZTY?tag=thegoodpresen-20"
+        },
+        {
+          "name": "NICETOWN Grey Blackout Curtains for Bedroom Long",
+          "description": "Compare this blackout curtains with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71XN5e+ZD+L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B015SJ7RYY?tag=thegoodpresen-20"
+        },
+        {
+          "name": "NICETOWN Stone Blue Blackout Curtains Long",
+          "description": "Compare this blackout curtains with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71lkDtwPjpL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B091BSJXK8?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 2,
       "heading": "Blackout Curtains for Daytime Rest",
       "editorialDescription": "Blackout curtain panels help make a bedroom darker for daytime rest after an overnight or early shift. For a first apartment or shared rental, look for panels that fit standard curtain rods and come in a neutral color that blends with existing decor. A lined or multi-layer panel blocks more light than a basic room-darkening panel, though results vary by room and installation. For fuller darkness, look for renter-friendly hanging options.",
@@ -59,31 +117,59 @@
     {
       "id": "review_6144f0f9-f32f-467b-a58c-7d0f4b762c8c",
       "productResolution": "unresolved",
-      "position": 3,
-      "heading": "A Soft Lounge Robe",
       "shoppingOptions": [
         {
           "name": "PrinStory soft lounge robe",
           "description": "A lightweight long knit robe for home. Check the size chart, fabric composition and length instead of relying on the usual clothing size.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0DC99ZTY7?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/5115gW+uTjL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DC99ZTY7?tag=thegoodpresen-20"
         },
         {
           "name": "Cotton Gauze Kimono Robe",
           "description": "A robe for unhurried mornings and evenings at home. Check the size chart, fabric, length, and care instructions.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0FPBG3BBQ?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71dDfNlX9SL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FPBG3BBQ?tag=thegoodpresen-20"
         },
         {
           "name": "Full-Length Lounge Bathrobe",
           "description": "A robe for unhurried mornings and evenings at home. Check the size chart, fabric, length, and care instructions.",
-          "affiliateUrl": "https://www.amazon.com/dp/B07F8HXKHC?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71E8I-95NjL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi", "amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07F8HXKHC?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Soft Robes for Women with Hood Plush Fleece Bathrobe",
+          "description": "Compare this soft lounge robe with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71qMAaAAB3L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07YDL169Y?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ultra Soft Robes for Women Plush Fleece Long Bathrobe",
+          "description": "Compare this soft lounge robe with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/510pZWhfWOL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FQJS5R37?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Womens Robe Lightweight Short Knit Bathrobe Soft Ladies Sleepwear",
+          "description": "Compare this soft lounge robe with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61J5xOd0i5L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B01NCFH4U9?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Womens Plush Soft Robe",
+          "description": "Compare this soft lounge robe with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61VOJmplqeL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B084PBWBJR?tag=thegoodpresen-20"
         }
       ],
+      "position": 3,
+      "heading": "A Soft Lounge Robe",
       "editorialDescription": "A soft robe makes slow mornings and post-shower evenings feel a little more settled. Choose the fabric and weight around what the recipient likes to wear at home.",
       "whyItFits": "It recognizes that starting a new role also calls for good off-duty routines, not just more work accessories.",
       "bestFor": "A new nurse setting up a first apartment or refreshing home comforts",
@@ -93,15 +179,44 @@
     },
     {
       "id": "guide_eb314f33-a0e3-4f51-937e-e7a3dde5cd6e_slot-4",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Lifewit Double Laundry Hamper",
-          "description": "A two-compartment hamper with removable laundry bags. Check the overall dimensions and lid clearance for the intended space.",
-          "imageUrl": "https://m.media-amazon.com/images/I/8152cIwSDeL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0CJ9DGG31?tag=thegoodpresen-20"
+          "name": "STORAGE MANIAC 3 Section Laundry Sorter",
+          "description": "Compare this divided laundry hamper with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61lhFHb7aHL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07X4F6R3T?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Simple Houseware 4-Bag Heavy Duty Laundry Sorter Rolling Cart",
+          "description": "Compare this divided laundry hamper with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91Czyoq339L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B093B7C5WW?tag=thegoodpresen-20"
+        },
+        {
+          "name": "ROMOON Laundry Hamper Sorter Cart",
+          "description": "Compare this divided laundry hamper with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81n1wTh2cRL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BRTRJGTD?tag=thegoodpresen-20"
+        },
+        {
+          "name": "ROMOON Laundry Sorter Hamper 3 Section",
+          "description": "Compare this divided laundry hamper with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81l9-7RYLmL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BRTQJT8D?tag=thegoodpresen-20"
+        },
+        {
+          "name": "SONGMICS Laundry Hamper with Lid",
+          "description": "Compare this divided laundry hamper with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/918CMuSZpoL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07RP66361?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 4,
       "heading": "A Divided Hamper for Scrubs and Everyday Clothes",
       "editorialDescription": "A divided laundry hamper lets a new nurse keep workwear apart from regular clothes before laundry day. Two sections make it easy to notice when scrubs need a wash and can simplify sorting at home. Look for a hamper with a sturdy frame, breathable sides, and handles that make it easy to carry to the laundry area. Removable liners or separate bags can make transport simpler, especially in shared housing.",
@@ -114,17 +229,45 @@
     {
       "id": "serp_8e27e01f_4bc5_4d58_8f26_dbce5cd1930c",
       "productResolution": "unresolved",
-      "position": 5,
-      "heading": "A Personalized Reading and Tablet Stand",
       "shoppingOptions": [
         {
-          "name": "Personalized reading and tablet stand",
-          "description": "A customized stand for reading or displaying a device. Confirm the engraving, support dimensions and the recipient's book or tablet size.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0F1DKHVZ8?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/71dY8vOrtCL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "name": "My Personal Memories Custom Engraved Cookbook Stand Personalized Recipe Cook…",
+          "description": "This version offers a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81bItTG4bgL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07DVRYPHK?tag=thegoodpresen-20"
+        },
+        {
+          "name": "The Wedding Party Store Personalized Bamboo Cookbook Holder Custom…",
+          "description": "This version offers an initial or monogram design and a customization option. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81JhG8paLsL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07RD7QB88?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Bamboo Cookbook Stand for Kitchen Counter",
+          "description": "This version offers a customization option and an adjustable design. Check the personalization preview, spelling, size, and production time before ordering.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71mQiHHt31L._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GRPXSD7C?tag=thegoodpresen-20"
+        },
+        {
+          "name": "wishacc Bamboo Book Stand",
+          "description": "A wooden book or recipe stand sold without confirmed personalization. Arrange engraving separately only after checking that the material and design are suitable. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Mda9UuJhL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07459P7BF?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Beautiful Cookbook Stand for Your Kitchen Counter Solid Wood",
+          "description": "A wooden book or recipe stand sold without confirmed personalization. Arrange engraving separately only after checking that the material and design are suitable. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81g6JgKgTRL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F37XNX9Y?tag=thegoodpresen-20"
         }
       ],
+      "position": 5,
+      "heading": "A Personalized Reading and Tablet Stand",
       "editorialDescription": "A wooden reading stand holds a book, tablet, or recipe at a comfortable viewing angle while adding a warm detail to a desk or kitchen. A discreet name or short inscription can mark the new chapter without covering the piece in occupational slogans.",
       "whyItFits": "It is useful for study, recipes, video calls, and time off, so it can follow the recipient beyond the first weeks of a new job.",
       "bestFor": "A new nurse who reads, cooks from a screen, or uses a tablet at home",
@@ -134,15 +277,44 @@
     },
     {
       "id": "guide_eb314f33-a0e3-4f51-937e-e7a3dde5cd6e_slot-6",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Evermagin Entryway Shelf and Hooks",
-          "description": "A wall-mounted shelf with hooks for bags and small everyday items. Check the dimensions, mounting requirements, and listed load limits.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71ZtK1gOWyL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0DQV8TSM5?tag=thegoodpresen-20"
+          "name": "VASAGLE Coat Rack",
+          "description": "Compare this entryway organizer with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71kCff-o15L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0786BN4WY?tag=thegoodpresen-20"
+        },
+        {
+          "name": "VASAGLE Coat Rack",
+          "description": "Compare this entryway organizer with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71v+6+WBGPL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07C74SML5?tag=thegoodpresen-20"
+        },
+        {
+          "name": "KEETDY 3-Tier Long Shoe Rack for Closet Metal Shoe Organizer for Entryway",
+          "description": "This version offers a nesting or stacking format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81DYQOYoDpL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BBZYKGYV?tag=thegoodpresen-20"
+        },
+        {
+          "name": "HOOBRO Shoe Rack for Entryway",
+          "description": "This version offers an adjustable design. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81nbcnVb1oL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0B9N51B6G?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Expandable Metal Shoe Rack for Closet",
+          "description": "Compare this entryway organizer with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81DMiflH49L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DFYFKV4C?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 6,
       "heading": "An Entryway Organizer to Contain Work Gear",
       "editorialDescription": "An entryway organizer gives commute items, keys, bags, and shoes a dedicated landing spot near the door. For a new nurse, that can help keep work gear from spreading through the living space and make the next shift departure smoother. Options include wall-mounted hooks, cubby benches, shoe racks, and small consoles. Choose based on available floor and wall space, the entry's layout, and whether installation is allowed.",
@@ -154,15 +326,44 @@
     },
     {
       "id": "guide_eb314f33-a0e3-4f51-937e-e7a3dde5cd6e_slot-7",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "EverFoams Knit Slippers",
-          "description": "Cotton-knit slippers with memory foam. Check the size and follow the seller's gentle machine-wash instructions.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71FoRaccbQL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B07PYNRPP7?tag=thegoodpresen-20"
+          "name": "Anmerl 10 Pairs Disposable Hotel Slippers Bulk Guest House Shoes for Spa",
+          "description": "Compare this machine washable slippers with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71qG4Vnt2FL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BTSZNT7F?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Yueerlu Fuzzy Plaid House Slippers for Women Men",
+          "description": "This version offers a machine-washable design. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71YrIvGolXL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DD7GQ1RB?tag=thegoodpresen-20"
+        },
+        {
+          "name": "3 Pairs Plaid House Slippers for Men",
+          "description": "This version offers a folding design. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91SYTy8xqNL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F3CCV5RH?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Owl Slippers for Women",
+          "description": "This version offers a machine-washable design. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71CW1Z8cJkL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FK29381K?tag=thegoodpresen-20"
+        },
+        {
+          "name": "murmur Slippers for Men's House Shoes Non-slip Indoor Bedroom Slide Sandals…",
+          "description": "Compare this machine washable slippers with the other options for the recipient's routine and preferences. Check dimensions, sizing where applicable, fabric, and the washing instructions before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61PgX8uAKeL._AC_UL480_FMwebp_QL65_.jpg",
+          "sources": ["amazon-agent"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FJS1PBFG?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 7,
       "heading": "Machine-Washable Slippers for Off-Duty Comfort",
       "editorialDescription": "Washable house slippers add a soft landing for tired feet at home and are easy to freshen in the laundry. A new nurse who spends long hours standing may appreciate a pair reserved for indoor use, especially in shared or rental spaces. Look for a snug but not tight fit, a sole suitable for indoor floors, and materials that can be washed according to the care label. Consider whether the recipient prefers open-back or closed-back styling.",
@@ -175,17 +376,45 @@
     {
       "id": "serp_105ca337_759e_4408_a5fd_d12f64604892",
       "productResolution": "unresolved",
-      "position": 8,
-      "heading": "A Cordless Heated Foot Wrap",
       "shoppingOptions": [
         {
           "name": "Foot Renew cordless heated foot wrap pair",
           "description": "A portable heated wrap set with vibration controls. Review fit, charging and safety guidance; comfort claims are not medical advice.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0HFVLFNCJ?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71PbV1wjBcL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HFVLFNCJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "2Pcs Foot Massager for Neuropathy Plantar Fasciitis Pain Relief",
+          "description": "Compare this cordless heated foot wrap with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61-gliKXeQL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HG9FVWDR?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Foot Massager for Pain Relief",
+          "description": "Compare this cordless heated foot wrap with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81pQsTTDe-L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GV4DGJNF?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Ankle Massager with Heat and Vibration",
+          "description": "This version offers a multi-piece format. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71hrZ-X13VL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H2X6HRJ7?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Foot Renew 4-in-1 Cordless Foot & Ankle Heated Brace Wrap",
+          "description": "Compare this cordless heated foot wrap with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71FYh1XvGnL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0HF7FFD12?tag=thegoodpresen-20"
         }
       ],
+      "position": 8,
+      "heading": "A Cordless Heated Foot Wrap",
       "editorialDescription": "A cordless heated foot wrap offers a clearly defined home comfort ritual without taking over a room or requiring a permanent setup. A flexible pair can be used while reading, watching a show, or settling in after a demanding day.",
       "whyItFits": "It feels more like an intentional comfort gift than a routine appliance and gives a new nurse something reserved for off-duty time.",
       "bestFor": "A new nurse who likes warmth and quiet evenings at home",
@@ -195,15 +424,44 @@
     },
     {
       "id": "guide_eb314f33-a0e3-4f51-937e-e7a3dde5cd6e_slot-9",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
-          "name": "Lazebox Garment Bag",
-          "description": "A garment bag for hanging clothing. Check its length against the garments the recipient wants to store or carry.",
-          "imageUrl": "https://m.media-amazon.com/images/I/71XTO7fNbHL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B0C2Z537J3?tag=thegoodpresen-20"
+          "name": "Hanging Garment Bag (Set of 6) Black Side Breathable Dress Bags for Hanging…",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/41y+0-m71bL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B078SHKGTC?tag=thegoodpresen-20"
+        },
+        {
+          "name": "HomeClean Garment Bag (Set of 6) Plastic Garment Bags with Zipper Hanging…",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61V3ZnK4ltL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B078SML241?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Dress Bags for Hanging Clothes 24'' x 54'' Long Dress Hanging Garment Bag…",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/41FacQWY6aL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B078W57GKG?tag=thegoodpresen-20"
+        },
+        {
+          "name": "ZEGUR travel garment bag. Carry-on for Men & Women. Hangs 4 Items",
+          "description": "Compare this hanging garment bag with the other options for the recipient's routine and preferences. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/91xERDNTtrL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0116JXRU8?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Univivi Garment Bag Suit Bag for Storage and Travel",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61ASRYgSQVL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07FYCCHGD?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 9,
       "heading": "A Hanging Garment Bag for Clean Workwear",
       "editorialDescription": "A hanging garment bag gives clean scrubs, work layers, and uniforms a protected place to wait while keeping them separate from everyday clothes. It can hang in a closet or on a door and makes it easy to grab a ready outfit before a shift. Look for breathable material, a smooth zipper, and a size that holds the recipient's typical workwear without crushing it. A clear window or label spot can help identify what is inside.",
@@ -215,15 +473,51 @@
     },
     {
       "id": "guide_eb314f33-a0e3-4f51-937e-e7a3dde5cd6e_slot-10",
+      "productResolution": "unresolved",
       "shoppingOptions": [
         {
           "name": "MCIRCO Glass Food Container Set",
           "description": "Glass food containers for prepared meals. Review the manufacturer's freezer and reheating instructions, including separate rules for lids.",
           "imageUrl": "https://m.media-amazon.com/images/I/71mJ8Z0y3NL._AC_UL320_.jpg",
-          "affiliateUrl": "https://www.amazon.com/dp/B07HRRV96C?tag=thegoodpresen-20"
+          "affiliateUrl": "https://www.amazon.com/dp/B07HRRV96C?tag=thegoodpresen-20",
+          "sources": ["serpapi"]
+        },
+        {
+          "name": "C CREST [] Glass Meal Prep Containers",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81HfSfzlqUL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07R8BQD66?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Magic Mill Borosilicate Glass Food Storage Containers with lids Set",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71FWPwXrkRL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0C47KK5QZ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Liuruiyu Glass Food Storage Containers with Lids",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/811PAhhOvYL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F9K2KXZV?tag=thegoodpresen-20"
+        },
+        {
+          "name": "40pc Set Glass Food Storage Containers & Bowls with Airtight Lids Leakproof…",
+          "description": "This version offers a nesting or stacking format and a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/81uPCp-bMCL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DN6TVSMJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Borosilicate Glass Food Storage Containers Set with Lids",
+          "description": "This version offers a multi-piece format. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/71Twrt4eyuL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0FXXCTF1M?tag=thegoodpresen-20"
         }
       ],
-      "productResolution": "unresolved",
       "position": 10,
       "heading": "Freezer-Safe Containers for Make-Ahead Meals",
       "editorialDescription": "A freezer-safe meal-prep container set helps a new nurse portion and store meals for the week ahead. It pairs well with batch cooking, whether the recipient prepares several servings on a day off or divides leftovers after dinner. Look for containers that stack neatly, seal securely, and move easily from freezer to refrigerator to reheating. Consider a mix of sizes so the set can handle single servings, sides, and larger portions.",
@@ -236,17 +530,45 @@
     {
       "id": "serp_9a847aa6_98a7_4bbf_9ba3_eb63e82f8d2d",
       "productResolution": "unresolved",
-      "position": 11,
-      "heading": "A Rotating Adjustable Laptop Stand",
       "shoppingOptions": [
         {
           "name": "LOXP rotating laptop stand",
           "description": "An adjustable stand with a rotating base for a desk. Check supported laptop size, stability and keyboard placement.",
-          "affiliateUrl": "https://www.amazon.com/dp/B0DBLBJ2HG?tag=thegoodpresen-20",
           "imageUrl": "https://m.media-amazon.com/images/I/71DQp57-ltL._AC_UY218_.jpg",
-          "sources": ["serpapi"]
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0DBLBJ2HG?tag=thegoodpresen-20"
+        },
+        {
+          "name": "BESIGN LSX7 Laptop Stand with 360 Rotating Base",
+          "description": "This version offers an adjustable design and a folding design. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61kN3L1r3WL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0BT9L688F?tag=thegoodpresen-20"
+        },
+        {
+          "name": "tounee Telescopic Laptop Stand for Desk with 360° Swivel Base",
+          "description": "This version offers an adjustable design. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61BilDos9dL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09Y8B81F7?tag=thegoodpresen-20"
+        },
+        {
+          "name": "OMOTON Adjustable Laptop Stand for Desk 360° Rotating Base up to 17\" Silver",
+          "description": "This version offers an adjustable design. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61357+bhTXL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B08R8GWBSM?tag=thegoodpresen-20"
+        },
+        {
+          "name": "RIWUCT 360° Rotatable Laptop Stand for Desk Adjustable Height",
+          "description": "This version offers an adjustable design. Compare the dimensions, materials, included pieces, and seller details before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61QwflSVGmL._AC_UY218_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0F1FK6JY3?tag=thegoodpresen-20"
         }
       ],
+      "position": 11,
+      "heading": "A Rotating Adjustable Laptop Stand",
       "editorialDescription": "An adjustable laptop stand makes it easier to shift between a desk, kitchen table, or other study spot while keeping the computer at a more comfortable working height. Its rotating design can also help when sharing a screen or changing positions.",
       "whyItFits": "It supports the flexible study and paperwork habits that often accompany a first nursing role without taking up permanent desk space.",
       "bestFor": "A new nurse who studies, completes training, or handles planning from multiple locations.",
@@ -257,17 +579,45 @@
     {
       "id": "serp_8a25d962_328c_4bdb_bd10_f9fdb1d38d56",
       "productResolution": "unresolved",
-      "position": 12,
-      "heading": "A Gooseneck Tea Kettle",
       "shoppingOptions": [
         {
-          "name": "Pinky Up Noelle ceramic kettle",
-          "description": "A ceramic electric kettle with a gooseneck spout. Check capacity, weight, temperature controls and the recipient's preferred color.",
-          "affiliateUrl": "https://www.amazon.com/dp/B07TJSSGB7?tag=thegoodpresen-20",
-          "imageUrl": "https://m.media-amazon.com/images/I/61nH-elbYeL._AC_UL320_.jpg",
-          "sources": ["serpapi"]
+          "name": "Cosori Gooseneck Electric Kettle with Temperature Control",
+          "description": "Compare this gooseneck electric kettle with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/51wSbjhVnZL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B07T1CH2HH?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Govee Smart Electric Kettle",
+          "description": "Compare this gooseneck electric kettle with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/614JetLU+tL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B09TSKDKCL?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Cocinare Gooseneck Electric Kettle 0.8L",
+          "description": "Compare this gooseneck electric kettle with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/614+zp9kP8L._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H3NGXGG5?tag=thegoodpresen-20"
+        },
+        {
+          "name": "Gooseneck Electric Kettle with Temperature Control ±1°F Precision",
+          "description": "Compare this gooseneck electric kettle with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/61k5x+jY0HL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0H2M94MBJ?tag=thegoodpresen-20"
+        },
+        {
+          "name": "POLIVIAR Electric Gooseneck Kettle",
+          "description": "Compare this gooseneck electric kettle with the other options for the recipient's routine and preferences. Check device compatibility, charging requirements, and the included accessories before buying.",
+          "imageUrl": "https://m.media-amazon.com/images/I/616PEVWSmrL._AC_UL320_.jpg",
+          "sources": ["serpapi"],
+          "affiliateUrl": "https://www.amazon.com/dp/B0GWM42PHF?tag=thegoodpresen-20"
         }
       ],
+      "position": 12,
+      "heading": "A Gooseneck Tea Kettle",
       "editorialDescription": "A gooseneck kettle turns tea preparation into a small, unhurried ritual during time off. Its distinctive shape also brings a considered look to an otherwise functional kitchen item.",
       "whyItFits": "It offers a pleasant counterpoint to a demanding schedule and feels personal without adding another work-themed accessory.",
       "bestFor": "A tea drinker who enjoys deliberate kitchen routines and attractive everyday tools.",
